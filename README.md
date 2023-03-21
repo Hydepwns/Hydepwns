@@ -5,6 +5,7 @@ Hey there!
 I am Drew. 👋
 
 Current: [Lido](https://www.lido.fi)💧 Protocol Specialist ✨👁️👄👁️✨
+
 Previously: [Blockdaemon](https://blockdaemon.com/)😈 R&D Protocol Specialist, primarily around the Cosmos Protocol Ecosystem 🛸
 
 In a previous life I have been a professional sailboat-er, merchant mariner (3/M deck license), and inventor building nuclear submarines.

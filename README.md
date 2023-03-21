@@ -4,9 +4,10 @@ Hey there!
 
 I am Drew. 👋
 
-I work at [Blockdaemon](https://blockdaemon.com/)😈 as a R&D Protocol Specialist, primarily around the Cosmos Protocol Ecosystem 🛸
+Current: [Lido](https://www.lido.fi)💧 Protocol Specialist ✨👁️👄👁️✨
+Previously: [Blockdaemon](https://blockdaemon.com/)😈 R&D Protocol Specialist, primarily around the Cosmos Protocol Ecosystem 🛸
 
-In a previous life I have been a professional sailboater, merchant mariner (3/M deck license), and inventor building nuclear submarines.
+In a previous life I have been a professional sailboat-er, merchant mariner (3/M deck license), and inventor building nuclear submarines.
 My professional marine engineering experience is mostly applied MechE & ElecE, but I'm self-taught/learning Web3 and software engineering.
 
 📩 Telegram: @MF_DROO

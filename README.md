@@ -1,5 +1,3 @@
-Hey there! 
-
 (っ＾▿＾)۶🍺🌟🍺٩(˘◡˘ )
 
 I am Drew. 👋
@@ -15,4 +13,4 @@ My professional marine engineering experience is mostly applied MechE & ElecE, b
 
 🐦 Twitter: [@MF_DROO](https://twitter.com/MF_DROO)
 
-👾 Discord: [DROO#2635](https://discord.gg/blockdaemon)
+👾 Discord: mf_droo (UID: 170439714053029889)

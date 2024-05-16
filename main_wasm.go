@@ -4,8 +4,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"syscall/js"
 
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
@@ -17,24 +19,9 @@ type hello struct {
 }
 
 func (h *hello) Render() app.UI {
-	return app.Div().Body(
-		app.H1().Body(
-			app.Text("Hello, "),
-			app.If(h.name != "",
-				app.Text(h.name),
-			).Else(
-				app.Text("World!"),
-			),
-		),
-		app.P().Body(
-			app.Input().
-				Type("text").
-				Value(h.name).
-				Placeholder("What is your name?").
-				AutoFocus(true).
-				OnChange(h.ValueTo(&h.name)),
-		),
-	)
+	// Instead of returning UI directly, send output to JavaScript
+	js.Global().Call("displayInTerminal", fmt.Sprintf("Hello, %s!", h.name))
+	return nil // Return nil if you handle rendering through JavaScript
 }
 
 func main() {
@@ -45,8 +32,8 @@ func main() {
 
 	// HTTP routing:
 	http.Handle("/", &app.Handler{
-		Name:        "Hello",
-		Description: "An Hello World! example",
+		Name:        "DROO.foo",
+		Description: "The future belongs to those who believe in the beauty of their dreams.",
 	})
 
 	if err := http.ListenAndServe(":8000", nil); err != nil {

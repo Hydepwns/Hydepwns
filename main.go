@@ -1,4 +1,5 @@
 //go:build !wasm
+// +build !wasm
 
 package main
 
@@ -16,7 +17,7 @@ type model struct {
 
 func initialModel() model {
 	return model{
-		// Our to-do list is a developer portfolio
+		// developer portfolio links
 		choices: []string{"GitHub", "LinkedIn", "Twitter"},
 
 		// A map which indicates which choices are selected. We're using
@@ -105,7 +106,8 @@ func (m model) View() string {
 
 func main() {
 	p := tea.NewProgram(initialModel())
-	if err := p.Start(); err != nil {
+	_, err := p.Run() // Ignore the model state, capture the error
+	if err != nil {
 		fmt.Printf("Error starting Bubble Tea program: %v", err)
 	}
 }

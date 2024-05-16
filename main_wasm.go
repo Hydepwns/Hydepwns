@@ -4,7 +4,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"syscall/js"
@@ -12,23 +11,16 @@ import (
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
-type hello struct {
-	app.Compo
-
-	name string
-}
-
-func (h *hello) Render() app.UI {
-	// Instead of returning UI directly, send output to JavaScript
-	js.Global().Call("displayInTerminal", fmt.Sprintf("Hello, %s!", h.name))
-	return nil // Return nil if you handle rendering through JavaScript
+func sendData(this js.Value, inputs []js.Value) interface{} {
+	input := inputs[0].String()
+	// Process the input, for example, just echo it back for now
+	js.Global().Call("displayInTerminal", "Received: "+input)
+	return nil
 }
 
 func main() {
-	// Components routing:
-	app.Route("/", &hello{})
-	app.Route("/hello", &hello{})
-	app.RunWhenOnBrowser()
+	// Register the function with JS
+	js.Global().Set("send_data", js.FuncOf(sendData))
 
 	// HTTP routing:
 	http.Handle("/", &app.Handler{

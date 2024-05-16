@@ -14,12 +14,13 @@
         term.open(document.getElementById('terminal'));
 
         function displayInTerminal(output) {
-            term.write(output);
+            term.write(output + "\r\n");
         }
 
         // Additional JavaScript to handle communication with WebAssembly
         term.onData(data => {
             // Send data to WASM
+            window.wasmApp.send_data(data.trim());
         });
     </script>
 </body>

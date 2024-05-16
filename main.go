@@ -1,60 +1,111 @@
+//go:build !wasm
+
 package main
 
 import (
-	"log"
-	"net/http"
+	"fmt"
 
-	"github.com/maxence-charriere/go-app/v9/pkg/app"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
-// hello is a component that displays a simple "Hello World!". A component is a
-// customizable, independent, and reusable UI element. It is created by
-// embedding app.Compo into a struct.
-type hello struct {
-	app.Compo
+type model struct {
+	choices  []string         // items on the to-do list
+	cursor   int              // which to-do list item our cursor is pointing at
+	selected map[int]struct{} // which to-do items are selected
 }
 
-// The Render method is where the component appearance is defined. Here, a
-// "Hello World!" is displayed as a heading.
-func (h *hello) Render() app.UI {
-	return app.H1().Text("Hello World!")
+func initialModel() model {
+	return model{
+		// Our to-do list is a developer portfolio
+		choices: []string{"GitHub", "LinkedIn", "Twitter"},
+
+		// A map which indicates which choices are selected. We're using
+		// the  map like a mathematical set. The keys refer to the indexes
+		// of the `choices` slice, above.
+		selected: make(map[int]struct{}),
+	}
 }
 
-// The main function is the entry point where the app is configured and started.
-// It is executed in 2 different environments: A client (the web browser) and a
-// server.
+func (m model) Init() tea.Cmd {
+	// Just return `nil`, which means "no I/O right now, please."
+	return nil
+}
+
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+
+	// Is it a key press?
+	case tea.KeyMsg:
+
+		// Cool, what was the actual key pressed?
+		switch msg.String() {
+
+		// These keys should exit the program.
+		case "ctrl+c", "q":
+			return m, tea.Quit
+
+		// The "up" and "k" keys move the cursor up
+		case "up", "k":
+			if m.cursor > 0 {
+				m.cursor--
+			}
+
+		// The "down" and "j" keys move the cursor down
+		case "down", "j":
+			if m.cursor < len(m.choices)-1 {
+				m.cursor++
+			}
+
+		// The "enter" key and the spacebar (a literal space) toggle
+		// the selected state for the item that the cursor is pointing at.
+		case "enter", " ":
+			_, ok := m.selected[m.cursor]
+			if ok {
+				delete(m.selected, m.cursor)
+			} else {
+				m.selected[m.cursor] = struct{}{}
+			}
+		}
+	}
+
+	// Return the updated model to the Bubble Tea runtime for processing.
+	// Note that we're not returning a command.
+	return m, nil
+}
+
+func (m model) View() string {
+	// The header
+	s := "What should we visit?\n\n"
+
+	// Iterate over our choices
+	for i, choice := range m.choices {
+
+		// Is the cursor pointing at this choice?
+		cursor := " " // no cursor
+		if m.cursor == i {
+			cursor = ">" // cursor!
+		}
+
+		// Is this choice selected?
+		checked := " " // not selected
+		if _, ok := m.selected[i]; ok {
+			checked = "x" // selected!
+		}
+
+		// Render the row
+		s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice)
+	}
+
+	// The footer
+	s += "\nPress q to quit.\n"
+
+	// Send the UI for rendering
+	return s
+}
+
 func main() {
-	// The first thing to do is to associate the hello component with a path.
-	//
-	// This is done by calling the Route() function,  which tells go-app what
-	// component to display for a given path, on both client and server-side.
-	app.Route("/", &hello{})
-
-	// Once the routes set up, the next thing to do is to either launch the app
-	// or the server that serves the app.
-	//
-	// When executed on the client-side, the RunWhenOnBrowser() function
-	// launches the app,  starting a loop that listens for app events and
-	// executes client instructions. Since it is a blocking call, the code below
-	// it will never be executed.
-	//
-	// When executed on the server-side, RunWhenOnBrowser() does nothing, which
-	// lets room for server implementation without the need for precompiling
-	// instructions.
-	app.RunWhenOnBrowser()
-
-	// Finally, launching the server that serves the app is done by using the Go
-	// standard HTTP package.
-	//
-	// The Handler is an HTTP handler that serves the client and all its
-	// required resources to make it work into a web browser. Here it is
-	// configured to handle requests with a path that starts with "/".
-	http.Handle("/", &app.Handler{
-		Name:        "Hello",
-		Description: "An Hello World! example",
-	})
-
-	if err := http.ListenAndServe(":8000", nil); err != nil {
-		log.Fatal(err)
+	p := tea.NewProgram(initialModel())
+	if err := p.Start(); err != nil {
+		fmt.Printf("Error starting Bubble Tea program: %v", err)
 	}
 }

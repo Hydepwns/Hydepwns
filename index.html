@@ -8,7 +8,6 @@
 <body>
     <div id="terminal"></div>
     <script src="https://cdn.jsdelivr.net/npm/xterm@4/lib/xterm.js"></script>
-    <script src="app.wasm"></script>
     <script>
         const term = new Terminal();
         term.open(document.getElementById('terminal'));
@@ -16,12 +15,6 @@
         function displayInTerminal(output) {
             term.write(output + "\r\n");
         }
-
-        // Additional JavaScript to handle communication with WebAssembly
-        term.onData(data => {
-            // Send data to WASM
-            window.wasmApp.send_data(data.trim());
-        });
     </script>
 </body>
 </html>

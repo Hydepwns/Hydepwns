@@ -3,18 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>DROO.foo</title>
-    <link href="https://cdn.jsdelivr.net/npm/xterm@4/css/xterm.css" rel="stylesheet">
 </head>
 <body>
-    <div id="terminal"></div>
-    <script src="https://cdn.jsdelivr.net/npm/xterm@4/lib/xterm.js"></script>
-    <script>
-        const term = new Terminal();
-        term.open(document.getElementById('terminal'));
-
-        function displayInTerminal(output) {
-            term.write(output + "\r\n");
-        }
-    </script>
 </body>
 </html>

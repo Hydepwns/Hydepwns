@@ -1,11 +1,54 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
 <Layout>
-	<Welcome />
+  <main>
+    <section id="intro">
+      <h1>Hey, I'm Drew. 👋</h1>
+      <p>My engineering experience is applied marine MechE & ElecE, now I'm learning Web3 & software engineering.</p>
+    </section>
+
+    <section id="current">
+      <h2>Current</h2>
+      <ul>
+        <li><a href="https://twitter.com/axol_io">axol.io</a> 🌵🏗️ Co-founder, building sustainable crypto node infra & FOSS</li>
+      </ul>
+    </section>
+
+    <section id="previous">
+      <h2>Previously</h2>
+      <ul>
+        <li><a href="https://www.lido.fi">LidoDAO</a> 💧 Protocol Specialist, EVM competition & ecosystem landscape within Node Operator Mechanisms team</li>
+        <li><a href="https://blockdaemon.com/">Blockdaemon</a> 😈 Protocol Specialist & NodeOps, primarily around the Cosmos Tendermint Protocol Ecosystem 🛸</li>
+      </ul>
+    </section>
+
+    <section id="pre-crypto">
+      <h2>Pre-crypto</h2>
+      <p>I was a professional <a href="https://en.wikipedia.org/wiki/Inter-Collegiate_Sailing_Association#Teams">sailor</a>, <a href="https://en.wikipedia.org/wiki/Third_mate">USCG merchant mariner</a> (3/M deck license), and engineer working on <a href="https://en.wikipedia.org/wiki/General_Dynamics_Electric_Boat">nuclear submarines</a>.</p>
+    </section>
+  </main>
 </Layout>
+
+<style>
+  main {
+    padding: 16px;
+  }
+  section {
+    margin-bottom: 24px;
+  }
+  h1, h2 {
+    color: #111827;
+  }
+  p, li {
+    color: #4b5563;
+  }
+  a {
+    color: #3245ff;
+    text-decoration: none;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+</style>

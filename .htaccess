@@ -1,0 +1,9 @@
+RewriteEngine On
+
+# Redirect all specified domains to https://www.droo.foo
+RewriteCond %{HTTP_HOST} ^(www\.)?(droo\.boo|droo\.cam|droo\.cyou|droo\.live|droo\.online|droo\.pro)$ [NC]
+RewriteRule ^(.*)$ https://www.droo.foo/$1 [L,R=301]
+
+# Ensure HTTPS is used
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]

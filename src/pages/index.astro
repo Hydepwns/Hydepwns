@@ -4,6 +4,7 @@ import Layout from '../layouts/Layout.astro';
 
 <Layout>
   <main>
+    <button id="theme-toggle" class="theme-toggle">🌞 | 🌚</button>
     <section id="intro">
       <h1>Hey, I'm Drew. 👋</h1>
       <p>My engineering experience is applied marine MechE & ElecE, now I'm learning Web3 & software engineering.</p>
@@ -17,7 +18,7 @@ import Layout from '../layouts/Layout.astro';
     </section>
 
     <section id="previous">
-      <h2>Previously</h2>
+      <h2>Previous</h2>
       <ul>
         <li><a href="https://www.lido.fi">LidoDAO</a> 💧 Protocol Specialist, EVM competition & ecosystem landscape within Node Operator Mechanisms team</li>
         <li><a href="https://blockdaemon.com/">Blockdaemon</a> 😈 Protocol Specialist & NodeOps, primarily around the Cosmos Tendermint Protocol Ecosystem 🛸</li>
@@ -31,15 +32,41 @@ import Layout from '../layouts/Layout.astro';
   </main>
 </Layout>
 
+<script>
+  const toggleButton = document.getElementById('theme-toggle');
+  const body = document.body;
+
+  // Set initial theme
+  if (!localStorage.getItem('theme')) {
+    localStorage.setItem('theme', 'dark');
+  }
+  body.classList.add(localStorage.getItem('theme') || 'dark');
+
+  if (toggleButton) {
+    toggleButton.addEventListener('click', () => {
+      const currentTheme = body.classList.contains('dark') ? 'dark' : 'light';
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      body.classList.remove(currentTheme);
+      body.classList.add(newTheme);
+      localStorage.setItem('theme', newTheme);
+    });
+  }
+</script>
+
 <style>
   main {
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+    justify-content: left;
     padding: 16px;
+    height: 100vh;
   }
   section {
     margin-bottom: 24px;
   }
   h1, h2 {
-    color: #111827;
+    color: #750ab4;
   }
   p, li {
     color: #4b5563;
@@ -50,5 +77,38 @@ import Layout from '../layouts/Layout.astro';
   }
   a:hover {
     text-decoration: underline;
+  }
+  @font-face {
+    font-family: 'Monaspace Argon';
+    src: url('../assets/fonts/MonaspaceArgon-Regular.woff2') format('woff2'),
+         url('../assets/fonts/MonaspaceArgon-Regular.woff') format('woff'),
+         url('../assets/fonts/MonaspaceArgon-Bold.woff2') format('woff2'),
+         url('../assets/fonts/MonaspaceArgon-Bold.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+  }
+  h1, h2 {
+    font-family: 'Monaspace Argon', monospace;
+    font-weight: bold;
+    font-style: bold;
+  }
+  body {
+    font-family: 'Monaspace Argon', monospace;
+  }
+  body.dark {
+    background-color: #111827;
+    color: #ffffff;
+  }
+  body.light {
+    background-color: #a7a7a7;
+    color: #111827;
+  }
+  .theme-toggle {
+    font-size: 24px;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    background-color: transparent;
+    align-self: flex-end;
   }
 </style>

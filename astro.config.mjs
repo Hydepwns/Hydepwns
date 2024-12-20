@@ -8,4 +8,5 @@ export default defineConfig({
   site: 'https://www.droo.foo',
   integrations: [],
   adapter: cloudflare(),
+  base: '/',
 });

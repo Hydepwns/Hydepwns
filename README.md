@@ -6,7 +6,7 @@ Current:
 
 - [axol.io](https://twitter.com/axol_io)🌵🏗️ Co-founder, building sustainable crypto node infra & FOSS
 
-Previously:
+Previous:
 
 - [LidoDAO](https://www.lido.fi)💧 Protocol Specialist, EVM competition & ecosystem landscape within Node Operator Mechanisms team
 - [Blockdaemon](https://blockdaemon.com/)😈 Protocol Specialist & NodeOps, primarily around the Cosmos Tendermint Protocol Ecosystem 🛸

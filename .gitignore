@@ -1,28 +1,37 @@
-# planning doc
-.PRINCIPLES.md
+# The directory Mix will write compiled artifacts to.
+/_build/
 
-# build output
-dist/
+# If you run "mix test --cover", coverage assets end up here.
+/cover/
 
-# generated types
-.astro/
+# The directory Mix downloads your dependencies sources to.
+/deps/
 
-# dependencies
-node_modules/
+# Where 3rd-party dependencies like ExDoc output generated docs.
+/doc/
 
-# logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
+# Ignore .fetch files in case you like to edit your project deps locally.
+/.fetch
 
-# environment variables
-.env
-.env.production
+# If the VM crashes, it generates a dump, let's ignore it too.
+erl_crash.dump
 
-# macOS-specific files
-.DS_Store
+# Also ignore archive artifacts (built via "mix archive.build").
+*.ez
 
-# jetbrains setting folder
-.idea/
+# Temporary files, for example, from tests.
+/tmp/
+
+# Ignore package tarball (built via "mix hex.build").
+hydepwns_liveview-*.tar
+
+# Ignore assets that are produced by build tools.
+/priv/static/assets/
+
+# Ignore digested assets cache.
+/priv/static/cache_manifest.json
+
+# In case you use Node.js/npm, you want to ignore these.
+npm-debug.log
+/assets/node_modules/
 

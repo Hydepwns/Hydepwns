@@ -1,0 +1,156 @@
+/* Import custom CSS files */
+@import "./reset.css";
+@import "./themes/themes.css";
+
+/* This file is for your main application CSS */
+
+/* Custom styles for LiveView implementation */
+.theme-toggle {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.theme-toggle button {
+  padding: 0.5rem;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  font-size: 1.25rem;
+}
+
+.site-nav {
+  padding: 1rem;
+  display: flex;
+  gap: 1rem;
+}
+
+.site-nav a {
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.site-header {
+  padding: 1rem;
+}
+
+.mono-button {
+  font-family: 'Monaspace Argon', monospace;
+  padding: 0.5rem 1rem;
+  border: 1px solid currentColor;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* Custom classes to replace Tailwind */
+.container {
+  max-width: 1024px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.page-title {
+  font-size: 2.25rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+}
+
+.card {
+  background-color: #fff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.section-title.with-border {
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 0.5rem;
+}
+
+.section-subtitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.section-text {
+  margin-bottom: 1rem;
+}
+
+.button-group {
+  display: flex;
+  gap: 1rem;
+}
+
+.button-showcase {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.two-column-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .two-column-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.feature-list {
+  list-style-type: disc;
+  padding-left: 1.25rem;
+}
+
+.feature-list li {
+  margin-bottom: 0.5rem;
+}
+
+.link {
+  color: #3b82f6;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.header-with-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.section {
+  margin-bottom: 2.5rem;
+}
+
+/* Dark mode overrides */
+@media (prefers-color-scheme: dark) {
+  .card {
+    background-color: #1f2937;
+    color: #f3f4f6;
+  }
+  
+  .link {
+    color: #60a5fa;
+  }
+  
+  .section-title.with-border {
+    border-bottom-color: #4b5563;
+  }
+}

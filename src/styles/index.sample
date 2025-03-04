@@ -1,82 +1,19 @@
-@font-face {
-  font-family: 'Monaspace Argon';
-  src: url('/fonts/MonaspaceArgon-Regular.woff2') format('woff2'),
-       url('/fonts/MonaspaceArgon-Regular.woff') format('woff');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Monaspace Argon';
-  src: url('/fonts/MonaspaceArgon-Bold.woff2') format('woff2'),
-       url('/fonts/MonaspaceArgon-Bold.woff') format('woff');
-  font-weight: 700;
-  font-style: bold;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Monaspace Argon';
-  src: url('/fonts/MonaspaceArgon-ExtraBold.woff2') format('woff2'),
-       url('/fonts/MonaspaceArgon-ExtraBold.woff') format('woff');
-  font-weight: 800;
-  font-style: bold;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Monaspace Argon';
-  src: url('/fonts/MonaspaceArgon-Italic.woff2') format('woff2'),
-       url('/fonts/MonaspaceArgon-Italic.woff') format('woff');
-  font-weight: 400;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Monaspace Argon';
-  src: url('/fonts/MonaspaceArgon-BoldItalic.woff2') format('woff2'),
-       url('/fonts/MonaspaceArgon-BoldItalic.woff') format('woff');
-  font-weight: 700;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Monaspace Argon';
-  src: url('/fonts/MonaspaceArgon-ExtraBoldItalic.woff2') format('woff2'),
-       url('/fonts/MonaspaceArgon-ExtraBoldItalic.woff') format('woff');
-  font-weight: 800;
-  font-style: italic;
-  font-display: swap;
-}
+@import url('https://fonts.cdnfonts.com/css/jetbrains-mono-2');
 
 :root {
-  /* Color Variables */
-  --primary: #000000;
-  --text: #ffffff;
-  --accent: #444444;
-  --background: #000000;
-  --synthwave-purple: #6a0dad;
-  --synthwave-blue: #00f0ff;
-  --synthwave-green: #72f1b8;
-  --synthwave-red: #f97e72;
-  --synthwave-pink: #f92aad;
-
-  /* Font Variables */
-  --font-family: 'Monaspace Argon', monospace;
-  --font-optical-sizing: auto;
-  --font-weight-normal: 400;
-  --font-weight-medium: 700;
-  --font-weight-bold: 800;
-  --line-height: 1.6;
-
-  /* Other Variables */
+  --font-family: "JetBrains Mono", monospace;
+  --line-height: 1.20rem;
   --border-thickness: 2px;
+  --text-color: #000;
+  --text-color-alt: #666;
+  --background-color: #fff;
+  --background-color-alt: #eee;
 
-  /* Base Styles */
-  font-family: 'Monaspace Argon', monospace;
+  --font-weight-normal: 500;
+  --font-weight-medium: 600;
+  --font-weight-bold: 800;
+
+  font-family: var(--font-family);
   font-optical-sizing: auto;
   font-weight: var(--font-weight-normal);
   font-style: normal;
@@ -93,37 +30,10 @@
   }
 }
 
-.dark-theme {
-  --text-color: #fff;
-  --text-color-alt: #444444;
-  --background-color: #000;
-  --background-color-alt: #111;
-}
-
-.dim-theme {
-  --text-color: #fff;
-  --text-color-alt: #ff7edb;
-  --background-color: #241B2F;
-  --background-color-alt: #ff7edb;
-}
-
-.light-theme {
-  --text-color: #000;
-  --text-color-alt: #241B2F;
-  --background-color: #fff;
-  --background-color-alt: #ff7eda77;
-}
-
-.theme-toggle {
-  display: flex;
-  justify-content: right;
-  align-items: center;
-  gap: 10px;
-}
-
 * {
   box-sizing: border-box;
 }
+
 
 * + * {
   margin-top: var(--line-height);
@@ -140,38 +50,14 @@ html {
   color: var(--text-color);
 }
 
-button {
-  border: none;
-  font-family: var(--font-family);
-  text-transform: uppercase;
-  cursor: pointer;
-  background-color: transparent;
-  border-radius: 3px;
-}
-
-button:hover {
-  background-color: var(--synthwave-purple);
-  transform: scale(1.05);
-}
-
-button:active {
-  transform: translate(2px, 2px);
-}
-
 body {
   position: relative;
   width: 100%;
   margin: 0;
-  padding: 0;
+  padding: var(--line-height) 2ch;
   max-width: calc(min(80ch, round(down, 100%, 1ch)));
   line-height: var(--line-height);
-  padding: var(--line-height) 2ch;
   overflow-x: hidden;
-}
-
-body.dark, body.light, body.dim {
-  background-color: var(--background-color);
-  color: var(--text-color);
 }
 
 @media screen and (max-width: 480px) {
@@ -186,62 +72,18 @@ body.dark, body.light, body.dim {
 h1, h2, h3, h4, h5, h6 {
   font-weight: var(--font-weight-bold);
   margin: calc(var(--line-height) * 2) 0 var(--line-height);
+  line-height: var(--line-height);
 }
 
 h1 {
   font-size: 2rem;
   line-height: calc(2 * var(--line-height));
+  margin-bottom: calc(var(--line-height) * 2);
   text-transform: uppercase;
 }
-
 h2 {
   font-size: 1rem;
   text-transform: uppercase;
-}
-
-p, li {
-  color: var(--text-color);
-  font-family: var(--font-family);
-  padding: 5px 0;
-  font-weight: var(--font-weight-normal);
-}
-
-a {
-  color: var(--synthwave-purple);
-  text-decoration-thickness: var(--border-thickness);
-  transition: color 0.2s;
-}
-
-a:hover {
-  color: var(--synthwave-purple);
-  text-decoration: underline;
-}
-
-nav {
-  position: sticky;
-}
-
-nav ul {
-  list-style: none;
-  padding: 0;
-  margin: 0 auto;
-  display: flex;
-  gap: 15px;
-  flex-wrap: wrap;
-}
-
-nav li {
-  margin: 0;
-}
-
-nav a {
-  color: var(--text-color);
-  text-decoration: none;
-  font-weight: 800;
-}
-
-nav a:hover {
-  text-decoration: underline;
 }
 
 hr {
@@ -314,6 +156,7 @@ th, td {
 table tbody tr:first-child > * {
   padding-top: calc((var(--line-height) / 2) - var(--border-thickness));
 }
+
 
 th {
   font-weight: 700;
@@ -606,7 +449,7 @@ label input {
 }
 
 .debug .off-grid {
-  background: rgba(255, 0, 0, 0.08);
+  background: rgba(255, 0, 0, 0.1);
 }
 
 .debug-toggle-label {

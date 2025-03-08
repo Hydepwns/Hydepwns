@@ -15,47 +15,50 @@
 //     import "some-package"
 //
 
-// Include phoenix_html to handle method=PUT/DELETE in forms and buttons.
+// Include phoenix_html to handle method=PUT/DELETE in forms and buttons
 import "phoenix_html"
-// Establish Phoenix Socket and LiveView configuration.
 import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 
-let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
-let liveSocket = new LiveSocket("/live", Socket, {
+// Import component hooks
+import DebugGrid from "./components/debug_grid"
+import ThemeToggle from "./components/theme_toggle"
+import { CharacterAnimation, GridFadeIn } from "./components/animations"
+
+// Initialize Phoenix LiveView
+const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
+
+// Register all component hooks
+const Hooks = {
+  DebugGridToggle: DebugGrid,
+  ThemeToggle: ThemeToggle,
+  CharacterAnimation: CharacterAnimation,
+  GridFadeIn: GridFadeIn
+}
+
+// Create LiveSocket with hooks
+const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
-  params: {_csrf_token: csrfToken}
+  params: {_csrf_token: csrfToken},
+  hooks: Hooks
 })
 
-// Show progress bar on live navigation and form submits
+// Configure page loading indicators
 topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"})
-window.addEventListener("phx:page-loading-start", _info => topbar.show(300))
-window.addEventListener("phx:page-loading-stop", _info => topbar.hide())
+window.addEventListener("phx:page-loading-start", () => topbar.show(300))
+window.addEventListener("phx:page-loading-stop", () => topbar.hide())
 
-// connect if there are any LiveViews on the page
+// Connect to LiveView
 liveSocket.connect()
 
-// Theme Toggling Functionality
-const setTheme = (theme) => {
-  document.documentElement.className = theme;
-  localStorage.setItem('theme', theme);
-};
-
-// Set initial theme from localStorage or default to dark-theme
+// Initialize theme from localStorage on page load
 document.addEventListener('DOMContentLoaded', () => {
-  const savedTheme = localStorage.getItem('theme') || 'dark-theme';
-  setTheme(savedTheme);
-});
+  const savedTheme = localStorage.getItem('theme') || 'dark-theme'
+  document.documentElement.className = savedTheme
+  document.body.classList.add(savedTheme)
+})
 
-// Listen for theme change events from LiveView buttons
-window.addEventListener('theme-set', (e) => {
-  setTheme(e.detail.theme);
-});
-
-// expose liveSocket on window for web console debug logs and latency simulation:
-// >> liveSocket.enableDebug()
-// >> liveSocket.enableLatencySim(1000)  // enabled for duration of browser session
-// >> liveSocket.disableLatencySim()
+// Expose liveSocket for debugging in development
 window.liveSocket = liveSocket
 

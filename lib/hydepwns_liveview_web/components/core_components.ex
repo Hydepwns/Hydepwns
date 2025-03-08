@@ -13,9 +13,24 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
   how to customize them or feel free to swap in another framework altogether.
 
   Icons are provided by [heroicons](https://heroicons.com). See `icon/1` for usage.
+
+  This module imports and re-exports components from specialized modules:
+  - ModalComponents - modal and flash related components
+  - FormComponents - form, input, and validation related components
+  - TableComponents - table and list components
+  - LayoutComponents - layout and navigation components
+  - Nav - navigation links
+  - DebugGrid - debug grid for monospace layout
   """
   use Phoenix.Component
   use Gettext, backend: HydepwnsLiveviewWeb.Gettext
+
+  import HydepwnsLiveviewWeb.Components.UI.ModalComponents
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents
+  import HydepwnsLiveviewWeb.Components.UI.TableComponents
+  import HydepwnsLiveviewWeb.Components.UI.LayoutComponents
+  import HydepwnsLiveviewWeb.Components.UI.Nav
+  import HydepwnsLiveviewWeb.Components.UI.DebugGrid
 
   alias Phoenix.LiveView.JS
 
@@ -571,17 +586,7 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
   end
 
   @doc """
-  Renders a [Heroicon](https://heroicons.com).
-
-  Heroicons come in three styles – outline, solid, and mini.
-  By default, the outline style is used, but solid and mini may
-  be applied by using the `-solid` and `-mini` suffix.
-
-  You can customize the size and colors of the icons by setting
-  width, height, and background color classes.
-
-  Icons are extracted from the `deps/heroicons` directory and bundled within
-  your compiled app.css by the plugin in your `assets/tailwind.config.js`.
+  Renders an icon.
 
   ## Examples
 
@@ -594,6 +599,12 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
   def icon(%{name: "hero-" <> _} = assigns) do
     ~H"""
     <span class={[@name, @class]} />
+    """
+  end
+
+  def icon(assigns) do
+    ~H"""
+    <Heroicons.icon name={@name} class={@class} />
     """
   end
 

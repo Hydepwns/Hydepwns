@@ -1,6 +1,7 @@
 defmodule HydepwnsLiveviewWeb.Router do
   use HydepwnsLiveviewWeb, :router
 
+  # Standard browser pipeline
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -10,10 +11,12 @@ defmodule HydepwnsLiveviewWeb.Router do
     plug :put_secure_browser_headers
   end
 
+  # API pipeline for future use
   pipeline :api do
     plug :accepts, ["json"]
   end
 
+  # Main application routes
   scope "/", HydepwnsLiveviewWeb do
     pipe_through :browser
 
@@ -21,18 +24,9 @@ defmodule HydepwnsLiveviewWeb.Router do
     live "/style-guide", StyleGuideLive
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", HydepwnsLiveviewWeb do
-  #   pipe_through :api
-  # end
-
-  # Enable LiveDashboard and Swoosh mailbox preview in development
+  # Development-only routes
   if Application.compile_env(:hydepwns_liveview, :dev_routes) do
-    # If you want to use the LiveDashboard in production, you should put
-    # it behind authentication and allow only admins to access it.
-    # If your application does not have an admins-only section yet,
-    # you can use Plug.BasicAuth to set up some basic authentication
-    # as long as you are also using SSL (which you should anyway).
+    # Import LiveDashboard for development
     import Phoenix.LiveDashboard.Router
 
     scope "/dev" do

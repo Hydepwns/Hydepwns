@@ -35,3 +35,8 @@ hydepwns_liveview-*.tar
 npm-debug.log
 /assets/node_modules/
 
+# MacOS filesystem metadata
+.DS_Store
+
+# xxx
+/docs/PRINCIPLES.md

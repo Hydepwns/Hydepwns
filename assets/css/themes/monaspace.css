@@ -1,0 +1,462 @@
+/* First import JetBrains Mono as fallback */
+@import url('https://fonts.cdnfonts.com/css/jetbrains-mono-2');
+
+/* Monaspace Argon font declarations */
+@font-face {
+  font-family: 'Monaspace Argon';
+  src: url('/fonts/MonaspaceArgon-Regular.woff2') format('woff2'),
+       url('/fonts/MonaspaceArgon-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Monaspace Argon';
+  src: url('/fonts/MonaspaceArgon-Bold.woff2') format('woff2'),
+       url('/fonts/MonaspaceArgon-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: bold;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Monaspace Argon';
+  src: url('/fonts/MonaspaceArgon-ExtraBold.woff2') format('woff2'),
+       url('/fonts/MonaspaceArgon-ExtraBold.woff') format('woff');
+  font-weight: 800;
+  font-style: bold;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Monaspace Argon';
+  src: url('/fonts/MonaspaceArgon-Italic.woff2') format('woff2'),
+       url('/fonts/MonaspaceArgon-Italic.woff') format('woff');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Monaspace Argon';
+  src: url('/fonts/MonaspaceArgon-BoldItalic.woff2') format('woff2'),
+       url('/fonts/MonaspaceArgon-BoldItalic.woff') format('woff');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Monaspace Argon';
+  src: url('/fonts/MonaspaceArgon-ExtraBoldItalic.woff2') format('woff2'),
+       url('/fonts/MonaspaceArgon-ExtraBoldItalic.woff') format('woff');
+  font-weight: 800;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Typography-specific CSS variables */
+:root {
+  /* Core Typography Variables */
+  --font-family: 'Monaspace Argon', 'JetBrains Mono', monospace;
+  --line-height: 1.20rem;
+  --border-thickness: 2px;
+  
+  /* Font weights */
+  --font-weight-normal: 400;
+  --font-weight-medium: 600;
+  --font-weight-bold: 800;
+}
+
+/* Responsive adjustments for typography */
+@media screen and (max-width: 480px) {
+  :root {
+    --line-height: 1.15rem;
+  }
+}
+
+/* Core Typography */
+:root {
+  /* Core Variables */
+  --text-color: #000;
+  --text-color-alt: #666;
+  --background-color: #fff;
+  --background-color-alt: #eee;
+  
+  /* Base font settings */
+  font-family: var(--font-family);
+  font-optical-sizing: auto;
+  font-weight: var(--font-weight-normal);
+  font-style: normal;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-size: 16px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text-color: #fff;
+    --text-color-alt: #aaa;
+    --background-color: #000;
+    --background-color-alt: #111;
+  }
+}
+
+/* Base Layout */
+* {
+  box-sizing: border-box;
+}
+
+* + * {
+  margin-top: var(--line-height);
+}
+
+html {
+  display: flex;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  flex-direction: column;
+  align-items: center;
+  background: var(--background-color);
+  color: var(--text-color);
+}
+
+body {
+  position: relative;
+  width: 100%;
+  margin: 0;
+  padding: var(--line-height) 2ch;
+  max-width: calc(min(80ch, round(down, 100%, 1ch)));
+  line-height: var(--line-height);
+  overflow-x: hidden;
+}
+
+/* Typography - Following monospace principles */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height);
+  margin-top: calc(var(--line-height) * 2);
+  margin-bottom: var(--line-height);
+}
+
+h1 {
+  font-size: 2rem;
+  line-height: calc(var(--line-height) * 2);
+}
+
+h2 {
+  font-size: 1.5rem;
+  line-height: calc(var(--line-height) * 1.5);
+}
+
+h3 {
+  font-size: 1.25rem;
+}
+
+p, li {
+  margin: 0 0 var(--line-height);
+  word-break: break-word;
+  word-wrap: break-word;
+  hyphens: auto;
+}
+
+a {
+  color: var(--text-color);
+  text-decoration: underline;
+  text-decoration-thickness: var(--border-thickness);
+  text-underline-offset: 2px;
+}
+
+a:hover {
+  color: var(--text-color-alt);
+}
+
+/* Table styles */
+table {
+  border-collapse: collapse;
+  width: calc(round(down, 100%, 1ch));
+  border: var(--border-thickness) solid var(--text-color);
+  margin: var(--line-height) 0;
+}
+
+th, td {
+  border: var(--border-thickness) solid var(--text-color);
+  padding:
+    calc(1ch - var(--border-thickness) / 2)
+    calc((var(--line-height) / 2) - (var(--border-thickness)))
+  ;
+  line-height: var(--line-height);
+  vertical-align: top;
+  text-align: left;
+}
+
+table tbody tr:first-child > * {
+  padding-top: calc((var(--line-height) / 2) - var(--border-thickness));
+}
+
+th {
+  font-weight: var(--font-weight-bold);
+}
+
+/* Lists */
+ul, ol {
+  padding: 0;
+  margin: 0 0 var(--line-height);
+}
+
+ul {
+  list-style-type: square;
+  padding: 0 0 0 2ch;
+}
+
+ol {
+  list-style-type: none;
+  counter-reset: item;
+  padding: 0;
+}
+
+ol ul,
+ol ol,
+ul ol,
+ul ul {
+  padding: 0 0 0 3ch;
+  margin: 0;
+}
+
+ol li:before { 
+  content: counters(item, ".") ". ";
+  counter-increment: item;
+  font-weight: var(--font-weight-medium);
+}
+
+li {
+  margin: 0;
+  padding: 0;
+}
+
+li::marker {
+  line-height: 0;
+}
+
+/* Form elements */
+input, button, textarea {
+  border: var(--border-thickness) solid var(--text-color);
+  padding: 
+    calc(var(--line-height) / 2 - var(--border-thickness))
+    calc(1ch - var(--border-thickness));
+  margin: 0;
+  font: inherit;
+  font-weight: inherit;
+  height: calc(var(--line-height) * 2);
+  width: auto;
+  overflow: visible;
+  background: var(--background-color);
+  color: var(--text-color);
+  line-height: normal;
+  -webkit-font-smoothing: inherit;
+  -moz-osx-font-smoothing: inherit;
+  -webkit-appearance: none;
+}
+
+input[type=checkbox],
+input[type=radio] {
+  display: inline-grid;
+  place-content: center;
+  vertical-align: top;
+  width: 2ch;
+  height: var(--line-height);
+  cursor: pointer;
+}
+
+input[type=checkbox]:checked:before,
+input[type=radio]:checked:before {
+  content: "";
+  width: 1ch;
+  height: calc(var(--line-height) / 2);
+  background: var(--text-color);
+}
+
+input[type=radio],
+input[type=radio]:before {
+  border-radius: 100%;
+}
+
+button:focus, input:focus {
+  --border-thickness: 3px;
+  outline: none;
+}
+
+input {
+  width: calc(round(down, 100%, 1ch));
+}
+
+::placeholder {
+  color: var(--text-color-alt);
+  opacity: 1;
+}
+
+::-ms-input-placeholder {
+  color: var(--text-color-alt);
+}
+
+button::-moz-focus-inner {
+  padding: 0;
+  border: 0
+}
+
+button {
+  text-transform: uppercase;
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}
+
+button:hover {
+  background: var(--background-color-alt);
+}
+
+button:active {
+  transform: translate(2px, 2px);
+}
+
+/* Code and pre */
+pre {
+  white-space: pre;
+  overflow-x: auto;
+  margin: var(--line-height) 0;
+  overflow-y: hidden;
+  padding: var(--line-height);
+  border: var(--border-thickness) solid var(--text-color);
+}
+
+code {
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Grid Layout - Essential for Monospace Web */
+.grid {
+  --grid-cells: 0;
+  display: flex;
+  gap: 1ch;
+  width: calc(round(down, 100%, (1ch * var(--grid-cells)) - (1ch * var(--grid-cells) - 1)));
+  margin-bottom: var(--line-height);
+}
+
+.grid > *,
+.grid > input {
+  flex: 0 0 calc(round(down, (100% - (1ch * (var(--grid-cells) - 1))) / var(--grid-cells), 1ch));
+}
+
+.grid:has(> :last-child:nth-child(1)) { --grid-cells: 1; }
+.grid:has(> :last-child:nth-child(2)) { --grid-cells: 2; }
+.grid:has(> :last-child:nth-child(3)) { --grid-cells: 3; }
+.grid:has(> :last-child:nth-child(4)) { --grid-cells: 4; }
+.grid:has(> :last-child:nth-child(5)) { --grid-cells: 5; }
+.grid:has(> :last-child:nth-child(6)) { --grid-cells: 6; }
+.grid:has(> :last-child:nth-child(7)) { --grid-cells: 7; }
+.grid:has(> :last-child:nth-child(8)) { --grid-cells: 8; }
+.grid:has(> :last-child:nth-child(9)) { --grid-cells: 9; }
+
+/* Headers */
+.header {
+  margin-bottom: calc(var(--line-height) * 2);
+}
+
+.header h1 {
+  margin: 0;
+}
+
+.header tr td:last-child {
+  text-align: right;
+}
+
+/* Media and figures */
+img, video {
+  display: block;
+  width: 100%;
+  object-fit: contain;
+  overflow: hidden;
+}
+
+img {
+  font-style: italic;
+  color: var(--text-color-alt);
+}
+
+figure {
+  margin: calc(var(--line-height) * 2) 3ch;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+figcaption {
+  display: block;
+  font-style: italic;
+  margin-top: var(--line-height);
+}
+
+/* Details and summary */
+details {
+  border: var(--border-thickness) solid var(--text-color);
+  padding: calc(var(--line-height) - var(--border-thickness)) 1ch;
+  margin-bottom: var(--line-height);
+}
+
+summary {
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}
+
+details[open] summary {
+  margin-bottom: var(--line-height);
+}
+
+details ::marker {
+  display: inline-block;
+  content: '▶';
+  margin: 0;
+}
+
+details[open] ::marker {
+  content: '▼';
+}
+
+details :last-child {
+  margin-bottom: 0;
+}
+
+/* Navigation */
+nav {
+  margin: 0;
+}
+
+nav ul {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  gap: 2ch;
+}
+
+nav li {
+  margin: 0;
+}
+
+nav a {
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-color);
+}
+
+nav a:hover {
+  color: var(--text-color-alt);
+}
+
+/* Blockquotes */
+blockquote {
+  margin: var(--line-height) 0;
+  padding-left: 2ch;
+  border-left: var(--border-thickness) solid var(--text-color);
+  font-style: italic;
+}

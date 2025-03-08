@@ -1,0 +1,243 @@
+/* Components CSS
+ * This file contains styles for specific UI components
+ */
+
+/* Theme toggle */
+.theme-toggle {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  z-index: 10;
+}
+
+.theme-toggle button {
+  padding: 0.5rem;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  font-size: 1.25rem;
+}
+
+/* Navigation */
+.site-nav {
+  padding: var(--line-height) 1ch;
+  display: flex;
+  gap: 1ch;
+}
+
+.site-nav a {
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-color);
+  padding: 0 0.5ch;
+}
+
+.site-nav a:hover {
+  text-decoration: underline;
+}
+
+.site-nav a.active {
+  font-weight: var(--font-weight-bold);
+}
+
+.nav-link {
+  text-decoration: none;
+  color: var(--text-color);
+  padding: 0.25ch 0.5ch;
+}
+
+.nav-link:hover {
+  text-decoration: underline;
+}
+
+.nav-link.active {
+  font-weight: var(--font-weight-bold);
+}
+
+/* Header components */
+.site-header {
+  padding: var(--line-height) 1ch;
+  margin-bottom: calc(var(--line-height) * 2);
+}
+
+.header-grid {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  grid-gap: 2ch;
+}
+
+.header-left {
+  align-self: start;
+}
+
+.header-right {
+  align-self: start;
+  justify-self: end;
+}
+
+/* Buttons */
+.mono-button {
+  font-family: var(--font-family);
+  padding: 0.5rem 1ch;
+  border: var(--border-thickness) solid var(--text-color);
+  background: transparent;
+  cursor: pointer;
+  display: inline-block;
+  text-decoration: none;
+  color: var(--text-color);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+}
+
+.mono-button:hover {
+  background-color: var(--background-color-alt);
+}
+
+.mono-button:active {
+  transform: translate(1px, 1px);
+}
+
+/* Debug grid */
+.debug-toggle {
+  position: fixed;
+  bottom: 3rem;
+  right: 1rem;
+  background-color: var(--background-color);
+  padding: 0.5ch;
+  border: var(--border-thickness) solid var(--text-color);
+  z-index: 10;
+}
+
+.debug-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5ch;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.debug-grid {
+  --color: color-mix(in srgb, var(--text-color) 10%, var(--background-color) 90%);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  background-image:
+    repeating-linear-gradient(var(--color) 0 1px, transparent 1px 100%),
+    repeating-linear-gradient(90deg, var(--color) 0 1px, transparent 1px 100%);
+  background-size: 1ch var(--line-height);
+  margin: 0;
+}
+
+.debug .off-grid {
+  background: rgba(255, 0, 0, 0.1);
+}
+
+/* Tables */
+.metadata {
+  margin-top: calc(var(--line-height) / 2);
+  border-collapse: collapse;
+}
+
+.metadata td {
+  padding: 0.25ch 1ch 0.25ch 0;
+  vertical-align: top;
+}
+
+.metadata td:first-child {
+  font-weight: var(--font-weight-medium);
+}
+
+/* Form elements */
+/* Common form styles - monospace grid alignment */
+input, button, textarea, select {
+  font-family: var(--font-family);
+  border: var(--border-thickness) solid var(--text-color);
+  padding: calc(var(--line-height) / 2 - var(--border-thickness)) calc(1ch - var(--border-thickness));
+  margin: 0;
+  background: var(--background-color);
+  color: var(--text-color);
+  line-height: normal;
+  -webkit-appearance: none;
+  font-size: 1rem;
+}
+
+input:focus, button:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--text-color);
+}
+
+form label {
+  display: block;
+  margin-bottom: calc(var(--line-height) / 2);
+  font-weight: var(--font-weight-medium);
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+textarea {
+  width: 100%;
+  height: calc(var(--line-height) * 2);
+}
+
+textarea {
+  min-height: calc(var(--line-height) * 4);
+  resize: vertical;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  display: inline-grid;
+  place-content: center;
+  width: 2ch;
+  height: var(--line-height);
+  margin-right: 0.5ch;
+  cursor: pointer;
+}
+
+select {
+  height: calc(var(--line-height) * 2);
+  padding-right: 2ch;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.5ch center;
+  background-size: 1.5ch;
+  cursor: pointer;
+}
+
+::placeholder {
+  color: var(--text-color-alt);
+  opacity: 0.5;
+}
+
+/* Other UI elements */
+details {
+  margin-bottom: var(--line-height);
+  padding: 0.5ch 1ch;
+  border: 1px solid var(--text-color-alt);
+}
+
+summary {
+  cursor: pointer;
+  font-weight: var(--font-weight-medium);
+  padding: 0.5ch 0;
+}
+
+blockquote {
+  margin: var(--line-height) 2ch;
+  padding-left: 1ch;
+  border-left: 2px solid var(--text-color-alt);
+}
+
+/* Focus styles for accessibility */
+*:focus-visible {
+  outline: 2px solid var(--text-color);
+  outline-offset: 2px;
+} 

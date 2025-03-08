@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full" data-theme>
+<html lang="en" data-theme>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -8,19 +8,36 @@
       <%= assigns[:page_title] || "Home" %>
     </.live_title>
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
-    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
-    </script>
+    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}></script>
     <script>
-      // Set dark mode based on user preference or system theme
-      if (localStorage.theme === 'dark' || 
-          (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
+      // Set theme based on user preference or system theme
+      const setThemeClass = () => {
+        const storedTheme = localStorage.getItem('theme');
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        // Remove all theme classes
+        document.body.classList.remove('light-theme', 'dark-theme', 'dim-theme');
+        
+        // Apply the appropriate theme
+        if (storedTheme) {
+          document.body.classList.add(`${storedTheme}-theme`);
+        } else if (systemPrefersDark) {
+          document.body.classList.add('dark-theme');
+        } else {
+          document.body.classList.add('light-theme');
+        }
+      };
+
+      // Set theme on page load
+      document.addEventListener('DOMContentLoaded', setThemeClass);
+      
+      // Listen for theme changes
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'theme') setThemeClass();
+      });
     </script>
   </head>
-  <body class="bg-gray-100 dark:bg-gray-950 text-gray-900 dark:text-gray-100 antialiased h-full flex flex-col">
+  <body class={@theme_class}>
     <%= @inner_content %>
   </body>
 </html>

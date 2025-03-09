@@ -56,7 +56,13 @@ defmodule HydepwnsLiveview.MixProject do
       {:gettext, "~> 0.26"},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
-      {:bandit, "~> 1.5"}
+      {:bandit, "~> 1.5"},
+      
+      # Add code quality tools
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      
+      # Authentication - Uncomment to add authentication
+      # {:phx_gen_auth, "~> 0.7.1", only: [:dev], runtime: false}
     ]
   end
 

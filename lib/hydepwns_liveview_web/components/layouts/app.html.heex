@@ -1,5 +1,5 @@
 <%
-alias HydepwnsLiveviewWeb.Components.DebugGrid
+# Remove the alias statement - not allowed in HEEX templates
 %>
 
 <header>
@@ -11,15 +11,15 @@ alias HydepwnsLiveviewWeb.Components.DebugGrid
     </:left>
     <:right>
       <.nav>
-        <:item link={~p"/"} active={Phoenix.Controller.current_path(@conn) == "/"}>Home</:item>
-        <:item link={~p"/style-guide"} active={Phoenix.Controller.current_path(@conn) == "/style-guide"}>Style Guide</:item>
+        <.link navigate={~p"/"}>Home</.link>
+        <.link navigate={~p"/style-guide"}>Style Guide</.link>
       </.nav>
     </:right>
   </.header_table>
 </header>
 
 <main>
-  <.flash_group flash={@flash} />
+  <.flash_group flash={@flash} flash_group_id="flash-group" />
   <%= @inner_content %>
 </main>
 
@@ -35,4 +35,4 @@ alias HydepwnsLiveviewWeb.Components.DebugGrid
   </.header_table>
 </footer>
 
-<DebugGrid.debug_grid />
+<.debug_grid />

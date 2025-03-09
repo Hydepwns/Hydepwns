@@ -1,6 +1,7 @@
 defmodule HydepwnsLiveviewWeb.HomeLive do
   use HydepwnsLiveviewWeb, :live_view
   alias HydepwnsLiveviewWeb.Components.ThemeToggle
+  alias HydepwnsLiveviewWeb.Components.UI.LayoutComponents
 
   def mount(_params, _session, socket) do
     # Set default theme if not already set by the client
@@ -20,14 +21,14 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
   def render(assigns) do
     ~H"""
     <main>
-      <.header_table>
+      <LayoutComponents.header_table>
         <:left>
           <h1>Hydepwns</h1>
         </:left>
         <:right>
           <ThemeToggle.theme_toggle />
         </:right>
-      </.header_table>
+      </LayoutComponents.header_table>
 
       <h2>Welcome to Monospace Web</h2>
       

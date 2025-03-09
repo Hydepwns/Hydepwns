@@ -262,10 +262,6 @@ The style guide serves as both documentation and a testing ground for your monos
 # Install Elixir dependencies
 mix deps.get
 
-# Install and build JavaScript dependencies
-cd assets && npm install
-cd ..
-
 # Create and migrate your database (if applicable):
 mix ecto.create
 mix ecto.migrate

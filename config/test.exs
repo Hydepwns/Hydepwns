@@ -6,8 +6,8 @@ import Config
 # to provide built-in test partitioning in CI environment.
 # Run `mix help test` for more information.
 config :hydepwns_liveview, HydepwnsLiveview.Repo,
-  username: "postgres",
-  password: "postgres",
+  username: "droo",
+  password: "",
   hostname: "localhost",
   database: "hydepwns_liveview_test#{System.get_env("MIX_TEST_PARTITION")}",
   pool: Ecto.Adapters.SQL.Sandbox,

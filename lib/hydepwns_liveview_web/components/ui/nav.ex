@@ -1,4 +1,10 @@
 defmodule HydepwnsLiveviewWeb.Components.UI.Nav do
+  @moduledoc """
+  Navigation components for the application.
+  
+  Provides navigation elements like navbar, breadcrumbs, and navigation links
+  with consistent styling and behavior.
+  """
   use Phoenix.Component
 
   @doc """

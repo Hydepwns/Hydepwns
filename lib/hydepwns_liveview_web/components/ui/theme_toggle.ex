@@ -1,6 +1,13 @@
 defmodule HydepwnsLiveviewWeb.Components.UI.ThemeToggle do
   use Phoenix.Component
 
+  @moduledoc """
+  Advanced theme toggle UI component for switching between application themes.
+  
+  Provides a more sophisticated version of the theme toggle with additional styling
+  and functionality compared to the basic ThemeToggle component.
+  """
+
   @doc """
   Renders a theme toggle component for switching between light, dark, and dim themes.
   

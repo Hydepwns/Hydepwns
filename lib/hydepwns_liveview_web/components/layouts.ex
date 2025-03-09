@@ -10,11 +10,12 @@ defmodule HydepwnsLiveviewWeb.Layouts do
   """
   use HydepwnsLiveviewWeb, :html
 
-  # Import custom components
-  import HydepwnsLiveviewWeb.Components.Button
-  import HydepwnsLiveviewWeb.Components.Nav
-  import HydepwnsLiveviewWeb.Components.HeaderTable
-  import HydepwnsLiveviewWeb.Components.ThemeToggle
+  # Import core components first - limit to what we need
+  import HydepwnsLiveviewWeb.CoreComponents, except: [header_table: 1, nav: 1]
+  
+  # Import UI components that are used
+  import HydepwnsLiveviewWeb.Components.UI.LayoutComponents
+  import HydepwnsLiveviewWeb.Components.UI.DebugGrid
 
   embed_templates "layouts/*"
 end

@@ -88,7 +88,9 @@ defmodule HydepwnsLiveviewWeb do
       # HTML escaping functionality
       import Phoenix.HTML
       # Core UI components
-      import HydepwnsLiveviewWeb.CoreComponents
+      import HydepwnsLiveviewWeb.CoreComponents, except: [header_table: 1, nav: 1]
+      # Import UI components
+      import HydepwnsLiveviewWeb.Components.UI.LayoutComponents
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS

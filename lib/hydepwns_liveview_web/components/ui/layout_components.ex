@@ -5,8 +5,11 @@ defmodule HydepwnsLiveviewWeb.Components.UI.LayoutComponents do
   use Phoenix.Component
   use Gettext, backend: HydepwnsLiveviewWeb.Gettext
 
-  import HydepwnsLiveviewWeb.CoreComponents, only: [icon: 1]
-  alias Phoenix.LiveView.JS
+  # Import base components
+  import HydepwnsLiveviewWeb.Components.BaseComponents
+
+  # Remove import of CoreComponents (if present)
+  # import HydepwnsLiveviewWeb.CoreComponents
 
   @doc """
   Renders a header with title.
@@ -84,12 +87,24 @@ defmodule HydepwnsLiveviewWeb.Components.UI.LayoutComponents do
   Renders a navigation component.
   """
   attr :class, :string, default: nil
-  slot :inner_block, required: true
+  slot :inner_block
+  slot :item, required: false do
+    attr :link, :any
+    attr :active, :boolean
+  end
 
   def nav(assigns) do
     ~H"""
     <nav class={["site-nav", @class]}>
-      <%= render_slot(@inner_block) %>
+      <%= if @inner_block != [] do %>
+        <%= render_slot(@inner_block) %>
+      <% else %>
+        <%= for item <- @item do %>
+          <a href={item.link} class={if Map.get(item, :active, false), do: "active"}>
+            <%= render_slot(item) %>
+          </a>
+        <% end %>
+      <% end %>
     </nav>
     """
   end

@@ -25,36 +25,51 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
   use Phoenix.Component
   use Gettext, backend: HydepwnsLiveviewWeb.Gettext
 
-  import HydepwnsLiveviewWeb.Components.UI.ModalComponents
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents
-  import HydepwnsLiveviewWeb.Components.UI.TableComponents
-  import HydepwnsLiveviewWeb.Components.UI.LayoutComponents
-  import HydepwnsLiveviewWeb.Components.UI.Nav
-  import HydepwnsLiveviewWeb.Components.UI.DebugGrid
-
   alias Phoenix.LiveView.JS
 
-  @doc """
-  Renders a modal.
-
-  ## Examples
-
-      <.modal id="confirm-modal">
-        This is a modal.
-      </.modal>
-
-  JS commands may be passed to the `:on_cancel` to configure
-  the closing/cancel event, for example:
-
-      <.modal id="confirm" on_cancel={JS.navigate(~p"/posts")}>
-        This is another modal.
-      </.modal>
-
-  """
   attr :id, :string, required: true
   attr :show, :boolean, default: false
   attr :on_cancel, JS, default: %JS{}
+  attr :type, :string, default: nil
+  attr :class, :string, default: nil
+  attr :rest, :global
   slot :inner_block, required: true
+  attr :flash, :map, default: %{}, doc: "the map of flash messages to display"
+  attr :title, :string, default: nil
+  attr :kind, :atom, values: [:info, :error], doc: "used for styling and flash lookup"
+  attr :id_flash, :string, doc: "the optional id of flash container"
+  attr :flash_group_id, :string, default: "flash-group", doc: "the optional id of flash container"
+  attr :for, :any, required: true, doc: "the data structure for the form"
+  attr :as, :any, default: nil, doc: "the server side parameter to collect all input under"
+  attr :row_id, :any, default: nil, doc: "the function for generating the row id"
+  attr :row_click, :any, default: nil, doc: "the function for handling phx-click on each row"
+  attr :row_item, :any, default: &Function.identity/1, doc: "the function for mapping each row before calling the :col and :action slots"
+  slot :action, doc: "the slot for showing user actions in the last table column"
+  attr :checked, :boolean, doc: "the checked flag for checkbox inputs"
+  attr :prompt, :string, default: nil, doc: "the prompt for select inputs"
+  attr :options, :list, doc: "the options to pass to Phoenix.HTML.Form.options_for_select/2"
+  attr :multiple, :boolean, default: false, doc: "the multiple flag for select inputs"
+  attr :errors, :list, default: []
+  attr :disabled, :boolean, default: false
+  attr :name, :any
+  attr :label, :string, default: nil
+  attr :value, :any
+  attr :type_input, :string,
+    default: "text",
+    values: ~w(checkbox color date datetime-local email file month number password
+               range search select tel text textarea time url week)
+  attr :field, Phoenix.HTML.FormField,
+    doc: "a form field struct retrieved from the form, for example: @form[:email]"
+  attr :disabled_button, :boolean, default: false
+  slot :inner_block_button, required: true
+  slot :inner_block_simple_form, required: true
+  slot :actions, doc: "the slot for form actions, such as a submit button"
+  attr :navigate, :any, required: true
+  slot :subtitle
+  slot :actions_header
+  attr :count, :integer
+  attr :line_height, :string, required: true
+  slot :item
 
   def modal(assigns) do
     ~H"""
@@ -104,37 +119,22 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     """
   end
 
-  @doc """
-  Renders flash notices.
-
-  ## Examples
-
-      <.flash kind={:info} flash={@flash} />
-      <.flash kind={:info} phx-mounted={show("#flash")}>Welcome Back!</.flash>
-  """
-  attr :id, :string, doc: "the optional id of flash container"
-  attr :flash, :map, default: %{}, doc: "the map of flash messages to display"
-  attr :title, :string, default: nil
-  attr :kind, :atom, values: [:info, :error], doc: "used for styling and flash lookup"
-  attr :rest, :global, doc: "the arbitrary HTML attributes to add to the flash container"
-
-  slot :inner_block, doc: "the optional inner block that renders the flash message"
-
   def flash(assigns) do
-    assigns = assign_new(assigns, :id, fn -> "flash-#{assigns.kind}" end)
+    assigns = assign_new(assigns, :id_flash, fn -> "flash-#{assigns.kind}" end)
+    assigns = assign_new(assigns, :inner_block, fn -> nil end)
+    assigns = assign_new(assigns, :flash, fn -> %{} end)
 
     ~H"""
     <div
-      :if={msg = render_slot(@inner_block) || Phoenix.Flash.get(@flash, @kind)}
-      id={@id}
-      phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
+      :if={msg = Phoenix.Flash.get(@flash, @kind)}
+      id={@id_flash}
+      phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id_flash}")}
       role="alert"
       class={[
         "fixed top-2 right-2 mr-2 w-80 sm:w-96 z-50 rounded-lg p-3 ring-1",
         @kind == :info && "bg-emerald-50 text-emerald-800 ring-emerald-500 fill-cyan-900",
         @kind == :error && "bg-rose-50 text-rose-900 shadow-md ring-rose-500 fill-rose-900"
       ]}
-      {@rest}
     >
       <p :if={@title} class="flex items-center gap-1.5 text-sm font-semibold leading-6">
         <.icon :if={@kind == :info} name="hero-information-circle-mini" class="h-4 w-4" />
@@ -149,19 +149,9 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     """
   end
 
-  @doc """
-  Shows the flash group with standard titles and content.
-
-  ## Examples
-
-      <.flash_group flash={@flash} />
-  """
-  attr :flash, :map, required: true, doc: "the map of flash messages"
-  attr :id, :string, default: "flash-group", doc: "the optional id of flash container"
-
   def flash_group(assigns) do
     ~H"""
-    <div id={@id}>
+    <div id={@flash_group_id}>
       <.flash kind={:info} title={gettext("Success!")} flash={@flash} />
       <.flash kind={:error} title={gettext("Error!")} flash={@flash} />
       <.flash
@@ -191,34 +181,11 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     """
   end
 
-  @doc """
-  Renders a simple form.
-
-  ## Examples
-
-      <.simple_form for={@form} phx-change="validate" phx-submit="save">
-        <.input field={@form[:email]} label="Email"/>
-        <.input field={@form[:username]} label="Username" />
-        <:actions>
-          <.button>Save</.button>
-        </:actions>
-      </.simple_form>
-  """
-  attr :for, :any, required: true, doc: "the data structure for the form"
-  attr :as, :any, default: nil, doc: "the server side parameter to collect all input under"
-
-  attr :rest, :global,
-    include: ~w(autocomplete name rel action enctype method novalidate target multipart),
-    doc: "the arbitrary HTML attributes to apply to the form tag"
-
-  slot :inner_block, required: true
-  slot :actions, doc: "the slot for form actions, such as a submit button"
-
   def simple_form(assigns) do
     ~H"""
     <.form :let={f} for={@for} as={@as} {@rest}>
       <div class="mt-10 space-y-8 bg-white">
-        {render_slot(@inner_block, f)}
+        {render_slot(@inner_block_simple_form, f)}
         <div :for={action <- @actions} class="mt-2 flex items-center justify-between gap-6">
           {render_slot(action, f)}
         </div>
@@ -227,84 +194,20 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     """
   end
 
-  @doc """
-  Renders a button.
-
-  ## Examples
-
-      <.button>Send!</.button>
-      <.button phx-click="go" class="ml-2">Send!</.button>
-  """
-  attr :type, :string, default: nil
-  attr :class, :string, default: nil
-  attr :rest, :global, include: ~w(disabled form name value)
-
-  slot :inner_block, required: true
-
   def button(assigns) do
     ~H"""
     <button
       type={@type}
       class={[
-        "phx-submit-loading:opacity-75 rounded-lg bg-zinc-900 hover:bg-zinc-700 py-2 px-3",
-        "text-sm font-semibold leading-6 text-white active:text-white/80",
+        "mono-button",
         @class
       ]}
       {@rest}
     >
-      {render_slot(@inner_block)}
+      {render_slot(@inner_block_button)}
     </button>
     """
   end
-
-  @doc """
-  Renders an input with label and error messages.
-
-  A `Phoenix.HTML.FormField` may be passed as argument,
-  which is used to retrieve the input name, id, and values.
-  Otherwise all attributes may be passed explicitly.
-
-  ## Types
-
-  This function accepts all HTML input types, considering that:
-
-    * You may also set `type="select"` to render a `<select>` tag
-
-    * `type="checkbox"` is used exclusively to render boolean values
-
-    * For live file uploads, see `Phoenix.Component.live_file_input/1`
-
-  See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input
-  for more information. Unsupported types, such as hidden and radio,
-  are best written directly in your templates.
-
-  ## Examples
-
-      <.input field={@form[:email]} type="email" />
-      <.input name="my-input" errors={["oh no!"]} />
-  """
-  attr :id, :any, default: nil
-  attr :name, :any
-  attr :label, :string, default: nil
-  attr :value, :any
-
-  attr :type, :string,
-    default: "text",
-    values: ~w(checkbox color date datetime-local email file month number password
-               range search select tel text textarea time url week)
-
-  attr :field, Phoenix.HTML.FormField,
-    doc: "a form field struct retrieved from the form, for example: @form[:email]"
-
-  attr :errors, :list, default: []
-  attr :checked, :boolean, doc: "the checked flag for checkbox inputs"
-  attr :prompt, :string, default: nil, doc: "the prompt for select inputs"
-  attr :options, :list, doc: "the options to pass to Phoenix.HTML.Form.options_for_select/2"
-  attr :multiple, :boolean, default: false, doc: "the multiple flag for select inputs"
-
-  attr :rest, :global,
-    include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
-                multiple pattern placeholder readonly required rows size step)
 
   def input(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
     errors = if Phoenix.Component.used_input?(field), do: field.errors, else: []
@@ -381,16 +284,15 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     """
   end
 
-  # All other inputs text, datetime-local, url, password, etc. are handled here...
   def input(assigns) do
     ~H"""
     <div>
       <.label for={@id}>{@label}</.label>
       <input
-        type={@type}
+        type={@type_input}
         name={@name}
         id={@id}
-        value={Phoenix.HTML.Form.normalize_value(@type, @value)}
+        value={Phoenix.HTML.Form.normalize_value(@type_input, @value)}
         class={[
           "mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6",
           @errors == [] && "border-zinc-300 focus:border-zinc-400",
@@ -403,12 +305,6 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     """
   end
 
-  @doc """
-  Renders a label.
-  """
-  attr :for, :string, default: nil
-  slot :inner_block, required: true
-
   def label(assigns) do
     ~H"""
     <label for={@for} class="block text-sm font-semibold leading-6 text-zinc-800">
@@ -416,11 +312,6 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     </label>
     """
   end
-
-  @doc """
-  Generates a generic error message.
-  """
-  slot :inner_block, required: true
 
   def error(assigns) do
     ~H"""
@@ -431,18 +322,9 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     """
   end
 
-  @doc """
-  Renders a header with title.
-  """
-  attr :class, :string, default: nil
-
-  slot :inner_block, required: true
-  slot :subtitle
-  slot :actions
-
   def header(assigns) do
     ~H"""
-    <header class={[@actions != [] && "flex items-center justify-between gap-6", @class]}>
+    <header class={[@actions_header != [] && "flex items-center justify-between gap-6", @class]}>
       <div>
         <h1 class="text-lg font-semibold leading-8 text-zinc-800">
           {render_slot(@inner_block)}
@@ -451,35 +333,10 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
           {render_slot(@subtitle)}
         </p>
       </div>
-      <div class="flex-none">{render_slot(@actions)}</div>
+      <div class="flex-none">{render_slot(@actions_header)}</div>
     </header>
     """
   end
-
-  @doc ~S"""
-  Renders a table with generic styling.
-
-  ## Examples
-
-      <.table id="users" rows={@users}>
-        <:col :let={user} label="id">{user.id}</:col>
-        <:col :let={user} label="username">{user.username}</:col>
-      </.table>
-  """
-  attr :id, :string, required: true
-  attr :rows, :list, required: true
-  attr :row_id, :any, default: nil, doc: "the function for generating the row id"
-  attr :row_click, :any, default: nil, doc: "the function for handling phx-click on each row"
-
-  attr :row_item, :any,
-    default: &Function.identity/1,
-    doc: "the function for mapping each row before calling the :col and :action slots"
-
-  slot :col, required: true do
-    attr :label, :string
-  end
-
-  slot :action, doc: "the slot for showing user actions in the last table column"
 
   def table(assigns) do
     assigns =
@@ -534,20 +391,6 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     """
   end
 
-  @doc """
-  Renders a data list.
-
-  ## Examples
-
-      <.list>
-        <:item title="Title">{@post.title}</:item>
-        <:item title="Views">{@post.views}</:item>
-      </.list>
-  """
-  slot :item, required: true do
-    attr :title, :string, required: true
-  end
-
   def list(assigns) do
     ~H"""
     <div class="mt-14">
@@ -560,16 +403,6 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     </div>
     """
   end
-
-  @doc """
-  Renders a back navigation link.
-
-  ## Examples
-
-      <.back navigate={~p"/posts"}>Back to posts</.back>
-  """
-  attr :navigate, :any, required: true
-  slot :inner_block, required: true
 
   def back(assigns) do
     ~H"""
@@ -585,17 +418,6 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     """
   end
 
-  @doc """
-  Renders an icon.
-
-  ## Examples
-
-      <.icon name="hero-x-mark-solid" />
-      <.icon name="hero-arrow-path" class="ml-1 w-3 h-3 animate-spin" />
-  """
-  attr :name, :string, required: true
-  attr :class, :string, default: nil
-
   def icon(%{name: "hero-" <> _} = assigns) do
     ~H"""
     <span class={[@name, @class]} />
@@ -604,11 +426,9 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
 
   def icon(assigns) do
     ~H"""
-    <Heroicons.icon name={@name} class={@class} />
+    <span class={[@name, @class]} />
     """
   end
-
-  ## JS Commands
 
   def show(js \\ %JS{}, selector) do
     JS.show(js,
@@ -657,20 +477,7 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     |> JS.pop_focus()
   end
 
-  @doc """
-  Translates an error message using gettext.
-  """
   def translate_error({msg, opts}) do
-    # When using gettext, we typically pass the strings we want
-    # to translate as a static argument:
-    #
-    #     # Translate the number of files with plural rules
-    #     dngettext("errors", "1 file", "%{count} files", count)
-    #
-    # However the error messages in our forms and APIs are generated
-    # dynamically, so we need to translate them by calling Gettext
-    # with our gettext backend as first argument. Translations are
-    # available in the errors.po file (as we use the "errors" domain).
     if count = opts[:count] do
       Gettext.dngettext(HydepwnsLiveviewWeb.Gettext, "errors", msg, msg, count, opts)
     else
@@ -678,20 +485,10 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     end
   end
 
-  @doc """
-  Translates the errors for a field from a keyword list of errors.
-  """
   def translate_errors(errors, field) when is_list(errors) do
     for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
   end
 
-  @doc """
-  Renders the theme toggle buttons.
-
-  ## Example:
-
-      <.theme_toggle />
-  """
   def theme_toggle(assigns) do
     ~H"""
     <div class="theme-toggle">
@@ -702,13 +499,6 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     """
   end
 
-  @doc """
-  Renders the navigation component.
-
-  ## Example:
-
-      <.nav />
-  """
   def nav(assigns) do
     ~H"""
     <nav class="site-nav">
@@ -717,27 +507,6 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     </nav>
     """
   end
-
-  @doc """
-  Renders a header table with metadata.
-
-  ## Example:
-
-      <.header_table 
-        title="DROO.FOO" 
-        version="v0.0.1" 
-        updated="2024-12-21" 
-        author="Drew Amor"
-        license="MIT" 
-        line_height="1.6" 
-      />
-  """
-  attr :title, :string, required: true
-  attr :version, :string, required: true
-  attr :updated, :string, required: true
-  attr :author, :string, required: true
-  attr :license, :string, required: true
-  attr :line_height, :string, required: true
 
   def header_table(assigns) do
     ~H"""
@@ -766,33 +535,6 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
         </tr>
       </table>
     </header>
-    """
-  end
-
-  @doc """
-  Renders a button with monospace styling.
-
-  ## Example:
-
-      <.button>Click me</.button>
-  """
-  attr :type, :string, default: "button"
-  attr :class, :string, default: ""
-  attr :rest, :global, include: ~w(disabled form name value)
-  slot :inner_block, required: true
-
-  def button(assigns) do
-    ~H"""
-    <button
-      type={@type}
-      class={[
-        "mono-button",
-        @class
-      ]}
-      {@rest}
-    >
-      <%= render_slot(@inner_block) %>
-    </button>
     """
   end
 end

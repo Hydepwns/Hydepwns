@@ -16,10 +16,15 @@ defmodule HydepwnsLiveviewWeb.StyleGuideLive do
       |> push_event("change_theme", %{theme: theme})
     }
   end
+  
+  # Placeholder for form submission
+  def handle_event("noop", _params, socket) do
+    {:noreply, socket}
+  end
 
   def render(assigns) do
     ~H"""
-    <main phx-hook="GridFadeIn" class="grid-fade-in">
+    <main id="grid-fade-in" phx-hook="GridFadeIn" class="grid-fade-in">
       <.header_table>
         <:left>
           <h1>Monospace Style Guide</h1>
@@ -176,18 +181,22 @@ defmodule HydepwnsLiveviewWeb.StyleGuideLive do
 
       <h3>Code Block</h3>
       <pre><code>defmodule Example do
-  def hello do
-    IO.puts("Hello, Monospace World!")
-  end
-end</code></pre>
+        </code>
+      </pre>
+
+      <h3>Horizontal Rule</h3>
+      <hr />
+
+      <h3>Horizontal Rule</h3>
+      <hr />
 
       <h2>Grid-Based Animations</h2>
 
       <h3>Typewriter Effect</h3>
-      <p phx-hook="CharacterAnimation" class="typewriter">This text is revealed character by character.</p>
+      <p id="typewriter-animation" phx-hook="CharacterAnimation" class="typewriter">This text is revealed character by character.</p>
 
       <h3>Character Fade In</h3>
-      <p phx-hook="CharacterAnimation" class="char-fade">Each character fades in separately.</p>
+      <p id="char-fade-animation" phx-hook="CharacterAnimation" class="char-fade">Each character fades in separately.</p>
 
       <h3>Grid Slide In</h3>
       <p class="grid-slide-in">This text slides in by character increments.</p>
@@ -233,7 +242,7 @@ end</code></pre>
       </p>
 
       <hr />
-      <p>Monospace Web Design - © <%= DateTime.utc_now.year %> Hydepwns</p>
+      <p>Monospace Web Design - &copy; <%= DateTime.utc_now.year %> Hydepwns</p>
     </main>
     """
   end
@@ -244,8 +253,15 @@ end</code></pre>
     "light"
   end
 
-  # Placeholder for form submission
-  def handle_event("noop", _params, socket) do
-    {:noreply, socket}
+  def hello do
+    """
+    Hello, Monospace World
+    """
+  end
+
+  def some_function do
+    """
+    <p>Your content here should be indented properly</p>
+    """
   end
 end

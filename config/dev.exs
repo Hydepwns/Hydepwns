@@ -2,8 +2,8 @@ import Config
 
 # Configure your database
 config :hydepwns_liveview, HydepwnsLiveview.Repo,
-  username: "postgres",
-  password: "postgres",
+  username: "droo",
+  password: "",  # If your user doesn't have a password
   hostname: "localhost",
   database: "hydepwns_liveview_dev",
   stacktrace: true,
@@ -50,6 +50,15 @@ config :hydepwns_liveview, HydepwnsLiveviewWeb.Endpoint,
 # If desired, both `http:` and `https:` keys can be
 # configured to run both http and https servers on
 # different ports.
+
+# Quick SSL Setup - Uncomment the following lines and run `mix phx.gen.cert` first
+# config :hydepwns_liveview, HydepwnsLiveviewWeb.Endpoint,
+#   https: [
+#     port: 4001,
+#     cipher_suite: :strong,
+#     keyfile: "priv/cert/selfsigned_key.pem",
+#     certfile: "priv/cert/selfsigned.pem"
+#   ]
 
 # Watch static and templates for browser reloading.
 config :hydepwns_liveview, HydepwnsLiveviewWeb.Endpoint,

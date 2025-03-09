@@ -5,7 +5,8 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
   use Phoenix.Component
   use Gettext, backend: HydepwnsLiveviewWeb.Gettext
 
-  import HydepwnsLiveviewWeb.CoreComponents, only: [icon: 1]
+  # Import base components
+  import HydepwnsLiveviewWeb.Components.BaseComponents
 
   @doc """
   Renders a simple form.

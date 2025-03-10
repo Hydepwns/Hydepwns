@@ -1,9 +1,6 @@
 defmodule HydepwnsLiveviewWeb.Components.UI.DebugGrid do
   use Phoenix.Component
   
-  # Add the alias for Phoenix.LiveView.JS
-  alias Phoenix.LiveView.JS
-
   @moduledoc """
   Debug grid component for visualizing layout alignment.
   
@@ -23,13 +20,15 @@ defmodule HydepwnsLiveviewWeb.Components.UI.DebugGrid do
 
   def debug_grid(assigns) do
     ~H"""
-    <div id="debug-grid" class="debug-grid" phx-update="ignore" style="display: none;">
-      <!-- grid content -->
+    <div class="debug-grid-container">
+      <div class="debug-grid" style="display: none;"></div>
+      <div class="debug-toggle">
+        <label class="debug-toggle-label" for="debug-grid-toggle">
+          <input type="checkbox" id="debug-grid-toggle" phx-hook="DebugGridToggle" />
+          <span style="font-size: 0.75rem;">Grid</span>
+        </label>
+      </div>
     </div>
-
-    <button phx-click={JS.toggle(to: "#debug-grid")}>
-      Toggle Debug Grid
-    </button>
     """
   end
 end 

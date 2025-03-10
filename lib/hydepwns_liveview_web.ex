@@ -91,12 +91,30 @@ defmodule HydepwnsLiveviewWeb do
       import HydepwnsLiveviewWeb.CoreComponents, except: [header_table: 1, nav: 1]
       # Import UI components
       import HydepwnsLiveviewWeb.Components.UI.LayoutComponents
+      import HydepwnsLiveviewWeb.Components.UI.DebugGrid
+      # Import Theme Toggle component
+      import HydepwnsLiveviewWeb.Components.ThemeToggle
+      # Import Theme Preview component
+      import HydepwnsLiveviewWeb.Components.ThemePreview
+      # Import Nav component
+      import HydepwnsLiveviewWeb.Components.UI.Nav
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS
 
       # Routes generation with the ~p sigil
       unquote(verified_routes())
+      
+      # Helper for setting current path
+      def assign_current_path(socket) do
+        assign(socket, current_path: socket.assigns.live_action |> path_for_action())
+      end
+      
+      defp path_for_action(:index), do: ~p"/"
+      defp path_for_action(:style_guide), do: ~p"/style-guide"
+      defp path_for_action(:projects), do: ~p"/projects"
+      defp path_for_action(:about), do: ~p"/about"
+      defp path_for_action(_), do: nil
     end
   end
 

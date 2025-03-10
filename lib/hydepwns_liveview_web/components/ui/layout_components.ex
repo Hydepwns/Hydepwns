@@ -62,23 +62,34 @@ defmodule HydepwnsLiveviewWeb.Components.UI.LayoutComponents do
   end
 
   @doc """
-  Renders a header with a table layout.
+  Renders a header with a table layout, similar to The Monospace Web.
   """
   attr :class, :string, default: nil
   slot :left, required: true
   slot :right
+  slot :metadata
 
   def header_table(assigns) do
+    assigns = assign_new(assigns, :class, fn -> "" end)
+    assigns = assign_new(assigns, :metadata, fn -> [] end)
+    
     ~H"""
     <header class={["site-header", @class]}>
-      <div class="header-grid">
-        <div class="header-left">
-          <%= render_slot(@left) %>
-        </div>
-        <div class="header-right">
-          <%= render_slot(@right) %>
-        </div>
-      </div>
+      <table class="header">
+        <tr>
+          <td class="width-auto">
+            <%= render_slot(@left) %>
+          </td>
+          <%= if @right != [] do %>
+            <td class="header-right">
+              <%= render_slot(@right) %>
+            </td>
+          <% end %>
+        </tr>
+        <%= if @metadata != [] do %>
+          <%= render_slot(@metadata) %>
+        <% end %>
+      </table>
     </header>
     """
   end

@@ -58,6 +58,9 @@ defmodule HydepwnsLiveview.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
       
+      # Add CSS processing
+      {:dart_sass, "~> 0.7", runtime: Mix.env() == :dev},
+      
       # Add code quality tools
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       
@@ -78,10 +81,11 @@ defmodule HydepwnsLiveview.MixProject do
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
-      "assets.setup": ["esbuild.install --if-missing"],
-      "assets.build": ["esbuild hydepwns_liveview"],
+      "assets.setup": ["esbuild.install --if-missing", "sass.install --if-missing"],
+      "assets.build": ["esbuild hydepwns_liveview", "sass default"],
       "assets.deploy": [
         "esbuild hydepwns_liveview --minify",
+        "sass default --no-source-map --style=compressed",
         "phx.digest"
       ]
     ]

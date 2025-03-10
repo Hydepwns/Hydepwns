@@ -2,13 +2,18 @@ defmodule HydepwnsLiveviewWeb.StyleGuideLive do
   use HydepwnsLiveviewWeb, :live_view
   alias HydepwnsLiveviewWeb.Components.ThemeToggle
 
+  @impl true
   def mount(_params, _session, socket) do
-    # Set default theme if not already set by the client
-    system_theme = if connected?(socket), do: get_system_theme(), else: "light"
+    socket =
+      socket
+      |> assign(page_title: "Style Guide")
+      |> assign(theme_class: "dark-theme")
+      |> assign_current_path()
     
-    {:ok, assign(socket, theme_class: "#{system_theme}-theme")}
+    {:ok, socket}
   end
 
+  @impl true
   def handle_event("change_theme", %{"theme" => theme}, socket) do
     {:noreply, 
       socket
@@ -18,16 +23,19 @@ defmodule HydepwnsLiveviewWeb.StyleGuideLive do
   end
   
   # Placeholder for form submission
+  @impl true
   def handle_event("noop", _params, socket) do
     {:noreply, socket}
   end
 
+  @impl true
   def render(assigns) do
     ~H"""
     <main id="grid-fade-in" phx-hook="GridFadeIn" class="grid-fade-in">
       <.header_table>
         <:left>
-          <h1>Monospace Style Guide</h1>
+          <h1 class="title">Monospace Style Guide</h1>
+          <span class="subtitle">A grid-based design system with precise typography</span>
         </:left>
         <:right>
           <.link navigate={~p"/"}>← Back to Home</.link>
@@ -73,11 +81,38 @@ defmodule HydepwnsLiveviewWeb.StyleGuideLive do
       <h3>Header Table</h3>
       <.header_table>
         <:left>
+          <h1 class="title">Monospace Header</h1>
+          <span class="subtitle">A perfect grid-aligned component</span>
+        </:left>
+        <:right>
+          <strong>Version:</strong> v1.0.0
+        </:right>
+      </.header_table>
+
+      <.header_table>
+        <:left>
           <strong>Left Column</strong>
         </:left>
         <:right>
           <strong>Right Column</strong>
         </:right>
+      </.header_table>
+
+      <.header_table>
+        <:left>
+          <div>Header with metadata</div>
+        </:left>
+        <:right>
+          <div>Info</div>
+        </:right>
+        <:metadata>
+          <tr>
+            <th>Updated:</th>
+            <td><%= DateTime.utc_now() |> Calendar.strftime("%Y-%m-%d") %></td>
+            <th>Author:</th>
+            <td>Hydepwns Team</td>
+          </tr>
+        </:metadata>
       </.header_table>
 
       <h3>Standard Table</h3>
@@ -247,11 +282,14 @@ defmodule HydepwnsLiveviewWeb.StyleGuideLive do
     """
   end
 
-  # Get system theme preference (if connected)
-  defp get_system_theme do
-    # Default to light theme if we can't detect
-    "light"
-  end
+  # Function kept for future implementation of theme detection
+  # This is documented but not currently used
+  # Gets the system theme preference (light/dark) if available.
+  # For future implementation.
+  # defp get_system_theme do
+  #   # For documentation/future use - not currently implemented
+  #   "light"
+  # end
 
   def hello do
     """

@@ -4,8 +4,8 @@
 /* Monaspace Argon font declarations */
 @font-face {
   font-family: 'Monaspace Argon';
-  src: url('/fonts/MonaspaceArgon-Regular.woff2') format('woff2'),
-       url('/fonts/MonaspaceArgon-Regular.woff') format('woff');
+  src: url('/assets/fonts/MonaspaceArgon-Regular.woff2') format('woff2'),
+       url('/assets/fonts/MonaspaceArgon-Regular.woff') format('woff');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -13,8 +13,8 @@
 
 @font-face {
   font-family: 'Monaspace Argon';
-  src: url('/fonts/MonaspaceArgon-Bold.woff2') format('woff2'),
-       url('/fonts/MonaspaceArgon-Bold.woff') format('woff');
+  src: url('/assets/fonts/MonaspaceArgon-Bold.woff2') format('woff2'),
+       url('/assets/fonts/MonaspaceArgon-Bold.woff') format('woff');
   font-weight: 700;
   font-style: bold;
   font-display: swap;
@@ -22,8 +22,8 @@
 
 @font-face {
   font-family: 'Monaspace Argon';
-  src: url('/fonts/MonaspaceArgon-ExtraBold.woff2') format('woff2'),
-       url('/fonts/MonaspaceArgon-ExtraBold.woff') format('woff');
+  src: url('/assets/fonts/MonaspaceArgon-ExtraBold.woff2') format('woff2'),
+       url('/assets/fonts/MonaspaceArgon-ExtraBold.woff') format('woff');
   font-weight: 800;
   font-style: bold;
   font-display: swap;
@@ -31,8 +31,8 @@
 
 @font-face {
   font-family: 'Monaspace Argon';
-  src: url('/fonts/MonaspaceArgon-Italic.woff2') format('woff2'),
-       url('/fonts/MonaspaceArgon-Italic.woff') format('woff');
+  src: url('/assets/fonts/MonaspaceArgon-Italic.woff2') format('woff2'),
+       url('/assets/fonts/MonaspaceArgon-Italic.woff') format('woff');
   font-weight: 400;
   font-style: italic;
   font-display: swap;
@@ -40,8 +40,8 @@
 
 @font-face {
   font-family: 'Monaspace Argon';
-  src: url('/fonts/MonaspaceArgon-BoldItalic.woff2') format('woff2'),
-       url('/fonts/MonaspaceArgon-BoldItalic.woff') format('woff');
+  src: url('/assets/fonts/MonaspaceArgon-BoldItalic.woff2') format('woff2'),
+       url('/assets/fonts/MonaspaceArgon-BoldItalic.woff') format('woff');
   font-weight: 700;
   font-style: italic;
   font-display: swap;
@@ -49,8 +49,8 @@
 
 @font-face {
   font-family: 'Monaspace Argon';
-  src: url('/fonts/MonaspaceArgon-ExtraBoldItalic.woff2') format('woff2'),
-       url('/fonts/MonaspaceArgon-ExtraBoldItalic.woff') format('woff');
+  src: url('/assets/fonts/MonaspaceArgon-ExtraBoldItalic.woff2') format('woff2'),
+       url('/assets/fonts/MonaspaceArgon-ExtraBoldItalic.woff') format('woff');
   font-weight: 800;
   font-style: italic;
   font-display: swap;
@@ -67,6 +67,9 @@
   --font-weight-normal: 400;
   --font-weight-medium: 600;
   --font-weight-bold: 800;
+  
+  /* Simplified monospace-specific features */
+  font-feature-settings: 'calt' 1, 'zero' 1;
 }
 
 /* Responsive adjustments for typography */
@@ -127,7 +130,7 @@ body {
   width: 100%;
   margin: 0;
   padding: var(--line-height) 2ch;
-  max-width: calc(min(80ch, round(down, 100%, 1ch)));
+  max-width: calc(min(80ch, 100%));
   line-height: var(--line-height);
   overflow-x: hidden;
 }
@@ -175,7 +178,7 @@ a:hover {
 /* Table styles */
 table {
   border-collapse: collapse;
-  width: calc(round(down, 100%, 1ch));
+  width: 100%;
   border: var(--border-thickness) solid var(--text-color);
   margin: var(--line-height) 0;
 }
@@ -288,7 +291,7 @@ button:focus, input:focus {
 }
 
 input {
-  width: calc(round(down, 100%, 1ch));
+  width: 100%;
 }
 
 ::placeholder {
@@ -339,13 +342,13 @@ code {
   --grid-cells: 0;
   display: flex;
   gap: 1ch;
-  width: calc(round(down, 100%, (1ch * var(--grid-cells)) - (1ch * var(--grid-cells) - 1)));
+  width: 100%;
   margin-bottom: var(--line-height);
 }
 
 .grid > *,
 .grid > input {
-  flex: 0 0 calc(round(down, (100% - (1ch * (var(--grid-cells) - 1))) / var(--grid-cells), 1ch));
+  flex: 0 0 calc((100% - (1ch * (var(--grid-cells) - 1))) / var(--grid-cells));
 }
 
 .grid:has(> :last-child:nth-child(1)) { --grid-cells: 1; }
@@ -460,3 +463,74 @@ blockquote {
   border-left: var(--border-thickness) solid var(--text-color);
   font-style: italic;
 }
+
+/* Code blocks, pre elements, and other monospace-specific elements */
+code, pre, kbd, samp, .code, .monospace {
+  font-family: var(--font-family);
+  font-feature-settings: 'calt' 1, 'ss01' 1, 'ss02' 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+pre, .code-block, .pre {
+  padding: calc(var(--line-height) / 2);
+  border: var(--border-thickness) solid var(--text-color-alt);
+  overflow-x: auto;
+  white-space: pre;
+  tab-size: 2;
+  -moz-tab-size: 2;
+  background-color: var(--background-color-alt);
+}
+
+/* Simplified line numbers for code blocks */
+pre.line-numbers {
+  counter-reset: line;
+}
+
+pre.line-numbers > code > .line::before {
+  counter-increment: line;
+  content: counter(line);
+  display: inline-block;
+  width: 1.5em;
+  margin-right: 1em;
+  text-align: right;
+  color: var(--text-color-alt);
+}
+
+/* Inline code - simplified */
+:not(pre) > code {
+  padding: 0 0.5ch;
+  background-color: var(--background-color-alt);
+  white-space: nowrap;
+}
+
+/* Terminal output styling - simplified to preserve existing layout */
+.terminal, .terminal-output {
+  font-family: var(--font-family);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: #f0f0f0;
+  padding: var(--line-height);
+  white-space: pre-wrap;
+  border: var(--border-thickness) solid #333;
+}
+
+/* Make prompt less disruptive */
+.prompt::before {
+  content: "$ ";
+  color: #0f0;
+  font-weight: bold;
+  display: inline;
+}
+
+/* Remove problematic layout adjustments */
+/* form, table {
+  --monospace-ch: 1ch;
+}
+
+.tabular-nums, 
+.numeric, 
+.numbers,
+table td:where([data-type="numeric"]) {
+  font-variant-numeric: tabular-nums;
+} */

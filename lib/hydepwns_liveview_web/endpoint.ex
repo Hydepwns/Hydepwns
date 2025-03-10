@@ -24,7 +24,7 @@ defmodule HydepwnsLiveviewWeb.Endpoint do
     from: :hydepwns_liveview,
     gzip: false,
     only: HydepwnsLiveviewWeb.static_paths()
-
+    
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.
   if code_reloading? do

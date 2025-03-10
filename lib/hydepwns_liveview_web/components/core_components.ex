@@ -491,10 +491,10 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
 
   def theme_toggle(assigns) do
     ~H"""
-    <div class="theme-toggle">
-      <button id="light-theme" phx-click={JS.dispatch("theme-set", detail: %{theme: "light-theme"})}>⬜️</button>
-      <button id="dim-theme" phx-click={JS.dispatch("theme-set", detail: %{theme: "dim-theme"})}>🟪</button>
-      <button id="dark-theme" phx-click={JS.dispatch("theme-set", detail: %{theme: "dark-theme"})}>⬛️</button>
+    <div id="theme-toggle" class="theme-toggle" phx-hook="ThemeToggle">
+      <button id="light-theme" data-theme="light" phx-click={JS.dispatch("theme-set", detail: %{theme: "light-theme"})}>⬜️</button>
+      <button id="dim-theme" data-theme="dim" phx-click={JS.dispatch("theme-set", detail: %{theme: "dim-theme"})}>🟪</button>
+      <button id="dark-theme" data-theme="dark" phx-click={JS.dispatch("theme-set", detail: %{theme: "dark-theme"})}>⬛️</button>
     </div>
     """
   end

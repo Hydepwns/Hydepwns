@@ -20,8 +20,10 @@ defmodule HydepwnsLiveviewWeb.Router do
   scope "/", HydepwnsLiveviewWeb do
     pipe_through :browser
 
-    live "/", HomeLive
-    live "/style-guide", StyleGuideLive
+    live "/", HomeLive, :index
+    live "/style-guide", StyleGuideLive, :style_guide
+    live "/projects", ProjectsLive, :projects
+    live "/about", AboutLive, :about
   end
 
   # Development-only routes

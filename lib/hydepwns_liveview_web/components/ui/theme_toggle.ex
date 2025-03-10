@@ -1,11 +1,16 @@
 defmodule HydepwnsLiveviewWeb.Components.UI.ThemeToggle do
   use Phoenix.Component
+  alias Phoenix.LiveView.JS
 
   @moduledoc """
   Advanced theme toggle UI component for switching between application themes.
   
   Provides a more sophisticated version of the theme toggle with additional styling
   and functionality compared to the basic ThemeToggle component.
+  
+  Supports keyboard shortcuts:
+  - Shift+Up/Right: Next theme
+  - Shift+Down/Left: Previous theme
   """
 
   @doc """
@@ -22,33 +27,33 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ThemeToggle do
     ~H"""
     <div class={["theme-toggle", @class]} phx-hook="ThemeToggle" {@rest} aria-label="Theme toggles">
       <button
-        phx-click="change_theme"
-        phx-value-theme="light"
-        aria-label="Switch to light theme"
+        id="light-theme"
         data-theme="light"
-        title="Light theme"
+        phx-click={JS.dispatch("theme-set", detail: %{theme: "light-theme"})}
+        aria-label="light"
+        title="light (Shift+Arrow Keys)"
         aria-pressed="false"
         type="button"
       >
         □
       </button>
       <button
-        phx-click="change_theme"
-        phx-value-theme="dark"
-        aria-label="Switch to dark theme"
+        id="dark-theme"
         data-theme="dark"
-        title="Dark theme"
+        phx-click={JS.dispatch("theme-set", detail: %{theme: "dark-theme"})}
+        aria-label="dark"
+        title="dark (Shift+Arrow Keys)"
         aria-pressed="false"
         type="button"
       >
         ■
       </button>
       <button
-        phx-click="change_theme"
-        phx-value-theme="dim"
-        aria-label="Switch to dim theme"
+        id="dim-theme"
         data-theme="dim"
-        title="Dim theme"
+        phx-click={JS.dispatch("theme-set", detail: %{theme: "dim-theme"})}
+        aria-label="dim"
+        title="dim (Shift+Arrow Keys)"
         aria-pressed="false"
         type="button"
       >

@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" data-theme>
+<html lang="en" data-theme={assigns[:theme_class] || "dark-theme"}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
     <meta name="csrf-token" content={get_csrf_token()} />
     <.live_title suffix=" · Hydepwns">
       <%= assigns[:page_title] || "Home" %>
@@ -20,11 +21,14 @@
         
         // Apply the appropriate theme
         if (storedTheme) {
-          document.body.classList.add(`${storedTheme}-theme`);
+          document.body.classList.add(storedTheme);
+          document.documentElement.setAttribute('data-theme', storedTheme);
         } else if (systemPrefersDark) {
           document.body.classList.add('dark-theme');
+          document.documentElement.setAttribute('data-theme', 'dark-theme');
         } else {
           document.body.classList.add('light-theme');
+          document.documentElement.setAttribute('data-theme', 'light-theme');
         }
       };
 
@@ -35,9 +39,52 @@
       window.addEventListener('storage', (e) => {
         if (e.key === 'theme') setThemeClass();
       });
+      
+      // Improve monospace font rendering
+      document.addEventListener('DOMContentLoaded', () => {
+        // Force browser to load and apply monospace font properly
+        const fontLoader = () => {
+          // Add test elements with monospace font
+          const testElement = document.createElement('div');
+          testElement.style.position = 'absolute';
+          testElement.style.opacity = '0';
+          testElement.style.fontFamily = "'Monaspace Argon', monospace";
+          testElement.style.fontFeatureSettings = "'calt' 1, 'ss01' 1, 'ss02' 1";
+          testElement.innerHTML = "iIlL1|0Oo";
+          document.body.appendChild(testElement);
+          
+          // Force font to be applied
+          setTimeout(() => {
+            document.body.removeChild(testElement);
+            
+            // Apply monospace spacing classes - much simpler approach
+            document.querySelectorAll('pre, code').forEach(el => {
+              el.style.fontFamily = 'var(--font-family)';
+            });
+          }, 100);
+        };
+        
+        // Run font loader
+        fontLoader();
+        
+        // Remove problematic terminal transformation logic
+        /*
+        document.querySelectorAll('pre, .terminal').forEach(el => {
+          if (el.textContent.includes('$') || el.textContent.includes('>')) {
+            el.classList.add('terminal-output');
+            
+            // Wrap command lines with prompt class
+            const content = el.innerHTML;
+            const commandPattern = /^(\$|\&gt\;|\>)(.*?)$/gm;
+            el.innerHTML = content.replace(commandPattern, '<span class="prompt">$2</span>');
+          }
+        });
+        */
+      });
     </script>
   </head>
-  <body class={@theme_class}>
+  <body class={@theme_class || "dark-theme"}>
+    <a href="#main-content" class="skip-to-content">Skip to content</a>
     <%= @inner_content %>
   </body>
 </html>

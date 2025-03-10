@@ -132,6 +132,23 @@
   animation: grid-fade 0.5s steps(var(--line-count, 10)) forwards;
 }
 
+/* Theme Transition Animation */
+@keyframes theme-transition {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.theme-transition {
+  animation: theme-transition 0.5s ease-in-out;
+}
+
 /* Javascript utility function to split text into characters for animation
  * Include this in your app.js or as a LiveView hook
  */

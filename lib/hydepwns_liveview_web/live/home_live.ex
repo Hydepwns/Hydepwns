@@ -1,99 +1,157 @@
 defmodule HydepwnsLiveviewWeb.HomeLive do
+  @moduledoc """
+  Live view for the homepage of the Hydepwns application.
+  
+  This LiveView handles theme management, including:
+  - Initial theme setup based on system preferences or stored user selections
+  - Theme toggling via user interactions
+  - Theme persistence between sessions
+  
+  The LiveView communicates with client-side JavaScript hooks to handle theme changes
+  and retrieve saved theme preferences.
+  """
   use HydepwnsLiveviewWeb, :live_view
-  alias HydepwnsLiveviewWeb.Components.ThemeToggle
-  alias HydepwnsLiveviewWeb.Components.UI.LayoutComponents
 
+  @doc """
+  Sets up the initial LiveView socket with theme information.
+  
+  Initializes the theme selection based on user preferences and stores this
+  in the socket assigns.
+  """
+  @impl true
   def mount(_params, _session, socket) do
-    # Set default theme if not already set by the client
-    system_theme = if connected?(socket), do: get_system_theme(), else: "light"
-    
-    {:ok, assign(socket, theme_class: "#{system_theme}-theme")}
-  end
+    code_example = """
+    // Example of monospaced code
+    function greeting(name) {
+      return "Hello, " + name + "!";
+    }
 
-  def handle_event("change_theme", %{"theme" => theme}, socket) do
-    {:noreply, 
-      socket
-      |> assign(:theme_class, "#{theme}-theme")
-      |> push_event("change_theme", %{theme: theme})
+    greeting('world');
+    """
+    
+    {:ok, 
+     socket
+     |> assign_current_path()
+     |> assign(:page_title, "Home")
+     |> assign(:theme_class, "light-theme")
+     |> assign(:show_toc, true)
+     |> assign(:toc_items, [
+       {"introduction", "Introduction"},
+       {"monospace", "Monospace Design"},
+       {"example", "Example Content"},
+       {"about", "About"}
+     ])
+     |> assign(:code_example, code_example)
     }
   end
 
+  @doc """
+  Handles theme change events from the theme toggle component.
+  
+  Processes the theme value from the client, ensuring consistent formatting with
+  the "-theme" suffix, updates the socket assigns, and pushes the change back to
+  client-side JavaScript for persisting in localStorage.
+  """
+  @impl true
+  def handle_event("change_theme", %{"theme" => theme}, socket) do
+    # Ensure theme is stored with the proper suffix
+    theme_with_suffix = ensure_theme_suffix(theme)
+    
+    # Push event with the base theme name (without suffix) for consistency with JS
+    base_theme = String.replace(theme_with_suffix, "-theme", "")
+    
+    {:noreply, 
+      socket
+      |> assign(:theme_class, theme_with_suffix)
+      |> push_event("change_theme", %{theme: base_theme})
+    }
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
-    <main>
-      <LayoutComponents.header_table>
-        <:left>
-          <h1>Hydepwns</h1>
-        </:left>
-        <:right>
-          <ThemeToggle.theme_toggle />
-        </:right>
-      </LayoutComponents.header_table>
-
-      <h2>Welcome to Monospace Web</h2>
-      
+    <section>
+      <h1 id="introduction">Welcome to Hydepwns</h1>
       <p>
-        This is a monospace-focused web experience built with Phoenix LiveView, 
-        following the principles of <a href="https://github.com/owickstrom/the-monospace-web" target="_blank">The Monospace Web</a>.
-        We use Monaspace Argon as our primary typeface with JetBrains Mono as fallback.
+        This is a demonstration of a monospace-styled website, inspired by 
+        <a href="https://github.com/owickstrom/the-monospace-web" target="_blank">The Monospace Web</a>.
+        The site uses a clean, minimalist design with monospace fonts and a grid-based layout.
       </p>
-
-      <h3>Features</h3>
       
+      <h2 id="monospace">Monospace Design</h2>
+      <p>
+        Monospace fonts are dear to many developers. They provide consistent spacing and alignment,
+        making text easy to read and structure. This site embraces the monospace aesthetic, using
+        it throughout the interface.
+      </p>
+      
+      <pre><code><%= @code_example %></code></pre>
+      
+      <h2 id="example">Example Content</h2>
+      <p>
+        Below is an example of various content elements styled with our monospace theme:
+      </p>
+      
+      <h3>Lists</h3>
       <ul>
-        <li>Pixel-perfect monospace typography</li>
-        <li>Character-based grid layout</li>
-        <li>Three theme options: light, dark, and dim</li>
-        <li>Real-time updates with LiveView</li>
-        <li>Minimal JavaScript footprint</li>
+        <li>Item one with some detailed text to show how wrapping works</li>
+        <li>Item two</li>
+        <li>Item three - the monospace font keeps everything aligned</li>
       </ul>
-
-      <h3>Getting Started</h3>
       
-      <p>Explore the design system components below:</p>
-      
-      <.link navigate={~p"/style-guide"} class="mono-button">
-        View Style Guide →
-      </.link>
-      
-      <details>
-        <summary>About Monaspace</summary>
-        <p>
-          Monaspace is a superfamily of coding fonts from GitHub that includes five 
-          variable fonts with different personalities but matching metrics. We're 
-          using Monaspace Argon, which features clean, geometric letterforms.
-        </p>
-      </details>
-
+      <h3>Table</h3>
       <table>
         <thead>
           <tr>
-            <th>Theme</th>
+            <th>Name</th>
             <th>Description</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>Light</td>
-            <td>White background with black text, ideal for daytime usage</td>
+            <td>Monospace</td>
+            <td>A font where each character takes up the same amount of space</td>
           </tr>
           <tr>
-            <td>Dark</td>
-            <td>Black background with white text, perfect for low-light environments</td>
-          </tr>
-          <tr>
-            <td>Dim</td>
-            <td>A deep purple background with accents, inspired by synthwave aesthetics</td>
+            <td>Grid</td>
+            <td>A layout system based on consistent spacing</td>
           </tr>
         </tbody>
       </table>
-    </main>
+      
+      <h2 id="about">About</h2>
+      <p>
+        This is an Elixir LiveView implementation of a monospace-styled website.
+        The navigation and styling are inspired by "The Monospace Web" project.
+      </p>
+    </section>
     """
   end
 
-  # Get system theme preference (if connected)
-  defp get_system_theme do
-    # Default to light theme if we can't detect
-    "light"
+  # Functions below are kept for future implementation of theme detection
+  # They are documented in LIVEVIEW.md but not currently used
+  
+  # Gets the system theme preference (light/dark) if available.
+  # For future implementation.
+  # defp get_system_theme do
+  #   # For documentation/future use - not currently implemented
+  #   "light"
+  # end
+  
+  # Gets the client-side stored theme preference.
+  # For future implementation.
+  # defp get_client_theme(socket) do
+  #   # For documentation/future use - not currently implemented
+  #   if connected?(socket) do
+  #     # Will interact with theme hook to get client setting
+  #     "light"
+  #   else
+  #     "light"
+  #   end
+  # end
+  
+  # Helper function to ensure theme name has the -theme suffix
+  defp ensure_theme_suffix(theme) do
+    if String.ends_with?(theme, "-theme"), do: theme, else: "#{theme}-theme"
   end
 end

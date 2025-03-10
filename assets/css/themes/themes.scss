@@ -1,7 +1,7 @@
 @font-face {
   font-family: 'Monaspace Argon';
-  src: url('/fonts/MonaspaceArgon-Regular.woff2') format('woff2'),
-       url('/fonts/MonaspaceArgon-Regular.woff') format('woff');
+  src: url('/assets/fonts/MonaspaceArgon-Regular.woff2') format('woff2'),
+       url('/assets/fonts/MonaspaceArgon-Regular.woff') format('woff');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -9,8 +9,8 @@
 
 @font-face {
   font-family: 'Monaspace Argon';
-  src: url('/fonts/MonaspaceArgon-Bold.woff2') format('woff2'),
-       url('/fonts/MonaspaceArgon-Bold.woff') format('woff');
+  src: url('/assets/fonts/MonaspaceArgon-Bold.woff2') format('woff2'),
+       url('/assets/fonts/MonaspaceArgon-Bold.woff') format('woff');
   font-weight: 700;
   font-style: bold;
   font-display: swap;
@@ -18,8 +18,8 @@
 
 @font-face {
   font-family: 'Monaspace Argon';
-  src: url('/fonts/MonaspaceArgon-ExtraBold.woff2') format('woff2'),
-       url('/fonts/MonaspaceArgon-ExtraBold.woff') format('woff');
+  src: url('/assets/fonts/MonaspaceArgon-ExtraBold.woff2') format('woff2'),
+       url('/assets/fonts/MonaspaceArgon-ExtraBold.woff') format('woff');
   font-weight: 800;
   font-style: bold;
   font-display: swap;
@@ -27,8 +27,8 @@
 
 @font-face {
   font-family: 'Monaspace Argon';
-  src: url('/fonts/MonaspaceArgon-Italic.woff2') format('woff2'),
-       url('/fonts/MonaspaceArgon-Italic.woff') format('woff');
+  src: url('/assets/fonts/MonaspaceArgon-Italic.woff2') format('woff2'),
+       url('/assets/fonts/MonaspaceArgon-Italic.woff') format('woff');
   font-weight: 400;
   font-style: italic;
   font-display: swap;
@@ -36,8 +36,8 @@
 
 @font-face {
   font-family: 'Monaspace Argon';
-  src: url('/fonts/MonaspaceArgon-BoldItalic.woff2') format('woff2'),
-       url('/fonts/MonaspaceArgon-BoldItalic.woff') format('woff');
+  src: url('/assets/fonts/MonaspaceArgon-BoldItalic.woff2') format('woff2'),
+       url('/assets/fonts/MonaspaceArgon-BoldItalic.woff') format('woff');
   font-weight: 700;
   font-style: italic;
   font-display: swap;
@@ -45,35 +45,76 @@
 
 @font-face {
   font-family: 'Monaspace Argon';
-  src: url('/fonts/MonaspaceArgon-ExtraBoldItalic.woff2') format('woff2'),
-       url('/fonts/MonaspaceArgon-ExtraBoldItalic.woff') format('woff');
+  src: url('/assets/fonts/MonaspaceArgon-ExtraBoldItalic.woff2') format('woff2'),
+       url('/assets/fonts/MonaspaceArgon-ExtraBoldItalic.woff') format('woff');
   font-weight: 800;
   font-style: italic;
   font-display: swap;
 }
 
 :root {
+  /* Base variables */
+  --font-family: "Monaspace Argon", monospace;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --line-height: 1.5rem;
+  --border-thickness: 1px;
+  --transition-speed: 0.2s;
+  
+  /* Color palette */
+  --color-dark-bg: #000;
+  --color-dark-bg-alt: #111;
+  --color-dark-text: #fff;
+  --color-dark-text-alt: #444444;
+  --color-dark-focus: #2b6cb0;
+  --color-dark-button: #2b6cb0;
+  --color-dark-button-hover: #4299e1;
+  
+  --color-dim-bg: #241B2F;
+  --color-dim-bg-alt: #352a3f;
+  --color-dim-text: #fff;
+  --color-dim-text-alt: #ff7edb;
+  --color-dim-focus: #ff7edb;
+  --color-dim-button: #9c6bff;
+  --color-dim-button-hover: #b794f4;
+  
+  --color-light-bg: #fff;
+  --color-light-bg-alt: #f7fafc;
+  --color-light-text: #000;
+  --color-light-text-alt: #241B2F;
+  --color-light-focus: #4299e1;
+  --color-light-button: #4299e1;
+  --color-light-button-hover: #2b6cb0;
+  
+  /* Default to light theme */
+  --background-color: var(--color-light-bg);
+  --background-color-alt: var(--color-light-bg-alt);
+  --text-color: var(--color-light-text);
+  --text-color-alt: var(--color-light-text-alt);
+  --focus-color: var(--color-light-focus);
+  --button-color: var(--color-light-button);
+  --button-color-hover: var(--color-light-button-hover);
+
+  /* Font Variables */
+  --font-optical-sizing: auto;
+  --font-size: 16px;
+
+  /* Other Variables */
+  --font-weight-normal: 400;
+  --font-weight-medium: 700;
+  --font-weight-bold: 800;
+  --font-weight-extrabold: 800;
+
   /* Color Variables */
   --primary: #000000;
-  --text: #ffffff;
   --accent: #444444;
-  --background: #000000;
   --synthwave-purple: #6a0dad;
   --synthwave-blue: #00f0ff;
   --synthwave-green: #72f1b8;
   --synthwave-red: #f97e72;
   --synthwave-pink: #f92aad;
-
-  /* Font Variables */
-  --font-family: 'Monaspace Argon', monospace;
-  --font-optical-sizing: auto;
-  --font-weight-normal: 400;
-  --font-weight-medium: 700;
-  --font-weight-bold: 800;
-  --line-height: 1.6;
-
-  /* Other Variables */
-  --border-thickness: 2px;
 
   /* Base Styles */
   font-family: 'Monaspace Argon', monospace;
@@ -93,25 +134,35 @@
   }
 }
 
-.dark-theme {
-  --text-color: #fff;
-  --text-color-alt: #444444;
-  --background-color: #000;
-  --background-color-alt: #111;
+/* Theme-specific variable sets */
+html[data-theme="dark-theme"], .dark-theme {
+  --background-color: var(--color-dark-bg);
+  --background-color-alt: var(--color-dark-bg-alt);
+  --text-color: var(--color-dark-text);
+  --text-color-alt: var(--color-dark-text-alt);
+  --focus-color: var(--color-dark-focus);
+  --button-color: var(--color-dark-button);
+  --button-color-hover: var(--color-dark-button-hover);
 }
 
-.dim-theme {
-  --text-color: #fff;
-  --text-color-alt: #ff7edb;
-  --background-color: #241B2F;
-  --background-color-alt: #ff7edb;
+html[data-theme="dim-theme"], .dim-theme {
+  --background-color: var(--color-dim-bg);
+  --background-color-alt: var(--color-dim-bg-alt);
+  --text-color: var(--color-dim-text);
+  --text-color-alt: var(--color-dim-text-alt);
+  --focus-color: var(--color-dim-focus);
+  --button-color: var(--color-dim-button);
+  --button-color-hover: var(--color-dim-button-hover);
 }
 
-.light-theme {
-  --text-color: #000;
-  --text-color-alt: #241B2F;
-  --background-color: #fff;
-  --background-color-alt: #ff7eda77;
+html[data-theme="light-theme"], .light-theme {
+  --background-color: var(--color-light-bg);
+  --background-color-alt: var(--color-light-bg-alt);
+  --text-color: var(--color-light-text);
+  --text-color-alt: var(--color-light-text-alt);
+  --focus-color: var(--color-light-focus);
+  --button-color: var(--color-light-button);
+  --button-color-hover: var(--color-light-button-hover);
 }
 
 .theme-toggle {
@@ -162,10 +213,9 @@ body {
   position: relative;
   width: 100%;
   margin: 0;
-  padding: 0;
-  max-width: calc(min(80ch, round(down, 100%, 1ch)));
-  line-height: var(--line-height);
   padding: var(--line-height) 2ch;
+  max-width: calc(min(80ch, 100%));
+  line-height: var(--line-height);
   overflow-x: hidden;
 }
 
@@ -295,7 +345,7 @@ sub {
 table {
   position: relative;
   top: calc(var(--line-height) / 2);
-  width: calc(round(down, 100%, 1ch));
+  width: calc(100%);
   border-collapse: collapse;
   margin: 0 0 calc(var(--line-height) * 2);
 }
@@ -489,7 +539,7 @@ button:focus, input:focus {
 }
 
 input {
-  width: calc(round(down, 100%, 1ch));
+  width: 100%;
 }
 ::placeholder {
   color: var(--text-color-alt);
@@ -518,7 +568,7 @@ button:active {
 
 label {
   display: block;
-  width: calc(round(down, 100%, 1ch));
+  width: calc(100%);
   height: auto;
   line-height: var(--line-height);
   font-weight: var(--font-weight-medium);
@@ -570,13 +620,13 @@ label input {
   --grid-cells: 0;
   display: flex;
   gap: 1ch;
-  width: calc(round(down, 100%, (1ch * var(--grid-cells)) - (1ch * var(--grid-cells) - 1)));
+  width: 100%;
   margin-bottom: var(--line-height);
 }
 
 .grid > *,
 .grid > input {
-  flex: 0 0 calc(round(down, (100% - (1ch * (var(--grid-cells) - 1))) / var(--grid-cells), 1ch));
+  flex: 0 0 calc((100% - (1ch * (var(--grid-cells) - 1))) / var(--grid-cells));
 }
 .grid:has(> :last-child:nth-child(1)) { --grid-cells: 1; }
 .grid:has(> :last-child:nth-child(2)) { --grid-cells: 2; }
@@ -588,38 +638,34 @@ label input {
 .grid:has(> :last-child:nth-child(8)) { --grid-cells: 8; }
 .grid:has(> :last-child:nth-child(9)) { --grid-cells: 9; }
 
-/* DEBUG UTILITIES */
+/* Focus management for accessibility */
+*:focus-visible {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 2px;
+}
 
-.debug .debug-grid {
-  --color: color-mix(in srgb, var(--text-color) 10%, var(--background-color) 90%);
+button:focus-visible, 
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--background-color), 0 0 0 6px var(--focus-color);
+}
+
+/* Skip-to-content link for keyboard users */
+.skip-to-content {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: -1;
-  background-image:
-    repeating-linear-gradient(var(--color) 0 1px, transparent 1px 100%),
-    repeating-linear-gradient(90deg, var(--color) 0 1px, transparent 1px 100%);
-  background-size: 1ch var(--line-height);
-  margin: 0;
+  top: -50px;
+  left: 10px;
+  background: var(--background-color);
+  color: var(--text-color);
+  padding: 8px;
+  z-index: 1000;
+  transition: top 0.3s ease;
 }
 
-.debug .off-grid {
-  background: rgba(255, 0, 0, 0.1);
-}
-
-.debug-toggle {
-  position: fixed;
-  bottom: 1rem;
-  left: 1rem;
-  z-index: 100;
-}
-
-.debug-toggle-label {
-  text-align: right;
-  font-size: 0.8rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5ch;
+.skip-to-content:focus {
+  top: 10px;
 }

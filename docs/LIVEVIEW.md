@@ -1,355 +1,336 @@
-# Monospace Web for LiveView
+# Phoenix LiveView Integration
 
-This document explains how to use the Monospace Web styling with your Phoenix LiveView application and how to run a development server.
+This document provides comprehensive guidance on using Phoenix LiveView with the Hydepwns Monospace Web styling system.
 
 ## Overview
 
-The Monospace Web styling provides a clean, typography-focused design inspired by [The Monospace Web](https://github.com/owickstrom/the-monospace-web) project, using monospace fonts and a minimal aesthetic. Our implementation uses Monaspace Argon as the primary font with JetBrains Mono as a fallback.
+Hydepwns integrates Phoenix LiveView with a monospace-focused design system inspired by [The Monospace Web](https://github.com/owickstrom/the-monospace-web) project.
 
-The design focuses on:
-- Character-based grid layout
-- Consistent spacing using `ch` units
-- Minimal styling that emphasizes content and typography
-- Grid-based animations that respect the character grid
-- Light, dark, and dim theme options
+Key features:
 
-## Setup and Installation
+- Character-based grid layout aligned to monospace typography
+- Real-time user interfaces with server-rendered HTML
+- Seamless theme switching without page reloads
+- Grid-respecting animations and transitions
+- Minimal JavaScript footprint
 
-### 1. Add Font Files
+## LiveView Basics
 
-Download the Monaspace Argon font files and place them in your project:
+### What is LiveView?
+
+Phoenix LiveView is a library that enables rich, real-time user experiences with server-rendered HTML. It works by:
+
+1. Establishing a stateful connection to the server via WebSockets
+2. Updating only the parts of the DOM that change when state changes
+3. Handling client-side events, sending them to the server, and updating the UI based on results
+
+### Creating a LiveView Module
+
+A basic LiveView module looks like this:
+
+```elixir
+defmodule HydepwnsLiveviewWeb.HomeLive do
+  use HydepwnsLiveviewWeb, :live_view
+  
+  @impl true
+  def mount(_params, _session, socket) do
+    {:ok, assign(socket, count: 0)}
+  end
+  
+  @impl true
+  def handle_event("increment", _params, socket) do
+    {:noreply, update(socket, :count, &(&1 + 1))}
+  end
+  
+  @impl true
+  def render(assigns) do
+    ~H"""
+    <div class="container">
+      <h1>Counter Example</h1>
+      <p>Count: <%= @count %></p>
+      <button phx-click="increment">Increment</button>
+    </div>
+    """
+  end
+end
+```
+
+## Integration with Monospace Web
+
+### 1. Setup
+
+Ensure your project has the required styling and font files:
 
 ```bash
+# Create directories
+mkdir -p assets/css/themes
 mkdir -p priv/static/fonts
+
 # Copy font files to priv/static/fonts/
+# Copy theme CSS files to assets/css/themes/
 ```
 
-### 2. Add CSS Files
+### 2. LiveView Components with Monospace Styling
 
-The styling is split across several files for better organization:
+Create components that respect the character grid:
 
-- `reset.css` - Base browser reset
-- `themes/monaspace.css` - Typography and monospace styling
-- `themes/themes.css` - Theme variables and dark mode
-- `themes/animations.css` - Grid-based animations
+```elixir
+defmodule HydepwnsLiveviewWeb.Components.Card do
+  use Phoenix.Component
+  
+  def card(assigns) do
+    ~H"""
+    <div class="card">
+      <div class="card-header">
+        <%= render_slot(@header) || @title %>
+      </div>
+      <div class="card-body">
+        <%= render_slot(@inner_block) %>
+      </div>
+      <%= if render_slot(@footer) do %>
+        <div class="card-footer">
+          <%= render_slot(@footer) %>
+        </div>
+      <% end %>
+    </div>
+    """
+  end
+end
+```
 
-### 3. Import CSS in Your App
-
-In your `assets/css/app.css` file, import the monospace styling:
+CSS for the card component:
 
 ```css
-/* Base reset */
-@import "./reset.css";
+.card {
+  width: 80ch;
+  border: var(--border-thickness) solid var(--text-color);
+  margin-bottom: var(--line-height);
+}
 
-/* Typography and monospace styling */
-@import "./themes/monaspace.css";
+.card-header {
+  padding: var(--spacing-small) var(--spacing-medium);
+  border-bottom: var(--border-thickness) solid var(--text-color);
+  font-weight: var(--font-weight-bold);
+}
 
-/* Theme variables and dark mode support */
-@import "./themes/themes.css";
+.card-body {
+  padding: var(--spacing-medium);
+}
 
-/* Grid-based animations */
-@import "./themes/animations.css";
+.card-footer {
+  padding: var(--spacing-small) var(--spacing-medium);
+  border-top: var(--border-thickness) solid var(--text-color);
+}
 ```
 
-### 4. Configure Theme in LiveView
+### 3. Grid-Based Animations
 
-In your root layout file (`lib/your_app_web/templates/layout/root.html.heex`), add the theme class to your body tag:
+LiveView supports grid-based animations through CSS and hooks. Example typewriter animation:
 
-```html
-<body class={@theme_class}>
-  <%= @inner_content %>
-</body>
+```elixir
+def typewriter(assigns) do
+  ~H"""
+  <div id="typewriter" phx-hook="Typewriter" data-text={@text}></div>
+  """
+end
 ```
 
-### 5. Add LiveView Hooks for Animations
-
-Set up hooks in your `app.js` file:
+JavaScript hook:
 
 ```javascript
-let Hooks = {}
-
-// Character animation hook
-Hooks.CharacterAnimation = {
+const Typewriter = {
   mounted() {
-    // Handle typewriter effect
-    if (this.el.classList.contains('typewriter')) {
-      const charCount = this.el.textContent.length;
-      this.el.style.setProperty('--char-count', charCount);
-    }
-
-    // Handle character fade-in effect
-    if (this.el.classList.contains('char-fade')) {
-      const text = this.el.textContent;
-      this.el.textContent = '';
-      
-      for (let i = 0; i < text.length; i++) {
-        const span = document.createElement('span');
-        span.textContent = text[i];
-        span.style.animationDelay = `${i * 0.05}s`;
-        this.el.appendChild(span);
+    const text = this.el.dataset.text;
+    const el = this.el;
+    
+    el.innerHTML = '';
+    let i = 0;
+    
+    const interval = setInterval(() => {
+      if (i < text.length) {
+        el.innerHTML += text.charAt(i);
+        i++;
+      } else {
+        clearInterval(interval);
       }
-    }
+    }, 50);
   }
 };
 
-// Register hooks with LiveView
+export default Typewriter;
+```
+
+## Theme System Integration
+
+The theme system integrates with LiveView using hooks. Register theme hooks in your app.js:
+
+```javascript
+import ThemeToggle from "./hooks/theme_toggle"
+
+let Hooks = {}
+Hooks.ThemeToggle = ThemeToggle
+
 let liveSocket = new LiveSocket("/live", Socket, {
   params: {_csrf_token: csrfToken},
   hooks: Hooks
 })
 ```
 
-### 6. Manage Theme Switching
+Add the theme toggle component to your layouts:
 
-Add theme switching functionality in your LiveView module:
+```elixir
+<HydepwnsLiveviewWeb.Components.UI.ThemeToggle.theme_toggle />
+```
+
+## LiveView State Management
+
+### Assigns
+
+Use assigns to manage state in LiveView:
+
+```elixir
+# Initial state
+def mount(_params, _session, socket) do
+  {:ok, assign(socket, count: 0, items: [])}
+end
+
+# Update single assign
+def handle_event("increment", _params, socket) do
+  {:noreply, assign(socket, count: socket.assigns.count + 1)}
+end
+
+# Update multiple assigns
+def handle_event("add_item", %{"item" => item}, socket) do
+  {:noreply, 
+   socket
+   |> assign(items: [item | socket.assigns.items])
+   |> assign(form_visible: false)}
+end
+```
+
+### Send Updates
+
+Update LiveView components from other processes:
+
+```elixir
+Phoenix.LiveView.send_update(HydepwnsLiveviewWeb.Components.Counter, id: "counter", count: 10)
+```
+
+## Best Practices
+
+### 1. Keep Components Small and Focused
+
+- Break complex UIs into smaller components
+- Use stateless components when possible
+- Use function components for simple views
+
+### 2. Optimize for Performance
+
+- Keep assigns minimal
+- Use `update/3` for efficient list updates
+- Implement `render_many/3` for collections
+
+```elixir
+def render(assigns) do
+  ~H"""
+  <div class="items">
+    <%= for item <- @items do %>
+      <div class="item"><%= item %></div>
+    <% end %>
+  </div>
+  """
+end
+```
+
+### 3. Use LiveView Hooks Judiciously
+
+- Prefer server-side state management
+- Use hooks only when client-side interactions are necessary
+- Keep JavaScript minimal
+
+### 4. Maintain Grid Alignment
+
+- Use `ch` units for horizontal spacing
+- Use `line-height` multiples for vertical spacing
+- Test with the debug grid to ensure alignment
+
+## Debugging LiveView Applications
+
+### 1. Enable Debug Logs
+
+```elixir
+# config/dev.exs
+config :phoenix_live_view, debug_heex_annotations: true
+```
+
+### 2. Visualize Character Grid
+
+Add the debug grid class to the body during development:
+
+```elixir
+<body class={if @debug, do: "debug-grid", else: ""}>
+  <%= @inner_content %>
+</body>
+```
+
+Toggle debug mode with a URL parameter:
+
+```elixir
+def mount(params, _session, socket) do
+  {:ok, assign(socket, debug: params["debug"] == "true")}
+end
+```
+
+### 3. Use Browser DevTools
+
+- Check the LiveSocket object in the browser console
+- Monitor network traffic in WebSocket frames
+- Use the LiveView debugger for tracking changes
+
+## Common Patterns
+
+### Form Handling
 
 ```elixir
 def mount(_params, _session, socket) do
-  system_theme = if connected?(socket), do: get_system_theme(), else: "light"
-  {:ok, assign(socket, theme_class: "#{system_theme}-theme")}
+  {:ok, 
+   socket
+   |> assign(:user, %User{})
+   |> assign(:changeset, User.changeset(%User{}, %{}))}
 end
 
-def handle_event("change_theme", %{"theme" => theme}, socket) do
-  {:noreply, 
-    socket
-    |> assign(:theme_class, "#{theme}-theme")
-    |> push_event("change_theme", %{theme: theme})
-  }
+def handle_event("save", %{"user" => user_params}, socket) do
+  case Accounts.create_user(user_params) do
+    {:ok, user} ->
+      {:noreply,
+       socket
+       |> put_flash(:info, "User created")
+       |> redirect(to: ~p"/users/#{user}")}
+    
+    {:error, %Ecto.Changeset{} = changeset} ->
+      {:noreply, assign(socket, changeset: changeset)}
+  end
 end
 ```
 
-Add theme toggles in your template:
+### Real-time Updates with PubSub
 
-```html
-<div class="theme-toggle">
-  <button
-    phx-click="change_theme"
-    phx-value-theme="light"
-    aria-label="Switch to light theme"
-    data-theme="light"
-    title="Light theme"
-  >
-    □
-  </button>
-  <button
-    phx-click="change_theme"
-    phx-value-theme="dark"
-    aria-label="Switch to dark theme"
-    data-theme="dark"
-    title="Dark theme"
-  >
-    ■
-  </button>
-  <button
-    phx-click="change_theme"
-    phx-value-theme="dim"
-    aria-label="Switch to dim theme"
-    data-theme="dim"
-    title="Dim theme"
-  >
-    ▣
-  </button>
-</div>
+```elixir
+def mount(_params, _session, socket) do
+  if connected?(socket) do
+    Phoenix.PubSub.subscribe(HydepwnsLiveview.PubSub, "updates")
+  end
+  
+  {:ok, assign(socket, messages: [])}
+end
+
+def handle_info({:new_message, message}, socket) do
+  {:noreply, update(socket, :messages, fn messages -> [message | messages] end)}
+end
 ```
-
-## Grid-Based Animations
-
-Our implementation includes several character-grid based animations that maintain the monospace aesthetic:
-
-### Typewriter Effect
-
-Reveals text one character at a time, like a typewriter:
-
-```html
-<p phx-hook="CharacterAnimation" class="typewriter">This text appears character by character.</p>
-```
-
-### Character Fade In
-
-Each character fades in separately with calculated timing:
-
-```html
-<p phx-hook="CharacterAnimation" class="char-fade">Each character fades in separately.</p>
-```
-
-### Grid Slide In
-
-Content slides in using character-width steps:
-
-```html
-<p class="grid-slide-in">This text slides in by character increments.</p>
-```
-
-### Cursor Blink
-
-A classic terminal cursor that blinks in place:
-
-```html
-<p>Command prompt <span class="cursor-blink"></span></p>
-```
-
-### ASCII Spinner
-
-A loading indicator made from ASCII characters:
-
-```html
-<p>Loading <span class="ascii-spinner"></span></p>
-```
-
-### Border Draw Animation
-
-Animates a border drawing around content, following the character grid:
-
-```html
-<div class="border-draw">
-  This box has an animated border that follows the character grid.
-</div>
-```
-
-### Grid Fade In
-
-Page transition that reveals content line by line:
-
-```html
-<main phx-hook="GridFadeIn" class="grid-fade-in">
-  Content here
-</main>
-```
-
-## Debug Grid
-
-The implementation includes a debug grid to help visualize the character grid alignment:
-
-```html
-<div class="debug-toggle">
-  <label class="debug-toggle-label">
-    <input
-      type="checkbox"
-      id="debug-grid-toggle"
-      phx-hook="DebugGridToggle"
-    /> Show grid
-  </label>
-</div>
-<div class="debug-grid" style="display: none;"></div>
-```
-
-Enable it in your layout to check alignment of all elements.
-
-## Style Guide
-
-The project includes a comprehensive style guide that showcases all monospace components and grid-based animations. Access it at `/style-guide` to see:
-
-- Typography examples (headings, paragraphs, formatting)
-- Grid and layout examples
-- UI components
-- All grid-based animations
-- Theme previews
-- Debug tools
-
-The style guide serves as both documentation and a testing ground for your monospace components.
-
-## Running the Development Server
-
-### Prerequisites
-
-- Elixir and Erlang installed
-- Phoenix framework installed
-- Node.js and npm installed (for assets)
-
-### Starting the Server
-
-```bash
-# Install Elixir dependencies
-mix deps.get
-
-# Create and migrate your database (if applicable):
-mix ecto.create
-mix ecto.migrate
-
-# Start the Phoenix server:
-mix phx.server
-```
-
-Your application will be available at [`localhost:4000`](http://localhost:4000) by default.
-
-### Development Workflow
-
-- Edit CSS in the appropriate theme files
-- LiveView templates go in `lib/your_app_web/live/`
-- Components go in `lib/your_app_web/components/`
-- The Phoenix server will automatically reload when you save changes
-
-## Customization
-
-### Theme Variables
-
-You can customize colors and spacing by modifying the CSS variables in the `:root` selector:
-
-```css
-:root {
-  --font-family: 'Monaspace Argon', 'JetBrains Mono', monospace;
-  --line-height: 1.20rem;
-  --border-thickness: 2px;
-  --text-color: #000;
-  --text-color-alt: #666;
-  --background-color: #fff;
-  --background-color-alt: #eee;
-  /* ... other variables ... */
-}
-```
-
-### Adding Custom Themes
-
-Create additional theme classes in your CSS:
-
-```css
-.custom-theme {
-  --text-color: #342e37;
-  --text-color-alt: #a2d729;
-  --background-color: #fafffd;
-  --background-color-alt: #e6e8e6;
-}
-```
-
-### Creating Custom Grid-Based Animations
-
-When creating custom animations, follow these principles to maintain grid alignment:
-
-1. Use `ch` units for horizontal movement
-2. Use `var(--line-height)` for vertical spacing
-3. Use the `steps()` function for discrete animations
-4. Ensure elements maintain their place in the grid
-
-## Troubleshooting
-
-### Fonts Not Loading
-
-If the Monaspace fonts aren't loading:
-
-1. Ensure font files are in `priv/static/fonts/`
-2. Check the paths in your `@font-face` declarations
-3. Verify the fonts are being compiled into your assets
-
-The system will fall back to JetBrains Mono, which is loaded from CDN.
-
-### CSS Changes Not Appearing
-
-If CSS changes aren't visible:
-
-1. Hard refresh your browser (Ctrl/Cmd + Shift + R)
-2. Check browser console for errors
-3. Ensure asset compilation is working correctly
-
-### Animation Issues
-
-If animations aren't working:
-
-1. Make sure LiveView hooks are properly registered
-2. Check for JavaScript errors in the console
-3. Verify that the proper classes are applied to elements
 
 ## Resources
 
 - [Phoenix LiveView Documentation](https://hexdocs.pm/phoenix_live_view)
-- [The Monospace Web GitHub](https://github.com/owickstrom/the-monospace-web)
-- [Monaspace Fonts](https://github.com/githubnext/monaspace)
+- [Phoenix LiveView GitHub](https://github.com/phoenixframework/phoenix_live_view)
+- [The Monospace Web](https://github.com/owickstrom/the-monospace-web)

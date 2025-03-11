@@ -88,8 +88,7 @@ defmodule HydepwnsLiveviewWeb.GalleryLive do
           <strong>Network conditions:</strong> Different quality levels for various connection speeds
         </li>
         <li>
-          <strong>Browser support:</strong>
-          WebP for modern browsers, PNG/JPEG fallbacks for older browsers
+          <strong>Browser support:</strong> WebP for modern browsers, PNG/JPEG fallbacks for older browsers
         </li>
         <li><strong>Performance:</strong> Lazy loading for images that are off-screen initially</li>
       </ul>
@@ -97,11 +96,7 @@ defmodule HydepwnsLiveviewWeb.GalleryLive do
       <div class="code-explanation">
         <h4>How responsive images work</h4>
         <p>
-          Using the HTML <code>picture</code>
-          element with <code>source</code>
-          elements that have <code>srcset</code>
-          and <code>sizes</code>
-          attributes,
+          Using the HTML <code>picture</code> element with <code>source</code> elements that have <code>srcset</code> and <code>sizes</code> attributes,
           we can provide multiple image options to the browser:
         </p>
         <pre><code>&lt;picture&gt;

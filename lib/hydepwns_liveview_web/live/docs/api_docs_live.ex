@@ -102,12 +102,7 @@ defmodule HydepwnsLiveviewWeb.Live.Docs.ApiDocsLive do
       </.api_docs_section>
 
       <.api_docs_section id="theme-components" title="Theme Components">
-        <.api_docs
-          component_name="ThemeToggle"
-          description="A theme toggle component for switching between light, dark, dim, and high-contrast themes."
-          import_statement="alias HydepwnsLiveviewWeb.Components.ThemeToggle"
-          attributes={[]}
-        />
+        <.api_docs component_name="ThemeToggle" description="A theme toggle component for switching between light, dark, dim, and high-contrast themes." import_statement="alias HydepwnsLiveviewWeb.Components.ThemeToggle" attributes={[]} />
       </.api_docs_section>
 
       <.api_docs_section id="ui-components" title="UI Components">

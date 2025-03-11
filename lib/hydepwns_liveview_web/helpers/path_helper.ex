@@ -26,4 +26,17 @@ defmodule HydepwnsLiveviewWeb.Helpers.PathHelper do
   def assign_specific_path(socket, path) do
     Phoenix.Component.assign(socket, :current_path, path)
   end
+
+  @doc """
+  Converts a route name to its corresponding path.
+  """
+  def path_to(:home), do: "/"
+  def path_to(:about), do: "/about"
+  def path_to(:projects), do: "/projects"
+  def path_to(:style_guide), do: "/style-guide"
+  def path_to(:terminal_demo), do: "/playground/terminal"
+  def path_to(:screen_reader_test), do: "/screen-reader-test"
+  def path_to(:api_docs), do: "/api-docs"
+  def path_to(:grid_playground), do: "/grid-playground"
+  def path_to(:gallery), do: "/gallery"
 end

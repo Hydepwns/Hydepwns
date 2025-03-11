@@ -30,51 +30,17 @@ defmodule HydepwnsLiveviewWeb.Components.Common.ThemeToggle do
     assigns = assign_new(assigns, :id, fn -> "theme-toggle" end)
 
     ~H"""
-    <div
-      id={@id}
-      class="theme-toggle"
-      phx-hook="ThemeToggle"
-      role="group"
-      aria-label="Theme selection"
-    >
-      <button
-        id={"#{@id}-light-button"}
-        class="theme-button"
-        data-theme="light"
-        phx-click={JS.push("change_theme", value: %{theme: "light"})}
-        aria-label="Switch to light theme"
-        title="Light theme (⌘+L)"
-      >
+    <div id={@id} class="theme-toggle" phx-hook="ThemeToggle" role="group" aria-label="Theme selection">
+      <button id={"#{@id}-light-button"} class="theme-button" data-theme="light" phx-click={JS.push("change_theme", value: %{theme: "light"})} aria-label="Switch to light theme" title="Light theme (⌘+L)">
         <span class="theme-icon">☀️</span>
       </button>
-      <button
-        id={"#{@id}-dark-button"}
-        class="theme-button"
-        data-theme="dark"
-        phx-click={JS.push("change_theme", value: %{theme: "dark"})}
-        aria-label="Switch to dark theme"
-        title="Dark theme (⌘+D)"
-      >
+      <button id={"#{@id}-dark-button"} class="theme-button" data-theme="dark" phx-click={JS.push("change_theme", value: %{theme: "dark"})} aria-label="Switch to dark theme" title="Dark theme (⌘+D)">
         <span class="theme-icon">🌙</span>
       </button>
-      <button
-        id={"#{@id}-dim-button"}
-        class="theme-button"
-        data-theme="dim"
-        phx-click={JS.push("change_theme", value: %{theme: "dim"})}
-        aria-label="Switch to dim theme"
-        title="Dim theme (⌘+M)"
-      >
+      <button id={"#{@id}-dim-button"} class="theme-button" data-theme="dim" phx-click={JS.push("change_theme", value: %{theme: "dim"})} aria-label="Switch to dim theme" title="Dim theme (⌘+M)">
         <span class="theme-icon">🟪</span>
       </button>
-      <button
-        id={"#{@id}-high-contrast-button"}
-        class="theme-button"
-        data-theme="high-contrast"
-        phx-click={JS.push("change_theme", value: %{theme: "high-contrast"})}
-        aria-label="Switch to high contrast theme"
-        title="High contrast theme (⌘+H)"
-      >
+      <button id={"#{@id}-high-contrast-button"} class="theme-button" data-theme="high-contrast" phx-click={JS.push("change_theme", value: %{theme: "high-contrast"})} aria-label="Switch to high contrast theme" title="High contrast theme (⌘+H)">
         <span class="theme-icon">🟨</span>
       </button>
     </div>
@@ -102,13 +68,7 @@ defmodule HydepwnsLiveviewWeb.Components.Common.ThemeToggle do
     assigns = assign_new(assigns, :id, fn -> "theme-toggle" end)
 
     ~H"""
-    <div
-      id={@id}
-      class="theme-toggle"
-      phx-hook="ThemeToggle"
-      role="group"
-      aria-label="Theme selection"
-    >
+    <div id={@id} class="theme-toggle" phx-hook="ThemeToggle" role="group" aria-label="Theme selection">
       <div class="theme-toggle-current">
         <span>Theme: </span>
         <span class="current-theme-label">
@@ -128,40 +88,13 @@ defmodule HydepwnsLiveviewWeb.Components.Common.ThemeToggle do
         </span>
       </div>
       <div class="theme-toggle-buttons">
-        <button
-          id={"#{@id}-light-theme"}
-          data-theme="light"
-          phx-click={JS.push("change_theme", value: %{theme: "light"})}
-          aria-label="Switch to light theme"
-          title="Light (Shift+Up/Right)"
-          class={if @base_theme == "light", do: "active"}
-          aria-pressed={if @base_theme == "light", do: "true", else: "false"}
-          tabindex="0"
-        >
+        <button id={"#{@id}-light-theme"} data-theme="light" phx-click={JS.push("change_theme", value: %{theme: "light"})} aria-label="Switch to light theme" title="Light (Shift+Up/Right)" class={if @base_theme == "light", do: "active"} aria-pressed={if @base_theme == "light", do: "true", else: "false"} tabindex="0">
           ⬜️
         </button>
-        <button
-          id={"#{@id}-dim-theme"}
-          data-theme="dim"
-          phx-click={JS.push("change_theme", value: %{theme: "dim"})}
-          aria-label="Switch to dim theme"
-          title="Dim (Shift+Up/Right)"
-          class={if @base_theme == "dim", do: "active"}
-          aria-pressed={if @base_theme == "dim", do: "true", else: "false"}
-          tabindex="0"
-        >
+        <button id={"#{@id}-dim-theme"} data-theme="dim" phx-click={JS.push("change_theme", value: %{theme: "dim"})} aria-label="Switch to dim theme" title="Dim (Shift+Up/Right)" class={if @base_theme == "dim", do: "active"} aria-pressed={if @base_theme == "dim", do: "true", else: "false"} tabindex="0">
           🟪
         </button>
-        <button
-          id={"#{@id}-dark-theme"}
-          data-theme="dark"
-          phx-click={JS.push("change_theme", value: %{theme: "dark"})}
-          aria-label="Switch to dark theme"
-          title="Dark (Shift+Up/Right)"
-          class={if @base_theme == "dark", do: "active"}
-          aria-pressed={if @base_theme == "dark", do: "true", else: "false"}
-          tabindex="0"
-        >
+        <button id={"#{@id}-dark-theme"} data-theme="dark" phx-click={JS.push("change_theme", value: %{theme: "dark"})} aria-label="Switch to dark theme" title="Dark (Shift+Up/Right)" class={if @base_theme == "dark", do: "active"} aria-pressed={if @base_theme == "dark", do: "true", else: "false"} tabindex="0">
           ⬛️
         </button>
         <button

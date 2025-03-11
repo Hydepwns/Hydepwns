@@ -73,14 +73,7 @@ defmodule HydepwnsLiveviewWeb.Components.Media.ResponsiveImage do
       <source srcset={build_srcset(@image_name, nil, @original_format)} sizes={@sizes} />
       
     <!-- Fallback -->
-      <img
-        src={"/images/#{@image_name}.#{@original_format}"}
-        alt={@alt}
-        loading={@loading}
-        width={@width}
-        height={@height}
-        class={@class}
-      />
+      <img src={"/images/#{@image_name}.#{@original_format}"} alt={@alt} loading={@loading} width={@width} height={@height} class={@class} />
     </picture>
     """
   end

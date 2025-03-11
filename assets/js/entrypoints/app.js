@@ -9,6 +9,10 @@ import topbar from "../../vendor/topbar"
 // Import service worker registration
 import { initServiceWorker } from "../service-worker-registration"
 
+// Import performance optimizations
+import MobilePerformance from "../performance/mobile_optimizations"
+import CodeSplitting from "../performance/code_splitting"
+
 // Import core hooks that should be available across all pages
 import DebugGrid from "../hooks/debug_grid"
 import ThemeToggle from "../hooks/theme_toggle"
@@ -48,9 +52,15 @@ const Hooks = {
   MonoTabs
 };
 
-// Initialize LiveSocket
+// Check if we're on a mobile device for performance optimizations
+const isMobileDevice = () => {
+  return (window.innerWidth <= 768) || 
+         (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+};
+
+// Initialize LiveSocket with performance optimizations for mobile
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content");
-let liveSocket = new LiveSocket("/live", Socket, {
+let liveSocketOptions = {
   params: {_csrf_token: csrfToken},
   hooks: Hooks,
   dom: {
@@ -68,10 +78,38 @@ let liveSocket = new LiveSocket("/live", Socket, {
       }
     }
   }
+};
+
+// Apply mobile-specific optimizations to LiveSocket if needed
+if (isMobileDevice()) {
+  // Throttle events for better performance on mobile
+  liveSocketOptions.throttle = {
+    events: {
+      mousemove: 50,    // Update every 50ms at most during mouse moves
+      scroll: 100       // Update every 100ms at most during scrolls
+    }
+  };
+  
+  // Use simpler animations
+  liveSocketOptions.transitions = {
+    default: {
+      onStart: function() { },
+      onDone: function() { }
+    }
+  };
+}
+
+let liveSocket = new LiveSocket("/live", Socket, liveSocketOptions);
+
+// Configure progress bar for better mobile performance
+topbar.config({
+  barColors: {0: "#29d"}, 
+  shadowColor: "rgba(0, 0, 0, .3)",
+  barThickness: isMobileDevice() ? 2 : 3,  // Thinner bar on mobile
+  shadowBlur: isMobileDevice() ? 4 : 10    // Less blur on mobile
 });
 
 // Show progress bar on live navigation and form submissions
-topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"});
 window.addEventListener("phx:page-loading-start", info => topbar.show());
 window.addEventListener("phx:page-loading-stop", info => topbar.hide());
 
@@ -105,16 +143,33 @@ initFontOptimizations();
 // Initialize service worker
 initServiceWorker();
 
-// Initialize application
+// Initialize application with performance optimizations
 document.addEventListener("DOMContentLoaded", function() {
   setInitialTheme();
   
+  // Apply mobile performance optimizations
+  if (isMobileDevice()) {
+    document.body.classList.add('mobile-device');
+    
+    // Initialize mobile performance optimizations
+    MobilePerformance.init();
+  }
+  
+  // Initialize code splitting for all devices
+  // (handles dynamic loading based on need)
+  CodeSplitting.init();
+  
   // Dynamically load route-specific bundles
-  loadRouteSpecificBundle();
+  // (this is now handled by CodeSplitting for better performance)
+  if (!isMobileDevice()) {
+    // Only use old method for non-mobile devices
+    loadRouteSpecificBundle();
+  }
 });
 
 /**
  * Load route-specific JavaScript bundles based on the current URL path
+ * Note: This is the legacy method, prefer using CodeSplitting for new code
  */
 function loadRouteSpecificBundle() {
   const path = window.location.pathname;
@@ -162,5 +217,7 @@ function loadRouteSpecificBundle() {
 export {
   liveSocket,
   Hooks,
-  debug
+  debug,
+  MobilePerformance,
+  CodeSplitting
 }; 

@@ -219,30 +219,15 @@ defmodule HydepwnsLiveviewWeb.Components.Interactive.Terminal do
       <div class="terminal-header">
         <div class="terminal-title">Terminal</div>
         <div class="terminal-controls">
-          <button
-            type="button"
-            class="terminal-control terminal-control-minimize"
-            aria-label="Minimize terminal"
-            phx-click={JS.dispatch("terminal:minimize", to: "##{@id}")}
-          >
+          <button type="button" class="terminal-control terminal-control-minimize" aria-label="Minimize terminal" phx-click={JS.dispatch("terminal:minimize", to: "##{@id}")}>
             _
           </button>
           <%= if assigns[:fullscreen] do %>
-            <button
-              type="button"
-              class="terminal-control terminal-control-fullscreen"
-              aria-label="Toggle fullscreen"
-              phx-click={JS.dispatch("terminal:fullscreen", to: "##{@id}")}
-            >
+            <button type="button" class="terminal-control terminal-control-fullscreen" aria-label="Toggle fullscreen" phx-click={JS.dispatch("terminal:fullscreen", to: "##{@id}")}>
               [ ]
             </button>
           <% end %>
-          <button
-            type="button"
-            class="terminal-control terminal-control-close"
-            aria-label="Close terminal"
-            phx-click={JS.dispatch("terminal:close", to: "##{@id}")}
-          >
+          <button type="button" class="terminal-control terminal-control-close" aria-label="Close terminal" phx-click={JS.dispatch("terminal:close", to: "##{@id}")}>
             ×
           </button>
         </div>
@@ -260,19 +245,7 @@ defmodule HydepwnsLiveviewWeb.Components.Interactive.Terminal do
         <% end %>
         <div class="terminal-input-line">
           <span class="terminal-prompt">{@prompt}</span>
-          <input
-            id={"#{@id}-input"}
-            type="text"
-            class="terminal-input"
-            autocomplete="off"
-            aria-label="Terminal input"
-            phx-keydown="terminal_keydown"
-            phx-keyup="terminal_keyup"
-            phx-blur="terminal_blur"
-            phx-focus="terminal_focus"
-            phx-target={@myself}
-            value={@current_command}
-          />
+          <input id={"#{@id}-input"} type="text" class="terminal-input" autocomplete="off" aria-label="Terminal input" phx-keydown="terminal_keydown" phx-keyup="terminal_keyup" phx-blur="terminal_blur" phx-focus="terminal_focus" phx-target={@myself} value={@current_command} />
         </div>
 
         <%= if @show_autocomplete && length(@autocomplete_options) > 0 do %>
@@ -336,6 +309,7 @@ defmodule HydepwnsLiveviewWeb.Components.Interactive.Terminal do
     end
   end
 
+  @impl true
   def handle_event("terminal_keydown", %{"key" => "Tab"}, socket) do
     # Handle autocomplete
     current = socket.assigns.current_command
@@ -373,6 +347,7 @@ defmodule HydepwnsLiveviewWeb.Components.Interactive.Terminal do
     end
   end
 
+  @impl true
   def handle_event("terminal_keydown", %{"key" => "ArrowUp"}, socket) do
     # Navigate command history up
     history = socket.assigns.command_history
@@ -391,6 +366,7 @@ defmodule HydepwnsLiveviewWeb.Components.Interactive.Terminal do
     end
   end
 
+  @impl true
   def handle_event("terminal_keydown", %{"key" => "ArrowDown"}, socket) do
     # Navigate command history down
     history = socket.assigns.command_history
@@ -418,27 +394,32 @@ defmodule HydepwnsLiveviewWeb.Components.Interactive.Terminal do
     end
   end
 
+  @impl true
   def handle_event("terminal_keydown", %{"key" => "Escape"}, socket) do
     # Close autocomplete on Escape
     {:noreply, assign(socket, :show_autocomplete, false)}
   end
 
+  @impl true
   def handle_event("terminal_keyup", %{"key" => key, "target" => %{"value" => value}}, socket)
       when key not in ["Enter", "Tab", "ArrowUp", "ArrowDown", "Escape"] do
     # Update the current command as user types
     {:noreply, assign(socket, :current_command, value)}
   end
 
+  @impl true
   def handle_event("terminal_keyup", _params, socket) do
     # Ignore other key events
     {:noreply, socket}
   end
 
+  @impl true
   def handle_event("terminal_focus", _params, socket) do
     # Handle terminal focus
     {:noreply, socket}
   end
 
+  @impl true
   def handle_event("terminal_blur", _params, socket) do
     # Handle terminal blur
     {:noreply, socket}

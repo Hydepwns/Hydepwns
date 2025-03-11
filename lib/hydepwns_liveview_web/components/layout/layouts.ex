@@ -9,7 +9,40 @@ defmodule HydepwnsLiveviewWeb.Layouts do
   `use HydepwnsLiveviewWeb, :live_view`.
   """
   use HydepwnsLiveviewWeb, :html
+  use Phoenix.Component
+
+  # Keep the MobileNav alias which is used in the template
+  alias HydepwnsLiveviewWeb.Components.Layout.MobileNav
 
   # Only keep imports that are actually used in the embedded templates
   embed_templates "layouts/*"
+
+  def app(assigns) do
+    ~H"""
+    <div class="min-h-full flex flex-col">
+      <header class="main-header">
+        <!-- Desktop navigation -->
+        <nav class="desktop-only">
+          <!-- Existing navigation code -->
+        </nav>
+        
+    <!-- Progress bar for page load indication -->
+        <div class="nprogress-container">
+          <div id="nprogress-bar" class="nprogress" phx-hook="ProgressBar" />
+        </div>
+      </header>
+
+      <main id="main-content" class="flex-grow">
+        {render_slot(@inner_block)}
+      </main>
+
+      <footer class="main-footer">
+        <!-- Footer content -->
+      </footer>
+      
+    <!-- Mobile navigation (only appears on mobile devices) -->
+      <MobileNav.mobile_nav current_path={@current_path} />
+    </div>
+    """
+  end
 end

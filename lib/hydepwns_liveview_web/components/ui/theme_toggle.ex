@@ -26,37 +26,13 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ThemeToggle do
   def theme_toggle(assigns) do
     ~H"""
     <div class={["theme-toggle", @class]} phx-hook="ThemeToggle" {@rest} aria-label="Theme toggles">
-      <button
-        id="light-theme"
-        data-theme="light"
-        phx-click={JS.dispatch("theme-set", detail: %{theme: "light-theme"})}
-        aria-label="light"
-        title="light (Shift+Arrow Keys)"
-        aria-pressed="false"
-        type="button"
-      >
+      <button id="light-theme" data-theme="light" phx-click={JS.dispatch("theme-set", detail: %{theme: "light-theme"})} aria-label="light" title="light (Shift+Arrow Keys)" aria-pressed="false" type="button">
         □
       </button>
-      <button
-        id="dark-theme"
-        data-theme="dark"
-        phx-click={JS.dispatch("theme-set", detail: %{theme: "dark-theme"})}
-        aria-label="dark"
-        title="dark (Shift+Arrow Keys)"
-        aria-pressed="false"
-        type="button"
-      >
+      <button id="dark-theme" data-theme="dark" phx-click={JS.dispatch("theme-set", detail: %{theme: "dark-theme"})} aria-label="dark" title="dark (Shift+Arrow Keys)" aria-pressed="false" type="button">
         ■
       </button>
-      <button
-        id="dim-theme"
-        data-theme="dim"
-        phx-click={JS.dispatch("theme-set", detail: %{theme: "dim-theme"})}
-        aria-label="dim"
-        title="dim (Shift+Arrow Keys)"
-        aria-pressed="false"
-        type="button"
-      >
+      <button id="dim-theme" data-theme="dim" phx-click={JS.dispatch("theme-set", detail: %{theme: "dim-theme"})} aria-label="dim" title="dim (Shift+Arrow Keys)" aria-pressed="false" type="button">
         ▣
       </button>
     </div>

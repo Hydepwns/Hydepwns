@@ -81,7 +81,7 @@ defmodule HydepwnsLiveviewWeb.StyleGuideLive do
             Our color palette is designed to provide optimal contrast and readability in monospace environments,
             with a focus on maintaining the terminal-inspired aesthetic.
           </p>
-          
+
           <h3>Base Colors</h3>
           <div class="color-grid">
             <div class="color-sample dark-bg">
@@ -105,7 +105,7 @@ defmodule HydepwnsLiveviewWeb.StyleGuideLive do
               <p class="color-hex">#DDDDDD</p>
             </div>
           </div>
-          
+
           <h3>Accent Colors</h3>
           <div class="color-grid">
             <div class="color-sample">
@@ -138,7 +138,7 @@ defmodule HydepwnsLiveviewWeb.StyleGuideLive do
             alignment and consistent spacing. All elements align to a character-based grid, where
             each character occupies exactly one grid cell.
           </p>
-          
+
           <h3>Basic Grid Structure</h3>
           <pre class="grid-example">
             ┌────────────────────────────┐
@@ -147,7 +147,7 @@ defmodule HydepwnsLiveviewWeb.StyleGuideLive do
             │ height (typically 1.5rem)  │
             └────────────────────────────┘
           </pre>
-          
+
           <h3>Grid Properties</h3>
           <table class="grid-props-table">
             <tr>
@@ -171,13 +171,13 @@ defmodule HydepwnsLiveviewWeb.StyleGuideLive do
               <td>Standard terminal width</td>
             </tr>
           </table>
-          
+
           <h3>Using the MonoGrid Component</h3>
           <p>
             The <code>MonoGrid</code> component provides a flexible way to create perfectly aligned
             monospace layouts. It handles the precise spacing and alignment automatically.
           </p>
-          
+
           <pre class="code-example"><code>&lt;.mono_grid cols={80} cell_width="1ch" cell_height="1.5rem"&gt;
             Your precisely aligned content here
           &lt;/.mono_grid&gt;</code></pre>
@@ -190,7 +190,7 @@ defmodule HydepwnsLiveviewWeb.StyleGuideLive do
             while providing modern interactive functionality. All components respect the
             character grid system for perfect alignment.
           </p>
-          
+
           <h3>Buttons</h3>
           <div class="component-example">
             <button class="mono-button">STANDARD BUTTON</button>
@@ -198,7 +198,7 @@ defmodule HydepwnsLiveviewWeb.StyleGuideLive do
             <button class="mono-button secondary">SECONDARY BUTTON</button>
             <button class="mono-button" disabled>DISABLED BUTTON</button>
           </div>
-          
+
           <h3>Form Inputs</h3>
           <div class="component-example">
             <input type="text" class="mono-input" placeholder="Monospace text input" />
@@ -208,14 +208,11 @@ defmodule HydepwnsLiveviewWeb.StyleGuideLive do
               <option>Option 3</option>
             </select>
           </div>
-          
+
           <h3>Theme Toggle</h3>
           <p>The theme toggle component allows users to switch between different color themes:</p>
-          <ThemeToggle.theme_toggle
-            id="style-guide-theme-toggle"
-            theme={String.replace(@theme_class, "-theme", "")}
-          />
-          
+          <ThemeToggle.theme_toggle id="style-guide-theme-toggle" theme={String.replace(@theme_class, "-theme", "")} />
+
           <h3>Terminal Component</h3>
           <p>
             Our interactive terminal component provides a fully functional command-line
@@ -245,9 +242,7 @@ defmodule HydepwnsLiveviewWeb.StyleGuideLive do
 
           <h3>Reduced Motion</h3>
           <p>
-            We respect the user's preference for reduced motion. When the
-            <code>prefers-reduced-motion</code>
-            media query is active, animations are minimized or disabled.
+            We respect the user's preference for reduced motion. When the <code>prefers-reduced-motion</code> media query is active, animations are minimized or disabled.
           </p>
           <div class="code-example">
             <pre><code><%= @reduced_motion_code %></code></pre>

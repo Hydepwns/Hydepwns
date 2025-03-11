@@ -29,6 +29,11 @@ defmodule HydepwnsLiveviewWeb.Router do
     live "/grid-playground", GridPlaygroundLive, :index
     live "/gallery", GalleryLive, :index
 
+    # Playground routes
+    scope "/playground", Live.Playground, as: :playground do
+      live "/terminal", TerminalDemoLive, :index
+    end
+
     # Offline fallback page
     get "/offline", OfflineController, :index
 

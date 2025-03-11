@@ -50,19 +50,9 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ProgressIndicator do
       )
 
     ~H"""
-    <div
-      id={@id}
-      class={"monospace-progress linear #{@class} #{if @animate, do: "animate"}"}
-      phx-hook="ProgressIndicatorHook"
-    >
+    <div id={@id} class={"monospace-progress linear #{@class} #{if @animate, do: "animate"}"} phx-hook="ProgressIndicatorHook">
       <div class="progress-container">
-        <div
-          class="progress-bar"
-          role="progressbar"
-          aria-valuenow={@value}
-          aria-valuemin="0"
-          aria-valuemax={@max}
-        >
+        <div class="progress-bar" role="progressbar" aria-valuenow={@value} aria-valuemin="0" aria-valuemax={@max}>
           [{String.duplicate(@filled_char, @filled_count)}{String.duplicate(@empty_char, @empty_count)}] {@percentage}%
         </div>
         <%= if @label do %>
@@ -114,11 +104,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ProgressIndicator do
       )
 
     ~H"""
-    <div
-      id={@id}
-      class={"monospace-progress step-indicator #{@style} #{@class}"}
-      phx-hook="ProgressIndicatorHook"
-    >
+    <div id={@id} class={"monospace-progress step-indicator #{@style} #{@class}"} phx-hook="ProgressIndicatorHook">
       <div class="steps-container">
         <%= case @style do %>
           <% "numbered" -> %>
@@ -266,13 +252,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ProgressIndicator do
     assigns = assign(assigns, frames: frames)
 
     ~H"""
-    <div
-      id={@id}
-      class={"monospace-progress spinner #{@style} #{@class}"}
-      phx-hook="ProgressIndicatorHook"
-      data-frames={encode!(@frames)}
-      data-speed={@speed}
-    >
+    <div id={@id} class={"monospace-progress spinner #{@style} #{@class}"} phx-hook="ProgressIndicatorHook" data-frames={encode!(@frames)} data-speed={@speed}>
       <div class="spinner-container">
         <div class="spinner-animation" role="status" aria-live="polite">
           {hd(@frames)}
@@ -321,19 +301,9 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ProgressIndicator do
       )
 
     ~H"""
-    <div
-      id={@id}
-      class={"monospace-progress circular #{@size} #{@class}"}
-      phx-hook="ProgressIndicatorHook"
-    >
+    <div id={@id} class={"monospace-progress circular #{@size} #{@class}"} phx-hook="ProgressIndicatorHook">
       <div class="circular-container">
-        <div
-          class="circular-progress"
-          role="progressbar"
-          aria-valuenow={@value}
-          aria-valuemin="0"
-          aria-valuemax={@max}
-        >
+        <div class="circular-progress" role="progressbar" aria-valuenow={@value} aria-valuemin="0" aria-valuemax={@max}>
           <pre class="circle-art"><%= @circle %></pre>
           <div class="circle-text">{@inner_text}</div>
         </div>

@@ -63,19 +63,8 @@ defmodule HydepwnsLiveviewWeb.Components.Media.LazyLoad do
 
   def lazy_load(assigns) do
     ~H"""
-    <div
-      id={@id}
-      class={["lazy-load-container", @class]}
-      phx-hook="LazyLoad"
-      data-margin={@margin}
-      data-threshold={@threshold}
-      data-loaded={@skip_lazy}
-    >
-      <div
-        class="lazy-load-placeholder"
-        data-lazy-placeholder
-        style={if @skip_lazy, do: "display: none;"}
-      >
+    <div id={@id} class={["lazy-load-container", @class]} phx-hook="LazyLoad" data-margin={@margin} data-threshold={@threshold} data-loaded={@skip_lazy}>
+      <div class="lazy-load-placeholder" data-lazy-placeholder style={if @skip_lazy, do: "display: none;"}>
         <%= if Enum.any?(@placeholder) do %>
           {render_slot(@placeholder)}
         <% else %>

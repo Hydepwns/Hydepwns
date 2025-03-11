@@ -56,24 +56,10 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoTabs do
     assigns = assign(assigns, :active_tab, active_tab)
 
     ~H"""
-    <div
-      id={@id}
-      class={["mono-tabs", "mono-tabs--#{@style}", @vertical && "mono-tabs--vertical", @class]}
-      {@rest}
-      phx-hook="MonoTabs"
-      data-tabs-id={@id}
-    >
+    <div id={@id} class={["mono-tabs", "mono-tabs--#{@style}", @vertical && "mono-tabs--vertical", @class]} {@rest} phx-hook="MonoTabs" data-tabs-id={@id}>
       <div class="mono-tabs__nav" role="tablist">
         <%= for tab <- @tab do %>
-          <button
-            type="button"
-            id={"#{@id}-tab-#{tab.id}"}
-            class={["mono-tabs__tab", @active_tab == tab.id && "mono-tabs__tab--active"]}
-            role="tab"
-            aria-selected={@active_tab == tab.id}
-            aria-controls={"#{@id}-panel-#{tab.id}"}
-            phx-click={show_tab(@id, tab.id)}
-          >
+          <button type="button" id={"#{@id}-tab-#{tab.id}"} class={["mono-tabs__tab", @active_tab == tab.id && "mono-tabs__tab--active"]} role="tab" aria-selected={@active_tab == tab.id} aria-controls={"#{@id}-panel-#{tab.id}"} phx-click={show_tab(@id, tab.id)}>
             <%= if Map.get(tab, :icon) do %>
               <span class="mono-tabs__icon">{tab.icon}</span>
             <% end %>
@@ -84,13 +70,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoTabs do
 
       <div class="mono-tabs__content">
         <%= for tab <- @tab do %>
-          <div
-            id={"#{@id}-panel-#{tab.id}"}
-            class={["mono-tabs__panel", @active_tab == tab.id && "mono-tabs__panel--active"]}
-            role="tabpanel"
-            aria-labelledby={"#{@id}-tab-#{tab.id}"}
-            hidden={@active_tab != tab.id}
-          >
+          <div id={"#{@id}-panel-#{tab.id}"} class={["mono-tabs__panel", @active_tab == tab.id && "mono-tabs__panel--active"]} role="tabpanel" aria-labelledby={"#{@id}-tab-#{tab.id}"} hidden={@active_tab != tab.id}>
             <.mono_grid cols={78}>
               <.mono_grid_row>
                 <.mono_grid_cell cols={78}>

@@ -1,0 +1,1367 @@
+defmodule HydepwnsLiveviewWeb.Components.Interactive.Terminal do
+  @moduledoc """
+  # Terminal
+
+  Provides an interactive terminal component with command history and customization options.
+
+  ## Overview
+
+  The Terminal component creates a fully functional terminal emulator that can be embedded
+  in any LiveView. It supports command history, custom commands, syntax highlighting,
+  and various customization options.
+
+  This component is useful for:
+  - Creating interactive tutorials
+  - Demonstrating command-line interfaces
+  - Providing a playground for users to experiment with commands
+  - Embedding CLI functionality within a web interface
+
+  The terminal uses the MonoGrid component to ensure proper character alignment and
+  preserves the monospace aesthetics of the application.
+
+  ## Examples
+
+  ```heex
+  <Terminal.terminal id="example-terminal" />
+
+  <Terminal.terminal 
+    id="custom-terminal" 
+    prompt="user@hydepwns:~$ " 
+    welcome_message="Welcome to Hydepwns Terminal v1.0.0" 
+    available_commands={@custom_commands}
+    height={20}
+    width={80}
+    theme="dark"
+    fullscreen={true}
+  />
+  ```
+
+  ## Props/Attributes
+
+  | Name | Type | Default | Required | Description |
+  |------|------|---------|----------|-------------|
+  | `id` | `string` | `nil` | Yes | Unique identifier for the terminal |
+  | `prompt` | `string` | `"> "` | No | Custom prompt string |
+  | `welcome_message` | `string` | `"Welcome to the terminal..."` | No | Initial message displayed |
+  | `available_commands` | `map` | `%{}` | No | Custom commands to add |
+  | `height` | `integer` | `15` | No | Terminal height in rows |
+  | `width` | `integer` | `80` | No | Terminal width in columns |
+  | `theme` | `string` | `"dark"` | No | Theme variant (light, dark, dim) |
+  | `fullscreen` | `boolean` | `false` | No | Whether to enable fullscreen mode |
+  | `plugins` | `list` | `[]` | No | List of terminal plugins to load |
+
+  ## Accessibility
+
+  The Terminal component includes the following accessibility features:
+  - ARIA role="application" for the terminal container
+  - ARIA live region for screen reader announcements of new output
+  - Focus management to maintain cursor position
+  - Keyboard navigation support including command history (up/down arrows)
+  - High contrast mode support
+
+  ## Theming
+
+  The terminal supports the following theme options:
+  - `light`: Light background with dark text
+  | `dark`: Dark background with light text
+  - `dim`: Dark background with softer text colors
+  - `high-contrast`: High contrast colors for accessibility
+
+  ## Browser Compatibility
+
+  The terminal component works in all modern browsers. In older browsers without
+  localStorage support, command history persistence is automatically disabled.
+
+  ## Related Components
+
+  - `HydepwnsLiveviewWeb.Components.MonoGrid` - Used for layout
+  - `HydepwnsLiveviewWeb.Components.Interactive.ThemePreview` - Often used with Terminal
+
+  ## Changelog
+
+  | Version | Changes |
+  |---------|---------|
+  | 0.3.0   | Added plugin system and autocomplete functionality |
+  | 0.2.0   | Added fullscreen toggle and theme support |
+  | 0.1.0   | Initial implementation |
+  """
+  use HydepwnsLiveviewWeb, :live_component
+  alias Phoenix.LiveView.JS
+  alias HydepwnsLiveviewWeb.Components.Interactive.Terminal.Plugin
+  alias HydepwnsLiveviewWeb.Components.Interactive.Terminal.AsciiArt
+
+  # Default commands that are available in all terminals
+  @default_commands %{
+    "help" => %{
+      description: "Show available commands",
+      usage: "help [command]"
+    },
+    "clear" => %{
+      description: "Clear the terminal screen",
+      usage: "clear"
+    },
+    "echo" => %{
+      description: "Display a line of text",
+      usage: "echo [text]"
+    },
+    "date" => %{
+      description: "Display the current date and time",
+      usage: "date"
+    },
+    "theme" => %{
+      description: "Change the terminal theme",
+      usage: "theme [light|dark|dim|high-contrast]"
+    },
+    "history" => %{
+      description: "Show command history",
+      usage: "history [clear]"
+    },
+    "info" => %{
+      description: "Display system information",
+      usage: "info"
+    },
+    "preferences" => %{
+      description: "Customize terminal appearance",
+      usage: "preferences [font|cursor|highlight|reset|show] [value]"
+    }
+  }
+
+  # Default terminal properties
+  @default_cols 80
+  @default_rows 20
+  @default_prompt "$ "
+  @default_font_family "monospace"
+  # block, underline, or bar
+  @default_cursor_style "block"
+  # Default synthwave highlight color
+  @default_highlight_color "#FF2E97"
+  @default_welcome_message """
+   ██╗  ██╗██╗   ██╗██████╗ ███████╗██████╗ ██╗    ██╗███╗   ██╗███████╗
+   ██║  ██║╚██╗ ██╔╝██╔══██╗██╔════╝██╔══██╗██║    ██║████╗  ██║██╔════╝
+   ███████║ ╚████╔╝ ██║  ██║█████╗  ██████╔╝██║ █╗ ██║██╔██╗ ██║███████╗
+   ██╔══██║  ╚██╔╝  ██║  ██║██╔══╝  ██╔═══╝ ██║███╗██║██║╚██╗██║╚════██║
+   ██║  ██║   ██║   ██████╔╝███████╗██║     ╚███╔███╔╝██║ ╚████║███████║
+   ╚═╝  ╚═╝   ╚═╝   ╚═════╝ ╚══════╝╚═╝      ╚══╝╚══╝ ╚═╝  ╚═══╝╚══════╝
+   =====================================================================
+                Terminal v1.0 - Type 'help' for commands
+  """
+
+  @impl true
+  def mount(socket) do
+    {:ok,
+     socket
+     |> assign(:command_history, [])
+     |> assign(:history_index, 0)
+     |> assign(:output, [])
+     |> assign(:current_command, "")
+     |> assign(:show_autocomplete, false)
+     |> assign(:autocomplete_options, [])
+     |> assign(:autocomplete_index, 0)
+     |> assign(:user_preferences, %{
+       theme: "dark",
+       font_family: @default_font_family,
+       cursor_style: @default_cursor_style,
+       highlight_color: @default_highlight_color
+     })
+     |> assign(:loaded_plugins, %{})}
+  end
+
+  @impl true
+  def update(assigns, socket) do
+    commands =
+      case assigns[:available_commands] do
+        nil -> @default_commands
+        custom_commands -> Map.merge(@default_commands, custom_commands)
+      end
+
+    # Filter out reserved assigns
+    reserved_assigns = [:socket, :flash, :live_action, :uploads]
+
+    filtered_assigns =
+      assigns
+      |> Map.drop(reserved_assigns)
+
+    # Load plugins if specified
+    plugins = assigns[:plugins] || []
+    {loaded_plugins, plugin_commands} = load_plugins(plugins)
+
+    # Merge plugin commands with available commands
+    merged_commands = Map.merge(commands, plugin_commands)
+
+    # Set up default user preferences with any provided values
+    default_preferences = %{
+      theme: filtered_assigns[:theme] || "dark",
+      font_family: filtered_assigns[:font_family] || @default_font_family,
+      cursor_style: filtered_assigns[:cursor_style] || @default_cursor_style,
+      highlight_color: filtered_assigns[:highlight_color] || @default_highlight_color
+    }
+
+    {:ok,
+     socket
+     |> assign(filtered_assigns)
+     |> assign(:available_commands, merged_commands)
+     |> assign(:loaded_plugins, loaded_plugins)
+     |> assign_new(:cols, fn -> filtered_assigns[:cols] || @default_cols end)
+     |> assign_new(:rows, fn -> filtered_assigns[:rows] || @default_rows end)
+     |> assign_new(:prompt, fn -> filtered_assigns[:prompt] || @default_prompt end)
+     |> assign_new(:welcome_message, fn ->
+       filtered_assigns[:welcome_message] || @default_welcome_message
+     end)
+     |> assign_new(:theme, fn -> filtered_assigns[:theme] || "dark" end)
+     |> assign_new(:font_family, fn -> filtered_assigns[:font_family] || @default_font_family end)
+     |> assign_new(:cursor_style, fn ->
+       filtered_assigns[:cursor_style] || @default_cursor_style
+     end)
+     |> assign_new(:highlight_color, fn ->
+       filtered_assigns[:highlight_color] || @default_highlight_color
+     end)
+     |> assign_new(:command_history, fn -> [] end)
+     |> assign_new(:user_preferences, fn -> default_preferences end)
+     |> assign_new(:output, fn ->
+       [
+         %{type: :system, content: filtered_assigns[:welcome_message] || @default_welcome_message}
+       ]
+     end)}
+  end
+
+  @doc """
+  Renders a terminal component.
+
+  ## Examples
+
+  ```heex
+  <Terminal.terminal id="example-terminal" />
+
+  <Terminal.terminal 
+    id="custom-terminal" 
+    prompt="user@hydepwns:~$ " 
+    welcome_message="Welcome to Hydepwns Terminal v1.0.0" 
+    height={20}
+    width={80}
+  />
+  ```
+
+  ## Attributes
+
+  | Name | Type | Default | Required | Description |
+  |------|------|---------|----------|-------------|
+  | `id` | `string` | `nil` | Yes | Unique identifier for this terminal instance |
+  | `cols` | `integer` | `#{@default_cols}` | No | Number of columns in the terminal |
+  | `rows` | `integer` | `#{@default_rows}` | No | Number of rows in the terminal viewport |
+  | `prompt` | `string` | `"#{@default_prompt}"` | No | Terminal prompt string |
+  | `welcome_message` | `string` | `"Welcome..."` | No | Initial message shown in the terminal |
+  | `available_commands` | `map` | `%{}` | No | Map of custom commands this terminal should support |
+  | `theme` | `string` | `"dark"` | No | Terminal theme: "light", "dark", "dim", "high-contrast" |
+  | `wrap` | `boolean` | `true` | No | Whether to enable line wrapping |
+  | `fullscreen` | `boolean` | `false` | No | Whether the terminal can be toggled to fullscreen mode |
+
+  ## Returns
+
+  HEEx template rendering the terminal component.
+  """
+  @impl true
+  def render(assigns) do
+    ~H"""
+    <div
+      id={@id}
+      class={"terminal-container #{@theme}"}
+      data-terminal-id={@id}
+      data-fullscreen={@fullscreen}
+      data-font-family={@font_family}
+      data-cursor-style={@cursor_style}
+      data-highlight-color={@highlight_color}
+      phx-hook="Terminal"
+      phx-target={@myself}
+    >
+      <div class="terminal-header">
+        <div class="terminal-title">
+          {@prompt || @default_prompt}
+        </div>
+        <div class="terminal-controls">
+          <button
+            type="button"
+            class="terminal-control-button terminal-minimize"
+            aria-label="Minimize terminal"
+            phx-click={JS.dispatch("terminal:minimize", to: "##{@id}")}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              class="w-5 h-5"
+            >
+              <path d="M6.75 9.25a.75.75 0 000 1.5h6.5a.75.75 0 000-1.5h-6.5z" />
+            </svg>
+          </button>
+
+          <button
+            :if={@fullscreen}
+            type="button"
+            class="terminal-control-button terminal-fullscreen"
+            aria-label="Toggle fullscreen"
+            phx-click={JS.dispatch("terminal:fullscreen", to: "##{@id}")}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              class="w-5 h-5"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M4.25 5.5a.75.75 0 00-.75.75v8.5c0 .414.336.75.75.75h8.5a.75.75 0 00.75-.75v-4a.75.75 0 011.5 0v4A2.25 2.25 0 0112.75 17h-8.5A2.25 2.25 0 012 14.75v-8.5A2.25 2.25 0 014.25 4h5a.75.75 0 010 1.5h-5z"
+                clip-rule="evenodd"
+              />
+              <path
+                fill-rule="evenodd"
+                d="M6.194 12.753a.75.75 0 001.06.053L16.5 4.44v2.81a.75.75 0 001.5 0v-4.5a.75.75 0 00-.75-.75h-4.5a.75.75 0 000 1.5h2.553l-9.056 8.194a.75.75 0 00-.053 1.06z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </button>
+
+          <button
+            type="button"
+            class="terminal-control-button terminal-close"
+            aria-label="Close terminal"
+            phx-click={JS.dispatch("terminal:close", to: "##{@id}")}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              class="w-5 h-5"
+            >
+              <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="terminal-body">
+        <div
+          id={"#{@id}-grid"}
+          class="mono-grid terminal-output"
+          style={"--grid-cols: #{@cols}; --grid-rows: #{@rows};"}
+        >
+          <%= for output <- @output do %>
+            <div class={"terminal-output-line terminal-output-#{output.type}"}>
+              <%= case output.type do %>
+                <% :command -> %>
+                  <span class="terminal-prompt">{@prompt}</span>{output.content}
+                <% :error -> %>
+                  <pre class="terminal-error-message"><%= output.content %></pre>
+                <% :output -> %>
+                  <pre class="terminal-command-output"><%= output.content %></pre>
+                <% :system -> %>
+                  <pre class="terminal-system-message"><%= output.content %></pre>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+
+        <div class="terminal-input-container">
+          <span class="terminal-prompt">{@prompt}</span>
+          <input
+            id={"#{@id}-input"}
+            type="text"
+            class="terminal-input"
+            value={@current_command}
+            autocomplete="off"
+            spellcheck="false"
+            phx-keydown="terminal_keydown"
+            phx-keyup="terminal_keyup"
+            phx-focus="terminal_focus"
+            phx-blur="terminal_blur"
+            phx-target={@myself}
+          />
+        </div>
+        
+    <!-- Mobile controls - only visible on small screens via CSS -->
+        <div class="terminal-mobile-controls">
+          <button
+            type="button"
+            class="mobile-control-button"
+            phx-click="terminal_mobile_tab"
+            phx-target={@myself}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              class="w-5 h-5"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M2 10a.75.75 0 01.75-.75h12.59l-2.1-1.95a.75.75 0 111.02-1.1l3.5 3.25a.75.75 0 010 1.1l-3.5 3.25a.75.75 0 11-1.02-1.1l2.1-1.95H2.75A.75.75 0 012 10z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            Tab
+          </button>
+          <button
+            type="button"
+            class="mobile-control-button"
+            phx-click="terminal_mobile_clear"
+            phx-target={@myself}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              class="w-5 h-5"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            Clear
+          </button>
+          <button
+            type="button"
+            class="mobile-control-button"
+            phx-click="terminal_mobile_history"
+            phx-target={@myself}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              class="w-5 h-5"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0V5.36l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 6.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            History
+          </button>
+          <button
+            type="button"
+            class="mobile-control-button"
+            phx-click="terminal_mobile_help"
+            phx-target={@myself}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              class="w-5 h-5"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            Help
+          </button>
+        </div>
+      </div>
+
+      <%= if @show_autocomplete and length(@autocomplete_options) > 0 do %>
+        <div class="terminal-autocomplete">
+          <%= for {option, index} <- Enum.with_index(@autocomplete_options) do %>
+            <div
+              class={"terminal-autocomplete-option #{if index == @autocomplete_index, do: "selected", else: ""}"}
+              phx-click="terminal_select_autocomplete"
+              phx-value-option={option}
+              phx-target={@myself}
+            >
+              {option}
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+    """
+  end
+
+  @impl true
+  def handle_event("terminal_keydown", %{"key" => "Enter"}, socket) do
+    # Execute command when Enter is pressed
+    command = socket.assigns.current_command |> String.trim()
+    history = socket.assigns.command_history
+    output = socket.assigns.output
+
+    # Don't do anything for empty commands
+    if command == "" do
+      {:noreply, socket}
+    else
+      # Add command to history and output
+      # Limit history to 100 entries
+      new_history = [command | history] |> Enum.take(100)
+      new_output = output ++ [%{type: :command, content: command}]
+
+      # Execute the command and get the result
+      # Use try/rescue to handle any unexpected errors during command execution
+      {result_output, command_result} =
+        try do
+          execute_command(command, socket.assigns)
+        rescue
+          e ->
+            error_message = "An error occurred: #{Exception.message(e)}"
+            {[%{type: :error, content: error_message}], :error}
+        catch
+          kind, reason ->
+            error_message = "Unexpected #{kind}: #{inspect(reason)}"
+            {[%{type: :error, content: error_message}], :error}
+        end
+
+      new_output = new_output ++ result_output
+
+      {:noreply,
+       socket
+       |> assign(:command_history, new_history)
+       |> assign(:history_index, 0)
+       |> assign(:current_command, "")
+       |> assign(:output, new_output)
+       |> assign(:show_autocomplete, false)
+       |> assign(:command_result, command_result)}
+    end
+  end
+
+  def handle_event("terminal_keydown", %{"key" => "Tab"}, socket) do
+    # Handle autocomplete
+    current = socket.assigns.current_command
+    show_autocomplete = socket.assigns.show_autocomplete
+    autocomplete_options = socket.assigns.autocomplete_options
+    autocomplete_index = socket.assigns.autocomplete_index
+
+    cond do
+      show_autocomplete && length(autocomplete_options) > 0 ->
+        # If autocomplete is already shown, select the current option
+        selected_option = Enum.at(autocomplete_options, autocomplete_index)
+
+        {:noreply,
+         socket
+         |> assign(:current_command, selected_option)
+         |> assign(:show_autocomplete, false)}
+
+      true ->
+        # Generate autocomplete options based on available commands and current input
+        options =
+          socket.assigns.available_commands
+          |> Map.keys()
+          |> Enum.filter(&String.starts_with?(&1, current))
+          |> Enum.sort()
+
+        if length(options) > 0 do
+          {:noreply,
+           socket
+           |> assign(:show_autocomplete, true)
+           |> assign(:autocomplete_options, options)
+           |> assign(:autocomplete_index, 0)}
+        else
+          {:noreply, socket}
+        end
+    end
+  end
+
+  def handle_event("terminal_keydown", %{"key" => "ArrowUp"}, socket) do
+    # Navigate command history up
+    history = socket.assigns.command_history
+    history_index = socket.assigns.history_index
+
+    if history_index < length(history) do
+      command = Enum.at(history, history_index)
+
+      {:noreply,
+       socket
+       |> assign(:current_command, command)
+       |> assign(:history_index, history_index + 1)
+       |> assign(:show_autocomplete, false)}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_event("terminal_keydown", %{"key" => "ArrowDown"}, socket) do
+    # Navigate command history down
+    history = socket.assigns.command_history
+    history_index = socket.assigns.history_index
+
+    cond do
+      history_index > 1 ->
+        command = Enum.at(history, history_index - 2)
+
+        {:noreply,
+         socket
+         |> assign(:current_command, command)
+         |> assign(:history_index, history_index - 1)
+         |> assign(:show_autocomplete, false)}
+
+      history_index == 1 ->
+        {:noreply,
+         socket
+         |> assign(:current_command, "")
+         |> assign(:history_index, 0)
+         |> assign(:show_autocomplete, false)}
+
+      true ->
+        {:noreply, socket}
+    end
+  end
+
+  def handle_event("terminal_keydown", %{"key" => "Escape"}, socket) do
+    # Close autocomplete on Escape
+    {:noreply, assign(socket, :show_autocomplete, false)}
+  end
+
+  def handle_event("terminal_keyup", %{"key" => key, "target" => %{"value" => value}}, socket)
+      when key not in ["Enter", "Tab", "ArrowUp", "ArrowDown", "Escape"] do
+    # Update the current command as user types
+    {:noreply, assign(socket, :current_command, value)}
+  end
+
+  def handle_event("terminal_keyup", _params, socket) do
+    # Ignore other key events
+    {:noreply, socket}
+  end
+
+  def handle_event("terminal_focus", _params, socket) do
+    # Handle terminal focus
+    {:noreply, socket}
+  end
+
+  def handle_event("terminal_blur", _params, socket) do
+    # Handle terminal blur
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("terminal_command", %{"command" => command}, socket) do
+    # Parse the command
+    {cmd, args} = parse_command(command)
+
+    cond do
+      # Check if this is a plugin command
+      Map.has_key?(socket.assigns.loaded_plugins, cmd) ->
+        # Execute plugin command
+        plugin = Map.get(socket.assigns.loaded_plugins, cmd)
+        handle_plugin_command(plugin, cmd, args, command, socket)
+
+      # Execute built-in command
+      true ->
+        # ... existing command handling logic ...
+        {:reply, %{}, socket}
+    end
+  end
+
+  @impl true
+  def handle_event("terminal_autocomplete", %{"input" => input}, socket) do
+    # Get available commands
+    commands = socket.assigns.available_commands
+
+    # Extract the command prefix or the full input if no space
+    command_parts = String.split(input, " ", parts: 2)
+    command_prefix = List.first(command_parts)
+
+    # Check if we need command completion or argument completion
+    autocomplete_options =
+      if Enum.count(command_parts) > 1 and Map.has_key?(commands, command_prefix) do
+        # If there's a space, we're completing arguments for a known command
+        arg = Enum.at(command_parts, 1)
+        command_info = Map.get(commands, command_prefix)
+
+        # Check if this is a plugin command
+        if Map.has_key?(socket.assigns.loaded_plugins, command_prefix) do
+          # Get completions from plugin
+          plugin = Map.get(socket.assigns.loaded_plugins, command_prefix)
+
+          Plugin.autocomplete(plugin, arg)
+          |> Enum.map(fn completion -> "#{command_prefix} #{completion}" end)
+        else
+          # Get argument completions for this command
+          get_argument_completions(command_prefix, arg, command_info, socket)
+        end
+      else
+        # Otherwise, complete the command itself
+        get_command_completions(command_prefix, commands)
+      end
+
+    # Return the results to the client
+    {:reply, %{result: %{type: "autocomplete_options", data: autocomplete_options}}, socket}
+  end
+
+  @impl true
+  def handle_event("set_user_preferences", %{"preferences" => prefs}, socket) do
+    # Apply the new preferences
+    updated_socket =
+      socket
+      |> assign(:user_preferences, prefs)
+      |> apply_preferences(prefs)
+
+    {:noreply, updated_socket}
+  end
+
+  @impl true
+  def handle_event("terminal_command", %{"command" => "preferences " <> pref_arg}, socket) do
+    {setting, value} =
+      case String.split(String.trim(pref_arg), " ", parts: 2) do
+        [setting, value] -> {setting, value}
+        [setting] -> {setting, nil}
+        _ -> {nil, nil}
+      end
+
+    current_prefs = socket.assigns.user_preferences
+
+    {result, updated_prefs} =
+      case setting do
+        "font" when not is_nil(value) ->
+          # Set font family
+          {%{
+             type: :system,
+             content: "Font family changed to: #{value}"
+           }, Map.put(current_prefs, :font_family, value)}
+
+        "cursor" when value in ["block", "underline", "bar"] ->
+          # Set cursor style
+          {%{
+             type: :system,
+             content: "Cursor style changed to: #{value}"
+           }, Map.put(current_prefs, :cursor_style, value)}
+
+        "highlight" when not is_nil(value) ->
+          # Set highlight color
+          if String.match?(value, ~r/^#[0-9A-Fa-f]{6}$/) do
+            {%{
+               type: :system,
+               content: "Highlight color changed to: #{value}"
+             }, Map.put(current_prefs, :highlight_color, value)}
+          else
+            {%{
+               type: :error,
+               content: "Invalid color format. Use hex format (e.g., #FF2E97)"
+             }, current_prefs}
+          end
+
+        "reset" ->
+          # Reset preferences to defaults
+          default_prefs = %{
+            theme: "dark",
+            font_family: @default_font_family,
+            cursor_style: @default_cursor_style,
+            highlight_color: @default_highlight_color
+          }
+
+          {%{
+             type: :system,
+             content: "Preferences reset to defaults"
+           }, default_prefs}
+
+        "show" ->
+          # Show current preferences
+          prefs_text = """
+          Current preferences:
+          - Theme: #{current_prefs.theme}
+          - Font Family: #{current_prefs.font_family}
+          - Cursor Style: #{current_prefs.cursor_style}
+          - Highlight Color: #{current_prefs.highlight_color}
+
+          To change preferences, use:
+          preferences font [family]
+          preferences cursor [block|underline|bar]
+          preferences highlight [hex_color]
+          preferences reset
+          """
+
+          {%{
+             type: :system,
+             content: prefs_text
+           }, current_prefs}
+
+        _ ->
+          # Unknown setting or missing value
+          {%{
+             type: :error,
+             content: """
+             Usage: preferences [setting] [value]
+
+             Available settings:
+             - font [family]         - Change font family
+             - cursor [style]        - Change cursor style (block, underline, bar)
+             - highlight [hex_color] - Change highlight color
+             - reset                 - Reset to defaults
+             - show                  - Show current preferences
+             """
+           }, current_prefs}
+      end
+
+    # Update socket with new preferences
+    updated_socket =
+      socket
+      |> assign(:user_preferences, updated_prefs)
+      |> apply_preferences(updated_prefs)
+
+    # Add result to output
+    new_output =
+      socket.assigns.output ++ [%{type: :command, content: "preferences #{pref_arg}"}, result]
+
+    # Update socket with new output
+    updated_socket = assign(updated_socket, :output, new_output)
+
+    # Send updated preferences to the client
+    response = %{
+      result: %{type: "preferences_changed"},
+      preferences: updated_socket.assigns.user_preferences
+    }
+
+    {:reply, response, updated_socket}
+  end
+
+  @impl true
+  def handle_event("key_up", %{"key" => _key}, _socket) do
+    # ...existing code...
+  end
+
+  def handle_event("paste", %{"content" => content}, socket) do
+    # Split pasted content by newlines
+    commands = String.split(content, ~r/\r?\n/)
+
+    # Process each non-empty command
+    socket =
+      Enum.reduce(commands, socket, fn cmd, acc ->
+        cmd = String.trim(cmd)
+
+        if cmd != "" do
+          # Add command to history and output
+          history = acc.assigns.command_history
+          new_history = [cmd | history] |> Enum.take(100)
+          new_output = acc.assigns.output ++ [%{type: :command, content: cmd}]
+
+          # Execute the command and get the result
+          {result_output, command_result} =
+            try do
+              execute_command(cmd, acc.assigns)
+            rescue
+              e ->
+                error_message = "An error occurred: #{Exception.message(e)}"
+                {[%{type: :error, content: error_message}], :error}
+            end
+
+          # Update socket with command result and output
+          acc
+          |> assign(:command_history, new_history)
+          |> assign(:history_index, 0)
+          |> assign(:output, new_output ++ result_output)
+          |> assign(:command_result, command_result)
+        else
+          acc
+        end
+      end)
+
+    {:noreply, socket}
+  end
+
+  # Mobile-specific terminal commands
+  def handle_event("terminal_mobile_tab", _params, socket) do
+    # Simulate Tab key press for autocomplete
+    handle_event("terminal_keydown", %{"key" => "Tab"}, socket)
+  end
+
+  def handle_event("terminal_mobile_clear", _params, socket) do
+    # Execute clear command directly
+    {_output, _result} = execute_command("clear", socket.assigns)
+    {:noreply, assign(socket, :output, [])}
+  end
+
+  def handle_event("terminal_mobile_history", _params, socket) do
+    # Simulate history command
+    {output, _result} = execute_command("history", socket.assigns)
+    {:noreply, assign(socket, :output, socket.assigns.output ++ output)}
+  end
+
+  def handle_event("terminal_mobile_help", _params, socket) do
+    # Simulate help command
+    {output, _result} = execute_command("help", socket.assigns)
+    {:noreply, assign(socket, :output, socket.assigns.output ++ output)}
+  end
+
+  # Private functions to handle command execution
+  defp execute_command(raw_command, assigns) when is_binary(raw_command) do
+    {command, args} = parse_command(raw_command)
+
+    case command do
+      "clear" ->
+        execute_clear(args, assigns)
+
+      "help" ->
+        execute_help(args, assigns)
+
+      "echo" ->
+        execute_echo(args, assigns)
+
+      "date" ->
+        execute_date(args, assigns)
+
+      "theme" ->
+        execute_theme(args, assigns)
+
+      "history" ->
+        execute_history(args, assigns)
+
+      "info" ->
+        execute_info(args, assigns)
+
+      "preferences" ->
+        execute_preferences(args, assigns)
+
+      "" ->
+        {[
+           %{type: :error, content: "Please enter a command. Type 'help' for available commands."}
+         ], :error}
+
+      _ ->
+        {[
+           %{
+             type: :error,
+             content: "Unknown command: #{command}. Type 'help' for available commands."
+           }
+         ], :error}
+    end
+  end
+
+  defp execute_clear(_args, _assigns) do
+    {[], :ok}
+  end
+
+  defp execute_help(args, assigns) do
+    commands = assigns.available_commands
+
+    if args == "" do
+      # Show general help with ASCII art
+      command_list =
+        commands
+        |> Map.keys()
+        |> Enum.sort()
+        |> Enum.map_join("\n", &"  #{&1} - #{commands[&1][:description]}")
+
+      content = """
+      #{AsciiArt.help()}
+
+      Additional commands:
+
+      #{command_list}
+
+      Type 'help [command]' for more information on a specific command.
+      """
+
+      {[%{type: :system, content: content}], :ok}
+    else
+      # Show help for specific command
+      command = args
+
+      if Map.has_key?(commands, command) do
+        cmd_info = commands[command]
+
+        content = """
+        #{AsciiArt.help_for_command(command, cmd_info[:description], cmd_info[:usage])}
+        """
+
+        {[%{type: :system, content: content}], :ok}
+      else
+        {[
+           %{
+             type: :error,
+             content: "Unknown command: #{command}. Type 'help' for available commands."
+           }
+         ], :error}
+      end
+    end
+  end
+
+  defp execute_echo(args, _assigns) do
+    {[%{type: :output, content: args}], :ok}
+  end
+
+  defp execute_date(_args, _assigns) do
+    utc_now = DateTime.now!("Etc/UTC")
+    formatted_date = Calendar.strftime(utc_now, "%A, %B %d, %Y")
+    formatted_time = Calendar.strftime(utc_now, "%H:%M:%S UTC")
+
+    content = """
+    #{AsciiArt.calendar()}
+
+    Current date and time: #{formatted_date} at #{formatted_time}
+    """
+
+    {[%{type: :system, content: content}], :ok}
+  end
+
+  defp execute_theme(args, assigns) do
+    if args == "" do
+      # Show theme options with ASCII art
+      content = """
+      #{AsciiArt.theme_preview()}
+
+      Usage: theme [name]
+
+      Current theme: #{assigns.theme}
+      """
+
+      {[%{type: :system, content: content}], :ok}
+    else
+      # Check if the theme is valid
+      theme = args |> String.trim() |> String.downcase()
+
+      valid_themes = ["light", "dark", "dim", "synthwave", "high-contrast"]
+
+      if theme in valid_themes do
+        response = """
+        #{AsciiArt.success()}
+
+        Theme changed to '#{theme}'
+        """
+
+        {[%{type: :system, content: response}], %{type: :theme_change, data: theme}}
+      else
+        response = """
+        #{AsciiArt.error()}
+
+        Invalid theme: '#{theme}'
+        Valid options: #{Enum.join(valid_themes, ", ")}
+        """
+
+        {[%{type: :error, content: response}], :error}
+      end
+    end
+  end
+
+  defp execute_history(args, assigns) do
+    if args == "clear" do
+      response = """
+      #{AsciiArt.success()}
+
+      Command history cleared.
+      """
+
+      {[%{type: :system, content: response}], %{type: :clear_history}}
+    else
+      history = assigns.command_history
+
+      if history == [] do
+        {[%{type: :system, content: "No command history."}], :ok}
+      else
+        # Format the history with line numbers
+        history_list =
+          history
+          |> Enum.reverse()
+          |> Enum.with_index(1)
+          |> Enum.map_join("\n", fn {cmd, idx} -> " #{idx}  #{cmd}" end)
+
+        content = """
+        #{AsciiArt.header("COMMAND HISTORY")}
+
+        #{history_list}
+
+        Type 'history clear' to clear history.
+        """
+
+        {[%{type: :system, content: content}], :ok}
+      end
+    end
+  end
+
+  defp execute_info(_args, _assigns) do
+    # Get some basic information about the system
+    elixir_version = System.version()
+    os_info = :os.type() |> inspect()
+    uptime = :erlang.statistics(:wall_clock) |> elem(0) |> div(1000) |> format_uptime_seconds()
+
+    content = """
+    #{AsciiArt.system_info()}
+
+    Additional Info:
+    - Elixir Version: #{elixir_version}
+    - OS: #{os_info}
+    - Current timezone: #{DateTime.now!("Etc/UTC") |> DateTime.to_string()}
+    - Uptime: #{uptime}
+    """
+
+    {[%{type: :system, content: content}], :ok}
+  end
+
+  defp execute_preferences(args, _assigns) do
+    if args == "" do
+      # Show available preferences options
+      help_text = """
+      Usage: preferences [setting] [value]
+
+      Available settings:
+      - font [family]         - Change font family
+      - cursor [block|underline|bar] - Change cursor style
+      - highlight [hex_color] - Change highlight color
+      - reset                 - Reset to defaults
+      - show                  - Show current preferences
+
+      Examples:
+      preferences font "Fira Code"
+      preferences cursor bar
+      preferences highlight #FF2E97
+      """
+
+      {[%{type: :system, content: help_text}], :ok}
+    else
+      # Return empty results since this is handled by the handle_event
+      {[], {:preferences, args}}
+    end
+  end
+
+  # Add a new helper function for safer command parsing
+  defp parse_command(raw_command) when is_binary(raw_command) do
+    # Trim leading and trailing whitespace
+    trimmed = String.trim(raw_command)
+
+    # Split into command and arguments
+    case String.split(trimmed, " ", parts: 2) do
+      [command] -> {command, ""}
+      [command, args] -> {command, String.trim(args)}
+      # This should never happen with String.split, but just in case
+      _ -> {"", ""}
+    end
+  end
+
+  # Private helper functions
+
+  # Load plugins and collect their commands
+  defp load_plugins(plugins) do
+    Enum.reduce(plugins, {%{}, %{}}, fn plugin_module, {loaded_plugins, commands} ->
+      # Initialize the plugin
+      {:ok, plugin_state} = Plugin.init(plugin_module)
+
+      # Get plugin command definitions
+      plugin_commands = Plugin.commands(plugin_module)
+      plugin_name = Plugin.name(plugin_module)
+
+      # Add plugin to loaded plugins
+      updated_plugins = Map.put(loaded_plugins, plugin_name, plugin_state)
+
+      # Add plugin commands to command map
+      updated_commands = Map.merge(commands, plugin_commands)
+
+      {updated_plugins, updated_commands}
+    end)
+  end
+
+  # Handle plugin command execution
+  defp handle_plugin_command(plugin, cmd, args, full_command, socket) do
+    case Plugin.execute(plugin, cmd, args) do
+      {:ok, response, updated_plugin} ->
+        # Update plugin state
+        updated_plugins = Map.put(socket.assigns.loaded_plugins, cmd, updated_plugin)
+
+        # Format the result
+        result = %{
+          type: :plugin,
+          content: response,
+          meta: %{plugin: cmd}
+        }
+
+        # Update socket with new output and plugin state
+        updated_socket =
+          socket
+          |> update(:output, fn outputs -> outputs ++ [result] end)
+          |> update(:command_history, fn history -> history ++ [full_command] end)
+          |> assign(:loaded_plugins, updated_plugins)
+
+        # Create response
+        plugin_response = %{
+          history: updated_socket.assigns.command_history
+        }
+
+        {:reply, plugin_response, updated_socket}
+
+      {:error, error_message, updated_plugin} ->
+        # Update plugin state
+        updated_plugins = Map.put(socket.assigns.loaded_plugins, cmd, updated_plugin)
+
+        # Format the error
+        result = %{
+          type: :error,
+          content: error_message,
+          meta: %{plugin: cmd}
+        }
+
+        # Update socket with error and plugin state
+        updated_socket =
+          socket
+          |> update(:output, fn outputs -> outputs ++ [result] end)
+          |> update(:command_history, fn history -> history ++ [full_command] end)
+          |> assign(:loaded_plugins, updated_plugins)
+
+        # Create response
+        plugin_response = %{
+          history: updated_socket.assigns.command_history
+        }
+
+        {:reply, plugin_response, updated_socket}
+    end
+  end
+
+  # Get command completions based on prefix
+  defp get_command_completions(prefix, commands) do
+    commands
+    |> Map.keys()
+    |> Enum.filter(fn cmd -> String.starts_with?(cmd, prefix) end)
+    |> Enum.sort()
+  end
+
+  # Get argument completions for a specific command
+  defp get_argument_completions(command, arg_prefix, _command_info, socket) do
+    case command do
+      "theme" ->
+        # Theme command has predefined options
+        ["light", "dark", "dim", "high-contrast"]
+        |> Enum.filter(fn theme -> String.starts_with?(theme, arg_prefix) end)
+        |> Enum.map(fn theme -> "theme #{theme}" end)
+
+      "help" ->
+        # Help command completes with available commands
+        socket.assigns.available_commands
+        |> Map.keys()
+        |> Enum.filter(fn cmd -> String.starts_with?(cmd, arg_prefix) end)
+        |> Enum.map(fn cmd -> "help #{cmd}" end)
+
+      # Add other command-specific completions here
+      _ ->
+        []
+    end
+  end
+
+  # Apply user preferences to the socket
+  defp apply_preferences(socket, prefs) do
+    # Apply theme if present
+    socket =
+      if Map.has_key?(prefs, :theme) or Map.has_key?(prefs, "theme") do
+        theme = prefs[:theme] || prefs["theme"]
+        assign(socket, :theme, theme)
+      else
+        socket
+      end
+
+    # Apply font family if present
+    socket =
+      if Map.has_key?(prefs, :font_family) or Map.has_key?(prefs, "font_family") do
+        font_family = prefs[:font_family] || prefs["font_family"]
+        assign(socket, :font_family, font_family)
+      else
+        socket
+      end
+
+    # Apply cursor style if present
+    socket =
+      if Map.has_key?(prefs, :cursor_style) or Map.has_key?(prefs, "cursor_style") do
+        cursor_style = prefs[:cursor_style] || prefs["cursor_style"]
+        assign(socket, :cursor_style, cursor_style)
+      else
+        socket
+      end
+
+    # Apply highlight color if present
+    socket =
+      if Map.has_key?(prefs, :highlight_color) or Map.has_key?(prefs, "highlight_color") do
+        highlight_color = prefs[:highlight_color] || prefs["highlight_color"]
+        assign(socket, :highlight_color, highlight_color)
+      else
+        socket
+      end
+
+    socket
+  end
+
+  # Format uptime in seconds to a human-readable string
+  defp format_uptime_seconds(seconds) do
+    days = div(seconds, 86400)
+    seconds = rem(seconds, 86400)
+    hours = div(seconds, 3600)
+    seconds = rem(seconds, 3600)
+    minutes = div(seconds, 60)
+    seconds = rem(seconds, 60)
+
+    cond do
+      days > 0 -> "#{days}d #{hours}h #{minutes}m #{seconds}s"
+      hours > 0 -> "#{hours}h #{minutes}m #{seconds}s"
+      minutes > 0 -> "#{minutes}m #{seconds}s"
+      true -> "#{seconds}s"
+    end
+  end
+
+  # These functions are not used but kept for future reference
+  defp _format_terminal_output(content) do
+    # Handle common ANSI escape sequences
+    content = String.replace(content, ~r/\e\[\d*(;\d*)*m/, "")
+
+    # Convert tabs to spaces for consistent rendering
+    content = String.replace(content, "\t", "    ")
+
+    # Escape HTML to prevent injection
+    content = Phoenix.HTML.html_escape(content) |> Phoenix.HTML.safe_to_string()
+
+    # Convert newlines to <br> for proper display
+    content = String.replace(content, "\n", "<br>")
+
+    content
+  end
+
+  # Add terminal styling helper - not currently used but kept for future reference
+  defp _get_terminal_style(preferences) do
+    """
+    --terminal-highlight-color: #{preferences.highlight_color};
+    --terminal-font-family: #{preferences.font_family};
+    """
+  end
+
+defmodule HydepwnsLiveviewWeb.Components.Interactive.Terminal.Plugin do
+  @moduledoc """
+  Plugin behavior for the Terminal component.
+
+  This module defines the behavior that Terminal plugins must implement.
+  Plugins can add custom commands to the terminal and handle their execution.
+  """
+
+  @doc """
+  Returns the name of the plugin, which is used as the command prefix.
+  """
+  @callback name() :: String.t()
+
+  @doc """
+  Initializes the plugin and returns its initial state.
+  """
+  @callback init() :: {:ok, any()} | {:error, String.t()}
+
+  @doc """
+  Returns a map of commands provided by this plugin.
+
+  The map keys are command names, and values are maps with description and usage info.
+  """
+  @callback commands() :: map()
+
+  @doc """
+  Executes a command with the given arguments.
+
+  Returns a tuple with:
+  - `:ok` or `:error` status
+  - Response message or error message
+  - Updated plugin state
+  """
+  @callback execute(String.t(), String.t(), any()) ::
+              {:ok, String.t(), any()} | {:error, String.t(), any()}
+
+  @doc """
+  Provides autocomplete suggestions for a partial argument.
+
+  Returns a list of possible completions.
+  """
+  @callback autocomplete(String.t()) :: [String.t()]
+
+  # Delegates to the plugin module
+  def init(plugin), do: plugin.init()
+  def name(plugin), do: plugin.name()
+  def commands(plugin), do: plugin.commands()
+  def execute(plugin_state, cmd, args), do: plugin_state.module.execute(cmd, args, plugin_state)
+  def autocomplete(plugin_state, arg_prefix), do: plugin_state.module.autocomplete(arg_prefix)
+end

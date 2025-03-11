@@ -94,12 +94,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.InfoBox do
         <% end %>
         <h4 class="info-box__title">{@title}</h4>
         <%= if @dismissible do %>
-          <button
-            type="button"
-            class="info-box__close"
-            aria-label="Close"
-            phx-click="dismiss_info_box"
-          >
+          <button type="button" class="info-box__close" aria-label="Close" phx-click="dismiss_info_box">
             ×
           </button>
         <% end %>

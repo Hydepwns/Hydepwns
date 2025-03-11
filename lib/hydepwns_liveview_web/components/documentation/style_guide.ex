@@ -6,12 +6,12 @@ defmodule HydepwnsLiveviewWeb.Components.Documentation.StyleGuide do
     ~H"""
     <div class="style-guide" id={@id}>
       <h1 class="style-guide-title">Hydepwns Monospace Style Guide</h1>
-      
+
       <p class="style-guide-intro">
         This style guide documents the components, typography, and design patterns used
         throughout the Hydepwns monospace web application.
       </p>
-      
+
       <div class="style-guide-toc">
         <h2>Table of Contents</h2>
         <ul>
@@ -21,7 +21,7 @@ defmodule HydepwnsLiveviewWeb.Components.Documentation.StyleGuide do
           <li><a href="#components">Components</a></li>
         </ul>
       </div>
-      
+
       <section id="typography" class="style-guide-section">
         <h2>Typography</h2>
         <p>
@@ -29,7 +29,7 @@ defmodule HydepwnsLiveviewWeb.Components.Documentation.StyleGuide do
           a consistent terminal-inspired aesthetic throughout the application.
         </p>
       </section>
-      
+
       <section id="color-palette" class="style-guide-section">
         <h2>Color Palette</h2>
         <p>
@@ -37,7 +37,7 @@ defmodule HydepwnsLiveviewWeb.Components.Documentation.StyleGuide do
           It features high-contrast combinations for readability and accessibility.
         </p>
       </section>
-      
+
       <section id="grid-system" class="style-guide-section">
         <h2>Grid System</h2>
         <p>
@@ -45,7 +45,7 @@ defmodule HydepwnsLiveviewWeb.Components.Documentation.StyleGuide do
           alignment of UI elements in a terminal-inspired layout.
         </p>
       </section>
-      
+
       <section id="components" class="style-guide-section">
         <h2>Components</h2>
         <p>
@@ -53,7 +53,7 @@ defmodule HydepwnsLiveviewWeb.Components.Documentation.StyleGuide do
           modern functionality and accessibility.
         </p>
       </section>
-      
+
       <section id="accessibility" class="style-guide-section">
         <h2>Accessibility</h2>
         <p>All text colors meet WCAG 2.1 AA standards for contrast against their backgrounds.</p>

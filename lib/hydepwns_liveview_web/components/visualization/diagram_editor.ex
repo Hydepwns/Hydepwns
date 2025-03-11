@@ -342,12 +342,7 @@ defmodule HydepwnsLiveviewWeb.Components.Visualization.DiagramEditor do
         <% end %>
         <div class="template-selector">
           <label for={"#{@id}-template"}>Template:</label>
-          <select
-            id={"#{@id}-template"}
-            phx-change="select_template"
-            phx-target={@myself}
-            name="template"
-          >
+          <select id={"#{@id}-template"} phx-change="select_template" phx-target={@myself} name="template">
             <%= for template <- @templates_list do %>
               <option value={template.key} selected={template.key == @selected_template}>
                 {template.name}
@@ -360,14 +355,7 @@ defmodule HydepwnsLiveviewWeb.Components.Visualization.DiagramEditor do
       <div class="editor-tools">
         <div class="box-drawing-chars">
           <%= for char <- box_drawing_chars() do %>
-            <button
-              type="button"
-              class="box-char-button"
-              phx-click="insert_character"
-              phx-value-char={char}
-              phx-target={@myself}
-              aria-label={"Insert #{char_description(char)} character"}
-            >
+            <button type="button" class="box-char-button" phx-click="insert_character" phx-value-char={char} phx-target={@myself} aria-label={"Insert #{char_description(char)} character"}>
               {char}
             </button>
           <% end %>
@@ -376,26 +364,13 @@ defmodule HydepwnsLiveviewWeb.Components.Visualization.DiagramEditor do
 
       <div class="editor-grid">
         <div class="editor-pane">
-          <textarea
-            id={"#{@id}-editor"}
-            phx-change="update_content"
-            phx-target={@myself}
-            name="content"
-            placeholder="Start editing your diagram here..."
-            aria-label="Diagram editor"
-          ><%= @content %></textarea>
+          <textarea id={"#{@id}-editor"} phx-change="update_content" phx-target={@myself} name="content" placeholder="Start editing your diagram here..." aria-label="Diagram editor"><%= @content %></textarea>
         </div>
 
         <div class="preview-pane">
           <div class="preview-header">
             <h4>Preview</h4>
-            <button
-              type="button"
-              class="copy-button"
-              phx-click="copy_diagram"
-              phx-target={@myself}
-              aria-label="Copy diagram to clipboard"
-            >
+            <button type="button" class="copy-button" phx-click="copy_diagram" phx-target={@myself} aria-label="Copy diagram to clipboard">
               Copy
             </button>
           </div>

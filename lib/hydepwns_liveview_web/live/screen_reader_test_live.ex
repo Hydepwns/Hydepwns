@@ -29,19 +29,19 @@ defmodule HydepwnsLiveviewWeb.ScreenReaderTestLive do
 
       <h3>Test Results</h3>
       <p>
-        We've conducted comprehensive tests with various screen readers including NVDA, 
+        We've conducted comprehensive tests with various screen readers including NVDA,
         JAWS, and VoiceOver to ensure our monospace design remains accessible.
         Below are our key findings and recommendations.
       </p>
-      
+
       <h4>Navigation</h4>
       <ul class="test-results-list">
         <li>
-          <strong>Headings structure:</strong> All pages use proper heading hierarchy (h1-h6) 
+          <strong>Headings structure:</strong> All pages use proper heading hierarchy (h1-h6)
           for screen reader navigation.
         </li>
         <li>
-          <strong>Landmark regions:</strong> Main content, navigation, and complementary 
+          <strong>Landmark regions:</strong> Main content, navigation, and complementary
           areas are properly marked with ARIA landmarks.
         </li>
         <li>
@@ -49,7 +49,7 @@ defmodule HydepwnsLiveviewWeb.ScreenReaderTestLive do
           with keyboard navigation.
         </li>
       </ul>
-      
+
       <h4>Interactive Elements</h4>
       <ul class="test-results-list">
         <li>
@@ -65,7 +65,7 @@ defmodule HydepwnsLiveviewWeb.ScreenReaderTestLive do
           themes, including high contrast mode.
         </li>
       </ul>
-      
+
       <h4>Recommended Settings</h4>
       <table class="screen-reader-settings">
         <tr>

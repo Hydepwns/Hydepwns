@@ -1,0 +1,615 @@
+defmodule HydepwnsLiveviewWeb.HomeLive do
+  use HydepwnsLiveviewWeb, :live_view
+
+  alias HydepwnsLiveviewWeb.Helpers.TocHelper
+  alias HydepwnsLiveviewWeb.Helpers.PathHelper
+  import HydepwnsLiveviewWeb.Components.UI.Nav, only: [hierarchical_toc_nav: 1]
+  alias HydepwnsLiveviewWeb.Components.Interactive.Terminal
+  alias HydepwnsLiveviewWeb.Components.Interactive.Plugins.Navigation
+
+  @impl true
+  def mount(_params, _session, socket) do
+    # Initial page content for TOC generation
+    page_content = """
+    <h2 id="introduction">Introduction</h2>
+    <p>Welcome to the Hydepwns monospace interface demonstration...</p>
+    <h3 id="background">Background</h3>
+    <p>The design is inspired by terminal UIs and uses monospace fonts...</p>
+    <h2 id="animations">Animations</h2>
+    <p>Monospace interfaces can be enhanced with subtle animations...</p>
+    <h3 id="typewriter">Typewriter Effect</h3>
+    <p>The typewriter effect types out text character by character...</p>
+    <h3 id="char-fade">Character Fade</h3>
+    <p>Characters can fade in individually for a matrix-like effect...</p>
+    <h3 id="grid-fade">Grid Fade</h3>
+    <p>Elements can fade in cell by cell in a grid pattern...</p>
+    """
+
+    # Generate TOC from page content
+    toc_data = TocHelper.generate_toc(page_content)
+
+    # Custom commands for the home page terminal
+    custom_commands = %{
+      "hello" => %{
+        description: "Say hello to the user",
+        usage: "hello [name]"
+      },
+      "about" => %{
+        description: "Display information about Hydepwns",
+        usage: "about"
+      }
+    }
+
+    {:ok,
+     socket
+     |> PathHelper.assign_specific_path("/")
+     |> assign(:page_title, "Home")
+     |> assign(:theme_class, "dark-theme")
+     |> assign(:show_toc, true)
+     |> assign(:toc_items, [
+       {"introduction", "Introduction"},
+       {"featured-components", "Featured Components"},
+       {"site-structure", "Site Structure"},
+       {"interactive-terminal", "Interactive Terminal"},
+       {"themes", "Themes"}
+     ])
+     |> assign(:toc_data, toc_data)
+     |> assign(:current_section, nil)
+     |> assign(:animation_speed_class, "normal-speed")
+     |> assign(:active_theme, "synthwave")
+     |> assign(:custom_commands, custom_commands)}
+  end
+
+  @impl true
+  def handle_event("toggle_toc", _, socket) do
+    {:noreply, assign(socket, :show_toc, !socket.assigns.show_toc)}
+  end
+
+  @impl true
+  def handle_event("set_animation_speed", %{"speed" => speed}, socket) do
+    speed_class =
+      case speed do
+        "slow" -> "slow-speed"
+        "normal" -> "normal-speed"
+        "fast" -> "fast-speed"
+        _ -> "normal-speed"
+      end
+
+    {:noreply, assign(socket, :animation_speed_class, speed_class)}
+  end
+
+  @impl true
+  def handle_event("replay_animations", _, socket) do
+    # Send a custom event to the client to trigger animation replay
+    {:noreply, push_event(socket, "replay_animations", %{})}
+  end
+
+  @impl true
+  def handle_event("set_current_section", %{"section" => section}, socket) do
+    {:noreply, assign(socket, :current_section, section)}
+  end
+
+  @impl true
+  def handle_event("set_theme", %{"theme" => theme}, socket) do
+    {:noreply, assign(socket, :active_theme, theme)}
+  end
+
+  @impl true
+  def handle_event("terminal_command", %{"command" => "hello" <> rest, "id" => id}, socket) do
+    name = String.trim(rest)
+    name = if name == "", do: "World", else: name
+
+    response = %{
+      type: :output,
+      content: "Hello, #{name}! Welcome to Hydepwns Monospace Web."
+    }
+
+    send_update(Terminal, id: id, new_output: [response])
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("terminal_command", %{"command" => "about", "id" => id}, socket) do
+    about_text = """
+    Hydepwns Monospace Web v1.3.2
+    =============================
+    
+    A monospace-focused web design system featuring:
+    - Grid-based layout components
+    - Terminal emulation
+    - ASCII art and visualization
+    - Synthwave-inspired styling
+    
+    Created with Phoenix LiveView and Elixir.
+    Visit https://github.com/hydepwns/monospace for more information.
+    """
+
+    response = %{
+      type: :system,
+      content: about_text
+    }
+
+    send_update(Terminal, id: id, new_output: [response])
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("terminal_command", _params, socket) do
+    # Let the Terminal component handle other commands
+    {:noreply, socket}
+  end
+
+  @impl true
+  def render(assigns) do
+    ~H"""
+    <div class="home-container">
+      <header class="page-header">
+        <div class="toc-toggle">
+          <button
+            phx-click="toggle_toc"
+            class="toc-toggle-button"
+            aria-label={if @show_toc, do: "Hide table of contents", else: "Show table of contents"}
+          >
+            <%= if @show_toc do %>
+              <span class="toc-toggle-icon">▼</span>
+            <% else %>
+              <span class="toc-toggle-icon">▶</span>
+            <% end %>
+            TOC
+          </button>
+        </div>
+      </header>
+
+      <%= if @show_toc do %>
+        <div class="content-with-toc">
+          <aside class="toc-sidebar">
+            <.hierarchical_toc_nav
+              toc_data={@toc_data}
+              current_section={@current_section}
+              class="main-toc"
+            />
+          </aside>
+
+          <main class="content" id="main-content">
+            <!-- ASCII Art Banner -->
+            <section id="ascii-banner" class={["ascii-banner", @animation_speed_class]}>
+              <pre
+                id="hydepwns-banner"
+                phx-hook="CharacterAnimation"
+                class="ascii-header character-fade"
+                data-fade-speed="20"
+                style="color: #FF2E97; text-shadow: 0 0 5px #FF2E97, 0 0 10px #FF2E97;"
+                aria-label="Hydepwns ASCII art logo banner"
+              >
+    ██╗  ██╗██╗   ██╗██████╗ ███████╗██████╗ ██╗    ██╗███╗   ██╗███████╗
+    ██║  ██║╚██╗ ██╔╝██╔══██╗██╔════╝██╔══██╗██║    ██║████╗  ██║██╔════╝
+    ███████║ ╚████╔╝ ██║  ██║█████╗  ██████╔╝██║ █╗ ██║██╔██╗ ██║███████╗
+    ██╔══██║  ╚██╔╝  ██║  ██║██╔══╝  ██╔═══╝ ██║███╗██║██║╚██╗██║╚════██║
+    ██║  ██║   ██║   ██████╔╝███████╗██║     ╚███╔███╔╝██║ ╚████║███████║
+    ╚═╝  ╚═╝   ╚═╝   ╚═════╝ ╚══════╝╚═╝      ╚══╝╚══╝ ╚═╝  ╚═══╝╚══════╝
+                                                         
+      MONOSPACE WEB DESIGN SYSTEM v1.3.1                 
+              </pre>
+            </section>
+            
+    <!-- Introduction Section -->
+            <section id="introduction">
+              <h2>Introduction</h2>
+              <p
+                id="intro-text"
+                phx-hook="CharacterAnimation"
+                class="typewriter"
+                data-typing-speed="30"
+              >
+                Welcome to the Hydepwns monospace interface demonstration. This interface
+                showcases various techniques for creating a terminal-like web experience
+                using monospace fonts, grid layouts, and ASCII art components.
+              </p>
+            </section>
+            
+    <!-- Featured Components Section -->
+            <section id="featured-components">
+              <h2>Featured Components</h2>
+
+              <div class="component-showcase">
+                <!-- MonoGrid Component -->
+                <div class="component-card">
+                  <h3>MonoGrid</h3>
+                  <div id="monogrid-preview" class="component-preview" phx-hook="GridFadeIn" data-fade-speed="30">
+                    <div class="mono-grid">
+                      <div class="grid-cell">┌─┬─┬─┐</div>
+                      <div class="grid-cell">├─┼─┼─┤</div>
+                      <div class="grid-cell">└─┴─┴─┘</div>
+                    </div>
+                  </div>
+                  <p>Perfect grid alignment using monospace fonts and character positioning</p>
+                  <a href="/grid-playground" class="component-link">Try MonoGrid →</a>
+                </div>
+                
+    <!-- Terminal Component -->
+                <div class="component-card">
+                  <h3>Terminal</h3>
+                  <div class="component-preview terminal-preview">
+                    <pre class="terminal-output">
+                    <span style="color: #19DCFF;">hydepwns $</span> <span style="color: #FFD319;">hello</span>
+                    Hello, world!
+                    <span style="color: #19DCFF;">hydepwns $</span> <span class="cursor">_</span>
+                    </pre>
+                  </div>
+                  <p>Interactive terminal interface with command history and custom commands</p>
+                  <a href="/style-guide#terminal" class="component-link">Explore Terminal →</a>
+                </div>
+                
+    <!-- ASCII Art Component -->
+                <div class="component-card">
+                  <h3>ASCII Art</h3>
+                  <div class="component-preview ascii-preview">
+                    <pre class="ascii-art">
+                    ┌──────────────┐
+                    │  ASCII Art   │
+                    │  Components  │
+                    │              │
+                    │    ┌──┐ ┌──┐ │
+                    │    │  │ │  │ │
+                    │    └──┘ └──┘ │
+                    │    ────→     │
+                    └──────────────┘
+                    </pre>
+                  </div>
+                  <p>Box drawings, flowcharts, and decorative ASCII art with synthwave styling</p>
+                  <a href="/gallery" class="component-link">View Gallery →</a>
+                </div>
+              </div>
+            </section>
+            
+    <!-- Site Structure Section -->
+            <section id="site-structure">
+              <h2>Site Structure</h2>
+
+              <div
+                id="site-map-viz"
+                class="site-map-visualization character-fade"
+                phx-hook="CharacterAnimation"
+                data-fade-speed="15"
+              >
+                <pre class="ascii-diagram" style="color: #36F9F6;">
+                                        ┌─────────┐                           
+                                        │  HOME   │                           
+                                        └────┬────┘                           
+                           ┌────────────────┼────────────────┐                
+                    ┌──────┴──────┐  ┌──────┴──────┐  ┌──────┴──────┐         
+                    │ COMPONENTS  │  │    DOCS     │  │  EXAMPLES   │         
+                    └──────┬──────┘  └──────┬──────┘  └──────┬──────┘         
+                           │                │                │                 
+                    ┌──────┴──────┐  ┌──────┴──────┐  ┌──────┴──────┐         
+                    │ StyleGuide  │  │    API      │  │    Grid     │         
+                    │ MonoGrid    │  │    Usage    │  │    ASCII    │         
+                    │ Terminal    │  │    Themes   │  │    Demos    │         
+                    └─────────────┘  └─────────────┘  └─────────────┘         
+                </pre>
+              </div>
+
+              <div class="site-map-legend">
+                <p>
+                  Navigate through our component library, documentation, and interactive examples.
+                </p>
+                <div class="legend-items">
+                  <div class="legend-item">
+                    <span class="legend-marker" style="color: #FF2E97;">●</span>
+                    <span>Components: Building blocks of the design system</span>
+                  </div>
+                  <div class="legend-item">
+                    <span class="legend-marker" style="color: #19DCFF;">●</span>
+                    <span>Documentation: Guides, API references, and usage examples</span>
+                  </div>
+                  <div class="legend-item">
+                    <span class="legend-marker" style="color: #FFD319;">●</span>
+                    <span>Examples: Interactive demos and playground environments</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Interactive Terminal Section -->
+            <section id="interactive-terminal">
+              <h2>Interactive Terminal</h2>
+              <p>Experience our terminal interface directly from the home page. Try commands like <code>help</code>, <code>about</code>, <code>hello</code>, or <code>info</code>. Use the navigation plugin to explore the site.</p>
+              
+              <div class="interactive-terminal-container">
+                <.live_component
+                  module={Terminal}
+                  id="home-terminal"
+                  prompt="hydepwns$ "
+                  welcome_message="Welcome to Hydepwns Terminal! Type 'help' for available commands or 'about' for project information."
+                  available_commands={@custom_commands}
+                  plugins={[Navigation]}
+                  theme="synthwave"
+                  fullscreen={true}
+                  cols={80}
+                  rows={15}
+                />
+              </div>
+              
+              <div class="terminal-help-text">
+                <h3>Try These Commands:</h3>
+                <ul class="command-suggestions">
+                  <li><code>help</code> - List all available commands</li>
+                  <li><code>about</code> - Learn about Hydepwns</li>
+                  <li><code>hello [name]</code> - Personalized greeting</li>
+                  <li><code>info</code> - System information</li>
+                  <li><code>theme [name]</code> - Change the terminal theme (try "synthwave")</li>
+                  <li><code>nav</code> - Site navigation help</li>
+                  <li><code>map</code> - Show site structure</li>
+                  <li><code>goto [path]</code> - Navigate to another page</li>
+                </ul>
+              </div>
+            </section>
+            
+    <!-- Themes Section -->
+            <section id="themes">
+              <h2>Themes</h2>
+
+              <div class="theme-gallery">
+                <div
+                  class={["theme-option", @active_theme == "light" && "active"]}
+                  phx-click="set_theme"
+                  phx-value-theme="light"
+                >
+                  <div class="theme-preview light-theme">
+                    <pre class="theme-sample">
+                    ┌─────────────┐
+                    │ LIGHT THEME │
+                    └─────────────┘
+                    </pre>
+                  </div>
+                  <label class="theme-label">Light</label>
+                </div>
+
+                <div
+                  class={["theme-option", @active_theme == "dark" && "active"]}
+                  phx-click="set_theme"
+                  phx-value-theme="dark"
+                >
+                  <div class="theme-preview dark-theme">
+                    <pre class="theme-sample">
+                    ┌────────────┐
+                    │ DARK THEME │
+                    └────────────┘
+                    </pre>
+                  </div>
+                  <label class="theme-label">Dark</label>
+                </div>
+
+                <div
+                  class={["theme-option", @active_theme == "synthwave" && "active"]}
+                  phx-click="set_theme"
+                  phx-value-theme="synthwave"
+                >
+                  <div class="theme-preview synthwave-theme">
+                    <pre class="theme-sample" style="color: #FF2E97; text-shadow: 0 0 5px #FF2E97;">
+                    ┌────────────────┐
+                    │ SYNTHWAVE THEME│
+                    └────────────────┘
+                    </pre>
+                  </div>
+                  <label class="theme-label">Synthwave</label>
+                </div>
+              </div>
+            </section>
+            
+    <!-- Copyright Footer -->
+            <footer class="copyright-footer">
+              <pre class="ascii-box footer-box">
+              ╔══════════════════════════════════╗
+              ║  © 2025 Hydepwns Monospace Web   ║
+              ╚══════════════════════════════════╝
+              </pre>
+            </footer>
+          </main>
+        </div>
+      <% else %>
+        <main class="content full-width" id="main-content">
+          <!-- ASCII Art Banner -->
+          <section id="ascii-banner-alt" class={["ascii-banner", @animation_speed_class]}>
+            <pre
+              id="hydepwns-banner-full"
+              phx-hook="CharacterAnimation"
+              class="ascii-header character-fade"
+              data-fade-speed="20"
+              style="color: #FF2E97; text-shadow: 0 0 5px #FF2E97, 0 0 10px #FF2E97;"
+              aria-label="Hydepwns ASCII art logo banner"
+            >
+    ██╗  ██╗██╗   ██╗██████╗ ███████╗██████╗ ██╗    ██╗███╗   ██╗███████╗
+    ██║  ██║╚██╗ ██╔╝██╔══██╗██╔════╝██╔══██╗██║    ██║████╗  ██║██╔════╝
+    ███████║ ╚████╔╝ ██║  ██║█████╗  ██████╔╝██║ █╗ ██║██╔██╗ ██║███████╗
+    ██╔══██║  ╚██╔╝  ██║  ██║██╔══╝  ██╔═══╝ ██║███╗██║██║╚██╗██║╚════██║
+    ██║  ██║   ██║   ██████╔╝███████╗██║     ╚███╔███╔╝██║ ╚████║███████║
+    ╚═╝  ╚═╝   ╚═╝   ╚═════╝ ╚══════╝╚═╝      ╚══╝╚══╝ ╚═╝  ╚═══╝╚══════╝
+                                                         
+      MONOSPACE WEB DESIGN SYSTEM v1.3.1                 
+            </pre>
+          </section>
+          
+    <!-- Introduction Section -->
+          <section id="introduction-full">
+            <h2>Introduction</h2>
+            <p 
+              id="intro-text-full" 
+              phx-hook="CharacterAnimation" 
+              class="typewriter" 
+              data-typing-speed="30"
+            >
+              Welcome to the Hydepwns monospace interface demonstration. This interface
+              showcases various techniques for creating a terminal-like web experience
+              using monospace fonts, grid layouts, and ASCII art components.
+            </p>
+          </section>
+          
+    <!-- Featured Components Section -->
+          <section id="featured-components-full">
+            <h2>Featured Components</h2>
+
+            <div class="component-showcase">
+              <!-- MonoGrid Component -->
+              <div class="component-card">
+                <h3>MonoGrid</h3>
+                <div id="monogrid-preview-full" class="component-preview" phx-hook="GridFadeIn" data-fade-speed="30">
+                  <div class="mono-grid">
+                    <div class="grid-cell">┌─┬─┬─┐</div>
+                    <div class="grid-cell">├─┼─┼─┤</div>
+                    <div class="grid-cell">└─┴─┴─┘</div>
+                  </div>
+                </div>
+                <p>Perfect grid alignment using monospace fonts and character positioning</p>
+                <a href="/grid-playground" class="component-link">Try MonoGrid →</a>
+              </div>
+              
+    <!-- Terminal Component -->
+              <div class="component-card">
+                <h3>Terminal</h3>
+                <div class="component-preview terminal-preview">
+                  <pre class="terminal-output">
+                  <span style="color: #19DCFF;">hydepwns $</span> <span style="color: #FFD319;">hello</span>
+                  Hello, world!
+                  <span style="color: #19DCFF;">hydepwns $</span> <span class="cursor">_</span>
+                  </pre>
+                </div>
+                <p>Interactive terminal interface with command history and custom commands</p>
+                <a href="/style-guide#terminal" class="component-link">Explore Terminal →</a>
+              </div>
+              
+    <!-- ASCII Art Component -->
+              <div class="component-card">
+                <h3>ASCII Art</h3>
+                <div class="component-preview ascii-preview">
+                  <pre class="ascii-art">
+                  ┌──────────────┐
+                  │  ASCII Art   │
+                  │  Components  │
+                  │              │
+                  │    ┌──┐ ┌──┐ │
+                  │    │  │ │  │ │
+                  │    └──┘ └──┘ │
+                  │    ────→     │
+                  └──────────────┘
+                  </pre>
+                </div>
+                <p>Box drawings, flowcharts, and decorative ASCII art with synthwave styling</p>
+                <a href="/gallery" class="component-link">View Gallery →</a>
+              </div>
+            </div>
+          </section>
+          
+    <!-- Site Structure Section -->
+          <section id="site-structure-full">
+            <h2>Site Structure</h2>
+
+            <div
+              id="site-map-viz-full"
+              class="site-map-visualization character-fade"
+              phx-hook="CharacterAnimation"
+              data-fade-speed="15"
+            >
+              <pre class="ascii-diagram" style="color: #36F9F6;">
+                                      ┌─────────┐                           
+                                      │  HOME   │                           
+                                      └────┬────┘                           
+                         ┌────────────────┼────────────────┐                
+                  ┌──────┴──────┐  ┌──────┴──────┐  ┌──────┴──────┐         
+                  │ COMPONENTS  │  │    DOCS     │  │  EXAMPLES   │         
+                  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘         
+                         │                │                │                 
+                  ┌──────┴──────┐  ┌──────┴──────┐  ┌──────┴──────┐         
+                  │ StyleGuide  │  │    API      │  │    Grid     │         
+                  │ MonoGrid    │  │    Usage    │  │    ASCII    │         
+                  │ Terminal    │  │    Themes   │  │    Demos    │         
+                  └─────────────┘  └─────────────┘  └─────────────┘         
+              </pre>
+            </div>
+
+            <div class="site-map-legend">
+              <p>Navigate through our component library, documentation, and interactive examples.</p>
+              <div class="legend-items">
+                <div class="legend-item">
+                  <span class="legend-marker" style="color: #FF2E97;">●</span>
+                  <span>Components: Building blocks of the design system</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-marker" style="color: #19DCFF;">●</span>
+                  <span>Documentation: Guides, API references, and usage examples</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-marker" style="color: #FFD319;">●</span>
+                  <span>Examples: Interactive demos and playground environments</span>
+                </div>
+              </div>
+            </div>
+          </section>
+            
+    <!-- Themes Section -->
+            <section id="themes">
+              <h2>Themes</h2>
+
+              <div class="theme-gallery">
+                <div
+                  class={["theme-option", @active_theme == "light" && "active"]}
+                  phx-click="set_theme"
+                  phx-value-theme="light"
+                >
+                  <div class="theme-preview light-theme">
+                    <pre class="theme-sample">
+                    ┌─────────────┐
+                    │ LIGHT THEME │
+                    └─────────────┘
+                    </pre>
+                  </div>
+                  <label class="theme-label">Light</label>
+                </div>
+
+                <div
+                  class={["theme-option", @active_theme == "dark" && "active"]}
+                  phx-click="set_theme"
+                  phx-value-theme="dark"
+                >
+                  <div class="theme-preview dark-theme">
+                    <pre class="theme-sample">
+                    ┌────────────┐
+                    │ DARK THEME │
+                    └────────────┘
+                    </pre>
+                  </div>
+                  <label class="theme-label">Dark</label>
+                </div>
+
+                <div
+                  class={["theme-option", @active_theme == "synthwave" && "active"]}
+                  phx-click="set_theme"
+                  phx-value-theme="synthwave"
+                >
+                  <div class="theme-preview synthwave-theme">
+                    <pre class="theme-sample" style="color: #FF2E97; text-shadow: 0 0 5px #FF2E97;">
+                    ┌────────────────┐
+                    │ SYNTHWAVE THEME│
+                    └────────────────┘
+                    </pre>
+                  </div>
+                  <label class="theme-label">Synthwave</label>
+                </div>
+              </div>
+            </section>
+            
+    <!-- Copyright Footer -->
+            <footer class="copyright-footer">
+              <pre class="ascii-box footer-box">
+              ╔══════════════════════════════════╗
+              ║  © 2025 Hydepwns Monospace Web   ║
+              ╚══════════════════════════════════╝
+              </pre>
+            </footer>
+          </main>
+        </div>
+      <% end %>
+    </div>
+    """
+  end
+end

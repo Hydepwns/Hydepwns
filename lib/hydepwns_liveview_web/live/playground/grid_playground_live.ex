@@ -115,14 +115,7 @@ defmodule HydepwnsLiveviewWeb.GridPlaygroundLive do
           <form phx-change="update_grid" class="grid-controls-form">
             <div class="control-group">
               <label for="grid-columns">Columns:</label>
-              <input
-                type="number"
-                id="grid-columns"
-                name="grid_columns"
-                value={@grid_columns}
-                min="1"
-                max="120"
-              />
+              <input type="number" id="grid-columns" name="grid_columns" value={@grid_columns} min="1" max="120" />
             </div>
 
             <div class="control-group">
@@ -157,13 +150,7 @@ defmodule HydepwnsLiveviewWeb.GridPlaygroundLive do
 
             <div class="control-group checkbox">
               <label for="debug-mode">
-                <input
-                  type="checkbox"
-                  id="debug-mode"
-                  name="debug_mode"
-                  value="true"
-                  checked={@debug_mode}
-                /> Debug Mode
+                <input type="checkbox" id="debug-mode" name="debug_mode" value="true" checked={@debug_mode} /> Debug Mode
               </label>
             </div>
           </form>
@@ -182,29 +169,14 @@ defmodule HydepwnsLiveviewWeb.GridPlaygroundLive do
 
           <div class="content-editor">
             <h4>Grid Content</h4>
-            <textarea
-              class="grid-content-editor"
-              phx-debounce="300"
-              phx-change="update_content"
-              name="grid_content"
-              rows="10"
-              aria-label="Grid content editor"
-            ><%= @grid_content %></textarea>
+            <textarea class="grid-content-editor" phx-debounce="300" phx-change="update_content" name="grid_content" rows="10" aria-label="Grid content editor"><%= @grid_content %></textarea>
           </div>
         </div>
 
         <div class="playground-preview">
           <h3>Preview</h3>
           <div class="grid-preview">
-            <.mono_grid
-              id="grid-playground-preview"
-              cols={@grid_columns}
-              cell_width={@cell_width}
-              cell_height={@cell_height}
-              debug={@debug_mode}
-              container={String.to_atom(@container_type)}
-              phx-hook="MonoGrid"
-            >
+            <.mono_grid id="grid-playground-preview" cols={@grid_columns} cell_width={@cell_width} cell_height={@cell_height} debug={@debug_mode} container={String.to_atom(@container_type)} phx-hook="MonoGrid">
               {raw(@grid_content)}
             </.mono_grid>
           </div>

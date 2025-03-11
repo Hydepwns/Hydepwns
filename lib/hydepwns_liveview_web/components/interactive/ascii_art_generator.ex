@@ -86,13 +86,7 @@ defmodule HydepwnsLiveviewWeb.Components.Interactive.AsciiArtGenerator do
 
           <div class="form-group">
             <label for={"#{@id}-text"}>Text</label>
-            <input
-              type="text"
-              id={"#{@id}-text"}
-              name="text"
-              value={@text}
-              placeholder="Optional text for the art"
-            />
+            <input type="text" id={"#{@id}-text"} name="text" value={@text} placeholder="Optional text for the art" />
           </div>
         </div>
       </form>
@@ -101,22 +95,10 @@ defmodule HydepwnsLiveviewWeb.Components.Interactive.AsciiArtGenerator do
         <div class="preview-header">
           <h3>Preview</h3>
           <div class="preview-controls">
-            <button
-              type="button"
-              class="preview-control-button"
-              phx-click="copy_ascii_art"
-              phx-target={@myself}
-              aria-label="Copy ASCII art to clipboard"
-            >
+            <button type="button" class="preview-control-button" phx-click="copy_ascii_art" phx-target={@myself} aria-label="Copy ASCII art to clipboard">
               Copy
             </button>
-            <button
-              type="button"
-              class="preview-control-button"
-              phx-click="toggle_code_view"
-              phx-target={@myself}
-              aria-label={if @show_code, do: "Hide code view", else: "Show code view"}
-            >
+            <button type="button" class="preview-control-button" phx-click="toggle_code_view" phx-target={@myself} aria-label={if @show_code, do: "Hide code view", else: "Show code view"}>
               {if @show_code, do: "Hide Code", else: "Show Code"}
             </button>
           </div>

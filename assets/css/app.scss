@@ -1758,3 +1758,304 @@ h6[tabindex="-1"]:focus {
     position: static;
   }
 }
+
+/* Home Page - ASCII Art Showcase Styles */
+.ascii-banner {
+  margin: 2rem 0;
+  text-align: center;
+  
+  .ascii-header {
+    margin: 0 auto;
+    line-height: 1.2;
+    font-family: var(--mono-font);
+    white-space: pre;
+    overflow: visible;
+  }
+}
+
+/* Component Showcase */
+.component-showcase {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin: 2rem 0;
+  
+  .component-card {
+    flex: 1 0 calc(33% - 2rem);
+    min-width: 280px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+    
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    h3 {
+      margin-top: 0;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .component-preview {
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--code-bg);
+      border-radius: 4px;
+      margin: 1rem 0;
+      overflow: hidden;
+      
+      .mono-grid {
+        font-family: var(--mono-font);
+        text-align: center;
+      }
+      
+      .terminal-output {
+        font-family: var(--mono-font);
+        white-space: pre;
+        padding: 0.5rem;
+        margin: 0;
+        width: 100%;
+        
+        .cursor {
+          animation: blink 1s step-end infinite;
+        }
+      }
+      
+      .ascii-art {
+        font-family: var(--mono-font);
+        white-space: pre;
+        line-height: 1.2;
+        color: var(--primary-color);
+      }
+    }
+    
+    .component-link {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      background-color: var(--primary-color);
+      color: var(--bg-color);
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+      
+      &:hover {
+        background-color: var(--accent-color);
+      }
+    }
+  }
+}
+
+/* Site Structure Map */
+.site-map-visualization {
+  margin: 2rem 0;
+  display: flex;
+  justify-content: center;
+  
+  .ascii-diagram {
+    font-family: var(--mono-font);
+    white-space: pre;
+    line-height: 1.2;
+    text-align: center;
+  }
+}
+
+.site-map-legend {
+  margin: 1rem 0 2rem;
+  
+  .legend-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 2rem;
+    margin-top: 1rem;
+  }
+  
+  .legend-item {
+    display: flex;
+    align-items: center;
+    
+    .legend-marker {
+      margin-right: 0.5rem;
+      font-size: 1.2rem;
+    }
+  }
+}
+
+/* Theme Gallery */
+.theme-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin: 2rem 0;
+  
+  .theme-option {
+    flex: 1 0 calc(33% - 2rem);
+    min-width: 250px;
+    max-width: 300px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    padding: 0.5rem;
+    transition: transform 0.2s, border-color 0.2s;
+    
+    &:hover {
+      transform: translateY(-5px);
+    }
+    
+    &.active {
+      border-color: var(--primary-color);
+    }
+    
+    .theme-preview {
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s;
+      border-radius: 4px;
+      
+      &.light-theme {
+        background-color: #fff;
+        color: #1e1e1e;
+      }
+      
+      &.dark-theme {
+        background-color: #1e1e1e;
+        color: #f0f0f0;
+      }
+      
+      &.synthwave-theme {
+        background-color: #2b213a;
+        color: #ff2e97;
+      }
+      
+      .theme-sample {
+        font-family: var(--mono-font);
+        white-space: pre;
+        line-height: 1.2;
+        margin: 0;
+      }
+    }
+    
+    .theme-label {
+      display: block;
+      text-align: center;
+      margin-top: 0.5rem;
+      font-weight: 600;
+    }
+  }
+}
+
+/* Copyright Footer */
+.copyright-footer {
+  margin: 4rem 0 2rem;
+  text-align: center;
+  
+  .footer-box {
+    font-family: var(--mono-font);
+    white-space: pre;
+    line-height: 1.2;
+    margin: 0 auto;
+    display: inline-block;
+    color: var(--primary-color);
+  }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .component-showcase {
+    flex-direction: column;
+    
+    .component-card {
+      min-width: 100%;
+    }
+  }
+  
+  .theme-gallery {
+    flex-direction: column;
+    align-items: center;
+    
+    .theme-option {
+      min-width: 100%;
+    }
+  }
+  
+  .site-map-visualization {
+    overflow-x: auto;
+    max-width: 100%;
+    
+    .ascii-diagram {
+      font-size: 0.8rem;
+    }
+  }
+}
+
+/* Interactive Terminal Section */
+#interactive-terminal {
+  margin: 3rem 0;
+  
+  .interactive-terminal-container {
+    margin: 1.5rem 0;
+    border: 2px solid var(--primary-color);
+    border-radius: 8px;
+    overflow: hidden;
+    
+    /* Add a subtle glow effect to match the synthwave theme */
+    box-shadow: 0 0 10px rgba(255, 46, 151, 0.3);
+  }
+  
+  .terminal-help-text {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+    
+    h3 {
+      margin-top: 0;
+      margin-bottom: 0.75rem;
+      color: var(--primary-color);
+    }
+    
+    .command-suggestions {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 0.5rem 1rem;
+      list-style: none;
+      padding: 0;
+      
+      li {
+        padding: 0.25rem 0;
+      }
+      
+      code {
+        background-color: var(--code-bg);
+        padding: 0.1rem 0.25rem;
+        border-radius: 3px;
+        font-family: var(--mono-font);
+        color: var(--accent-color);
+      }
+    }
+  }
+}
+
+/* Site Structure - ASCII Diagram */
+
+/* Import the terminal.scss file at the appropriate location */
+@import "components/terminal.scss";
+
+/* Responsive components */
+@import "./responsive/terminal.scss";
+@import "./responsive/mobile_optimizations.scss";
+
+/* Performance optimizations */
+@import "./performance/mobile_optimizations.scss";

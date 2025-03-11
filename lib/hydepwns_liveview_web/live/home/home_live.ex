@@ -79,11 +79,7 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
     <div class="home-container">
       <header class="page-header">
         <div class="toc-toggle">
-          <button
-            phx-click="toggle_toc"
-            class="toc-toggle-button"
-            aria-label={if @show_toc, do: "Hide table of contents", else: "Show table of contents"}
-          >
+          <button phx-click="toggle_toc" class="toc-toggle-button" aria-label={if @show_toc, do: "Hide table of contents", else: "Show table of contents"}>
             <%= if @show_toc do %>
               <span class="toc-toggle-icon">▼</span>
             <% else %>
@@ -101,11 +97,7 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
       <%= if @show_toc do %>
         <div class="content-with-toc">
           <aside class="toc-sidebar">
-            <.hierarchical_toc_nav
-              toc_data={@toc_data}
-              current_section={@current_section}
-              class="main-toc"
-            />
+            <.hierarchical_toc_nav toc_data={@toc_data} current_section={@current_section} class="main-toc" />
           </aside>
 
           <main class="content" id="main-content">
@@ -139,25 +131,13 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
 
               <div class="animation-controls">
                 <span>Animation Speed:</span>
-                <button
-                  phx-click="set_animation_speed"
-                  phx-value-speed="slow"
-                  class={@animation_speed_class == "slow-speed" && "active"}
-                >
+                <button phx-click="set_animation_speed" phx-value-speed="slow" class={@animation_speed_class == "slow-speed" && "active"}>
                   Slow
                 </button>
-                <button
-                  phx-click="set_animation_speed"
-                  phx-value-speed="normal"
-                  class={@animation_speed_class == "normal-speed" && "active"}
-                >
+                <button phx-click="set_animation_speed" phx-value-speed="normal" class={@animation_speed_class == "normal-speed" && "active"}>
                   Normal
                 </button>
-                <button
-                  phx-click="set_animation_speed"
-                  phx-value-speed="fast"
-                  class={@animation_speed_class == "fast-speed" && "active"}
-                >
+                <button phx-click="set_animation_speed" phx-value-speed="fast" class={@animation_speed_class == "fast-speed" && "active"}>
                   Fast
                 </button>
                 <button phx-click="replay_animations" class="replay-button">
@@ -167,12 +147,7 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
 
               <h3 id="typewriter">Typewriter Effect</h3>
               <div class={["animation-example", @animation_speed_class]}>
-                <pre
-                  id="typewriter-code"
-                  phx-hook="CharacterAnimation"
-                  class="typewriter"
-                  data-typing-speed="70"
-                ><code>
+                <pre id="typewriter-code" phx-hook="CharacterAnimation" class="typewriter" data-typing-speed="70"><code>
                   console.log("This is an example of a typewriter effect.");
                   console.log("Each character appears one at a time.");
                   console.log("It works great for terminal-like interfaces.");
@@ -181,12 +156,7 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
 
               <h3 id="char-fade">Character Fade</h3>
               <div class={["animation-example", @animation_speed_class]}>
-                <p
-                  id="char-fade-example"
-                  phx-hook="CharacterAnimation"
-                  class="character-fade"
-                  data-fade-speed="20"
-                >
+                <p id="char-fade-example" phx-hook="CharacterAnimation" class="character-fade" data-fade-speed="20">
                   This text fades in character by character, creating a matrix-like effect
                   that works well with monospace text. Each character appears independently.
                 </p>
@@ -194,12 +164,7 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
 
               <h3 id="grid-fade">Grid Fade</h3>
               <div class={["animation-example", @animation_speed_class]}>
-                <div
-                  id="grid-fade-container"
-                  phx-hook="GridFadeIn"
-                  class="grid-fade-container"
-                  data-fade-speed="30"
-                >
+                <div id="grid-fade-container" phx-hook="GridFadeIn" class="grid-fade-container" data-fade-speed="30">
                   <div class="mono-grid">
                     <div class="grid-cell">1</div>
                     <div class="grid-cell">2</div>
@@ -248,25 +213,13 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
 
             <div class="animation-controls">
               <span>Animation Speed:</span>
-              <button
-                phx-click="set_animation_speed"
-                phx-value-speed="slow"
-                class={@animation_speed_class == "slow-speed" && "active"}
-              >
+              <button phx-click="set_animation_speed" phx-value-speed="slow" class={@animation_speed_class == "slow-speed" && "active"}>
                 Slow
               </button>
-              <button
-                phx-click="set_animation_speed"
-                phx-value-speed="normal"
-                class={@animation_speed_class == "normal-speed" && "active"}
-              >
+              <button phx-click="set_animation_speed" phx-value-speed="normal" class={@animation_speed_class == "normal-speed" && "active"}>
                 Normal
               </button>
-              <button
-                phx-click="set_animation_speed"
-                phx-value-speed="fast"
-                class={@animation_speed_class == "fast-speed" && "active"}
-              >
+              <button phx-click="set_animation_speed" phx-value-speed="fast" class={@animation_speed_class == "fast-speed" && "active"}>
                 Fast
               </button>
               <button phx-click="replay_animations" class="replay-button">
@@ -276,12 +229,7 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
 
             <h3 id="typewriter">Typewriter Effect</h3>
             <div class={["animation-example", @animation_speed_class]}>
-              <pre
-                id="typewriter-code"
-                phx-hook="CharacterAnimation"
-                class="typewriter"
-                data-typing-speed="70"
-              ><code>
+              <pre id="typewriter-code" phx-hook="CharacterAnimation" class="typewriter" data-typing-speed="70"><code>
                 console.log("This is an example of a typewriter effect.");
                 console.log("Each character appears one at a time.");
                 console.log("It works great for terminal-like interfaces.");
@@ -290,12 +238,7 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
 
             <h3 id="char-fade">Character Fade</h3>
             <div class={["animation-example", @animation_speed_class]}>
-              <p
-                id="char-fade-example"
-                phx-hook="CharacterAnimation"
-                class="character-fade"
-                data-fade-speed="20"
-              >
+              <p id="char-fade-example" phx-hook="CharacterAnimation" class="character-fade" data-fade-speed="20">
                 This text fades in character by character, creating a matrix-like effect
                 that works well with monospace text. Each character appears independently.
               </p>
@@ -303,12 +246,7 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
 
             <h3 id="grid-fade">Grid Fade</h3>
             <div class={["animation-example", @animation_speed_class]}>
-              <div
-                id="grid-fade-container"
-                phx-hook="GridFadeIn"
-                class="grid-fade-container"
-                data-fade-speed="30"
-              >
+              <div id="grid-fade-container" phx-hook="GridFadeIn" class="grid-fade-container" data-fade-speed="30">
                 <div class="mono-grid">
                   <div class="grid-cell">1</div>
                   <div class="grid-cell">2</div>

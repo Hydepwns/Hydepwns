@@ -1546,15 +1546,12 @@ body.high-contrast-theme {
   
   // Terminal screen (main content area)
   .terminal-screen {
-    height: calc(100% - 2.5rem);
-    min-height: 250px;
+    height: calc(100% - 40px); // Adjust for header height
     overflow-y: auto;
     padding: 0.5rem;
-    font-family: var(--mono-font, monospace);
-    font-size: 0.9rem;
-    line-height: 1.4;
+    font-family: var(--font-mono);
+    line-height: 1.5;
     white-space: pre-wrap;
-    word-break: break-word;
     
     // Scrollbar styling
     &::-webkit-scrollbar {
@@ -1600,122 +1597,116 @@ body.high-contrast-theme {
   
   // Terminal prompt
   .terminal-prompt {
-    color: var(--terminal-prompt-color, #7bd88f);
-    margin-right: 0.25rem;
+    color: var(--terminal-prompt-color, #66aaff);
+    margin-right: 0.5rem;
+    font-family: var(--font-mono);
   }
   
   // Terminal input
-  .terminal-input-line {
+  .terminal-input-wrapper {
     display: flex;
-    align-items: center;
-    margin-top: 0.25rem;
-  }
-  
-  .terminal-input {
-    flex: 1;
-    background-color: transparent;
-    border: none;
-    color: var(--terminal-input-color, #f0f0f0);
-    font-family: var(--mono-font, monospace);
-    font-size: 0.9rem;
-    line-height: 1.4;
-    padding: 0;
-    margin: 0;
-    outline: none;
-    caret-color: var(--terminal-cursor-color, #f0f0f0);
-    caret-shape: block;
+    padding: 0.25rem 0.5rem;
+    border-top: 1px solid var(--terminal-border, #444);
     
-    &:focus {
-      outline: none;
+    .terminal-input {
+      flex: 1;
+      background: transparent;
+      color: inherit;
+      border: none;
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      padding: 0;
+      
+      &:focus {
+        outline: none;
+      }
     }
   }
   
-  // Autocomplete dropdown
+  // Autocomplete popup
   .terminal-autocomplete {
     position: absolute;
-    z-index: 10;
-    background-color: var(--terminal-autocomplete-bg, #2d2d2d);
+    background-color: var(--terminal-autocomplete-bg, #2a2a2a);
     border: 1px solid var(--terminal-border, #444);
-    border-radius: 3px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
-    max-height: 150px;
+    border-radius: 2px;
+    max-height: 200px;
     overflow-y: auto;
-    width: auto;
-    min-width: 150px;
+    z-index: 100;
+    display: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     
-    .autocomplete-option {
-      padding: 0.25rem 0.5rem;
+    .terminal-autocomplete-option {
+      padding: 4px 8px;
       cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
       
-      &:hover, &.autocomplete-selected {
-        background-color: var(--terminal-autocomplete-selected-bg, #3e3e3e);
+      &:hover {
+        background-color: var(--terminal-autocomplete-hover-bg, #3a3a3a);
+      }
+      
+      &.selected {
+        background-color: var(--terminal-autocomplete-selected-bg, #3f5f7f);
+        color: var(--terminal-autocomplete-selected-text, #fff);
       }
     }
   }
 }
 
-// Fullscreen mode
+// Terminal fullscreen mode
 .terminal-fullscreen {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100%;
-  max-width: 100%;
-  height: 100vh;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100vw !important;
   z-index: 9999;
-  border-radius: 0;
   margin: 0;
+  border-radius: 0;
+  border: none;
   
   .terminal-screen {
-    height: calc(100vh - 2.5rem);
-    min-height: auto;
+    height: calc(100vh - 80px); // Adjust for header and input
   }
 }
 
-// Minimized mode
+// Terminal minimized state
 .terminal-minimized {
-  height: 2.5rem;
-  min-height: auto;
+  height: 40px !important;
+  min-height: 40px !important;
   overflow: hidden;
   
-  .terminal-screen {
+  .terminal-screen,
+  .terminal-input-wrapper {
     display: none;
   }
 }
 
-// Closed state
+// Terminal closed state
 .terminal-closed {
   display: none;
 }
 
-// When terminal is fullscreen, prevent scrolling on body
+// Prevent body scrolling when terminal is in fullscreen
 body.terminal-open-fullscreen {
   overflow: hidden;
 }
 
 // Theme variations
 .terminal-theme-light {
-  --terminal-bg: #f5f5f5;
-  --terminal-text: #333;
+  --terminal-bg: #f0f0f0;
+  --terminal-text: #111;
   --terminal-header-bg: #e0e0e0;
   --terminal-border: #ccc;
-  --terminal-control-border: #aaa;
-  --terminal-control-color: #555;
+  --terminal-prompt-color: #0066cc;
+  --terminal-control-color: #666;
+  --terminal-control-border: #ccc;
   --terminal-control-hover-bg: rgba(0, 0, 0, 0.1);
-  --terminal-close-hover-bg: rgba(255, 0, 0, 0.1);
-  --terminal-close-hover-color: #e53935;
-  --terminal-focus-ring: rgba(0, 120, 212, 0.25);
-  --terminal-system-color: #6a6a6a;
-  --terminal-command-color: #333;
-  --terminal-error-color: #d32f2f;
-  --terminal-output-color: #424242;
-  --terminal-prompt-color: #2e7d32;
-  --terminal-input-color: #333;
-  --terminal-cursor-color: #333;
-  --terminal-autocomplete-bg: #f0f0f0;
-  --terminal-autocomplete-selected-bg: #e0e0e0;
+  --terminal-autocomplete-bg: #e5e5e5;
+  --terminal-autocomplete-hover-bg: #d5d5d5;
+  --terminal-autocomplete-selected-bg: #b8cfe5;
+  --terminal-autocomplete-selected-text: #333;
 }
 
 .terminal-theme-dark {
@@ -1723,80 +1714,44 @@ body.terminal-open-fullscreen {
   --terminal-text: #f0f0f0;
   --terminal-header-bg: #2d2d2d;
   --terminal-border: #444;
-  --terminal-control-border: #555;
+  --terminal-prompt-color: #66aaff;
   --terminal-control-color: #aaa;
+  --terminal-control-border: #555;
   --terminal-control-hover-bg: rgba(255, 255, 255, 0.1);
-  --terminal-close-hover-bg: rgba(255, 70, 70, 0.2);
-  --terminal-close-hover-color: #ff4646;
-  --terminal-focus-ring: rgba(73, 155, 234, 0.25);
-  --terminal-system-color: #a8a8a8;
-  --terminal-command-color: #f0f0f0;
-  --terminal-error-color: #ff6b6b;
-  --terminal-output-color: #dcdcdc;
-  --terminal-prompt-color: #7bd88f;
-  --terminal-input-color: #f0f0f0;
-  --terminal-cursor-color: #f0f0f0;
-  --terminal-autocomplete-bg: #2d2d2d;
-  --terminal-autocomplete-selected-bg: #3e3e3e;
+  --terminal-autocomplete-bg: #2a2a2a;
+  --terminal-autocomplete-hover-bg: #3a3a3a;
+  --terminal-autocomplete-selected-bg: #3f5f7f;
+  --terminal-autocomplete-selected-text: #fff;
 }
 
 .terminal-theme-dim {
-  --terminal-bg: #282828;
-  --terminal-text: #ebdbb2;
-  --terminal-header-bg: #3c3836;
-  --terminal-border: #504945;
-  --terminal-control-border: #665c54;
-  --terminal-control-color: #bdae93;
-  --terminal-control-hover-bg: rgba(213, 196, 161, 0.1);
-  --terminal-close-hover-bg: rgba(251, 73, 52, 0.2);
-  --terminal-close-hover-color: #fb4934;
-  --terminal-focus-ring: rgba(131, 165, 152, 0.25);
-  --terminal-system-color: #a89984;
-  --terminal-command-color: #ebdbb2;
-  --terminal-error-color: #fb4934;
-  --terminal-output-color: #d5c4a1;
-  --terminal-prompt-color: #b8bb26;
-  --terminal-input-color: #ebdbb2;
-  --terminal-cursor-color: #ebdbb2;
-  --terminal-autocomplete-bg: #3c3836;
-  --terminal-autocomplete-selected-bg: #504945;
+  --terminal-bg: #282c34;
+  --terminal-text: #abb2bf;
+  --terminal-header-bg: #21252b;
+  --terminal-border: #3e4451;
+  --terminal-prompt-color: #61afef;
+  --terminal-control-color: #9da5b4;
+  --terminal-control-border: #4b5263;
+  --terminal-control-hover-bg: rgba(255, 255, 255, 0.07);
+  --terminal-autocomplete-bg: #2c313a;
+  --terminal-autocomplete-hover-bg: #323842;
+  --terminal-autocomplete-selected-bg: #3b4048;
+  --terminal-autocomplete-selected-text: #d7dae0;
 }
 
 .terminal-theme-high-contrast {
   --terminal-bg: #000;
   --terminal-text: #fff;
-  --terminal-header-bg: #000;
+  --terminal-header-bg: #333;
   --terminal-border: #fff;
-  --terminal-control-border: #fff;
+  --terminal-prompt-color: #ff0;
   --terminal-control-color: #fff;
-  --terminal-control-hover-bg: rgba(255, 255, 255, 0.25);
-  --terminal-close-hover-bg: rgba(255, 0, 0, 0.5);
-  --terminal-close-hover-color: #ff0000;
-  --terminal-focus-ring: rgba(255, 255, 0, 0.5);
-  --terminal-system-color: #fff;
-  --terminal-command-color: #fff;
-  --terminal-error-color: #ff0000;
-  --terminal-output-color: #fff;
-  --terminal-prompt-color: #ffff00;
-  --terminal-input-color: #fff;
-  --terminal-cursor-color: #fff;
+  --terminal-control-border: #fff;
+  --terminal-control-hover-bg: rgba(255, 255, 255, 0.2);
   --terminal-autocomplete-bg: #000;
-  --terminal-autocomplete-selected-bg: #333;
-  
-  // Thicker borders for high contrast
-  border-width: 3px;
-  
-  .terminal-header {
-    border-bottom-width: 2px;
-  }
-  
-  .terminal-control {
-    border-width: 2px;
-  }
-  
-  .terminal-autocomplete {
-    border-width: 2px;
-  }
+  --terminal-autocomplete-hover-bg: #333;
+  --terminal-autocomplete-selected-bg: #fff;
+  --terminal-autocomplete-selected-text: #000;
 }
 
 // Accessibility: Reduced motion
@@ -1804,7 +1759,7 @@ body.terminal-open-fullscreen {
   .terminal-container, 
   .terminal-control, 
   .terminal-autocomplete, 
-  .autocomplete-option {
+  .terminal-autocomplete-option {
     transition: none !important;
   }
 }

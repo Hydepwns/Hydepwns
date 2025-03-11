@@ -144,33 +144,13 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoForm do
   # Helper function to render a text input
   defp render_input(%{type: "textarea"} = assigns) do
     ~H"""
-    <textarea
-      id={@id}
-      name={@field.name}
-      class={["mono-textarea", @input_class]}
-      placeholder={@placeholder}
-      autocomplete={@autocomplete}
-      rows={@rows}
-      cols={@cols}
-      required={@required}
-      aria-invalid={@errors != [] && "true"}
-      aria-describedby={@errors != [] && "#{@id}_feedback"}
-      {@rest}
-    ><%= normalize_value("textarea", @field.value) %></textarea>
+    <textarea id={@id} name={@field.name} class={["mono-textarea", @input_class]} placeholder={@placeholder} autocomplete={@autocomplete} rows={@rows} cols={@cols} required={@required} aria-invalid={@errors != [] && "true"} aria-describedby={@errors != [] && "#{@id}_feedback"} {@rest}><%= normalize_value("textarea", @field.value) %></textarea>
     """
   end
 
   defp render_input(%{type: "select"} = assigns) do
     ~H"""
-    <select
-      id={@id}
-      name={@field.name}
-      class={["mono-select", @input_class]}
-      required={@required}
-      aria-invalid={@errors != [] && "true"}
-      aria-describedby={@errors != [] && "#{@id}_feedback"}
-      {@rest}
-    >
+    <select id={@id} name={@field.name} class={["mono-select", @input_class]} required={@required} aria-invalid={@errors != [] && "true"} aria-describedby={@errors != [] && "#{@id}_feedback"} {@rest}>
       <%= for {option_key, option_value} <- @options do %>
         <option value={option_key} selected={@field.value == option_key}>{option_value}</option>
       <% end %>
@@ -181,17 +161,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoForm do
   defp render_input(%{type: "checkbox"} = assigns) do
     ~H"""
     <label class="mono-checkbox-container">
-      <input
-        type="checkbox"
-        id={@id}
-        name={@field.name}
-        class={["mono-checkbox", @input_class]}
-        checked={normalize_value("checkbox", @field.value)}
-        required={@required}
-        aria-invalid={@errors != [] && "true"}
-        aria-describedby={@errors != [] && "#{@id}_feedback"}
-        {@rest}
-      />
+      <input type="checkbox" id={@id} name={@field.name} class={["mono-checkbox", @input_class]} checked={normalize_value("checkbox", @field.value)} required={@required} aria-invalid={@errors != [] && "true"} aria-describedby={@errors != [] && "#{@id}_feedback"} {@rest} />
       <span class="mono-checkbox-mark"></span>
     </label>
     """
@@ -200,17 +170,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoForm do
   defp render_input(%{type: "radio"} = assigns) do
     ~H"""
     <label class="mono-radio-container">
-      <input
-        type="radio"
-        id={@id}
-        name={@field.name}
-        class={["mono-radio", @input_class]}
-        checked={normalize_value("radio", @field.value)}
-        required={@required}
-        aria-invalid={@errors != [] && "true"}
-        aria-describedby={@errors != [] && "#{@id}_feedback"}
-        {@rest}
-      />
+      <input type="radio" id={@id} name={@field.name} class={["mono-radio", @input_class]} checked={normalize_value("radio", @field.value)} required={@required} aria-invalid={@errors != [] && "true"} aria-describedby={@errors != [] && "#{@id}_feedback"} {@rest} />
       <span class="mono-radio-mark"></span>
     </label>
     """

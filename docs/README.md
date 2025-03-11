@@ -15,6 +15,7 @@ This directory contains comprehensive documentation for the Hydepwns monospace d
 - [ASCII Art Components](ASCII_ART_COMPONENTS.md) - **NEW!** Diagrams, charts, and synthwave-styled headers using ASCII characters
 - [Animations](ANIMATIONS.md) - Animation principles and implementation
 - [Path Helper](PATH_HELPER.md) - Path management utilities
+- [Terminal Plugins](TERMINAL_PLUGINS.md) - **NEW!** Terminal plugin system with behavior definitions and examples
 
 ## Style System
 

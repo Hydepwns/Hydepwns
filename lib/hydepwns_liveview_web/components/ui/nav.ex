@@ -60,11 +60,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.Nav do
       <ul class="monospace-nav-list">
         <%= for item <- @item do %>
           <li class="monospace-nav-item">
-            <.nav_link
-              navigate={item.path}
-              active={@current_path == item.path}
-              class="monospace-nav-link"
-            >
+            <.nav_link navigate={item.path} active={@current_path == item.path} class="monospace-nav-link">
               {item.label}
             </.nav_link>
           </li>
@@ -140,12 +136,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.Nav do
       <h2 id="toc-title" class="visually-hidden">Contents</h2>
       <ul class="toc-list">
         <%= for item <- @toc_data do %>
-          <.toc_item
-            item={item}
-            current_section={@current_section}
-            collapsible={@collapsible}
-            initially_expanded={@initially_expanded}
-          />
+          <.toc_item item={item} current_section={@current_section} collapsible={@collapsible} initially_expanded={@initially_expanded} />
         <% end %>
       </ul>
     </nav>
@@ -196,12 +187,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.Nav do
       <%= if @has_children do %>
         <ul class={["toc-sublist", !@initially_expanded && "collapsed"]}>
           <%= for child <- @item.children do %>
-            <.toc_item
-              item={child}
-              current_section={@current_section}
-              collapsible={@collapsible}
-              initially_expanded={@initially_expanded}
-            />
+            <.toc_item item={child} current_section={@current_section} collapsible={@collapsible} initially_expanded={@initially_expanded} />
           <% end %>
         </ul>
       <% end %>

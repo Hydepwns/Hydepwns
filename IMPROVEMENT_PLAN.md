@@ -1,93 +1,54 @@
-# Hydepwns Monospace Web Improvement Plan
+# Hydepwns Monospace Web Improvement Plan v1.3.1
 
-This document outlines pending improvements and enhancements for the Hydepwns monospace-styled website. The goal is to provide clear direction for future development efforts, whether by humans or AI assistants.
+## Completed (v1.2.0)
 
-## Recent Progress Summary
+- ✅ Style guide with visual examples (typography, colors, components)
+- ✅ Font optimization (preload, swap, fallback system, caching)
+- ✅ Component tests (StyleGuide, MonoGrid, Terminal, accessibility)
+- ✅ Animation docs and implementation with accessibility
+- ✅ TOC improvements (auto-generation, hierarchy, navigation)
+- ✅ Repository organization (module structure, documentation)
+- ✅ Docker files moved to dedicated directory
+- ✅ Documentation consolidated and organized in docs/ directory
+- ✅ Added comprehensive Docker setup documentation
 
-- Created a comprehensive style guide with detailed usage examples ✅
-- Added visual examples for typography, colors, and components ✅
-- Included interactive code samples with rendered output ✅
-- Implemented advanced font loading techniques using the Font Loading API ✅
-- Added preconnect and preload tags for critical fonts ✅
-- Applied font-display: swap for better rendering during loading ✅
-- Created a fallback font system with size adjustments to minimize layout shift ✅
-- Added session-based font caching for returning visitors ✅
-- Included critical font CSS inline in the head ✅
-- Created component tests for StyleGuide, MonoGrid, and Terminal ✅
-- Added JavaScript functionality tests ✅
-- Implemented accessibility testing ✅
-- Created font optimization tests ✅
-- Developed a JS test helper module for advanced test scenarios ✅
-- Added animation documentation with examples ✅
-- Reintegrated animations with proper accessibility features ✅
-- Created responsive image component for optimized images ✅
+## Recently Completed (v1.3.0-1.3.1)
 
-## Current Priority Tasks
+- ✅ Added PathHelper module for better path management in LiveView
+- ✅ Improved theme settings and switching functionality
+- ✅ Fixed duplicate handle_event("change_theme") functions across LiveView modules
+- ✅ Enhanced header layout for better user experience
+- ✅ Fixed KeyError related to missing parameters in LiveView socket
+- ✅ Updated color palette with Primary Purple and Synthwave accent colors
+- ✅ Added comprehensive Grid Selection examples with code snippets
+- ✅ Implemented ASCII Drawing components with synthwave styling
+- ✅ Added visual code snippets for all component examples
 
-1. **Performance Optimization**
-   - [✅] Implement route-based code splitting (Found in assets/js/routes/)
-   - [✅] Add service worker for offline capabilities (Implemented in service-worker.js)
-   - [✅] Optimize image assets (converted to WebP with multiple sizes and quality levels)
-   - [✅] Implement lazy loading for components not in viewport
-   - [✅] Add performance monitoring (Via intersection observers in animations.js)
+## Current Priorities (v1.3.2)
 
-2. **Animation Enhancements**
-   - [✅] Fix character fade-in animation to preserve spaces between words (Implemented in animations.js and reintegrated)
-   - [✅] Enhance grid slide-in animation with smoother transitions (Implemented in animations.js and reintegrated)
-   - [✅] Add optional animation speed controls 
-   - [✅] Add keyboard controls to replay animations (Alt+R implemented)
-   - [✅] Implement animation event listeners to trigger only when in viewport (Using IntersectionObserver)
+1. **Test Suite Improvements** ⚠️ HIGH PRIORITY
+   - [x] Fix failing tests and infrastructure
+   - [x] Create testing documentation
+   - [ ] Set up CI/CD for test automation
 
-3. **ASCII Art and Diagram Improvements**
-   - [✅] Improve ASCII box drawing with balanced spacing (Implemented in ascii_art_generator.ex)
-   - [✅] Enhance sequence diagram with clearer labels (Added numbered steps and improved layout)
-   - [✅] Add more diagram types (state diagrams, flowcharts, ER diagrams)
-   - [✅] Create copyable code snippets for all ASCII art examples
+2. **Documentation Enhancements**
+   - [x] Complete component API documentation
+   - [x] Create developer onboarding docs
+   - [x] Update documentation to reflect recent code changes
+   - [x] Document theme implementation and strategies
 
-## Future Improvements
+3. **Code Quality Improvements**
+   - [ ] Audit and fix remaining compilation warnings
+   - [x] Standardize theme handling across components
+   - [ ] Improve LiveView socket parameter validation
 
-### UI/UX Enhancements
-
-- [✅] Add information box component for tips and context
-- [✅] Develop a comprehensive monospace form component library
-- [✅] Implement tabbed interface component that maintains monospace grid
-- [ ] Create a timeline component using ASCII art
-- [ ] Develop progress indicators with monospace aesthetics
-
-### Documentation Improvements
-
-- [✅] Document all available animations with parameters (In animations.js and docs/ANIMATIONS.md)
-- [✅] Provide accessibility guidelines for monospace web development (In accessibility_test.exs)
-- [✅] Add usage instructions for all component live examples (In docs/ANIMATIONS.md and docs/IMAGE_OPTIMIZATION.md)
-- [ ] Create developer guides for extending the component system
-
-### Architecture and Code Quality
-
-- [✅] Refactor CSS to use more variables for consistency
-- [✅] Organize JavaScript hooks into separate modules (Found in /assets/js/hooks/)
-- [ ] Add comprehensive error handling for all interactive components
-- [✅] Create a component library with reusable elements (Implemented in core_components.ex and base_components.ex)
-
-### Community and Contribution
-
-- [ ] Set up contribution guidelines
-- [ ] Add detailed installation instructions
-- [ ] Create issue templates for bug reports and feature requests
-- [ ] Document component API for easy extension
-
-## Technical Roadmap
-
-### Q2 2024
-
-- Complete performance optimization tasks (Complete, 5/5 implemented)
-- Implement animation enhancements (Complete, 5/5 implemented)
-- Improve ASCII art and diagrams (Complete, 4/4 implemented)
+## Future Roadmap
 
 ### Q3 2024
 
 - Focus on UI/UX enhancements
-- Develop new interactive components
-- Improve documentation
+- New interactive components
+- Documentation improvements
 
 ### Q4 2024
 
@@ -95,38 +56,91 @@ This document outlines pending improvements and enhancements for the Hydepwns mo
 - Community contribution framework
 - Advanced testing improvements
 
+## Test Suite Improvement Plan
+
+### Phase 1: Fixes ✅ COMPLETED
+
+- [x] Audit all failing tests by failure type
+- [x] Update tests to match current implementation
+- [x] Fix selector issues and missing elements
+- [x] Add required ARIA attributes
+
+### Phase 2: Infrastructure
+
+- [ ] Create test helpers for common patterns
+- [ ] Implement fixture generation
+- [ ] Create TestLive module with documentation
+- [ ] Add mocks for external dependencies
+
+### Phase 3: Coverage
+
+- [ ] Add tests for uncovered functionality
+- [ ] Implement integration tests for user flows
+- [ ] Add performance and visual regression tests
+- [ ] Improve accessibility test coverage
+
+### Phase 4: CI Integration
+
+- [ ] Enhance GitHub Actions workflow
+- [ ] Set up parallel test running
+- [ ] Add code quality checks
+- [ ] Implement coverage thresholds
+
+### Known Issues
+
+- [ ] Duplicate ID warnings for "main-content" across multiple LiveView templates
+- [ ] Remaining test failures in non-style guide components
+
+## Theme Implementation Plan
+
+### Phase 1: Consolidation ✅ COMPLETED
+
+- [x] Centralize theme switching logic
+- [x] Eliminate duplicate event handlers
+- [x] Create theme management module
+- [x] Add tests for theme switching
+
+### Phase 2: Enhancement
+
+- [x] Add synthwave color palette
+- [ ] Add system preference synchronization
+- [ ] Improve theme transition animations
+- [ ] Add high contrast accessibility theme
+- [ ] Create theme documentation
+
+## Monospace Component Enhancements
+
+### Phase 1: Grid System ✅ COMPLETED
+
+- [x] Basic grid implementation with character-based alignment
+- [x] Selection patterns (cell, row, column, range, multi-cell)
+- [x] Code documentation and examples
+- [x] Synthwave color integration
+
+### Phase 2: ASCII Art Components ✅ COMPLETED
+
+- [x] Box drawings and containers
+- [x] Flow diagrams and sequences
+- [x] Charts and graphs
+- [x] Styled headers with effects
+
+### Phase 3: Interactive Components
+
+- [ ] Terminal-like input/output components
+- [ ] ASCII art animation framework
+- [ ] Interactive grid editing
+- [ ] Keyboard navigation improvements
+
+## Success Metrics
+
+- Accessibility: WCAG 2.1 AA compliance, 95+ Lighthouse score
+- Performance: Core Web Vitals "Good", FCP < 1.5s, TTI < 3.5s
+- Developer Experience: 100% API docs, 80%+ test coverage
+
 ## Implementation Guidelines
 
-- All new features should have accompanying tests
-- Accessibility should be considered from the design phase
-- Performance benchmarks should be established for new components
-- Documentation should be updated simultaneously with code changes
-- All components should support both light and dark themes
-- Font loading best practices should be followed for all new font assets
-
----
-
-This plan will continue to evolve as the project grows. Regular reviews will ensure that priorities remain aligned with project goals and user needs.
-
-## Success Metrics and KPIs
-
-### Accessibility Goals
-
-- Achieve WCAG 2.1 AA compliance across all pages
-- Lighthouse accessibility score of 95+
-- Zero critical or serious issues in axe DevTools scans
-- Successful task completion for screen reader users in 90% of test scenarios
-
-### Performance Targets
-
-- Core Web Vitals meeting "Good" thresholds on all device classes
-- First Contentful Paint < 1.5s on average connections
-- Time to Interactive < 3.5s on average connections
-- Lighthouse performance score of 90+
-- Bundle size < 150KB (gzipped, initial load)
-
-### Developer Experience
-
-- Documentation coverage for 100% of public APIs
-- Component test coverage > 80%
-- New developer onboarding time < 4 hours
+- All new features require tests
+- Accessibility from design phase
+- Documentation updated with code
+- Light/dark theme support for all components
+- Synthwave accent color integration for visual highlights

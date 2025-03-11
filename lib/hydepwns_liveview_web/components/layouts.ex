@@ -1,4 +1,4 @@
-defmodule HydepwnsLiveviewWeb.Layouts do
+defmodule HydepwnsLiveviewWeb.Components.Layout.Layouts do
   @moduledoc """
   This module holds different layouts used by your application.
 
@@ -14,9 +14,8 @@ defmodule HydepwnsLiveviewWeb.Layouts do
   import HydepwnsLiveviewWeb.CoreComponents, except: [header_table: 1, nav: 1, theme_toggle: 1]
 
   # Import UI components that are used
-  import HydepwnsLiveviewWeb.Components.UI.LayoutComponents
   import HydepwnsLiveviewWeb.Components.UI.DebugGrid
-  import HydepwnsLiveviewWeb.Components.ThemeToggle
+  import HydepwnsLiveviewWeb.Components.Common.ThemeToggle
 
   embed_templates "layouts/*"
 end

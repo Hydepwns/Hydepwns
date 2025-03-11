@@ -4,4 +4,4 @@ defmodule HydepwnsLiveviewWeb.OfflineController do
   def index(conn, _params) do
     render(conn, :render, layout: false)
   end
-end 
+end

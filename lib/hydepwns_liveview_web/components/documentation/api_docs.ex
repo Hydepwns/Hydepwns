@@ -1,7 +1,7 @@
-defmodule HydepwnsLiveviewWeb.Components.ApiDocs do
+defmodule HydepwnsLiveviewWeb.Components.Documentation.ApiDocs do
   @moduledoc """
   Component for rendering API documentation in a consistent format.
-  
+
   This module provides components for creating standardized API documentation
   for the Hydepwns component library. It ensures that all components are
   documented with the same level of detail and in a consistent format.
@@ -10,9 +10,9 @@ defmodule HydepwnsLiveviewWeb.Components.ApiDocs do
 
   @doc """
   Renders a component API documentation section.
-  
+
   ## Examples
-  
+
       <.api_docs
         component_name="MonoGrid"
         description="A grid system component that maintains proper character alignment for monospace text."
@@ -38,22 +38,30 @@ defmodule HydepwnsLiveviewWeb.Components.ApiDocs do
   attr :component_name, :string, required: true, doc: "Name of the component being documented"
   attr :description, :string, required: true, doc: "Description of the component's purpose"
   attr :import_statement, :string, required: true, doc: "Import statement for using the component"
-  attr :attributes, :list, default: [], doc: "List of component attributes with name, type, default, and description"
+
+  attr :attributes, :list,
+    default: [],
+    doc: "List of component attributes with name, type, default, and description"
+
   attr :slots, :list, default: [], doc: "List of component slots with name and description"
-  attr :examples, :list, default: [], doc: "List of usage examples with title, code, and description"
+
+  attr :examples, :list,
+    default: [],
+    doc: "List of usage examples with title, code, and description"
+
   attr :notes, :list, default: [], doc: "Additional notes about the component"
-  
+
   def api_docs(assigns) do
     ~H"""
     <div class="api-documentation">
       <div class="api-header">
-        <h4 class="api-title"><%= @component_name %></h4>
-        <div class="api-description"><%= @description %></div>
+        <h4 class="api-title">{@component_name}</h4>
+        <div class="api-description">{@description}</div>
       </div>
-      
+
       <h5>Import</h5>
       <pre><code class="language-elixir"><%= @import_statement %></code></pre>
-      
+
       <%= if length(@attributes) > 0 do %>
         <h5>Attributes</h5>
         <table class="api-table">
@@ -68,22 +76,22 @@ defmodule HydepwnsLiveviewWeb.Components.ApiDocs do
           <tbody>
             <%= for attr <- @attributes do %>
               <tr>
-                <td><code><%= attr.name %></code></td>
-                <td><code><%= attr.type %></code></td>
+                <td><code>{attr.name}</code></td>
+                <td><code>{attr.type}</code></td>
                 <td>
                   <%= if Map.has_key?(attr, :default) && attr.default != nil do %>
-                    <code><%= attr.default %></code>
+                    <code>{attr.default}</code>
                   <% else %>
                     —
                   <% end %>
                 </td>
-                <td><%= attr.description %></td>
+                <td>{attr.description}</td>
               </tr>
             <% end %>
           </tbody>
         </table>
       <% end %>
-      
+
       <%= if length(@slots) > 0 do %>
         <h5>Slots</h5>
         <table class="api-table">
@@ -100,32 +108,32 @@ defmodule HydepwnsLiveviewWeb.Components.ApiDocs do
                   <%= if slot.name == :inner_block do %>
                     <code>default</code>
                   <% else %>
-                    <code><%= slot.name %></code>
+                    <code>{slot.name}</code>
                   <% end %>
                 </td>
-                <td><%= slot.description %></td>
+                <td>{slot.description}</td>
               </tr>
             <% end %>
           </tbody>
         </table>
       <% end %>
-      
+
       <%= if length(@examples) > 0 do %>
         <h5>Examples</h5>
         <%= for example <- @examples do %>
           <div class="api-example">
-            <h6><%= example.title %></h6>
-            <p><%= example.description %></p>
+            <h6>{example.title}</h6>
+            <p>{example.description}</p>
             <pre><code class="language-heex"><%= example.code %></code></pre>
           </div>
         <% end %>
       <% end %>
-      
+
       <%= if length(@notes) > 0 do %>
         <h5>Notes</h5>
         <ul class="api-notes">
           <%= for note <- @notes do %>
-            <li><%= note %></li>
+            <li>{note}</li>
           <% end %>
         </ul>
       <% end %>
@@ -135,9 +143,9 @@ defmodule HydepwnsLiveviewWeb.Components.ApiDocs do
 
   @doc """
   Renders a section containing API documentation for multiple components.
-  
+
   ## Examples
-  
+
       <.api_docs_section id="grid-components" title="Grid Components">
         <.api_docs component_name="MonoGrid" ... />
         <.api_docs component_name="GridRow" ... />
@@ -146,13 +154,13 @@ defmodule HydepwnsLiveviewWeb.Components.ApiDocs do
   attr :id, :string, required: true, doc: "ID for the documentation section"
   attr :title, :string, required: true, doc: "Title of the documentation section"
   slot :inner_block, required: true
-  
+
   def api_docs_section(assigns) do
     ~H"""
     <section id={@id} class="api-docs-section">
-      <h3><%= @title %></h3>
-      <%= render_slot(@inner_block) %>
+      <h3>{@title}</h3>
+      {render_slot(@inner_block)}
     </section>
     """
   end
-end 
+end

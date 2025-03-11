@@ -40,11 +40,10 @@ defmodule HydepwnsLiveviewWeb do
     quote do
       use Phoenix.Controller,
         formats: [:html, :json],
-        layouts: [html: HydepwnsLiveviewWeb.Layouts]
-
-      use Gettext, backend: HydepwnsLiveviewWeb.Gettext
+        layouts: [html: HydepwnsLiveviewWeb.Components.Layout.Layouts]
 
       import Plug.Conn
+      import HydepwnsLiveviewWeb.Gettext
 
       unquote(verified_routes())
     end
@@ -53,9 +52,17 @@ defmodule HydepwnsLiveviewWeb do
   def live_view do
     quote do
       use Phoenix.LiveView,
-        layout: {HydepwnsLiveviewWeb.Layouts, :app}
+        layout: {HydepwnsLiveviewWeb.Components.Layout.Layouts, :app}
 
-      unquote(html_helpers())
+      import HydepwnsLiveviewWeb.Gettext
+
+      # Base event handlers for all LiveViews
+      def handle_event("change_theme", %{"theme" => theme}, socket) do
+        theme_class = "#{theme}-theme"
+        {:noreply, assign(socket, :theme_class, theme_class)}
+      end
+
+      unquote(verified_routes())
     end
   end
 
@@ -63,7 +70,9 @@ defmodule HydepwnsLiveviewWeb do
     quote do
       use Phoenix.LiveComponent
 
-      unquote(html_helpers())
+      import HydepwnsLiveviewWeb.Gettext
+
+      unquote(verified_routes())
     end
   end
 
@@ -82,48 +91,17 @@ defmodule HydepwnsLiveviewWeb do
 
   defp html_helpers do
     quote do
-      # Translation
-      use Gettext, backend: HydepwnsLiveviewWeb.Gettext
-
       # HTML escaping functionality
       import Phoenix.HTML
-      # Core UI components
-      import HydepwnsLiveviewWeb.CoreComponents, except: [header_table: 1, nav: 1, theme_toggle: 1]
-      # Import UI components
-      import HydepwnsLiveviewWeb.Components.UI.LayoutComponents
-      import HydepwnsLiveviewWeb.Components.UI.DebugGrid
-      import HydepwnsLiveviewWeb.Components.UI.InfoBox
-      import HydepwnsLiveviewWeb.Components.UI.MonoForm
-      import HydepwnsLiveviewWeb.Components.UI.MonoTabs
-      # Import Theme Toggle component
-      import HydepwnsLiveviewWeb.Components.ThemeToggle
-      # Import Theme Preview component
-      import HydepwnsLiveviewWeb.Components.ThemePreview
-      # Import Nav component
-      import HydepwnsLiveviewWeb.Components.UI.Nav
-      
-      # Import custom components
-      import HydepwnsLiveviewWeb.Components.MonoGrid
-      alias HydepwnsLiveviewWeb.Components.Terminal
-      alias HydepwnsLiveviewWeb.Components.AsciiArtGenerator
-      alias HydepwnsLiveviewWeb.Components.DiagramEditor
+      # Core UI components and translation
+      import HydepwnsLiveviewWeb.CoreComponents
+      import HydepwnsLiveviewWeb.Gettext
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS
 
       # Routes generation with the ~p sigil
       unquote(verified_routes())
-
-      # Helper for setting current path
-      def assign_current_path(socket) do
-        assign(socket, current_path: socket.assigns.live_action |> path_for_action())
-      end
-
-      defp path_for_action(:index), do: ~p"/"
-      defp path_for_action(:style_guide), do: ~p"/style-guide"
-      defp path_for_action(:projects), do: ~p"/projects"
-      defp path_for_action(:about), do: ~p"/about"
-      defp path_for_action(_), do: nil
     end
   end
 
@@ -137,7 +115,7 @@ defmodule HydepwnsLiveviewWeb do
   end
 
   @doc """
-  When used, dispatch to the appropriate controller/live_view/etc.
+  When used, dispatch to the appropriate controller/view/etc.
   """
   defmacro __using__(which) when is_atom(which) do
     apply(__MODULE__, which, [])

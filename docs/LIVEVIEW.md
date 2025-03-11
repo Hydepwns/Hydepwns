@@ -31,10 +31,14 @@ A basic LiveView module looks like this:
 ```elixir
 defmodule HydepwnsLiveviewWeb.HomeLive do
   use HydepwnsLiveviewWeb, :live_view
+  alias HydepwnsLiveviewWeb.Helpers.PathHelper
   
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, count: 0)}
+    {:ok, 
+     socket
+     |> PathHelper.assign_current_path()
+     |> assign(count: 0)}
   end
   
   @impl true
@@ -54,6 +58,52 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
   end
 end
 ```
+
+## Path Handling in LiveView
+
+### PathHelper Module
+
+Managing paths in LiveView can be challenging due to the different lifecycle phases of a LiveView mount. The `PathHelper` module provides functions to consistently handle paths:
+
+```elixir
+defmodule HydepwnsLiveviewWeb.Helpers.PathHelper do
+  def assign_current_path(socket) do
+    Phoenix.Component.assign(
+      socket,
+      :current_path,
+      case socket.assigns[:live_action] do
+        nil -> "/"
+        action -> "/#{action}"
+      end
+    )
+  end
+
+  def assign_specific_path(socket, path) do
+    Phoenix.Component.assign(socket, :current_path, path)
+  end
+end
+```
+
+Use these functions in your LiveView `mount/3` callback:
+
+```elixir
+def mount(_params, _session, socket) do
+  {:ok,
+   socket
+   |> PathHelper.assign_current_path()  # For auto path detection
+   |> assign(:page_title, "Home")}
+end
+
+# Or with specific path
+def mount(_params, _session, socket) do
+  {:ok,
+   socket
+   |> PathHelper.assign_specific_path("/custom-path")
+   |> assign(:page_title, "Custom Page")}
+end
+```
+
+See the full [PathHelper documentation](PATH_HELPER.md) for more details.
 
 ## Integration with Monospace Web
 
@@ -162,25 +212,29 @@ export default Typewriter;
 
 ## Theme System Integration
 
-The theme system integrates with LiveView using hooks. Register theme hooks in your app.js:
-
-```javascript
-import ThemeToggle from "./hooks/theme_toggle"
-
-let Hooks = {}
-Hooks.ThemeToggle = ThemeToggle
-
-let liveSocket = new LiveSocket("/live", Socket, {
-  params: {_csrf_token: csrfToken},
-  hooks: Hooks
-})
-```
-
-Add the theme toggle component to your layouts:
+The theme system integrates with LiveView through a centralized event handler in the base LiveView module:
 
 ```elixir
-<HydepwnsLiveviewWeb.Components.UI.ThemeToggle.theme_toggle />
+# In web.ex
+def live_view do
+  quote do
+    use Phoenix.LiveView,
+      layout: {HydepwnsLiveviewWeb.Components.Layout.Layouts, :app}
+
+    import HydepwnsLiveviewWeb.Gettext
+
+    # Base event handlers for all LiveViews
+    def handle_event("change_theme", %{"theme" => theme}, socket) do
+      theme_class = "#{theme}-theme"
+      {:noreply, assign(socket, :theme_class, theme_class)}
+    end
+
+    unquote(verified_routes())
+  end
+end
 ```
+
+This approach ensures consistent theme handling across all LiveViews without duplicate code. For detailed information about the theme system, see the [Theme documentation](THEMES.md).
 
 ## LiveView State Management
 
@@ -248,11 +302,28 @@ end
 - Use hooks only when client-side interactions are necessary
 - Keep JavaScript minimal
 
-### 4. Maintain Grid Alignment
+### 4. Path Management
 
-- Use `ch` units for horizontal spacing
-- Use `line-height` multiples for vertical spacing
-- Test with the debug grid to ensure alignment
+- Use the PathHelper module in your mount callbacks
+- Maintain consistent path information in your LiveView socket
+- Use the current_path assign for navigation-related UI decisions
+
+```elixir
+def nav(assigns) do
+  ~H"""
+  <nav>
+    <a href="/" class={if @current_path == "/", do: "active"}>Home</a>
+    <a href="/about" class={if @current_path == "/about", do: "active"}>About</a>
+  </nav>
+  """
+end
+```
+
+### 5. Standardize Event Handlers
+
+- Use the base implementations for common events like "change_theme"
+- Avoid duplicate event handlers across LiveView modules
+- Create specific events for specialized behaviors
 
 ## Debugging LiveView Applications
 

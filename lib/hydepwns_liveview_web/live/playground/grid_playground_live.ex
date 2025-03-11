@@ -1,9 +1,10 @@
 defmodule HydepwnsLiveviewWeb.GridPlaygroundLive do
   use HydepwnsLiveviewWeb, :live_view
-  alias HydepwnsLiveviewWeb.Components.MonoGrid
-  
+
   import HydepwnsLiveviewWeb.Components.MonoGrid
-  
+  import Phoenix.HTML, only: [raw: 1]
+  alias HydepwnsLiveviewWeb.Helpers.PathHelper
+
   @default_grid_content """
   ┌────────────────────────────────────┐
   │          MonoGrid Playground      │
@@ -23,7 +24,7 @@ defmodule HydepwnsLiveviewWeb.GridPlaygroundLive do
   def mount(_params, _session, socket) do
     {:ok,
      socket
-     |> assign_grid_playground_path()
+     |> PathHelper.assign_specific_path("/grid-playground")
      |> assign(:page_title, "Grid Playground")
      |> assign(:theme_class, "dark-theme")
      |> assign(:grid_columns, 40)
@@ -43,30 +44,26 @@ defmodule HydepwnsLiveviewWeb.GridPlaygroundLive do
   end
 
   @impl true
-  def handle_event("change_theme", %{"theme" => theme}, socket) do
-    theme_class = "#{theme}-theme"
-    {:noreply, assign(socket, :theme_class, theme_class)}
-  end
-
-  @impl true
   def handle_event("update_grid", params, socket) do
     # Update grid settings based on form input
-    grid_columns = 
+    grid_columns =
       case Integer.parse(params["grid_columns"] || "40") do
         {val, _} when val > 0 and val <= 120 -> val
         _ -> socket.assigns.grid_columns
       end
-    
+
     cell_width = params["cell_width"] || socket.assigns.cell_width
     cell_height = params["cell_height"] || socket.assigns.cell_height
     debug_mode = params["debug_mode"] == "true"
     container_type = params["container_type"] || socket.assigns.container_type
-    
+
     # Update the generated code
     container_type_atom = String.to_atom(container_type)
-    generated_code = generate_code(grid_columns, cell_width, cell_height, debug_mode, container_type_atom)
-    
-    {:noreply, 
+
+    generated_code =
+      generate_code(grid_columns, cell_width, cell_height, debug_mode, container_type_atom)
+
+    {:noreply,
      socket
      |> assign(:grid_columns, grid_columns)
      |> assign(:cell_width, cell_width)
@@ -92,6 +89,7 @@ defmodule HydepwnsLiveviewWeb.GridPlaygroundLive do
     case Enum.find(socket.assigns.example_layouts, fn {id, _, _} -> id == example_id end) do
       {_, _, content} ->
         {:noreply, assign(socket, :grid_content, content)}
+
       _ ->
         {:noreply, socket}
     end
@@ -111,22 +109,22 @@ defmodule HydepwnsLiveviewWeb.GridPlaygroundLive do
         Experiment with the monospace grid system to create perfectly aligned ASCII art,
         tables, and layouts. Adjust the parameters and see the changes in real-time.
       </p>
-      
+
       <div class="grid-playground">
         <div class="playground-controls">
           <form phx-change="update_grid" class="grid-controls-form">
             <div class="control-group">
               <label for="grid-columns">Columns:</label>
-              <input 
-                type="number" 
-                id="grid-columns" 
-                name="grid_columns" 
-                value={@grid_columns} 
-                min="1" 
+              <input
+                type="number"
+                id="grid-columns"
+                name="grid_columns"
+                value={@grid_columns}
+                min="1"
                 max="120"
               />
             </div>
-            
+
             <div class="control-group">
               <label for="cell-width">Cell Width:</label>
               <select id="cell-width" name="cell_width">
@@ -137,7 +135,7 @@ defmodule HydepwnsLiveviewWeb.GridPlaygroundLive do
                 <option value="1.2ch" selected={@cell_width == "1.2ch"}>1.2ch</option>
               </select>
             </div>
-            
+
             <div class="control-group">
               <label for="cell-height">Cell Height:</label>
               <select id="cell-height" name="cell_height">
@@ -147,7 +145,7 @@ defmodule HydepwnsLiveviewWeb.GridPlaygroundLive do
                 <option value="2rem" selected={@cell_height == "2rem"}>2rem</option>
               </select>
             </div>
-            
+
             <div class="control-group">
               <label for="container-type">Container:</label>
               <select id="container-type" name="container_type">
@@ -156,17 +154,16 @@ defmodule HydepwnsLiveviewWeb.GridPlaygroundLive do
                 <option value="code" selected={@container_type == "code"}>code</option>
               </select>
             </div>
-            
+
             <div class="control-group checkbox">
               <label for="debug-mode">
-                <input 
-                  type="checkbox" 
-                  id="debug-mode" 
-                  name="debug_mode" 
-                  value="true" 
+                <input
+                  type="checkbox"
+                  id="debug-mode"
+                  name="debug_mode"
+                  value="true"
                   checked={@debug_mode}
-                />
-                Debug Mode
+                /> Debug Mode
               </label>
             </div>
           </form>
@@ -175,18 +172,14 @@ defmodule HydepwnsLiveviewWeb.GridPlaygroundLive do
             <h4>Example Layouts</h4>
             <div class="example-buttons">
               <%= for {id, name, _} <- @example_layouts do %>
-                <button 
-                  phx-click="load_example" 
-                  phx-value-example={id} 
-                  class="example-button"
-                >
-                  <%= name %>
+                <button phx-click="load_example" phx-value-example={id} class="example-button">
+                  {name}
                 </button>
               <% end %>
               <button phx-click="reset_grid" class="reset-button">Reset</button>
             </div>
           </div>
-          
+
           <div class="content-editor">
             <h4>Grid Content</h4>
             <textarea
@@ -199,7 +192,7 @@ defmodule HydepwnsLiveviewWeb.GridPlaygroundLive do
             ><%= @grid_content %></textarea>
           </div>
         </div>
-        
+
         <div class="playground-preview">
           <h3>Preview</h3>
           <div class="grid-preview">
@@ -212,15 +205,15 @@ defmodule HydepwnsLiveviewWeb.GridPlaygroundLive do
               container={String.to_atom(@container_type)}
               phx-hook="MonoGrid"
             >
-              <%= raw(@grid_content) %>
+              {raw(@grid_content)}
             </.mono_grid>
           </div>
-          
+
           <div class="code-section">
             <button phx-click="toggle_code" class="code-toggle-button">
-              <%= if @show_code, do: "Hide Code", else: "Show Code" %>
+              {if @show_code, do: "Hide Code", else: "Show Code"}
             </button>
-            
+
             <%= if @show_code do %>
               <div class="generated-code">
                 <h4>Generated Code</h4>
@@ -241,10 +234,10 @@ defmodule HydepwnsLiveviewWeb.GridPlaygroundLive do
       "cell_width=\"#{cell_width}\"",
       "cell_height=\"#{cell_height}\""
     ]
-    
+
     attrs = if debug, do: attrs ++ ["debug={true}"], else: attrs
     attrs = if container != :div, do: attrs ++ ["container={:#{container}}"], else: attrs
-    
+
     """
     <.mono_grid #{Enum.join(attrs, " ")}>
       #{String.replace(@default_grid_content, "\n", "\n  ")}
@@ -290,14 +283,14 @@ defmodule HydepwnsLiveviewWeb.GridPlaygroundLive do
   defp chart_layout do
     """
     Feature Completion Chart
-    
+
     MonoGrid    ████████████████████ 100%
     Terminal    ████████████████████ 100%
     ASCII Art   ██████████████░░░░░░  75%
     UI/UX       ████████░░░░░░░░░░░░  40%
     Docs        ██████████████░░░░░░  70%
     Testing     ████░░░░░░░░░░░░░░░░  20%
-    
+
     Legend: █ Completed  ░ Remaining
     """
   end
@@ -331,18 +324,14 @@ defmodule HydepwnsLiveviewWeb.GridPlaygroundLive do
       "cell_width=\"#{cell_width}\"",
       "cell_height=\"#{cell_height}\""
     ]
-    
+
     attrs = if debug, do: attrs ++ ["debug={true}"], else: attrs
     attrs = if container != :div, do: attrs ++ ["container={:#{container}}"], else: attrs
-    
+
     """
     <.mono_grid #{Enum.join(attrs, " ")}>
       <!-- Grid content goes here -->
     </.mono_grid>
     """
   end
-
-  defp assign_grid_playground_path(socket) do
-    assign(socket, :current_path, "/grid-playground")
-  end
-end 
+end

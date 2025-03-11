@@ -37,6 +37,7 @@ import Terminal from "./hooks/terminal"
 import LazyLoad from "./hooks/lazy_load"
 import TimelineHook from "./hooks/timeline_hooks"
 import ProgressIndicatorHook from "./hooks/progress_indicator_hooks"
+import HierarchicalTOC from "./hooks/hierarchical_toc"
 import { CharacterAnimation, GridFadeIn } from "./components/animations"
 
 // Import accessibility functions
@@ -85,7 +86,8 @@ const Hooks = {
   GridFadeIn,
   LazyLoad,
   TimelineHook,
-  ProgressIndicatorHook
+  ProgressIndicatorHook,
+  HierarchicalTOC
 }
 
 // Create LiveSocket with hooks and parameters

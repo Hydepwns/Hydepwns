@@ -1,7 +1,7 @@
 defmodule HydepwnsLiveviewWeb.Components.UI.Timeline do
   @moduledoc """
   A monospace timeline component that uses ASCII art to represent timeline events.
-  
+
   This component displays a vertical or horizontal timeline with customizable
   events, maintaining the monospace grid aesthetic.
   """
@@ -9,7 +9,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.Timeline do
 
   @doc """
   Renders a vertical timeline with ASCII art elements.
-  
+
   ## Examples
       
       <.vertical_timeline id="project-history">
@@ -26,12 +26,16 @@ defmodule HydepwnsLiveviewWeb.Components.UI.Timeline do
           Official release with all planned features.
         </:event>
       </.vertical_timeline>
-  
+
   """
   attr :id, :string, required: true, doc: "the unique identifier for the timeline"
   attr :class, :string, default: "", doc: "additional CSS classes"
-  attr :line_style, :string, default: "solid", values: ["solid", "dashed", "dotted"], doc: "style of the timeline line"
-  
+
+  attr :line_style, :string,
+    default: "solid",
+    values: ["solid", "dashed", "dotted"],
+    doc: "style of the timeline line"
+
   slot :event, required: true do
     attr :title, :string, required: true
     attr :date, :string, required: true
@@ -54,17 +58,17 @@ defmodule HydepwnsLiveviewWeb.Components.UI.Timeline do
                 <span class="timeline-line">┆</span>
             <% end %>
           </div>
-          
+
           <div class="timeline-content">
             <div class="timeline-header">
-              <h3 class="timeline-title"><%= event.title %></h3>
-              <span class="timeline-date"><%= event.date %></span>
+              <h3 class="timeline-title">{event.title}</h3>
+              <span class="timeline-date">{event.date}</span>
             </div>
-            
+
             <div class="timeline-body">
-              <%= render_slot(event) %>
+              {render_slot(event)}
             </div>
-            
+
             <%= if Map.get(event, :highlight, false) do %>
               <div class="timeline-highlight-marker">★</div>
             <% end %>
@@ -77,7 +81,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.Timeline do
 
   @doc """
   Renders a horizontal timeline with ASCII art elements.
-  
+
   ## Examples
       
       <.horizontal_timeline id="product-roadmap">
@@ -94,12 +98,16 @@ defmodule HydepwnsLiveviewWeb.Components.UI.Timeline do
           Public release and marketing.
         </:event>
       </.horizontal_timeline>
-  
+
   """
   attr :id, :string, required: true, doc: "the unique identifier for the timeline"
   attr :class, :string, default: "", doc: "additional CSS classes"
-  attr :line_style, :string, default: "solid", values: ["solid", "dashed", "dotted"], doc: "style of the timeline line"
-  
+
+  attr :line_style, :string,
+    default: "solid",
+    values: ["solid", "dashed", "dotted"],
+    doc: "style of the timeline line"
+
   slot :event, required: true do
     attr :title, :string, required: true
     attr :date, :string, required: true
@@ -114,13 +122,22 @@ defmodule HydepwnsLiveviewWeb.Components.UI.Timeline do
         <!-- Horizontal timeline line with appropriate style -->
         <div class="timeline-line">
           <%= case @line_style do %>
-            <% "solid" -> %> ━━━<%= for _ <- 1..length(@event) do %>━━━━━━━━━<% end %>━━━
-            <% "dashed" -> %> ┅┅┅<%= for _ <- 1..length(@event) do %>┅┅┅┅┅┅┅┅┅<% end %>┅┅┅
-            <% "dotted" -> %> ┄┄┄<%= for _ <- 1..length(@event) do %>┄┄┄┄┄┄┄┄┄<% end %>┄┄┄
+            <% "solid" -> %>
+              ━━━<%= for _ <- 1..length(@event) do %>
+                ━━━━━━━━━
+              <% end %>━━━
+            <% "dashed" -> %>
+              ┅┅┅<%= for _ <- 1..length(@event) do %>
+                ┅┅┅┅┅┅┅┅┅
+              <% end %>┅┅┅
+            <% "dotted" -> %>
+              ┄┄┄<%= for _ <- 1..length(@event) do %>
+                ┄┄┄┄┄┄┄┄┄
+              <% end %>┄┄┄
           <% end %>
         </div>
         
-        <!-- Timeline events -->
+    <!-- Timeline events -->
         <div class="timeline-events">
           <%= for {event, _index} <- Enum.with_index(@event) do %>
             <div class={"timeline-event #{if Map.get(event, :highlight, false), do: "highlighted"}"}>
@@ -136,14 +153,14 @@ defmodule HydepwnsLiveviewWeb.Components.UI.Timeline do
                   ┗━┛
                 <% end %>
               </div>
-              
+
               <div class="timeline-content">
                 <div class="timeline-header">
-                  <h3 class="timeline-title"><%= event.title %></h3>
-                  <span class="timeline-date"><%= event.date %></span>
+                  <h3 class="timeline-title">{event.title}</h3>
+                  <span class="timeline-date">{event.date}</span>
                 </div>
                 <div class="timeline-body">
-                  <%= render_slot(event) %>
+                  {render_slot(event)}
                 </div>
               </div>
             </div>
@@ -153,4 +170,4 @@ defmodule HydepwnsLiveviewWeb.Components.UI.Timeline do
     </div>
     """
   end
-end 
+end

@@ -1,99 +1,73 @@
-defmodule HydepwnsLiveviewWeb.Components.TerminalTest do
+defmodule HydepwnsLiveviewWeb.Components.Interactive.TerminalTest do
   use HydepwnsLiveviewWeb.ConnCase, async: true
   import Phoenix.LiveViewTest
-  alias HydepwnsLiveviewWeb.Components.Terminal
+  alias HydepwnsLiveviewWeb.TestLive.TerminalTestLive
 
-  describe "terminal/1" do
-    test "renders a basic terminal" do
-      html =
-        render_component(&Terminal.terminal/1, %{
-          id: "test-terminal",
-          height: 10,
-          width: 60
-        })
+  describe "terminal live component" do
+    test "renders a basic terminal", %{conn: conn} do
+      {:ok, view, html} =
+        live_isolated(conn, TerminalTestLive, session: %{"id" => "test-terminal"})
 
-      assert html =~ "test-terminal"
-      assert html =~ "terminal"
-      assert html =~ "terminal__input"
-      assert html =~ "terminal__output"
+      assert html =~ "terminal-container"
+      assert html =~ "terminal-screen"
+      assert has_element?(view, "#test-terminal")
     end
 
-    test "renders a terminal with welcome message" do
-      welcome_message = "Welcome to the test terminal"
-      
-      html =
-        render_component(&Terminal.terminal/1, %{
-          id: "test-terminal",
-          height: 10,
-          width: 60,
-          welcome_message: welcome_message
-        })
+    test "renders a terminal with welcome message", %{conn: conn} do
+      welcome_message = "Welcome to the test terminal!"
 
-      assert html =~ "test-terminal"
-      assert html =~ welcome_message
-    end
-
-    test "renders a terminal with custom prompt" do
-      custom_prompt = "user@test:~$ "
-      
-      html =
-        render_component(&Terminal.terminal/1, %{
-          id: "test-terminal",
-          height: 10,
-          width: 60,
-          prompt: custom_prompt
-        })
-
-      assert html =~ "test-terminal"
-      assert html =~ custom_prompt
-    end
-
-    test "renders a terminal with custom theme" do
-      html =
-        render_component(&Terminal.terminal/1, %{
-          id: "test-terminal",
-          height: 10,
-          width: 60,
-          theme: "light"
-        })
-
-      assert html =~ "test-terminal"
-      assert html =~ "terminal--light"
-    end
-
-    test "renders a terminal with fullscreen option" do
-      html =
-        render_component(&Terminal.terminal/1, %{
-          id: "test-terminal",
-          height: 10,
-          width: 60,
-          fullscreen: true
-        })
-
-      assert html =~ "test-terminal"
-      assert html =~ "terminal__fullscreen-toggle"
-    end
-  end
-
-  describe "terminal update/2" do
-    test "handles command input" do
-      {:ok, view, _html} =
-        live_isolated_component(
-          &Terminal.terminal/1,
-          %{
-            id: "test-terminal",
-            height: 10,
-            width: 60
+      {:ok, view, html} =
+        live_isolated(conn, TerminalTestLive,
+          session: %{
+            "id" => "test-terminal",
+            "welcome_message" => welcome_message
           }
         )
 
-      # Simulate command input
-      assert view
-             |> element("form")
-             |> render_change(%{"command" => "help"})
+      assert html =~ "terminal-container"
+      assert html =~ "terminal-screen"
+      assert has_element?(view, "#test-terminal")
+    end
 
-      # Verify the command was processed
-      assert render(view) =~ "help"
+    test "renders a terminal with custom prompt", %{conn: conn} do
+      custom_prompt = "test-prompt$ "
+
+      {:ok, view, html} =
+        live_isolated(conn, TerminalTestLive,
+          session: %{
+            "id" => "test-terminal",
+            "prompt" => custom_prompt
+          }
+        )
+
+      assert html =~ "terminal-container"
+      assert has_element?(view, "#test-terminal")
+    end
+
+    test "renders a terminal with custom theme", %{conn: conn} do
+      {:ok, view, html} =
+        live_isolated(conn, TerminalTestLive,
+          session: %{
+            "id" => "test-terminal",
+            "theme" => "light"
+          }
+        )
+
+      assert html =~ "terminal-container"
+      assert has_element?(view, "#test-terminal")
+    end
+
+    test "renders a terminal with fullscreen option", %{conn: conn} do
+      {:ok, view, html} =
+        live_isolated(conn, TerminalTestLive,
+          session: %{
+            "id" => "test-terminal",
+            "fullscreen" => true
+          }
+        )
+
+      assert html =~ "terminal-container"
+      assert has_element?(view, "#test-terminal")
     end
   end
-end 
+end

@@ -1,12 +1,12 @@
-defmodule HydepwnsLiveviewWeb.Components.ResponsiveImage do
+defmodule HydepwnsLiveviewWeb.Components.Media.ResponsiveImage do
   @moduledoc """
   Responsive image component that automatically uses optimized images.
-  
+
   This component makes it easy to use the optimized WebP images with proper
   responsive behavior, fallbacks, and accessibility attributes.
-  
+
   ## Examples
-  
+
   ```heex
   <.responsive_image
     image_name="foxheist1"
@@ -16,9 +16,9 @@ defmodule HydepwnsLiveviewWeb.Components.ResponsiveImage do
     height="360"
   />
   ```
-  
+
   With additional options:
-  
+
   ```heex
   <.responsive_image
     image_name="foxmask"
@@ -34,12 +34,12 @@ defmodule HydepwnsLiveviewWeb.Components.ResponsiveImage do
   ```
   """
   use Phoenix.Component
-  
+
   @doc """
   Renders a responsive image with WebP and original format versions at multiple sizes.
-  
+
   ## Attributes
-  
+
   * `image_name` - Required. The base name of the image without extension
   * `original_format` - Optional. The original format of the image (default: "png")
   * `quality` - Optional. The WebP quality to use (default: "medium", options: "low", "medium", "high")
@@ -59,30 +59,23 @@ defmodule HydepwnsLiveviewWeb.Components.ResponsiveImage do
   attr :height, :integer, required: true
   attr :class, :string, default: nil
   attr :loading, :string, default: "lazy"
-  
+
   def responsive_image(assigns) do
     # Set default alt text to image name if not provided
     assigns = assign_new(assigns, :alt, fn -> assigns.image_name end)
-    
+
     ~H"""
     <picture>
       <!-- WebP versions -->
-      <source
-        type="image/webp"
-        srcset={build_srcset(@image_name, @quality, "webp")}
-        sizes={@sizes}
-      />
+      <source type="image/webp" srcset={build_srcset(@image_name, @quality, "webp")} sizes={@sizes} />
       
-      <!-- Original format versions -->
-      <source
-        srcset={build_srcset(@image_name, nil, @original_format)}
-        sizes={@sizes}
-      />
+    <!-- Original format versions -->
+      <source srcset={build_srcset(@image_name, nil, @original_format)} sizes={@sizes} />
       
-      <!-- Fallback -->
-      <img 
+    <!-- Fallback -->
+      <img
         src={"/images/#{@image_name}.#{@original_format}"}
-        alt={@alt} 
+        alt={@alt}
         loading={@loading}
         width={@width}
         height={@height}
@@ -91,18 +84,20 @@ defmodule HydepwnsLiveviewWeb.Components.ResponsiveImage do
     </picture>
     """
   end
-  
+
   # Helper function to build srcset
   defp build_srcset(image_name, quality, format) do
     widths = [320, 640, 960, 1280, 1920]
-    
-    srcset = widths
+
+    srcset =
+      widths
       |> Enum.map(fn width ->
         quality_suffix = if quality, do: "-#{quality}", else: ""
+
         "/images/responsive/#{image_name}/#{image_name}-#{width}w#{quality_suffix}.#{format} #{width}w"
       end)
       |> Enum.join(", ")
-      
+
     srcset
   end
-end 
+end

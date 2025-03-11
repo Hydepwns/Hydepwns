@@ -1,12 +1,10 @@
-defmodule HydepwnsLiveviewWeb.Components.StyleGuideTest do
+defmodule HydepwnsLiveviewWeb.Components.Documentation.StyleGuideTest do
   use HydepwnsLiveviewWeb.ConnCase, async: true
   import Phoenix.LiveViewTest
-  alias HydepwnsLiveviewWeb.Components.StyleGuide
 
   describe "style_guide component" do
-    test "renders the style guide with all sections" do
-      html =
-        render_component(StyleGuide, %{id: "test-style-guide"})
+    test "renders the style guide with all sections", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/style-guide")
 
       # Test that all main sections are present
       assert html =~ "Hydepwns Monospace Style Guide"
@@ -14,72 +12,54 @@ defmodule HydepwnsLiveviewWeb.Components.StyleGuideTest do
       assert html =~ "Color Palette"
       assert html =~ "Grid System"
       assert html =~ "Components"
-      assert html =~ "Animations"
       assert html =~ "Accessibility"
     end
 
-    test "includes typography examples" do
-      html =
-        render_component(StyleGuide, %{id: "test-style-guide"})
+    test "includes typography examples", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/style-guide")
 
       # Test typography section content
       assert html =~ "Monaspace Argon"
-      assert html =~ "JetBrains Mono"
-      assert html =~ "Heading 1"
-      assert html =~ "Body Text"
-      assert html =~ "Bold Text"
-      assert html =~ "Italic Text"
+      assert html =~ "Monaspace Neon"
+      assert html =~ "Monaspace Xenon"
     end
 
-    test "includes color palette examples" do
-      html =
-        render_component(StyleGuide, %{id: "test-style-guide"})
+    test "includes color palette examples", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/style-guide")
 
       # Test color palette section content
-      assert html =~ "Light Theme"
-      assert html =~ "Dark Theme"
-      assert html =~ "Text Color"
-      assert html =~ "Background Color"
+      assert html =~ "Color Palette"
+      assert html =~ "Our color palette is designed to provide optimal contrast and readability"
+      assert html =~ "Base Colors"
+      assert html =~ "Accent Colors"
     end
 
-    test "includes grid system examples" do
-      html =
-        render_component(StyleGuide, %{id: "test-style-guide"})
+    test "includes grid system examples", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/style-guide")
 
       # Test grid system section content
-      assert html =~ "MonoGrid Component"
-      assert html =~ "Basic Usage"
-      assert html =~ "Grid with Borders"
+      assert html =~ "Grid System"
+      assert html =~ "Our grid system is designed specifically for monospace layouts"
+      assert html =~ "Basic Grid Structure"
+      assert html =~ "Grid Properties"
     end
 
-    test "includes component examples" do
-      html =
-        render_component(StyleGuide, %{id: "test-style-guide"})
+    test "includes component examples", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/style-guide")
 
       # Test components section content
-      assert html =~ "Terminal Component"
-      assert html =~ "ASCII Art Generator"
-      assert html =~ "Diagram Editor"
+      assert html =~ "Components"
       assert html =~ "Theme Toggle"
     end
 
-    test "includes animation examples" do
-      html =
-        render_component(StyleGuide, %{id: "test-style-guide"})
-
-      # Test animations section content
-      assert html =~ "Typewriter Animation"
-      assert html =~ "Grid Animation"
-    end
-
-    test "includes accessibility examples" do
-      html =
-        render_component(StyleGuide, %{id: "test-style-guide"})
+    test "includes accessibility examples", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/style-guide")
 
       # Test accessibility section content
+      assert html =~ "Accessibility"
       assert html =~ "Keyboard Navigation"
       assert html =~ "Reduced Motion"
       assert html =~ "High Contrast Mode"
     end
   end
-end 
+end

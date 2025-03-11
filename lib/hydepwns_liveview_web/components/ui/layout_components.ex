@@ -74,23 +74,32 @@ defmodule HydepwnsLiveviewWeb.Components.UI.LayoutComponents do
     assigns = assign_new(assigns, :metadata, fn -> [] end)
 
     ~H"""
-    <header class={["site-header", @class]}>
+    <div class={["header-wrapper", @class]}>
       <table class="header">
         <tr>
-          <td class="width-auto">
+          <td class="content-cell">
             {render_slot(@left)}
           </td>
-          <%= if @right != [] do %>
-            <td class="header-right">
-              {render_slot(@right)}
-            </td>
-          <% end %>
+          <td class="width-min metadata-cell">
+            <%= if @right != [] do %>
+              <table class="metadata-table">
+                {render_slot(@right)}
+              </table>
+            <% end %>
+          </td>
         </tr>
-        <%= if @metadata != [] do %>
-          {render_slot(@metadata)}
-        <% end %>
+        <tr>
+          <td class="author-cell">
+            <%= if @metadata != [] do %>
+              <div class="author-row">
+                {render_slot(@metadata)}
+              </div>
+            <% end %>
+          </td>
+          <td class="width-min"></td>
+        </tr>
       </table>
-    </header>
+    </div>
     """
   end
 

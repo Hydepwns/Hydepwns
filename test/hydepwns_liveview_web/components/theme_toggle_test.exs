@@ -1,7 +1,7 @@
-defmodule HydepwnsLiveviewWeb.Components.ThemeToggleTest do
+defmodule HydepwnsLiveviewWeb.Components.Common.ThemeToggleTest do
   use HydepwnsLiveviewWeb.ConnCase, async: true
   import Phoenix.LiveViewTest
-  alias HydepwnsLiveviewWeb.Components.ThemeToggle
+  alias HydepwnsLiveviewWeb.Components.Common.ThemeToggle
 
   describe "theme_toggle/1" do
     test "renders theme toggle buttons" do

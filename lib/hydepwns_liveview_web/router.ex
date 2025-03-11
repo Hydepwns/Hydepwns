@@ -6,7 +6,7 @@ defmodule HydepwnsLiveviewWeb.Router do
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_live_flash
-    plug :put_root_layout, html: {HydepwnsLiveviewWeb.Layouts, :root}
+    plug :put_root_layout, html: {HydepwnsLiveviewWeb.Components.Layout.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
   end
@@ -28,10 +28,10 @@ defmodule HydepwnsLiveviewWeb.Router do
     live "/api-docs", ApiDocsLive, :index
     live "/grid-playground", GridPlaygroundLive, :index
     live "/gallery", GalleryLive, :index
-    
+
     # Offline fallback page
     get "/offline", OfflineController, :index
-    
+
     # Service worker
     get "/service-worker.js", ServiceWorkerController, :index
   end

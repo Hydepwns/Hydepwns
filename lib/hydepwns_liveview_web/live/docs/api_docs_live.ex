@@ -1,13 +1,14 @@
-defmodule HydepwnsLiveviewWeb.ApiDocsLive do
+defmodule HydepwnsLiveviewWeb.Live.Docs.ApiDocsLive do
   use HydepwnsLiveviewWeb, :live_view
-  alias HydepwnsLiveviewWeb.Components.ApiDocs
+  alias HydepwnsLiveviewWeb.Components.Documentation.ApiDocs
   import ApiDocs
-  
+  alias HydepwnsLiveviewWeb.Helpers.PathHelper
+
   @impl true
   def mount(_params, _session, socket) do
     {:ok,
      socket
-     |> assign_api_docs_path()
+     |> PathHelper.assign_specific_path("/api-docs")
      |> assign(:page_title, "API Documentation")
      |> assign(:theme_class, "dark-theme")
      |> assign(:show_toc, true)
@@ -22,9 +23,8 @@ defmodule HydepwnsLiveviewWeb.ApiDocsLive do
   end
 
   @impl true
-  def handle_event("change_theme", %{"theme" => theme}, socket) do
-    theme_class = "#{theme}-theme"
-    {:noreply, assign(socket, :theme_class, theme_class)}
+  def handle_params(_params, _url, socket) do
+    {:noreply, PathHelper.assign_specific_path(socket, "/api-docs")}
   end
 
   @impl true
@@ -32,7 +32,7 @@ defmodule HydepwnsLiveviewWeb.ApiDocsLive do
     ~H"""
     <section>
       <h2>Component API Documentation</h2>
-      
+
       <div id="intro" class="docs-section">
         <h3>Introduction</h3>
         <p>
@@ -52,7 +52,12 @@ defmodule HydepwnsLiveviewWeb.ApiDocsLive do
           import_statement="alias HydepwnsLiveviewWeb.Components.MonoGrid"
           attributes={[
             %{name: "id", type: "string", default: nil, description: "Optional unique identifier"},
-            %{name: "cols", type: "integer", default: "80", description: "Number of columns in the grid"}
+            %{
+              name: "cols",
+              type: "integer",
+              default: "80",
+              description: "Number of columns in the grid"
+            }
           ]}
         />
       </.api_docs_section>
@@ -63,7 +68,12 @@ defmodule HydepwnsLiveviewWeb.ApiDocsLive do
           description="An interactive terminal component with command history and customization options."
           import_statement="alias HydepwnsLiveviewWeb.Components.Terminal"
           attributes={[
-            %{name: "id", type: "string", required: true, description: "Required unique identifier for this terminal instance"},
+            %{
+              name: "id",
+              type: "string",
+              required: true,
+              description: "Required unique identifier for this terminal instance"
+            },
             %{name: "prompt", type: "string", default: "$ ", description: "Terminal prompt string"}
           ]}
         />
@@ -75,8 +85,18 @@ defmodule HydepwnsLiveviewWeb.ApiDocsLive do
           description="A component for generating ASCII art with various templates and customization options."
           import_statement="alias HydepwnsLiveviewWeb.Components.AsciiArtGenerator"
           attributes={[
-            %{name: "id", type: "string", required: true, description: "Unique identifier for this component instance"},
-            %{name: "art_type", type: "string", default: "box", description: "Type of ASCII art to generate"}
+            %{
+              name: "id",
+              type: "string",
+              required: true,
+              description: "Unique identifier for this component instance"
+            },
+            %{
+              name: "art_type",
+              type: "string",
+              default: "box",
+              description: "Type of ASCII art to generate"
+            }
           ]}
         />
       </.api_docs_section>
@@ -96,16 +116,22 @@ defmodule HydepwnsLiveviewWeb.ApiDocsLive do
           description="Monospace tabbed interface component that maintains grid alignment."
           import_statement="alias HydepwnsLiveviewWeb.Components.UI.MonoTabs"
           attributes={[
-            %{name: "id", type: "string", required: true, description: "Unique identifier for the tabs component"},
-            %{name: "style", type: "atom", default: ":bordered", description: "Tab styling variant: :bordered, :underlined, :boxed"}
+            %{
+              name: "id",
+              type: "string",
+              required: true,
+              description: "Unique identifier for the tabs component"
+            },
+            %{
+              name: "style",
+              type: "atom",
+              default: ":bordered",
+              description: "Tab styling variant: :bordered, :underlined, :boxed"
+            }
           ]}
         />
       </.api_docs_section>
     </section>
     """
   end
-
-  defp assign_api_docs_path(socket) do
-    assign(socket, :current_path, "/api-docs")
-  end
-end 
+end

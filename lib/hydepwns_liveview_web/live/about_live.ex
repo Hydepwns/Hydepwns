@@ -1,5 +1,6 @@
 defmodule HydepwnsLiveviewWeb.AboutLive do
   use HydepwnsLiveviewWeb, :live_view
+  alias HydepwnsLiveviewWeb.Helpers.PathHelper
 
   @impl true
   def mount(_params, _session, socket) do
@@ -12,7 +13,7 @@ defmodule HydepwnsLiveviewWeb.AboutLive do
 
     {:ok,
      socket
-     |> assign_current_path()
+     |> PathHelper.assign_specific_path("/about")
      |> assign(:page_title, "About")
      |> assign(:theme_class, "dark-theme")
      |> assign(:show_toc, true)
@@ -22,12 +23,6 @@ defmodule HydepwnsLiveviewWeb.AboutLive do
        {"contribute", "Contribute"}
      ])
      |> assign(:code_example, code_example)}
-  end
-
-  @impl true
-  def handle_event("change_theme", %{"theme" => theme}, socket) do
-    theme_class = "#{theme}-theme"
-    {:noreply, assign(socket, :theme_class, theme_class)}
   end
 
   @impl true

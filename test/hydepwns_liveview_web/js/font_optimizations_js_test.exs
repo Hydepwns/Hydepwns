@@ -4,8 +4,8 @@ defmodule HydepwnsLiveviewWeb.FontOptimizationsJsTest do
   import HydepwnsLiveviewWeb.JsTestHelper
 
   describe "Font Optimizations JavaScript" do
-    test "font loading classes are applied", %{conn: conn} do
-      {:ok, view, html} = live(conn, "/")
+    test "Font Optimizations JavaScript font loading classes are applied", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/")
 
       # Check that the fonts-loading class is initially applied to the html element
       assert html =~ ~s(class="fonts-loading)
@@ -15,16 +15,16 @@ defmodule HydepwnsLiveviewWeb.FontOptimizationsJsTest do
       # JavaScript to work with
     end
 
-    test "font fallback is defined", %{conn: conn} do
-      {:ok, view, html} = live(conn, "/")
+    test "Font Optimizations JavaScript font fallback is defined", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/")
 
       # Check that the fallback font face is defined in the inline styles
       assert html =~ "font-family: 'Monaspace Argon Fallback'"
       assert html =~ "local('JetBrains Mono'), local('Courier New'), local('monospace')"
     end
 
-    test "font caching mechanism is set up", %{conn: conn} do
-      {:ok, view, html} = live(conn, "/")
+    test "Font Optimizations JavaScript font caching mechanism is set up", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/")
 
       # Check that the font caching script is included
       assert html =~ "FONTS_LOADED_KEY"
@@ -32,22 +32,26 @@ defmodule HydepwnsLiveviewWeb.FontOptimizationsJsTest do
       assert html =~ "fonts-cached"
     end
 
-    test "preload links are present", %{conn: conn} do
-      {:ok, view, html} = live(conn, "/")
+    test "Font Optimizations JavaScript preload links are present", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/")
 
       # Check that the preload links are present
       assert html =~ ~s(<link rel="preload" href="/assets/fonts/MonaspaceArgon-Regular.woff2")
       assert html =~ ~s(<link rel="preload" href="/assets/fonts/MonaspaceArgon-Bold.woff2")
     end
 
-    test "font-display: swap is used", %{conn: conn} do
+    test "font examples are displayed correctly", %{conn: conn} do
       {:ok, view, _html} = live(conn, "/style-guide")
 
-      # Navigate to the style guide to see the font examples
-      # We can't directly test the CSS, but we can check that the font examples are present
-      assert has_element?(view, ".font-sample")
+      # Check that the font examples are present
+      assert has_element?(view, ".font-examples")
       assert has_element?(view, ".font-example")
-      assert has_element?(view, ".fallback-font")
+      assert has_element?(view, ".font-sample")
+
+      # Check that all three Monaspace fonts are displayed
+      assert has_element?(view, ".font-example h4", "Monaspace Argon")
+      assert has_element?(view, ".font-example h4", "Monaspace Neon")
+      assert has_element?(view, ".font-example h4", "Monaspace Xenon")
     end
   end
-end 
+end

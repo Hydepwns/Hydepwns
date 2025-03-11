@@ -1,6 +1,7 @@
 defmodule HydepwnsLiveviewWeb.GalleryLive do
   use HydepwnsLiveviewWeb, :live_view
   import HydepwnsLiveviewWeb.ResponsiveImageHelper
+  alias HydepwnsLiveviewWeb.Helpers.PathHelper
 
   @impl true
   def mount(_params, _session, socket) do
@@ -24,7 +25,7 @@ defmodule HydepwnsLiveviewWeb.GalleryLive do
 
     {:ok,
      socket
-     |> assign_current_path()
+     |> PathHelper.assign_specific_path("/gallery")
      |> assign(:page_title, "Image Gallery")
      |> assign(:theme_class, "dark-theme")
      |> assign(:show_toc, true)
@@ -37,9 +38,17 @@ defmodule HydepwnsLiveviewWeb.GalleryLive do
   end
 
   @impl true
-  def handle_event("change_theme", %{"theme" => theme}, socket) do
-    theme_class = "#{theme}-theme"
-    {:noreply, assign(socket, :theme_class, theme_class)}
+  def handle_event("filter_gallery", %{"filter" => filter}, socket) do
+    filtered_items =
+      if filter == "all" do
+        socket.assigns.all_gallery_items
+      else
+        Enum.filter(socket.assigns.all_gallery_items, fn item ->
+          item.category == filter
+        end)
+      end
+
+    {:noreply, assign(socket, :gallery_items, filtered_items)}
   end
 
   @impl true
@@ -56,13 +65,14 @@ defmodule HydepwnsLiveviewWeb.GalleryLive do
         <%= for image <- @images do %>
           <div class="gallery-item">
             <div class="image-container">
-              <%= responsive_image_tag(image.path, 
-                    alt: image.title, 
-                    class: "gallery-image",
-                    sizes: "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw") %>
+              {responsive_image_tag(image.path,
+                alt: image.title,
+                class: "gallery-image",
+                sizes: "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              )}
             </div>
-            <h3><%= image.title %></h3>
-            <p><%= image.description %></p>
+            <h3>{image.title}</h3>
+            <p>{image.description}</p>
           </div>
         <% end %>
       </div>
@@ -74,15 +84,24 @@ defmodule HydepwnsLiveviewWeb.GalleryLive do
 
       <ul>
         <li><strong>Screen size:</strong> Multiple image sizes from 320px to 1920px wide</li>
-        <li><strong>Network conditions:</strong> Different quality levels for various connection speeds</li>
-        <li><strong>Browser support:</strong> WebP for modern browsers, PNG/JPEG fallbacks for older browsers</li>
+        <li>
+          <strong>Network conditions:</strong> Different quality levels for various connection speeds
+        </li>
+        <li>
+          <strong>Browser support:</strong>
+          WebP for modern browsers, PNG/JPEG fallbacks for older browsers
+        </li>
         <li><strong>Performance:</strong> Lazy loading for images that are off-screen initially</li>
       </ul>
 
       <div class="code-explanation">
         <h4>How responsive images work</h4>
         <p>
-          Using the HTML <code>picture</code> element with <code>source</code> elements that have <code>srcset</code> and <code>sizes</code> attributes,
+          Using the HTML <code>picture</code>
+          element with <code>source</code>
+          elements that have <code>srcset</code>
+          and <code>sizes</code>
+          attributes,
           we can provide multiple image options to the browser:
         </p>
         <pre><code>&lt;picture&gt;
@@ -122,4 +141,4 @@ defmodule HydepwnsLiveviewWeb.GalleryLive do
     </section>
     """
   end
-end 
+end

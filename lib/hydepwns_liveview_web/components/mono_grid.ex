@@ -1,53 +1,127 @@
 defmodule HydepwnsLiveviewWeb.Components.MonoGrid do
   @moduledoc """
-  A grid system component that maintains proper character alignment for monospace text.
-  
-  This component provides:
-  - Precise character grid alignment using ch units
-  - Responsive behavior that preserves monospace aesthetics
-  - Debug visualization mode for grid alignment debugging
-  - Helper functions for maintaining consistent spacing
-  
+  # MonoGrid
+
+  Provides a grid system designed specifically for monospace layouts.
+
+  ## Overview
+
+  The MonoGrid component creates a CSS grid-based layout system that aligns content
+  to a character grid, ensuring pixel-perfect alignment of monospace text. This is
+  essential for creating terminal-like interfaces and ASCII art displays.
+
+  The grid system uses character units (ch) for width and consistent line-height for
+  row height, ensuring that text aligns perfectly across cells and rows.
+
   ## Examples
 
-      <.mono_grid>
-        Content that will respect the monospace grid
-      </.mono_grid>
+  ```heex
+  <MonoGrid.grid id="example-grid" cols={80} rows={24}>
+    <MonoGrid.cell row={1} col={1} colspan={80}>
+      Header content
+    </MonoGrid.cell>
+    <MonoGrid.cell row={2} col={1} colspan={40}>
+      Left column
+    </MonoGrid.cell>
+    <MonoGrid.cell row={2} col={41} colspan={40}>
+      Right column
+    </MonoGrid.cell>
+  </MonoGrid.grid>
+  ```
 
-      <.mono_grid cols={80} debug={true}>
-        Grid with debugging overlay
-      </.mono_grid>
+  ## Props/Attributes
 
-      <.mono_grid_row>
-        A single row in the grid system
-      </.mono_grid_row>
+  | Name | Type | Default | Required | Description |
+  |------|------|---------|----------|-------------|
+  | `id` | `string` | `nil` | Yes | Unique identifier for the grid |
+  | `cols` | `integer` | `80` | No | Number of columns in the grid |
+  | `rows` | `integer` | `nil` | No | Number of rows in the grid (optional) |
+  | `bordered` | `boolean` | `false` | No | Whether to display a border around the grid |
+  | `debug` | `boolean` | `false` | No | Whether to show debug grid lines |
+  | `container` | `atom` | `:div` | No | HTML element to use as container (`:div` or `:pre`) |
+  | `class` | `string` | `nil` | No | Additional CSS classes to apply |
 
-      <.mono_grid_cell cols={3}>
-        A cell spanning 3 columns
-      </.mono_grid_cell>
+  ## Accessibility
+
+  The MonoGrid component is designed to maintain proper accessibility:
+  - Preserves semantic HTML structure
+  - Maintains proper focus order based on document flow
+  - Supports screen readers by preserving content hierarchy
+
+  ## Theming
+
+  The grid system adapts to the current theme automatically. The following CSS variables affect its appearance:
+  - `--mono-grid-cell-width`: Width of a single cell (default: 1ch)
+  - `--mono-grid-cell-height`: Height of a single cell (default: 1.5rem)
+  - `--mono-grid-border-color`: Border color when bordered option is enabled
+
+  ## Browser Compatibility
+
+  The component uses CSS Grid which is supported in all modern browsers. For older browsers,
+  a fallback layout is provided that maintains readability but may not preserve perfect alignment.
+
+  ## Related Components
+
+  - `HydepwnsLiveviewWeb.Components.Visualization.AsciiArtGenerator` - Uses MonoGrid for layout
+  - `HydepwnsLiveviewWeb.Components.Interactive.Terminal` - Uses MonoGrid for terminal display
+
+  ## Changelog
+
+  | Version | Changes |
+  |---------|---------|
+  | 0.2.0   | Added container option and improved debug mode |
+  | 0.1.0   | Initial implementation |
   """
   use Phoenix.Component
-  import Phoenix.HTML
   use PhoenixHTMLHelpers
 
   # Default grid properties
   @default_cols 80
-  @default_cell_width "1ch" # Character width unit
-  @default_cell_height "1.5rem" # Default line height
+  # Character width unit
+  @default_cell_width "1ch"
+  # Default line height
+  @default_cell_height "1.5rem"
 
   @doc """
   Renders a monospace grid container.
-  
+
+  ## Examples
+
+  ```heex
+  <MonoGrid.grid id="example-grid" cols={80}>
+    Content that will respect the monospace grid
+  </MonoGrid.grid>
+
+  <MonoGrid.grid id="debug-grid" cols={40} debug={true}>
+    Grid with debugging overlay
+  </MonoGrid.grid>
+
+  <MonoGrid.grid id="pre-grid" cols={60} container={:pre}>
+    Pre-formatted text that preserves whitespace
+  </MonoGrid.grid>
+  ```
+
   ## Attributes
-  
-  * `id` - Optional unique identifier for this grid instance
-  * `class` - Additional CSS classes to add to the grid container
-  * `cols` - Number of columns in the grid (default: #{@default_cols})
-  * `cell_width` - Width of each cell (default: #{@default_cell_width})
-  * `cell_height` - Height of each cell (default: #{@default_cell_height})
-  * `debug` - When true, shows grid lines for debugging (default: false)
-  * `container` - Container type: :div, :pre, :code (default: :div)
-  * `rest` - Additional attributes to add to the container element
+
+  | Name | Type | Default | Required | Description |
+  |------|------|---------|----------|-------------|
+  | `id` | `string` | `nil` | No | Unique identifier for the grid |
+  | `class` | `string` | `nil` | No | Additional CSS classes to add to the grid container |
+  | `cols` | `integer` | `#{@default_cols}` | No | Number of columns in the grid |
+  | `cell_width` | `string` | `"#{@default_cell_width}"` | No | Width of each cell |
+  | `cell_height` | `string` | `"#{@default_cell_height}"` | No | Height of each cell |
+  | `debug` | `boolean` | `false` | No | When true, shows grid lines for debugging |
+  | `container` | `atom` | `:div` | No | Container type: `:div`, `:pre`, or `:code` |
+
+  ## Slots
+
+  | Name | Description |
+  |------|-------------|
+  | `:default` | The default slot for grid content |
+
+  ## Returns
+
+  HEEx template rendering the grid container with the specified attributes.
   """
   attr :id, :string, default: nil
   attr :class, :string, default: nil
@@ -73,16 +147,16 @@ defmodule HydepwnsLiveviewWeb.Components.MonoGrid do
       style={grid_style(@cols, @cell_width, @cell_height)}
       {@rest}
     >
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </.custom_dynamic_tag>
     """
   end
 
   @doc """
   Renders a row within the monospace grid system.
-  
+
   ## Attributes
-  
+
   * `id` - Optional unique identifier for this row
   * `class` - Additional CSS classes to add to the row
   * `debug` - When true, shows grid lines for debugging (default: false)
@@ -106,16 +180,16 @@ defmodule HydepwnsLiveviewWeb.Components.MonoGrid do
       ]}
       {@rest}
     >
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </div>
     """
   end
 
   @doc """
   Renders a cell within the monospace grid system.
-  
+
   ## Attributes
-  
+
   * `id` - Optional unique identifier for this cell
   * `class` - Additional CSS classes to add to the cell
   * `cols` - Number of columns this cell spans (default: 1)
@@ -148,16 +222,16 @@ defmodule HydepwnsLiveviewWeb.Components.MonoGrid do
       style={cell_style(@cols, @rows)}
       {@rest}
     >
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </div>
     """
   end
 
   @doc """
   Renders a helper component that ensures text aligns properly on the grid.
-  
+
   ## Attributes
-  
+
   * `id` - Optional unique identifier 
   * `class` - Additional CSS classes
   * `style` - Additional inline styles
@@ -174,26 +248,22 @@ defmodule HydepwnsLiveviewWeb.Components.MonoGrid do
 
   def mono_text(assigns) do
     ~H"""
-    <span
-      id={@id}
-      class={["mono-text", @class]}
-      style={text_style(@style, @padding)}
-      {@rest}
-    >
-      <%= render_slot(@inner_block) %>
+    <span id={@id} class={["mono-text", @class]} style={text_style(@style, @padding)} {@rest}>
+      {render_slot(@inner_block)}
     </span>
     """
   end
 
   # Helper function for rendering dynamic HTML tags
-  defp custom_dynamic_tag(assigns) do
+  def custom_dynamic_tag(assigns) do
     tag = assigns[:name] || :div
-    attrs = assigns |> Map.drop([:name, :inner_block, :tag]) |> Map.to_list()
-    
+    attrs_map = assigns |> Map.drop([:name, :inner_block, :tag]) |> Map.to_list()
+
     assigns = assign(assigns, :tag, tag)
-    
+    assigns = assign(assigns, :attrs_map, attrs_map)
+
     ~H"""
-    <%= PhoenixHTMLHelpers.Tag.content_tag(@tag, render_slot(@inner_block), attrs) %>
+    {PhoenixHTMLHelpers.Tag.content_tag(@tag, render_slot(@inner_block), @attrs_map)}
     """
   end
 
@@ -218,13 +288,14 @@ defmodule HydepwnsLiveviewWeb.Components.MonoGrid do
   # Helper function to generate text styles with padding
   defp text_style(base_style, padding) do
     [top, right, bottom, left] = String.split(padding, " ", trim: true)
+
     padding_style = """
     padding-top: #{top}ch;
     padding-right: #{right}ch;
     padding-bottom: #{bottom}ch;
     padding-left: #{left}ch;
     """
-    
+
     if base_style, do: base_style <> padding_style, else: padding_style
   end
 
@@ -232,9 +303,9 @@ defmodule HydepwnsLiveviewWeb.Components.MonoGrid do
   @doc """
   Converts a string or content to its character width.
   Useful for determining exact monospace grid dimensions.
-  
+
   ## Examples
-  
+
       iex> MonoGrid.char_width("Hello")
       5
       
@@ -255,9 +326,9 @@ defmodule HydepwnsLiveviewWeb.Components.MonoGrid do
   @doc """
   Returns a debug representation of content with its grid dimensions.
   Useful for visualizing how content will appear in the grid.
-  
+
   ## Examples
-  
+
       iex> MonoGrid.debug_dimensions("Hello World")
       "Hello World [11×1]"
   """
@@ -265,7 +336,7 @@ defmodule HydepwnsLiveviewWeb.Components.MonoGrid do
     width = char_width(content)
     lines = String.split(content, "\n")
     height = length(lines)
-    
+
     "#{content} [#{width}×#{height}]"
   end
-end 
+end

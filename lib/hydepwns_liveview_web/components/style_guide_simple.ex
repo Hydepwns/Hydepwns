@@ -29,4 +29,4 @@ defmodule HydepwnsLiveviewWeb.Components.StyleGuideSimple do
   def update(assigns, socket) do
     {:ok, assign(socket, assigns)}
   end
-end 
+end

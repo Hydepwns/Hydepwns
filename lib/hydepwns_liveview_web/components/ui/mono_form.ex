@@ -1,7 +1,7 @@
 defmodule HydepwnsLiveviewWeb.Components.UI.MonoForm do
   @moduledoc """
   Monospace form components that maintain the grid alignment.
-  
+
   This module provides form elements styled in a monospace aesthetic,
   carefully aligned using character units (ch) to maintain the grid system
   across all form controls. This ensures consistent spacing and alignment
@@ -9,20 +9,20 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoForm do
   """
   use Phoenix.Component
   import Phoenix.HTML.Form
-  
+
   @doc """
   Renders a monospace form.
-  
+
   ## Examples
-  
+
       <.mono_form for={@form} phx-submit="save">
         <.mono_input field={@form[:name]} label="Name" />
         <.mono_input field={@form[:email]} type="email" label="Email" />
         <.mono_submit>Save</.mono_submit>
       </.mono_form>
-  
+
   ## Attributes
-  
+
   * `for` - The form struct from `Phoenix.HTML.Form`
   * `as` - The name to use for the form
   * `rest` - Additional attributes to add to the form element
@@ -30,29 +30,29 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoForm do
   attr :for, :any, required: true
   attr :as, :any, default: nil
   attr :rest, :global, include: ~w(autocomplete name method action enctype)
-  
+
   slot :inner_block, required: true
-  
+
   def mono_form(assigns) do
     ~H"""
     <.form for={@for} as={@as} {@rest} class="mono-form">
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </.form>
     """
   end
-  
+
   @doc """
   Renders a monospace form input.
-  
+
   ## Examples
-  
+
       <.mono_input field={@form[:name]} label="Name" />
       <.mono_input field={@form[:email]} type="email" label="Email" />
       <.mono_input field={@form[:password]} type="password" label="Password" />
       <.mono_input field={@form[:bio]} type="textarea" label="Bio" />
-  
+
   ## Attributes
-  
+
   * `field` - The form field struct from the form
   * `label` - The label text for the input
   * `type` - The type of input (default: "text")
@@ -72,9 +72,12 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoForm do
   attr :id, :any, default: nil
   attr :field, Phoenix.HTML.FormField, doc: "a form field struct retrieved from the form"
   attr :label, :string, default: nil
-  attr :type, :string, default: "text", 
+
+  attr :type, :string,
+    default: "text",
     values: ~w(checkbox color date datetime-local email file hidden month number
                password range radio search select tel text textarea time url week)
+
   attr :required, :boolean, default: false
   attr :pattern, :string, default: nil
   attr :autocomplete, :string, default: nil
@@ -91,12 +94,12 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoForm do
   attr :error_class, :string, default: "mono-input--error"
   attr :class, :string, default: nil
   attr :rest, :global
-  
+
   def mono_input(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
     # If the field was previously submitted and there are errors, mark it as error
     assigns = assign_new(assigns, :errors, fn -> field.errors end)
     has_error = length(assigns.errors) > 0
-    
+
     # Generate input id if not provided
     assigns =
       if is_nil(assigns.id) do
@@ -104,37 +107,40 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoForm do
       else
         assigns
       end
-    
+
     # Add error class if there are errors
     input_class = if has_error, do: assigns.error_class, else: ""
     assigns = assign(assigns, :input_class, input_class)
-    
+
     ~H"""
     <div class={["mono-input-container", @class]}>
       <%= if @label do %>
         <div class="mono-label-container">
           <label for={@id} class="mono-label">
-            <%= @label %><%= if @required do %> <span class="mono-required">*</span><% end %>
+            {@label}
+            <%= if @required do %>
+              <span class="mono-required">*</span>
+            <% end %>
           </label>
         </div>
       <% end %>
       <div class="mono-field-container">
-        <%= render_input(assigns) %>
+        {render_input(assigns)}
       </div>
       <%= if @helper_text do %>
         <div class="mono-helper-text">
-          <%= @helper_text %>
+          {@helper_text}
         </div>
       <% end %>
       <%= for error <- @errors do %>
         <div class="mono-error-text">
-          <%= humanize(error) %>
+          {humanize(error)}
         </div>
       <% end %>
     </div>
     """
   end
-  
+
   # Helper function to render a text input
   defp render_input(%{type: "textarea"} = assigns) do
     ~H"""
@@ -150,10 +156,10 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoForm do
       aria-invalid={@errors != [] && "true"}
       aria-describedby={@errors != [] && "#{@id}_feedback"}
       {@rest}
-    ><%= Phoenix.HTML.Form.normalize_value("textarea", @field.value) %></textarea>
+    ><%= normalize_value("textarea", @field.value) %></textarea>
     """
   end
-  
+
   defp render_input(%{type: "select"} = assigns) do
     ~H"""
     <select
@@ -166,12 +172,12 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoForm do
       {@rest}
     >
       <%= for {option_key, option_value} <- @options do %>
-        <option value={option_key} selected={@field.value == option_key}><%= option_value %></option>
+        <option value={option_key} selected={@field.value == option_key}>{option_value}</option>
       <% end %>
     </select>
     """
   end
-  
+
   defp render_input(%{type: "checkbox"} = assigns) do
     ~H"""
     <label class="mono-checkbox-container">
@@ -180,7 +186,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoForm do
         id={@id}
         name={@field.name}
         class={["mono-checkbox", @input_class]}
-        checked={Phoenix.HTML.Form.normalize_value("checkbox", @field.value)}
+        checked={normalize_value("checkbox", @field.value)}
         required={@required}
         aria-invalid={@errors != [] && "true"}
         aria-describedby={@errors != [] && "#{@id}_feedback"}
@@ -190,7 +196,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoForm do
     </label>
     """
   end
-  
+
   defp render_input(%{type: "radio"} = assigns) do
     ~H"""
     <label class="mono-radio-container">
@@ -199,7 +205,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoForm do
         id={@id}
         name={@field.name}
         class={["mono-radio", @input_class]}
-        checked={Phoenix.HTML.Form.normalize_value("radio", @field.value)}
+        checked={normalize_value("radio", @field.value)}
         required={@required}
         aria-invalid={@errors != [] && "true"}
         aria-describedby={@errors != [] && "#{@id}_feedback"}
@@ -209,14 +215,14 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoForm do
     </label>
     """
   end
-  
+
   defp render_input(assigns) do
     ~H"""
     <input
       type={@type}
       id={@id}
       name={@field.name}
-      value={Phoenix.HTML.Form.normalize_value(@type, @field.value)}
+      value={normalize_value(@type, @field.value)}
       class={["mono-input", @input_class]}
       placeholder={@placeholder}
       autocomplete={@autocomplete}
@@ -233,19 +239,19 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoForm do
     />
     """
   end
-  
+
   @doc """
   Renders a submit button for a monospace form.
-  
+
   ## Examples
-  
+
       <.mono_submit>Submit</.mono_submit>
       <.mono_submit disabled={@submitting}>
         <%= if @submitting, do: "Submitting...", else: "Submit" %>
       </.mono_submit>
-  
+
   ## Attributes
-  
+
   * `class` - Additional CSS classes
   * `disabled` - Whether the button is disabled
   * `rest` - Additional attributes
@@ -254,36 +260,31 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoForm do
   attr :disabled, :boolean, default: false
   attr :type, :string, default: "submit"
   attr :rest, :global
-  
+
   slot :inner_block, required: true
-  
+
   def mono_submit(assigns) do
     ~H"""
     <div class="mono-submit-container">
-      <button
-        type={@type}
-        class={["mono-submit", @class]}
-        disabled={@disabled}
-        {@rest}
-      >
-        <%= render_slot(@inner_block) %>
+      <button type={@type} class={["mono-submit", @class]} disabled={@disabled} {@rest}>
+        {render_slot(@inner_block)}
       </button>
     </div>
     """
   end
-  
+
   @doc """
   Renders a button for a monospace form.
-  
+
   ## Examples
-  
+
       <.mono_button>Click Me</.mono_button>
       <.mono_button phx-click="perform_action" disabled={@loading}>
         <%= if @loading, do: "Processing...", else: "Perform Action" %>
       </.mono_button>
-  
+
   ## Attributes
-  
+
   * `class` - Additional CSS classes
   * `disabled` - Whether the button is disabled
   * `type` - Button type, defaults to "button"
@@ -293,25 +294,20 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoForm do
   attr :disabled, :boolean, default: false
   attr :type, :string, default: "button"
   attr :rest, :global
-  
+
   slot :inner_block, required: true
-  
+
   def mono_button(assigns) do
     ~H"""
-    <button
-      type={@type}
-      class={["mono-button", @class]}
-      disabled={@disabled}
-      {@rest}
-    >
-      <%= render_slot(@inner_block) %>
+    <button type={@type} class={["mono-button", @class]} disabled={@disabled} {@rest}>
+      {render_slot(@inner_block)}
     </button>
     """
   end
-  
+
   @doc """
   Utility function to humanize an error message or atom.
   """
   def humanize(value) when is_atom(value), do: Phoenix.Naming.humanize(value)
   def humanize(value) when is_binary(value), do: value
-end 
+end

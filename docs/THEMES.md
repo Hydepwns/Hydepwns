@@ -51,15 +51,16 @@ html[data-theme="dim-theme"], .dim-theme {
 The theme toggle component is implemented as a LiveView component:
 
 ```elixir
-defmodule HydepwnsLiveviewWeb.Components.UI.ThemeToggle do
+defmodule HydepwnsLiveviewWeb.Components.Common.ThemeToggle do
   use Phoenix.Component
+  alias Phoenix.LiveView.JS
   
   def theme_toggle(assigns) do
     ~H"""
     <div class="theme-toggle" phx-hook="ThemeToggle">
-      <button id="light-theme" data-theme="light" title="Light theme">□</button>
-      <button id="dark-theme" data-theme="dark" title="Dark theme">■</button>
-      <button id="dim-theme" data-theme="dim" title="Dim theme">▣</button>
+      <button id="light-theme" data-theme="light" phx-click={JS.push("change_theme", value: %{theme: "light"})}>□</button>
+      <button id="dark-theme" data-theme="dark" phx-click={JS.push("change_theme", value: %{theme: "dark"})}>■</button>
+      <button id="dim-theme" data-theme="dim" phx-click={JS.push("change_theme", value: %{theme: "dim"})}>▣</button>
     </div>
     """
   end
@@ -115,6 +116,13 @@ const ThemeToggle = {
     window.addEventListener('theme-set', e => {
       this.setTheme(e.detail.theme);
     });
+    
+    // Listen for theme change events from LiveView
+    this.handleEvent('change_theme', ({ theme }) => {
+      // Always ensure theme has the -theme suffix
+      const themeWithSuffix = theme.endsWith('-theme') ? theme : `${theme}-theme`;
+      this.setTheme(themeWithSuffix);
+    });
   },
   
   // Set theme and store in localStorage
@@ -153,32 +161,31 @@ const ThemeToggle = {
 };
 ```
 
-### 4. Integration with Phoenix
+### 4. LiveView Integration
 
-To use the theme system in your Phoenix application:
+The theme system integrates with LiveView through a centralized event handler defined in the base live_view module. This avoids duplicate event handlers in individual LiveView modules.
 
-1. Register the theme hook in `assets/js/app.js`:
+```elixir
+# In lib/hydepwns_liveview_web.ex
+def live_view do
+  quote do
+    use Phoenix.LiveView,
+      layout: {HydepwnsLiveviewWeb.Components.Layout.Layouts, :app}
 
-    ```javascript
-    import ThemeToggle from "./hooks/theme_toggle"
+    import HydepwnsLiveviewWeb.Gettext
 
-    let Hooks = {}
-    Hooks.ThemeToggle = ThemeToggle
+    # Base event handlers for all LiveViews
+    def handle_event("change_theme", %{"theme" => theme}, socket) do
+      theme_class = "#{theme}-theme"
+      {:noreply, assign(socket, :theme_class, theme_class)}
+    end
 
-    let liveSocket = new LiveSocket("/live", Socket, {
-    params: {_csrf_token: csrfToken},
-    hooks: Hooks
-    })
-    ```
+    unquote(verified_routes())
+  end
+end
+```
 
-2. Add the theme toggle component to your layout:
-
-    ```elixir
-    # In your layout template
-    <HydepwnsLiveviewWeb.Components.UI.ThemeToggle.theme_toggle />
-    ```
-
-3. Import the theme CSS in your main CSS file.
+This approach ensures that all LiveView modules inherit the same theme-changing functionality without duplication. The `handle_event("change_theme", ...)` function is defined in the base module and automatically included in every LiveView.
 
 ## User Experience Considerations
 
@@ -214,6 +221,20 @@ If themes aren't rendering correctly:
    - CSS files should be referenced from `/assets/app.css` and not from subdirectories
    - All theme styles should be compiled into the main CSS file
 
+## Fixing Duplicate Event Handlers
+
+If you encounter warnings about duplicate `handle_event("change_theme", ...)` functions, follow these steps:
+
+1. **Identify the Duplicate Handlers**: Look for LiveView modules that define their own `handle_event("change_theme", ...)` function.
+
+2. **Remove Custom Implementations**: Remove any custom implementations of the theme change handler from individual LiveView modules.
+
+3. **Rely on the Base Implementation**: Use the implementation provided by the base `live_view/0` function in your web.ex module.
+
+4. **For Custom Behavior**: If a specific LiveView needs custom theme behavior, use a different event name or handle it with a different approach such as:
+   - Using a LiveComponent for theme handling
+   - Implementing a theme manager module with process registry
+
 ## Extending the Theme System
 
 ### Adding New Themes
@@ -241,3 +262,123 @@ To add new theme-specific properties:
 1. Define base variables in `:root`
 2. Add theme-specific values in each theme selector
 3. Use the variables in your components with `var(--property-name)`
+
+## Synthwave Color Palette
+
+Version 1.3.1 introduces a vibrant synthwave-inspired color palette for enhanced visual aesthetics. These colors are particularly effective in the Dim theme but can be used across all themes for accent colors.
+
+### Core Synthwave Colors
+
+| Color Name      | Hex Code | RGB Value        | Use Case                        |
+|-----------------|----------|------------------|----------------------------------|
+| Primary Purple  | #9D53F2  | rgb(157, 83, 242)| Main accent color, focus states  |
+| Neon Pink       | #FF2E97  | rgb(255, 46, 151)| Highlights, important elements   |
+| Electric Cyan   | #19DCFF  | rgb(25, 220, 255)| Information, process flows       |
+| Neon Yellow     | #FFD319  | rgb(255, 211, 25)| Warnings, charts, callouts       |
+| Synthwave Teal  | #36F9F6  | rgb(54, 249, 246)| Secondary elements, multi-select |
+
+### Implementation in CSS Variables
+
+The synthwave palette is implemented using CSS variables for consistent application across components:
+
+```css
+:root {
+  /* Synthwave Palette */
+  --color-primary-purple: #9D53F2;
+  --color-neon-pink: #FF2E97;
+  --color-electric-cyan: #19DCFF;
+  --color-neon-yellow: #FFD319;
+  --color-synthwave-teal: #36F9F6;
+  
+  /* Synthwave Shadows */
+  --glow-primary-purple: 0 0 5px #9D53F2, 0 0 10px #9D53F2;
+  --glow-neon-pink: 0 0 5px #FF2E97, 0 0 10px #FF2E97;
+  --glow-electric-cyan: 0 0 5px #19DCFF, 0 0 10px #19DCFF;
+  --glow-neon-yellow: 0 0 5px #FFD319, 0 0 10px #FFD319;
+  --glow-synthwave-teal: 0 0 5px #36F9F6, 0 0 10px #36F9F6;
+}
+```
+
+### Usage in Components
+
+These colors are used consistently throughout the component system:
+
+1. **Grid Selections**
+   - Single cell: Primary Purple
+   - Row selection: Neon Pink
+   - Column selection: Electric Cyan
+   - Range selection: Neon Yellow
+   - Multi-cell selection: Synthwave Teal
+
+2. **ASCII Art Components**
+   - Flow diagrams: Electric Cyan
+   - Sequence diagrams: Synthwave Teal
+   - Charts: Neon Yellow
+   - Headers: Neon Pink (with glow effect) or gradient of all colors
+
+3. **UI Elements**
+   - Primary buttons: Primary Purple
+   - Warning elements: Neon Yellow
+   - Information elements: Electric Cyan
+   - Highlight elements: Neon Pink
+
+### Accessibility Considerations
+
+When using the synthwave colors, ensure sufficient contrast with background colors for text readability. The following combinations have been tested for WCAG AA compliance:
+
+- Primary Purple on black: 7.5:1 (passes AAA)
+- Neon Pink on black: 5.9:1 (passes AA)
+- Electric Cyan on black: 8.3:1 (passes AAA)
+- Neon Yellow on black: 16.2:1 (passes AAA)
+- Synthwave Teal on black: 13.8:1 (passes AAA)
+
+For white backgrounds, add dark borders or increase font weight to ensure readability.
+
+### Effects and Animations
+
+The synthwave palette pairs well with CSS effects for an enhanced retro-futuristic aesthetic:
+
+1. **Text Shadow for Neon Effect**
+
+   ```css
+   .neon-text {
+     color: var(--color-neon-pink);
+     text-shadow: var(--glow-neon-pink);
+   }
+   ```
+
+2. **Gradient Text**
+
+   ```css
+   .synthwave-gradient {
+     background: linear-gradient(
+       to right,
+       var(--color-primary-purple),
+       var(--color-neon-pink),
+       var(--color-electric-cyan),
+       var(--color-neon-yellow)
+     );
+     -webkit-background-clip: text;
+     -webkit-text-fill-color: transparent;
+     font-weight: bold;
+   }
+   ```
+
+3. **Pulsing Animation**
+
+   ```css
+   @keyframes neon-pulse {
+     0%, 100% {
+       text-shadow: var(--glow-neon-pink);
+     }
+     50% {
+       text-shadow: 0 0 10px #FF2E97, 0 0 20px #FF2E97, 0 0 30px #FF2E97;
+     }
+   }
+   
+   .pulsing-neon {
+     animation: neon-pulse 2s infinite;
+   }
+   ```
+
+See the [ASCII Art Components](ASCII_ART_COMPONENTS.md) documentation for more examples of the synthwave palette in action.

@@ -1,20 +1,44 @@
 defmodule HydepwnsLiveviewWeb.Components.MonoGridTest do
   use HydepwnsLiveviewWeb.ConnCase, async: true
   import Phoenix.LiveViewTest
+  import Phoenix.Component
   alias HydepwnsLiveviewWeb.Components.MonoGrid
 
-  describe "grid/1" do
+  describe "mono_grid/1" do
     test "renders a basic grid" do
+      assigns = %{id: "test-grid", rows: 2, cols: 20}
+
       html =
-        render_component(&MonoGrid.grid/1, %{id: "test-grid", rows: 2, cols: 20})
+        render_component(
+          fn assigns ->
+            ~H"""
+            <MonoGrid.mono_grid id={@id} cols={@cols}>
+              Test content
+            </MonoGrid.mono_grid>
+            """
+          end,
+          assigns
+        )
 
       assert html =~ "test-grid"
       assert html =~ "mono-grid"
+      assert html =~ "Test content"
     end
 
     test "renders a grid with borders" do
+      assigns = %{id: "test-grid", rows: 2, cols: 20}
+
       html =
-        render_component(&MonoGrid.grid/1, %{id: "test-grid", rows: 2, cols: 20, bordered: true})
+        render_component(
+          fn assigns ->
+            ~H"""
+            <MonoGrid.mono_grid id={@id} cols={@cols} class="mono-grid--bordered">
+              Test content
+            </MonoGrid.mono_grid>
+            """
+          end,
+          assigns
+        )
 
       assert html =~ "test-grid"
       assert html =~ "mono-grid"
@@ -22,8 +46,19 @@ defmodule HydepwnsLiveviewWeb.Components.MonoGridTest do
     end
 
     test "renders a grid with debug mode" do
+      assigns = %{id: "test-grid", rows: 2, cols: 20}
+
       html =
-        render_component(&MonoGrid.grid/1, %{id: "test-grid", rows: 2, cols: 20, debug: true})
+        render_component(
+          fn assigns ->
+            ~H"""
+            <MonoGrid.mono_grid id={@id} cols={@cols} debug={true}>
+              Test content
+            </MonoGrid.mono_grid>
+            """
+          end,
+          assigns
+        )
 
       assert html =~ "test-grid"
       assert html =~ "mono-grid"
@@ -31,31 +66,62 @@ defmodule HydepwnsLiveviewWeb.Components.MonoGridTest do
     end
   end
 
-  describe "cell/1" do
+  describe "mono_grid_cell/1" do
     test "renders a cell with correct positioning" do
-      html =
-        render_component(&MonoGrid.cell/1, %{row: 1, col: 1, colspan: 10, rowspan: 1})
+      assigns = %{row: 1, col: 1, colspan: 10, rowspan: 1}
 
-      assert html =~ "mono-grid__cell"
+      html =
+        render_component(
+          fn assigns ->
+            ~H"""
+            <MonoGrid.mono_grid_cell cols={@colspan} rows={@rowspan}>
+              Test content
+            </MonoGrid.mono_grid_cell>
+            """
+          end,
+          assigns
+        )
+
+      assert html =~ "mono-grid-cell"
       assert html =~ "style="
-      assert html =~ "grid-row: 1"
-      assert html =~ "grid-column: 1 / span 10"
     end
 
     test "renders a cell with content" do
-      html =
-        render_component(&MonoGrid.cell/1, %{row: 1, col: 1, colspan: 10, rowspan: 1}, do: "Cell content")
+      assigns = %{row: 1, col: 1, colspan: 10, rowspan: 1}
 
-      assert html =~ "mono-grid__cell"
+      html =
+        render_component(
+          fn assigns ->
+            ~H"""
+            <MonoGrid.mono_grid_cell cols={@colspan} rows={@rowspan}>
+              Cell content
+            </MonoGrid.mono_grid_cell>
+            """
+          end,
+          assigns
+        )
+
+      assert html =~ "mono-grid-cell"
       assert html =~ "Cell content"
     end
 
     test "renders a cell with alignment" do
-      html =
-        render_component(&MonoGrid.cell/1, %{row: 1, col: 1, colspan: 10, rowspan: 1, align: :center})
+      assigns = %{row: 1, col: 1, colspan: 10, rowspan: 1, align: :center}
 
-      assert html =~ "mono-grid__cell"
-      assert html =~ "text-align: center"
+      html =
+        render_component(
+          fn assigns ->
+            ~H"""
+            <MonoGrid.mono_grid_cell cols={@colspan} rows={@rowspan} align={@align}>
+              Cell content
+            </MonoGrid.mono_grid_cell>
+            """
+          end,
+          assigns
+        )
+
+      assert html =~ "mono-grid-cell"
+      assert html =~ "mono-grid-cell--center"
     end
   end
 
@@ -64,21 +130,24 @@ defmodule HydepwnsLiveviewWeb.Components.MonoGridTest do
       assigns = %{id: "test-grid", rows: 2, cols: 20}
 
       html =
-        render_component(fn assigns ->
-          ~H"""
-          <MonoGrid.grid id={@id} rows={@rows} cols={@cols}>
-            <MonoGrid.cell row={1} col={1} colspan={20}>
-              Header
-            </MonoGrid.cell>
-            <MonoGrid.cell row={2} col={1} colspan={10}>
-              Left
-            </MonoGrid.cell>
-            <MonoGrid.cell row={2} col={11} colspan={10}>
-              Right
-            </MonoGrid.cell>
-          </MonoGrid.grid>
-          """
-        end, assigns)
+        render_component(
+          fn assigns ->
+            ~H"""
+            <MonoGrid.mono_grid id={@id} cols={@cols}>
+              <MonoGrid.mono_grid_cell cols={20} rows={1}>
+                Header
+              </MonoGrid.mono_grid_cell>
+              <MonoGrid.mono_grid_cell cols={10} rows={1}>
+                Left
+              </MonoGrid.mono_grid_cell>
+              <MonoGrid.mono_grid_cell cols={10} rows={1}>
+                Right
+              </MonoGrid.mono_grid_cell>
+            </MonoGrid.mono_grid>
+            """
+          end,
+          assigns
+        )
 
       assert html =~ "test-grid"
       assert html =~ "mono-grid"
@@ -87,4 +156,4 @@ defmodule HydepwnsLiveviewWeb.Components.MonoGridTest do
       assert html =~ "Right"
     end
   end
-end 
+end

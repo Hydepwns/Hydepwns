@@ -35,13 +35,13 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ModalComponents do
     <.modal_container id={@id} class={@class}>
       <div class="modal-content">
         <div class="modal-header">
-          <%= render_slot(@header) %>
+          {render_slot(@header)}
         </div>
         <div class="modal-body">
-          <%= render_slot(@inner_block) %>
+          {render_slot(@inner_block)}
         </div>
         <div class="modal-footer">
-          <%= render_slot(@footer) %>
+          {render_slot(@footer)}
         </div>
       </div>
     </.modal_container>
@@ -72,7 +72,9 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ModalComponents do
       :if={msg = render_slot(@inner_block) || Phoenix.Flash.get(@flash, @kind)}
       id={@id || "flash-#{@kind}"}
       phx-mounted={@autoshow && show("##{@id || "flash-#{@kind}"}")}
-      phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id || "flash-#{@kind}"}")}
+      phx-click={
+        JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id || "flash-#{@kind}"}")
+      }
       role="alert"
       class={[
         "fixed top-2 right-2 w-80 sm:w-96 z-50 rounded-lg p-3 ring-1",
@@ -84,9 +86,9 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ModalComponents do
       <p :if={@title} class="flex items-center gap-1.5 text-sm font-semibold leading-6">
         <.icon :if={@kind == :info} name="hero-information-circle-mini" class="h-4 w-4" />
         <.icon :if={@kind == :error} name="hero-exclamation-circle-mini" class="h-4 w-4" />
-        <%= @title %>
+        {@title}
       </p>
-      <p class="mt-2 text-sm leading-5"><%= msg %></p>
+      <p class="mt-2 text-sm leading-5">{msg}</p>
       <button
         :if={@close}
         type="button"
@@ -122,7 +124,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ModalComponents do
         phx-connected={hide("#client-error")}
         hidden
       >
-        <%= gettext("Attempting to reconnect") %>
+        {gettext("Attempting to reconnect")}
         <.icon name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
       </.flash>
 
@@ -134,7 +136,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ModalComponents do
         phx-connected={hide("#server-error")}
         hidden
       >
-        <%= gettext("Hang in there while we get back on track") %>
+        {gettext("Hang in there while we get back on track")}
         <.icon name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
       </.flash>
     </div>
@@ -195,13 +197,17 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ModalComponents do
   """
   attr :for, :any, required: true, doc: "the datastructure for the form"
   attr :as, :any, default: nil, doc: "the server side parameter to collect all input under"
-  attr :rest, :global, include: ~w(autocomplete name rel action enctype method novalidate target multipart)
+
+  attr :rest, :global,
+    include: ~w(autocomplete name rel action enctype method novalidate target multipart)
+
   slot :inner_block, required: true
+
   def focus_wrap(assigns) do
     ~H"""
     <div id={@id} phx-hook="Phoenix.FocusWrap" class={@class}>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </div>
     """
   end
-end 
+end

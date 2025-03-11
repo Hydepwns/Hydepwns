@@ -12,7 +12,7 @@ defmodule HydepwnsLiveviewWeb.Layouts do
 
   # Import core components first - limit to what we need
   import HydepwnsLiveviewWeb.CoreComponents, except: [header_table: 1, nav: 1, theme_toggle: 1]
-  
+
   # Import UI components that are used
   import HydepwnsLiveviewWeb.Components.UI.LayoutComponents
   import HydepwnsLiveviewWeb.Components.UI.DebugGrid

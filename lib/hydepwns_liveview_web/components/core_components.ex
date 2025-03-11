@@ -43,7 +43,11 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
   attr :as, :any, default: nil, doc: "the server side parameter to collect all input under"
   attr :row_id, :any, default: nil, doc: "the function for generating the row id"
   attr :row_click, :any, default: nil, doc: "the function for handling phx-click on each row"
-  attr :row_item, :any, default: &Function.identity/1, doc: "the function for mapping each row before calling the :col and :action slots"
+
+  attr :row_item, :any,
+    default: &Function.identity/1,
+    doc: "the function for mapping each row before calling the :col and :action slots"
+
   slot :action, doc: "the slot for showing user actions in the last table column"
   attr :checked, :boolean, doc: "the checked flag for checkbox inputs"
   attr :prompt, :string, default: nil, doc: "the prompt for select inputs"
@@ -54,12 +58,15 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
   attr :name, :any
   attr :label, :string, default: nil
   attr :value, :any
+
   attr :type_input, :string,
     default: "text",
     values: ~w(checkbox color date datetime-local email file month number password
                range search select tel text textarea time url week)
+
   attr :field, Phoenix.HTML.FormField,
     doc: "a form field struct retrieved from the form, for example: @form[:email]"
+
   attr :disabled_button, :boolean, default: false
   slot :inner_block_button, required: true
   slot :inner_block_simple_form, required: true
@@ -492,9 +499,27 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
   def theme_toggle(assigns) do
     ~H"""
     <div id="theme-toggle" class="theme-toggle" phx-hook="ThemeToggle">
-      <button id="light-theme" data-theme="light" phx-click={JS.dispatch("theme-set", detail: %{theme: "light-theme"})}>⬜️</button>
-      <button id="dim-theme" data-theme="dim" phx-click={JS.dispatch("theme-set", detail: %{theme: "dim-theme"})}>🟪</button>
-      <button id="dark-theme" data-theme="dark" phx-click={JS.dispatch("theme-set", detail: %{theme: "dark-theme"})}>⬛️</button>
+      <button
+        id="light-theme"
+        data-theme="light"
+        phx-click={JS.dispatch("theme-set", detail: %{theme: "light-theme"})}
+      >
+        ⬜️
+      </button>
+      <button
+        id="dim-theme"
+        data-theme="dim"
+        phx-click={JS.dispatch("theme-set", detail: %{theme: "dim-theme"})}
+      >
+        🟪
+      </button>
+      <button
+        id="dark-theme"
+        data-theme="dark"
+        phx-click={JS.dispatch("theme-set", detail: %{theme: "dark-theme"})}
+      >
+        ⬛️
+      </button>
     </div>
     """
   end
@@ -511,27 +536,27 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
   def header_table(assigns) do
     ~H"""
     <header class="site-header">
-      <h1><%= @title %></h1>
+      <h1>{@title}</h1>
       <table class="metadata">
         <tr>
           <td>Version:</td>
-          <td><%= @version %></td>
+          <td>{@version}</td>
         </tr>
         <tr>
           <td>Updated:</td>
-          <td><%= @updated %></td>
+          <td>{@updated}</td>
         </tr>
         <tr>
           <td>Author:</td>
-          <td><%= @author %></td>
+          <td>{@author}</td>
         </tr>
         <tr>
           <td>License:</td>
-          <td><%= @license %></td>
+          <td>{@license}</td>
         </tr>
         <tr>
           <td>Line height:</td>
-          <td><%= @line_height %></td>
+          <td>{@line_height}</td>
         </tr>
       </table>
     </header>

@@ -88,7 +88,7 @@ defmodule HydepwnsLiveviewWeb do
       # HTML escaping functionality
       import Phoenix.HTML
       # Core UI components
-      import HydepwnsLiveviewWeb.CoreComponents, except: [header_table: 1, nav: 1]
+      import HydepwnsLiveviewWeb.CoreComponents, except: [header_table: 1, nav: 1, theme_toggle: 1]
       # Import UI components
       import HydepwnsLiveviewWeb.Components.UI.LayoutComponents
       import HydepwnsLiveviewWeb.Components.UI.DebugGrid
@@ -98,18 +98,24 @@ defmodule HydepwnsLiveviewWeb do
       import HydepwnsLiveviewWeb.Components.ThemePreview
       # Import Nav component
       import HydepwnsLiveviewWeb.Components.UI.Nav
+      
+      # Import custom components
+      import HydepwnsLiveviewWeb.Components.MonoGrid
+      alias HydepwnsLiveviewWeb.Components.Terminal
+      alias HydepwnsLiveviewWeb.Components.AsciiArtGenerator
+      alias HydepwnsLiveviewWeb.Components.DiagramEditor
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS
 
       # Routes generation with the ~p sigil
       unquote(verified_routes())
-      
+
       # Helper for setting current path
       def assign_current_path(socket) do
         assign(socket, current_path: socket.assigns.live_action |> path_for_action())
       end
-      
+
       defp path_for_action(:index), do: ~p"/"
       defp path_for_action(:style_guide), do: ~p"/style-guide"
       defp path_for_action(:projects), do: ~p"/projects"

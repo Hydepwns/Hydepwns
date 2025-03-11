@@ -6,10 +6,22 @@
  * - Maintaining grid alignment
  */
 
+/* Animation Speed Control Variables */
+:root {
+  --animation-speed-normal: 1;
+  --animation-speed-slow: 1.5;
+  --animation-speed-fast: 0.6;
+}
+
 /* Typewriter effect - reveals text one character at a time */
 @keyframes typewriter {
   from { width: 0; }
   to { width: 100%; }
+}
+
+@keyframes typewriter-cursor-blink {
+  from, to { border-color: transparent; }
+  50% { border-color: var(--text-color); }
 }
 
 .typewriter {
@@ -17,8 +29,20 @@
   overflow: hidden;
   white-space: nowrap;
   margin: 0;
-  animation: typewriter 2s steps(var(--char-count, 20)) 0.5s 1 normal both;
+  width: 0;
+  animation: 
+    typewriter 3.5s steps(var(--char-count, 20)) 0.5s 1 forwards,
+    typewriter-cursor-blink 0.8s step-end infinite;
   border-right: var(--border-thickness) solid var(--text-color);
+}
+
+/* Animation speed variations */
+.typewriter.animation-slow {
+  animation-duration: calc(3.5s * var(--animation-speed-slow)), 0.8s;
+}
+
+.typewriter.animation-fast {
+  animation-duration: calc(3.5s * var(--animation-speed-fast)), 0.8s;
 }
 
 /* Character-by-character fade-in */
@@ -37,14 +61,35 @@
   animation: char-fade-in 0.1s ease-in-out forwards;
 }
 
+/* Animation speed variations */
+.char-fade.animation-slow span {
+  animation-duration: calc(0.1s * var(--animation-speed-slow));
+}
+
+.char-fade.animation-fast span {
+  animation-duration: calc(0.1s * var(--animation-speed-fast));
+}
+
 /* Grid-based transition - moves in character units */
 @keyframes grid-slide-in {
-  from { transform: translateX(-20ch); }
-  to { transform: translateX(0); }
+  from { transform: translateX(-20ch); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
 
 .grid-slide-in {
-  animation: grid-slide-in 0.5s steps(20) forwards;
+  display: block;
+  transform: translateX(-20ch);
+  opacity: 0;
+  animation: grid-slide-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+}
+
+/* Animation speed variations */
+.grid-slide-in.animation-slow {
+  animation-duration: calc(0.8s * var(--animation-speed-slow));
+}
+
+.grid-slide-in.animation-fast {
+  animation-duration: calc(0.8s * var(--animation-speed-fast));
 }
 
 /* Block cursor animation */
@@ -118,6 +163,15 @@
   animation: border-draw 3s steps(4) infinite;
 }
 
+/* Animation speed variations */
+.border-draw.animation-slow::before {
+  animation-duration: calc(3s * var(--animation-speed-slow));
+}
+
+.border-draw.animation-fast::before {
+  animation-duration: calc(3s * var(--animation-speed-fast));
+}
+
 /* Grid-based fade-in/out for page transitions */
 @keyframes grid-fade {
   0% {
@@ -130,6 +184,15 @@
 
 .grid-fade-in {
   animation: grid-fade 0.5s steps(var(--line-count, 10)) forwards;
+}
+
+/* Animation speed variations */
+.grid-fade-in.animation-slow {
+  animation-duration: calc(0.5s * var(--animation-speed-slow));
+}
+
+.grid-fade-in.animation-fast {
+  animation-duration: calc(0.5s * var(--animation-speed-fast));
 }
 
 /* Theme Transition Animation */
@@ -147,6 +210,66 @@
 
 .theme-transition {
   animation: theme-transition 0.5s ease-in-out;
+}
+
+/* Animation control buttons */
+.animation-controls {
+  display: flex;
+  gap: 1ch;
+  margin-bottom: calc(var(--line-height) * 0.5);
+}
+
+.animation-control-button {
+  background: var(--background-color-alt);
+  border: var(--border-thickness) solid var(--text-color-alt);
+  color: var(--text-color);
+  padding: 0.25em 0.5em;
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-size: 0.85em;
+}
+
+.animation-control-button:hover,
+.animation-control-button:focus {
+  background: var(--text-color-alt);
+  color: var(--background-color);
+}
+
+/* Accessibility: Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  /* Disable all animations when reduced motion is preferred */
+  .typewriter,
+  .char-fade span,
+  .grid-slide-in,
+  .cursor-blink,
+  .ascii-spinner::after,
+  .border-draw::before,
+  .grid-fade-in,
+  .theme-transition {
+    animation: none !important;
+    transition: none !important;
+  }
+  
+  /* Show text immediately for typewriter */
+  .typewriter {
+    width: 100% !important;
+  }
+  
+  /* Show text immediately for character fade */
+  .char-fade span {
+    opacity: 1 !important;
+  }
+  
+  /* Show content immediately for grid slides */
+  .grid-slide-in {
+    transform: none !important;
+    opacity: 1 !important;
+  }
+  
+  /* Remove clip path for grid fade */
+  .grid-fade-in {
+    clip-path: none !important;
+  }
 }
 
 /* Javascript utility function to split text into characters for animation

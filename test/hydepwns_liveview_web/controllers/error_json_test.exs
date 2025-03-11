@@ -2,7 +2,9 @@ defmodule HydepwnsLiveviewWeb.ErrorJSONTest do
   use HydepwnsLiveviewWeb.ConnCase, async: true
 
   test "renders 404" do
-    assert HydepwnsLiveviewWeb.ErrorJSON.render("404.json", %{}) == %{errors: %{detail: "Not Found"}}
+    assert HydepwnsLiveviewWeb.ErrorJSON.render("404.json", %{}) == %{
+             errors: %{detail: "Not Found"}
+           }
   end
 
   test "renders 500" do

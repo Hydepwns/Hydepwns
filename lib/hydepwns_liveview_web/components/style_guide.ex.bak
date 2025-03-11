@@ -1,0 +1,446 @@
+defmodule HydepwnsLiveviewWeb.Components.StyleGuide do
+  @moduledoc """
+  Provides a comprehensive style guide showcasing all UI components.
+  
+  This component acts as a living documentation of the design system,
+  displaying examples of all available components along with their usage.
+  """
+  use HydepwnsLiveviewWeb, :live_component
+
+  alias HydepwnsLiveviewWeb.Components.MonoGrid
+  alias HydepwnsLiveviewWeb.Components.Terminal
+  alias HydepwnsLiveviewWeb.Components.AsciiArtGenerator
+  alias HydepwnsLiveviewWeb.Components.DiagramEditor
+  alias HydepwnsLiveviewWeb.Components.ThemeToggle
+  alias HydepwnsLiveviewWeb.Components.ApiDocs
+
+  @doc """
+  Renders the style guide component.
+  """
+  def render(assigns) do
+    ~H"""
+    <div class="style-guide" id={@id}>
+      <h1 class="style-guide-title">Hydepwns Monospace Style Guide</h1>
+      
+      <p class="style-guide-intro">
+        This style guide documents the components, typography, and design patterns used
+        throughout the Hydepwns monospace web application. Use this as a reference for
+        consistent implementation.
+      </p>
+      
+      <div class="style-guide-toc">
+        <h2>Table of Contents</h2>
+        <ul>
+          <li><a href="#typography">Typography</a></li>
+          <li><a href="#color-palette">Color Palette</a></li>
+          <li><a href="#grid-system">Grid System</a></li>
+          <li><a href="#components">Components</a></li>
+          <li><a href="#animations">Animations</a></li>
+          <li><a href="#accessibility">Accessibility</a></li>
+        </ul>
+      </div>
+
+      <section id="typography" class="style-guide-section">
+        <h2>Typography</h2>
+        
+        <div class="type-showcase">
+          <h3>Font Family</h3>
+          <div class="font-sample">
+            <p><span class="font-name">Monaspace Argon</span> - Primary monospace font</p>
+            <p class="font-example">ABCDEFGHIJKLMNOPQRSTUVWXYZ</p>
+            <p class="font-example">abcdefghijklmnopqrstuvwxyz</p>
+            <p class="font-example">1234567890!@#$%^&*()</p>
+          </div>
+          
+          <div class="font-sample">
+            <p><span class="font-name">JetBrains Mono</span> - Fallback monospace font</p>
+            <p class="font-example fallback-font">ABCDEFGHIJKLMNOPQRSTUVWXYZ</p>
+            <p class="font-example fallback-font">abcdefghijklmnopqrstuvwxyz</p>
+            <p class="font-example fallback-font">1234567890!@#$%^&*()</p>
+          </div>
+          
+          <h3>Text Styles</h3>
+          <div class="text-styles">
+            <div class="text-style">
+              <h1>Heading 1</h1>
+              <code>h1 { font-size: "2rem"; line-height: calc(var(--line-height) * 2); }</code>
+            </div>
+            
+            <div class="text-style">
+              <h2>Heading 2</h2>
+              <code>h2 { font-size: 1.5rem; line-height: calc(var(--line-height) * 1.5); }</code>
+            </div>
+            
+            <div class="text-style">
+              <h3>Heading 3</h3>
+              <code>h3 { font-size: 1.25rem; }</code>
+            </div>
+            
+            <div class="text-style">
+              <h4>Heading 4</h4>
+              <code>h4 { font-size: 1rem; }</code>
+            </div>
+            
+            <div class="text-style">
+              <p>Body Text</p>
+              <code>p { margin: 0 0 var(--line-height); }</code>
+            </div>
+            
+            <div class="text-style">
+              <p><strong>Bold Text</strong></p>
+              <code>strong { font-weight: var(--font-weight-bold); }</code>
+            </div>
+            
+            <div class="text-style">
+              <p><em>Italic Text</em></p>
+              <code>em { font-style: italic; }</code>
+            </div>
+            
+            <div class="text-style">
+              <p><a href="#" aria-label="Example link">Link Text</a></p>
+              <code>a { text-decoration: underline; text-decoration-thickness: var(--border-thickness); }</code>
+            </div>
+            
+            <div class="text-style">
+              <p><code>Inline Code</code></p>
+              <code>code { background: var(--background-color-alt); padding: 0 0.5ch; }</code>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <section id="color-palette" class="style-guide-section">
+        <h2>Color Palette</h2>
+        
+        <div class="theme-samples">
+          <h3>Light Theme</h3>
+          <div class="color-grid light-theme">
+            <div class="color-sample" style="--sample-color: var(--text-color, #000);">
+              <div class="color-box"></div>
+              <div class="color-info">
+                <p class="color-name">Text Color</p>
+                <code>var(--text-color)</code>
+              </div>
+            </div>
+            
+            <div class="color-sample" style="--sample-color: var(--text-color-alt, #666);">
+              <div class="color-box"></div>
+              <div class="color-info">
+                <p class="color-name">Text Color Alt</p>
+                <code>var(--text-color-alt)</code>
+              </div>
+            </div>
+            
+            <div class="color-sample" style="--sample-color: var(--background-color, #fff);">
+              <div class="color-box"></div>
+              <div class="color-info">
+                <p class="color-name">Background Color</p>
+                <code>var(--background-color)</code>
+              </div>
+            </div>
+            
+            <div class="color-sample" style="--sample-color: var(--background-color-alt, #eee);">
+              <div class="color-box"></div>
+              <div class="color-info">
+                <p class="color-name">Background Color Alt</p>
+                <code>var(--background-color-alt)</code>
+              </div>
+            </div>
+          </div>
+          
+          <h3>Dark Theme</h3>
+          <div class="color-grid dark-theme">
+            <div class="color-sample" style="--sample-color: var(--text-color, #fff);">
+              <div class="color-box"></div>
+              <div class="color-info">
+                <p class="color-name">Text Color</p>
+                <code>var(--text-color)</code>
+              </div>
+            </div>
+            
+            <div class="color-sample" style="--sample-color: var(--text-color-alt, #aaa);">
+              <div class="color-box"></div>
+              <div class="color-info">
+                <p class="color-name">Text Color Alt</p>
+                <code>var(--text-color-alt)</code>
+              </div>
+            </div>
+            
+            <div class="color-sample" style="--sample-color: var(--background-color, #000);">
+              <div class="color-box"></div>
+              <div class="color-info">
+                <p class="color-name">Background Color</p>
+                <code>var(--background-color)</code>
+              </div>
+            </div>
+            
+            <div class="color-sample" style="--sample-color: var(--background-color-alt, #111);">
+              <div class="color-box"></div>
+              <div class="color-info">
+                <p class="color-name">Background Color Alt</p>
+                <code>var(--background-color-alt)</code>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <section id="grid-system" class="style-guide-section">
+        <h2>Grid System</h2>
+        
+        <div class="grid-showcase">
+          <h3>MonoGrid Component</h3>
+          <p>The MonoGrid component maintains character alignment in a monospace grid.</p>
+          
+          <div class="code-example">
+            <h4>Basic Usage</h4>
+            <pre><code>"""
+              &lt;MonoGrid.grid id="example-grid" rows={3} cols={40}&gt;
+                &lt;MonoGrid.cell row={1} col={1} colspan={40}&gt;
+                  Header spanning full width
+                &lt;/MonoGrid.cell&gt;
+                &lt;MonoGrid.cell row={2} col={1} colspan={20}&gt;
+                  Left column
+                &lt;/MonoGrid.cell&gt;
+                &lt;MonoGrid.cell row={2} col={21} colspan={20}&gt;
+                  Right column
+                &lt;/MonoGrid.cell&gt;
+                &lt;MonoGrid.cell row={3} col={1} colspan={40}&gt;
+                  Footer spanning full width
+                &lt;/MonoGrid.cell&gt;
+              &lt;/MonoGrid.grid&gt;
+            """</code></pre>
+            
+            <div class="example-output">
+              <MonoGrid.grid id="example-grid" rows={3} cols={40}>
+                <MonoGrid.cell row={1} col={1} colspan={40}>
+                  Header spanning full width
+                </MonoGrid.cell>
+                <MonoGrid.cell row={2} col={1} colspan={20}>
+                  Left column
+                </MonoGrid.cell>
+                <MonoGrid.cell row={2} col={21} colspan={20}>
+                  Right column
+                </MonoGrid.cell>
+                <MonoGrid.cell row={3} col={1} colspan={40}>
+                  Footer spanning full width
+                </MonoGrid.cell>
+              </MonoGrid.grid>
+            </div>
+          </div>
+          
+          <div class="code-example">
+            <h4>Grid with Borders</h4>
+            <pre><code>"""
+              &lt;MonoGrid.grid id="bordered-grid" rows={3} cols={40} bordered={true}&gt;
+                &lt;MonoGrid.cell row={1} col={1} colspan={40}&gt;
+                  Header with border
+                &lt;/MonoGrid.cell&gt;
+                &lt;MonoGrid.cell row={2} col={1} colspan={20}&gt;
+                  Left
+                &lt;/MonoGrid.cell&gt;
+                &lt;MonoGrid.cell row={2} col={21} colspan={20}&gt;
+                  Right
+                &lt;/MonoGrid.cell&gt;
+                &lt;MonoGrid.cell row={3} col={1} colspan={40}&gt;
+                  Footer with border
+                &lt;/MonoGrid.cell&gt;
+              &lt;/MonoGrid.grid&gt;
+            """</code></pre>
+            
+            <div class="example-output">
+              <MonoGrid.grid id="bordered-grid" rows={3} cols={40} bordered={true}>
+                <MonoGrid.cell row={1} col={1} colspan={40}>
+                  Header with border
+                </MonoGrid.cell>
+                <MonoGrid.cell row={2} col={1} colspan={20}>
+                  Left
+                </MonoGrid.cell>
+                <MonoGrid.cell row={2} col={21} colspan={20}>
+                  Right
+                </MonoGrid.cell>
+                <MonoGrid.cell row={3} col={1} colspan={40}>
+                  Footer with border
+                </MonoGrid.cell>
+              </MonoGrid.grid>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <section id="components" class="style-guide-section">
+        <h2>Components</h2>
+        
+        <div class="component-showcase">
+          <h3>Terminal Component</h3>
+          <p>Interactive terminal with customizable commands.</p>
+          
+          <div class="code-example">
+            <h4>Basic Usage</h4>
+            <pre><code>&lt;Terminal.terminal
+  id="example-terminal"
+  welcome_message="Welcome to the Terminal example"
+  height={10}
+  width={60}
+/&gt;</code></pre>
+            
+            <div class="example-output">
+              <Terminal.terminal
+                id="example-terminal"
+                welcome_message="Welcome to the Terminal example"
+                height={10}
+                width={60}
+              />
+            </div>
+          </div>
+          
+          <h3>ASCII Art Generator</h3>
+          <p>Create and display ASCII art.</p>
+          
+          <div class="code-example">
+            <h4>Basic Usage</h4>
+            <pre><code>&lt;AsciiArtGenerator.container id="ascii-example" /&gt;</code></pre>
+            
+            <div class="example-output">
+              <AsciiArtGenerator.container id="ascii-example" />
+            </div>
+          </div>
+          
+          <h3>Diagram Editor</h3>
+          <p>Create and edit ASCII diagrams.</p>
+          
+          <div class="code-example">
+            <h4>Basic Usage</h4>
+            <pre><code>&lt;DiagramEditor.editor id="diagram-example" /&gt;</code></pre>
+            
+            <div class="example-output">
+              <DiagramEditor.editor id="diagram-example" />
+            </div>
+          </div>
+          
+          <h3>Theme Toggle</h3>
+          <p>Switch between light and dark themes.</p>
+          
+          <div class="code-example">
+            <h4>Basic Usage</h4>
+            <pre><code>&lt;ThemeToggle.toggle id="theme-toggle-example" /&gt;</code></pre>
+            
+            <div class="example-output">
+              <ThemeToggle.toggle id="theme-toggle-example" />
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <section id="animations" class="style-guide-section">
+        <h2>Animations</h2>
+        
+        <div class="animation-showcase">
+          <h3>Typewriter Animation</h3>
+          <p>Text that appears character by character.</p>
+          
+          <div class="code-example">
+            <h4>Basic Usage</h4>
+            <pre><code>&lt;p class="typewriter-text" data-typing-speed="50"&gt;
+  This text will be typed out character by character.
+&lt;/p&gt;</code></pre>
+            
+            <div class="example-output">
+              <p class="typewriter-text" data-typing-speed="50">
+                This text will be typed out character by character.
+              </p>
+            </div>
+          </div>
+          
+          <h3>Grid Animation</h3>
+          <p>Grid cells that slide in sequentially.</p>
+          
+          <div class="code-example">
+            <h4>Basic Usage</h4>
+            <pre><code>&lt;div class="grid-animation" data-animation-delay="100"&gt;
+  &lt;div class="grid-cell"&gt;Cell 1&lt;/div&gt;
+  &lt;div class="grid-cell"&gt;Cell 2&lt;/div&gt;
+  &lt;div class="grid-cell"&gt;Cell 3&lt;/div&gt;
+  &lt;div class="grid-cell"&gt;Cell 4&lt;/div&gt;
+&lt;/div&gt;</code></pre>
+            
+            <div class="example-output">
+              <div class="grid-animation" data-animation-delay="100">
+                <div class="grid-cell">Cell 1</div>
+                <div class="grid-cell">Cell 2</div>
+                <div class="grid-cell">Cell 3</div>
+                <div class="grid-cell">Cell 4</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <section id="accessibility" class="style-guide-section">
+        <h2>Accessibility</h2>
+        
+        <div class="a11y-showcase">
+          <h3>Keyboard Navigation</h3>
+          <p>All interactive elements should be keyboard accessible.</p>
+          
+          <div class="code-example">
+            <h4>Proper Focus Management</h4>
+            <pre><code>&lt;button class="mono-button" tabindex="0"&gt;
+  Keyboard Accessible Button
+&lt;/button&gt;</code></pre>
+            
+            <div class="example-output">
+              <button class="mono-button" tabindex="0">
+                Keyboard Accessible Button
+              </button>
+            </div>
+          </div>
+          
+          <h3>Reduced Motion</h3>
+          <p>Respect user&apos;s motion preferences.</p>
+          
+          <div class="code-example">
+            <h4>Motion Reduction Implementation</h4>
+            <pre><code>@media (prefers-reduced-motion: reduce) {
+  .animated-element {
+    animation: none !important;
+    transition: none !important;
+  }
+}</code></pre>
+          </div>
+          
+          <h3>High Contrast Mode</h3>
+          <p>Enhanced visibility for users who need it.</p>
+          
+          <div class="code-example">
+            <h4>High Contrast Toggle</h4>
+            <pre><code>&lt;button class="high-contrast-toggle" aria-pressed="false"&gt;
+  Enable High Contrast
+&lt;/button&gt;</code></pre>
+            
+            <div class="example-output">
+              <button class="high-contrast-toggle" aria-pressed="false">
+                Enable High Contrast
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+    """
+  end
+
+  @doc """
+  Mount function for the StyleGuide component.
+  """
+  def mount(socket) do
+    {:ok, socket}
+  end
+
+  @doc """
+  Update function for the StyleGuide component.
+  """
+  def update(assigns, socket) do
+    {:ok, assign(socket, assigns)}
+  end
+end 

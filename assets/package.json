@@ -1,0 +1,25 @@
+{
+  "name": "hydepwns-liveview-assets",
+  "version": "1.0.0",
+  "description": "Assets for the Hydepwns LiveView application",
+  "main": "js/entrypoints/app.js",
+  "scripts": {
+    "build": "node build/esbuild.config.js",
+    "build:prod": "NODE_ENV=production node build/esbuild.config.js",
+    "watch": "node build/esbuild.config.js",
+    "optimize-images": "node build/image_optimizer.js",
+    "responsive-images": "node build/responsive_image_generator.js",
+    "optimize-all-images": "npm run optimize-images && npm run responsive-images",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "phoenix": "file:../deps/phoenix",
+    "phoenix_html": "file:../deps/phoenix_html",
+    "phoenix_live_view": "file:../deps/phoenix_live_view"
+  },
+  "devDependencies": {
+    "@vercel/nft": "^0.24.4",
+    "esbuild": "^0.20.0",
+    "glob": "^10.4.5"
+  }
+}

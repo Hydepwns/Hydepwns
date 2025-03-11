@@ -2,15 +2,15 @@ defmodule HydepwnsLiveviewWeb.Components.ThemePreview do
   @moduledoc """
   Provides a theme preview component that allows users to see all available themes
   without changing their current theme.
-  
+
   This component shows visual examples of each theme's color scheme and
   can be used in documentation or settings pages.
   """
   use Phoenix.Component
-  
+
   @doc """
   Renders a theme preview component showing all available themes.
-  
+
   ## Examples
       <ThemePreview.theme_previews />
   """
@@ -26,17 +26,17 @@ defmodule HydepwnsLiveviewWeb.Components.ThemePreview do
     </div>
     """
   end
-  
+
   @doc """
   Renders a preview card for a specific theme.
-  
+
   ## Examples
       <ThemePreview.theme_preview_card theme="dark" title="Dark Theme" />
   """
   def theme_preview_card(assigns) do
     ~H"""
     <div class={"theme-preview-card #{@theme}-theme-preview"}>
-      <h4 class="theme-preview-title"><%= @title %></h4>
+      <h4 class="theme-preview-title">{@title}</h4>
       <div class="theme-preview-content">
         <div class="theme-preview-text">
           <p>Sample text</p>
@@ -50,4 +50,4 @@ defmodule HydepwnsLiveviewWeb.Components.ThemePreview do
     </div>
     """
   end
-end 
+end

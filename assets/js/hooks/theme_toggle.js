@@ -129,42 +129,28 @@ const ThemeToggle = {
    * @param {string} theme - The theme name with "-theme" suffix (e.g., "dark-theme")
    */
   applyTheme(theme) {
-    this.debug.log('Applying theme', theme);
+    this.debug.log('ThemeToggle: Applying theme', theme);
     
-    // Apply transition animation
-    document.body.classList.add('theme-transition');
+    // Strip any suffix if present and add it back consistently
+    const baseTheme = theme.replace('-theme', '');
+    const formattedTheme = `${baseTheme}-theme`;
     
-    // Use will-change to optimize transition performance
-    document.documentElement.style.willChange = 'background-color, color';
-    document.body.style.willChange = 'background-color, color';
+    // Cache current theme
+    this.currentTheme = formattedTheme;
     
-    // Remove animation class after animation completes
-    setTimeout(() => {
-      document.body.classList.remove('theme-transition');
-      // Remove will-change once transition is complete to free up resources
-      document.documentElement.style.willChange = 'auto';
-      document.body.style.willChange = 'auto';
-    }, 500); // Match the animation duration
+    // Update DOM
+    document.documentElement.setAttribute('data-theme', formattedTheme);
+    document.body.className = document.body.className
+      .replace(/light-theme|dark-theme|dim-theme|high-contrast-theme/g, '')
+      .trim();
+    document.body.classList.add(formattedTheme);
     
-    // Use requestAnimationFrame for better performance
-    requestAnimationFrame(() => {
-      // Update documentElement attribute for CSS variable inheritance
-      document.documentElement.setAttribute('data-theme', theme);
-      
-      // Update body class for class-based styling - efficiently remove all possible themes first
-      document.body.classList.remove('light-theme', 'dark-theme', 'dim-theme');
-      document.body.classList.add(theme);
-      
-      // Set data attribute to indicate if theme is user-selected or system default
-      const isUsingSystemPreference = !localStorage.getItem('theme');
-      document.body.setAttribute('data-theme-mode', isUsingSystemPreference ? 'system' : 'user');
-      
-      // Update UI to reflect current theme
-      this.highlightActiveTheme(theme);
-      
-      // Update theme source indicator
-      this.updateThemeSourceIndicator();
-    });
+    // Update UI components
+    this.highlightActiveTheme(formattedTheme);
+    this.updateThemeSourceIndicator();
+    
+    // Announce the theme change to screen readers
+    this.announceThemeChange(formattedTheme);
   },
   
   /**
@@ -208,43 +194,34 @@ const ThemeToggle = {
   
   /**
    * Sets up keyboard shortcuts for theme switching
-   * Shift+Up/Down: Cycle through themes (light -> dim -> dark -> light)
-   * Shift+Left/Right: Cycle through themes
    */
   setupKeyboardShortcuts() {
-    // Keep track of the current themes array and index
-    const themes = ['light-theme', 'dim-theme', 'dark-theme'];
-    
     document.addEventListener('keydown', (e) => {
-      // Only respond to Shift + arrow key combinations
-      if (e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) {
-        // Get current theme to determine current index
-        const currentTheme = this.currentTheme;
-        let currentIndex = themes.indexOf(currentTheme);
-        if (currentIndex === -1) {
-          // If current theme is not in the array (system default), start with first
-          currentIndex = 0;
+      // Check if Shift key is pressed with arrow keys
+      if (e.shiftKey && (e.key === 'ArrowUp' || e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'ArrowLeft')) {
+        e.preventDefault(); // Prevent default scroll behavior
+        
+        // Define theme cycle order
+        const themeCycle = ['light-theme', 'dim-theme', 'dark-theme', 'high-contrast-theme'];
+        
+        // Find current theme in cycle
+        const currentIndex = themeCycle.indexOf(this.currentTheme);
+        
+        // Calculate next/previous theme
+        let newIndex;
+        if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
+          // Next theme (cycling back to first if at end)
+          newIndex = (currentIndex + 1) % themeCycle.length;
+        } else {
+          // Previous theme (cycling to last if at beginning)
+          newIndex = (currentIndex - 1 + themeCycle.length) % themeCycle.length;
         }
         
-        switch (e.key) {
-          case 'ArrowUp':
-          case 'ArrowRight':
-            // Move to next theme in the cycle
-            const nextIndex = (currentIndex + 1) % themes.length;
-            this.debug.log('ThemeToggle: Keyboard shortcut - next theme', themes[nextIndex]);
-            this.setTheme(themes[nextIndex]);
-            e.preventDefault(); // Prevent default scrolling
-            break;
-            
-          case 'ArrowDown':
-          case 'ArrowLeft':
-            // Move to previous theme in the cycle
-            const prevIndex = (currentIndex - 1 + themes.length) % themes.length;
-            this.debug.log('ThemeToggle: Keyboard shortcut - previous theme', themes[prevIndex]);
-            this.setTheme(themes[prevIndex]);
-            e.preventDefault(); // Prevent default scrolling
-            break;
-        }
+        // Set the new theme
+        this.setTheme(themeCycle[newIndex]);
+        
+        // Announce theme change to screen readers
+        this.announceThemeChange(themeCycle[newIndex]);
       }
     });
   },
@@ -283,6 +260,34 @@ const ThemeToggle = {
         tooltip.style.display = 'none';
       });
     });
+  },
+  
+  /**
+   * Announces the theme change to screen readers
+   * 
+   * @param {string} theme - The theme that was just applied
+   */
+  announceThemeChange(theme) {
+    // Create a live region for screen reader announcements if it doesn't exist
+    let announcer = document.getElementById('theme-change-announcer');
+    if (!announcer) {
+      announcer = document.createElement('div');
+      announcer.id = 'theme-change-announcer';
+      announcer.setAttribute('aria-live', 'polite');
+      announcer.className = 'sr-only';
+      document.body.appendChild(announcer);
+    }
+    
+    // Format the theme name for announcement
+    const themeName = theme.replace('-theme', '').replace('-', ' ');
+    
+    // Set the message
+    announcer.textContent = `Theme changed to ${themeName}`;
+    
+    // Clear the announcement after a short delay (optional)
+    setTimeout(() => {
+      announcer.textContent = '';
+    }, 1000);
   }
 };
 

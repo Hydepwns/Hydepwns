@@ -1,5 +1,17 @@
-/* First import JetBrains Mono as fallback */
+/* First import JetBrains Mono as fallback - using preconnect for performance */
 @import url('https://fonts.cdnfonts.com/css/jetbrains-mono-2');
+
+/* Preload critical font files */
+@media not print {
+  @font-face {
+    font-family: 'Monaspace Argon Fallback';
+    src: local('JetBrains Mono'), local('Courier New'), local('monospace');
+    size-adjust: 100%;
+    ascent-override: 90%;
+    descent-override: 23%;
+    line-gap-override: 0%;
+  }
+}
 
 /* Monaspace Argon font declarations */
 @font-face {
@@ -16,7 +28,7 @@
   src: url('/assets/fonts/MonaspaceArgon-Bold.woff2') format('woff2'),
        url('/assets/fonts/MonaspaceArgon-Bold.woff') format('woff');
   font-weight: 700;
-  font-style: bold;
+  font-style: normal;
   font-display: swap;
 }
 
@@ -25,7 +37,7 @@
   src: url('/assets/fonts/MonaspaceArgon-ExtraBold.woff2') format('woff2'),
        url('/assets/fonts/MonaspaceArgon-ExtraBold.woff') format('woff');
   font-weight: 800;
-  font-style: bold;
+  font-style: normal;
   font-display: swap;
 }
 
@@ -59,7 +71,7 @@
 /* Typography-specific CSS variables */
 :root {
   /* Core Typography Variables */
-  --font-family: 'Monaspace Argon', 'JetBrains Mono', monospace;
+  --font-family: 'Monaspace Argon', 'JetBrains Mono', 'Monaspace Argon Fallback', monospace;
   --line-height: 1.20rem;
   --border-thickness: 2px;
   
@@ -70,6 +82,23 @@
   
   /* Simplified monospace-specific features */
   font-feature-settings: 'calt' 1, 'zero' 1;
+}
+
+/* Font loading status classes */
+.fonts-loading {
+  /* Minimal initial styles while fonts are loading */
+  font-family: 'Monaspace Argon Fallback', monospace;
+}
+
+.fonts-loaded,
+.fonts-cached {
+  /* Apply proper font rendering once fonts are loaded */
+  font-family: var(--font-family);
+  
+  /* Improve rendering quality */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 /* Responsive adjustments for typography */
@@ -94,6 +123,29 @@
   font-style: normal;
   font-variant-numeric: tabular-nums lining-nums;
   font-size: 16px;
+}
+
+/* Size-adjusted metrics to minimize layout shift */
+@supports (size-adjust: 100%) {
+  .fonts-loading {
+    letter-spacing: -0.02em; /* Subtle adjustment for fallback */
+  }
+}
+
+/* Add FOUT prevention - shows transparent text over a background color */
+@supports (font-variation-settings: normal) {
+  /* Modern browsers with better font support */
+  .fonts-loading .prevent-fout {
+    color: transparent;
+    background-color: var(--background-color-alt);
+  }
+  
+  .fonts-loaded .prevent-fout,
+  .fonts-cached .prevent-fout {
+    background-color: transparent;
+    color: var(--text-color);
+    transition: color 0.2s ease;
+  }
 }
 
 @media (prefers-color-scheme: dark) {

@@ -4,10 +4,10 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ThemeToggle do
 
   @moduledoc """
   Advanced theme toggle UI component for switching between application themes.
-  
+
   Provides a more sophisticated version of the theme toggle with additional styling
   and functionality compared to the basic ThemeToggle component.
-  
+
   Supports keyboard shortcuts:
   - Shift+Up/Right: Next theme
   - Shift+Down/Left: Previous theme
@@ -15,9 +15,9 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ThemeToggle do
 
   @doc """
   Renders a theme toggle component for switching between light, dark, and dim themes.
-  
+
   ## Example
-  
+
       <.theme_toggle />
   """
   attr :class, :string, default: nil
@@ -62,4 +62,4 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ThemeToggle do
     </div>
     """
   end
-end 
+end

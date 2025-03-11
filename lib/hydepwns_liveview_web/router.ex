@@ -21,9 +21,19 @@ defmodule HydepwnsLiveviewWeb.Router do
     pipe_through :browser
 
     live "/", HomeLive, :index
-    live "/style-guide", StyleGuideLive, :style_guide
-    live "/projects", ProjectsLive, :projects
-    live "/about", AboutLive, :about
+    live "/about", AboutLive, :index
+    live "/projects", ProjectsLive, :index
+    live "/style-guide", StyleGuideLive, :index
+    live "/screen-reader-test", ScreenReaderTestLive, :index
+    live "/api-docs", ApiDocsLive, :index
+    live "/grid-playground", GridPlaygroundLive, :index
+    live "/gallery", GalleryLive, :index
+    
+    # Offline fallback page
+    get "/offline", OfflineController, :index
+    
+    # Service worker
+    get "/service-worker.js", ServiceWorkerController, :index
   end
 
   # Development-only routes

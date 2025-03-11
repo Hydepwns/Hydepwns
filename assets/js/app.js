@@ -26,7 +26,24 @@ import topbar from "../vendor/topbar"
 // Import component hooks
 import DebugGrid from "./hooks/debug_grid"
 import ThemeToggle from "./hooks/theme_toggle"
+import CopyableCode from "./hooks/copyable_code"
+import KeyboardNavigation from "./hooks/keyboard_navigation"
+import FocusMode from "./hooks/focus_mode"
+import AsciiArtGenerator from "./hooks/ascii_art_generator"
+import DiagramEditor from "./hooks/diagram_editor"
+import AutoResize from "./hooks/auto_resize"
+import MonoGrid from "./hooks/mono_grid"
+import Terminal from "./hooks/terminal"
 import { CharacterAnimation, GridFadeIn } from "./components/animations"
+
+// Import accessibility functions
+import "./accessibility/accessibility.js"
+
+// Import style guide module
+import { initStyleGuide } from "./style_guide";
+
+// Import font optimization module
+import { initFontOptimizations } from "./font-optimizations";
 
 /**
  * Debug Utility
@@ -51,17 +68,33 @@ const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute
 
 // Register all component hooks
 const Hooks = {
-  DebugGridToggle: DebugGrid,
-  ThemeToggle: ThemeToggle,
-  CharacterAnimation: CharacterAnimation,
-  GridFadeIn: GridFadeIn
+  DebugGrid,
+  ThemeToggle,
+  CopyableCode,
+  KeyboardNavigation,
+  FocusMode,
+  AsciiArtGenerator,
+  DiagramEditor,
+  AutoResize,
+  MonoGrid,
+  Terminal,
+  CharacterAnimation,
+  GridFadeIn
 }
 
-// Create LiveSocket with hooks
-const liveSocket = new LiveSocket("/live", Socket, {
+// Create LiveSocket with hooks and parameters
+let liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: Hooks
+  hooks: Hooks,
+  dom: {
+    onBeforeElUpdated(from, to) {
+      // Maintain existing theme when DOM is updated
+      if (from._x_dataStack) {
+        window.Alpine.clone(from, to);
+      }
+    }
+  }
 })
 
 // Configure page loading indicators
@@ -105,16 +138,289 @@ const setInitialTheme = () => {
   DEBUG.log("Theme applied to body:", document.body.className);
 };
 
-// Run immediately without waiting for DOMContentLoaded
-setInitialTheme();
+/**
+ * Debounce Utility
+ * ----------------
+ * Returns a function that will only execute after it stops being called
+ * for the specified delay period. Useful for expensive operations like
+ * resize events.
+ * 
+ * @param {Function} func - The function to debounce
+ * @param {number} delay - Delay in milliseconds
+ * @return {Function} - Debounced function
+ */
+const debounce = (func, delay) => {
+  let timeoutId;
+  return (...args) => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+    timeoutId = setTimeout(() => {
+      func(...args);
+    }, delay);
+  };
+};
 
-// Also run when DOM is loaded as a fallback
-document.addEventListener('DOMContentLoaded', setInitialTheme);
+// Event listeners
+window.addEventListener('DOMContentLoaded', () => {
+  createAccessibilityNotification();
+  setInitialTheme();
+  setupKeyboardDemoDialog();
+  
+  // Initialize style guide if present
+  if (document.querySelector('.style-guide')) {
+    initStyleGuide();
+  }
+  
+  // Apply font optimizations first, before any other initialization
+  // This ensures fonts are loaded efficiently
+  initFontOptimizations();
+});
+
+// Setup resize handler with debouncing for performance
+window.addEventListener('resize', debounce(() => {
+  // Recalculate anything that needs to adjust based on window size
+  // For example, recalculate line-based measurements
+  const root = document.documentElement;
+  const fontSizeInPx = parseFloat(window.getComputedStyle(root).fontSize);
+  const lineHeightValue = parseFloat(getComputedStyle(root).getPropertyValue('--line-height'));
+  
+  // Update any calculations that depend on viewport size
+  DEBUG.log("Window resized - font size:", fontSizeInPx, "px, line-height:", lineHeightValue);
+  
+  // Inform LiveView about the resize
+  if (window.liveSocket) {
+    window.liveSocket.execJS(document, `window.dispatchEvent(new CustomEvent("phx:resize"))`);
+  }
+}, 200)); // 200ms debounce delay
+
+/**
+ * Keyboard Controls and Accessibility Notification
+ * -----------------------------------------------
+ * Create a temporary notification to inform users about keyboard shortcuts,
+ * particularly for animation controls and accessibility features.
+ */
+const createAccessibilityNotification = () => {
+  // Only create notification if animations are likely to be present
+  const hasAnimations = document.querySelector('.typewriter, .char-fade, .grid-fade-in');
+  
+  if (!hasAnimations) return;
+  
+  // Create notification element
+  const notification = document.createElement('div');
+  notification.className = 'keyboard-controls-notification';
+  notification.setAttribute('role', 'status');
+  notification.setAttribute('aria-live', 'polite');
+  
+  // Style the notification
+  Object.assign(notification.style, {
+    position: 'fixed',
+    bottom: '4rem',
+    right: '1rem',
+    backgroundColor: 'var(--background-color-alt)',
+    color: 'var(--text-color)',
+    padding: '1rem',
+    borderRadius: '0.5rem',
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)',
+    zIndex: '100',
+    maxWidth: '300px',
+    border: '1px solid var(--text-color-alt)',
+    fontFamily: 'var(--font-family)',
+    fontSize: '0.9rem',
+    transform: 'translateY(20px)',
+    opacity: '0',
+    transition: 'transform 0.3s ease, opacity 0.3s ease'
+  });
+  
+  // Create notification content
+  notification.innerHTML = `
+    <div style="margin-bottom: 0.5rem; font-weight: bold;">Keyboard Controls</div>
+    <div style="margin-bottom: 0.5rem;">Alt+R: Replay animations</div>
+    <button class="dismiss-btn" style="background: none; border: none; color: var(--text-color); text-decoration: underline; cursor: pointer; padding: 0;">Dismiss</button>
+  `;
+  
+  // Add to document
+  document.body.appendChild(notification);
+  
+  // Show the notification with a slight delay
+  setTimeout(() => {
+    notification.style.transform = 'translateY(0)';
+    notification.style.opacity = '1';
+  }, 2000);
+  
+  // Add event listener to dismiss button
+  notification.querySelector('.dismiss-btn').addEventListener('click', () => {
+    notification.style.transform = 'translateY(20px)';
+    notification.style.opacity = '0';
+    
+    // Remove from DOM after animation completes
+    setTimeout(() => {
+      document.body.removeChild(notification);
+    }, 300);
+    
+    // Remember that user has seen the notification
+    localStorage.setItem('animation-controls-seen', 'true');
+  });
+  
+  // Auto-dismiss after 10 seconds
+  setTimeout(() => {
+    if (document.body.contains(notification)) {
+      notification.style.transform = 'translateY(20px)';
+      notification.style.opacity = '0';
+      
+      setTimeout(() => {
+        if (document.body.contains(notification)) {
+          document.body.removeChild(notification);
+        }
+      }, 300);
+    }
+  }, 10000);
+};
+
+/**
+ * Keyboard Navigation Demo Dialog
+ * -------------------------------
+ * Create a demo dialog that demonstrates keyboard navigation
+ * and focus trapping features for the keyboard navigation demo.
+ */
+const setupKeyboardDemoDialog = () => {
+  // Create dialog element if it doesn't exist
+  if (!document.getElementById('keyboard-demo-dialog')) {
+    const dialog = document.createElement('div');
+    dialog.id = 'keyboard-demo-dialog';
+    dialog.className = 'modal';
+    dialog.setAttribute('role', 'dialog');
+    dialog.setAttribute('aria-labelledby', 'keyboard-demo-dialog-title');
+    dialog.setAttribute('aria-hidden', 'true');
+    dialog.setAttribute('tabindex', '-1');
+    
+    // Style the dialog
+    Object.assign(dialog.style, {
+      display: 'none',
+      position: 'fixed',
+      top: '0',
+      left: '0',
+      width: '100%',
+      height: '100%',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      zIndex: '1000',
+      overflow: 'auto'
+    });
+    
+    // Create dialog content
+    dialog.innerHTML = `
+      <div class="modal-content" style="
+        background-color: var(--background-color);
+        color: var(--text-color);
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid var(--border-color);
+        width: 80%;
+        max-width: 500px;
+        position: relative;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      ">
+        <h3 id="keyboard-demo-dialog-title">Keyboard Navigation Demo</h3>
+        <p>This dialog demonstrates focus trapping. Try using Tab to navigate through the elements below:</p>
+        
+        <button class="dialog-demo-button" style="margin: 5px; padding: 5px 10px;">Button 1</button>
+        <button class="dialog-demo-button" style="margin: 5px; padding: 5px 10px;">Button 2</button>
+        <input type="text" placeholder="Text input" style="margin: 5px; padding: 5px; width: 200px;">
+        <select style="margin: 5px; padding: 5px;">
+          <option>Option 1</option>
+          <option>Option 2</option>
+        </select>
+        
+        <p>Press Escape to close this dialog, or click the close button:</p>
+        
+        <button class="modal-close" style="
+          background: none;
+          border: none;
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          cursor: pointer;
+          padding: 5px;
+          font-size: 16px;
+        ">✕</button>
+        
+        <button class="close-button" style="
+          margin-top: 15px;
+          padding: 5px 10px;
+          background-color: var(--accent-color);
+          color: var(--text-color-inverse);
+          border: none;
+          cursor: pointer;
+        ">Close Dialog</button>
+      </div>
+    `;
+    
+    // Add to document
+    document.body.appendChild(dialog);
+    
+    // Add event listeners to close buttons
+    const closeButtons = dialog.querySelectorAll('.close-button, .modal-close');
+    closeButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        dialog.style.display = 'none';
+        dialog.setAttribute('aria-hidden', 'true');
+        
+        // Send event to server
+        if (window.liveSocket) {
+          window.liveSocket.execJS(document, `window.dispatchEvent(new CustomEvent("phx:close_demo_dialog"))`);
+        }
+      });
+    });
+  }
+};
+
+// Register LiveView push event handlers
+window.addEventListener("phx:show_demo_dialog", (e) => {
+  const dialog = document.getElementById('keyboard-demo-dialog');
+  if (dialog) {
+    dialog.style.display = 'block';
+    dialog.setAttribute('aria-hidden', 'false');
+    
+    // Let the focus trap handle focus management
+  }
+});
+
+window.addEventListener("phx:hide_demo_dialog", (e) => {
+  const dialog = document.getElementById('keyboard-demo-dialog');
+  if (dialog) {
+    dialog.style.display = 'none';
+    dialog.setAttribute('aria-hidden', 'true');
+  }
+});
+
+window.addEventListener("phx:announce", (e) => {
+  const {message} = e.detail;
+  const announcer = document.getElementById('accessibility-announcer');
+  if (announcer) {
+    announcer.textContent = message;
+  }
+});
+
+window.addEventListener("phx:toggle_keyboard_help", (e) => {
+  const help = document.getElementById('keyboard-help');
+  if (help) {
+    const isVisible = help.style.display === 'block';
+    help.style.display = isVisible ? 'none' : 'block';
+    
+    // Announce the state change
+    const announcer = document.getElementById('accessibility-announcer');
+    if (announcer) {
+      announcer.textContent = isVisible ? 'Keyboard help closed' : 'Keyboard help opened';
+    }
+  }
+});
+
+// Expose liveSocket variable for debugging
+window.liveSocket = liveSocket
 
 // Connect to LiveView
 liveSocket.connect()
 
-// Expose liveSocket and debug utility for debugging in development
-window.liveSocket = liveSocket
-window.DEBUG = DEBUG
+// Configure global const for use in other modules
+window.DEBUG = DEBUG;
 

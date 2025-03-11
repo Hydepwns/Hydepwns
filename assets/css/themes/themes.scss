@@ -88,6 +88,18 @@
   --color-light-button: #4299e1;
   --color-light-button-hover: #2b6cb0;
   
+  /* High Contrast Theme Colors */
+  --color-high-contrast-bg: #000;
+  --color-high-contrast-bg-alt: #111;
+  --color-high-contrast-text: #fff;
+  --color-high-contrast-text-alt: #fff;
+  --color-high-contrast-focus: #ffff00;
+  --color-high-contrast-button: #ffff00;
+  --color-high-contrast-button-hover: #ffff66;
+  --color-high-contrast-border: #ffff00;
+  --color-high-contrast-link: #00ffff;
+  --color-high-contrast-link-hover: #66ffff;
+  
   /* Default to light theme */
   --background-color: var(--color-light-bg);
   --background-color-alt: var(--color-light-bg-alt);
@@ -96,6 +108,7 @@
   --focus-color: var(--color-light-focus);
   --button-color: var(--color-light-button);
   --button-color-hover: var(--color-light-button-hover);
+  --border-color: var(--text-color-alt);
 
   /* Font Variables */
   --font-optical-sizing: auto;
@@ -163,6 +176,72 @@ html[data-theme="light-theme"], .light-theme {
   --focus-color: var(--color-light-focus);
   --button-color: var(--color-light-button);
   --button-color-hover: var(--color-light-button-hover);
+}
+
+/* High Contrast Theme */
+html[data-theme="high-contrast-theme"], .high-contrast-theme {
+  --background-color: var(--color-high-contrast-bg);
+  --background-color-alt: var(--color-high-contrast-bg-alt);
+  --text-color: var(--color-high-contrast-text);
+  --text-color-alt: var(--color-high-contrast-text-alt);
+  --focus-color: var(--color-high-contrast-focus);
+  --button-color: var(--color-high-contrast-button);
+  --button-color-hover: var(--color-high-contrast-button-hover);
+  --border-color: var(--color-high-contrast-border);
+  --link-color: var(--color-high-contrast-link);
+  --link-hover-color: var(--color-high-contrast-link-hover);
+  
+  /* Enhanced contrast for better readability */
+  border-color: var(--color-high-contrast-border);
+  
+  a {
+    color: var(--color-high-contrast-link);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    font-weight: bold;
+  }
+  
+  a:hover, a:focus {
+    color: var(--color-high-contrast-link-hover);
+  }
+  
+  button, .button {
+    border: 2px solid var(--color-high-contrast-border);
+    color: var(--color-high-contrast-bg);
+    background-color: var(--color-high-contrast-button);
+    font-weight: bold;
+  }
+  
+  button:hover, .button:hover {
+    background-color: var(--color-high-contrast-button-hover);
+  }
+  
+  input, textarea, select {
+    border: 2px solid var(--color-high-contrast-border);
+    background-color: var(--color-high-contrast-bg);
+    color: var(--color-high-contrast-text);
+  }
+  
+  input:focus, textarea:focus, select:focus {
+    outline: 3px solid var(--color-high-contrast-focus);
+  }
+  
+  /* Enhance focus states for better keyboard navigation */
+  *:focus {
+    outline: 3px solid var(--color-high-contrast-focus);
+    outline-offset: 3px;
+  }
+  
+  /* Increase contrast for various elements */
+  hr {
+    border-color: var(--color-high-contrast-text);
+    border-width: 2px;
+  }
+  
+  code, pre {
+    background-color: var(--color-high-contrast-bg-alt);
+    border: 2px solid var(--color-high-contrast-border);
+  }
 }
 
 .theme-toggle {

@@ -1,15 +1,44 @@
 <!DOCTYPE html>
-<html lang="en" data-theme={assigns[:theme_class] || "dark-theme"}>
+<html lang="en" data-theme={assigns[:theme_class] || "dark-theme"} class="fonts-loading">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
     <meta name="csrf-token" content={get_csrf_token()} />
     <.live_title suffix=" · Hydepwns">
-      <%= assigns[:page_title] || "Home" %>
+      {assigns[:page_title] || "Home"}
     </.live_title>
+    
+    <!-- Font optimization tags -->
+    <link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin />
+    <link rel="preload" href="/assets/fonts/MonaspaceArgon-Regular.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/assets/fonts/MonaspaceArgon-Bold.woff2" as="font" type="font/woff2" crossorigin />
+    
+    <!-- Critical CSS inlined for performance -->
+    <style>
+      /* Critical font styles to avoid FOUT */
+      @font-face {
+        font-family: 'Monaspace Argon Fallback';
+        src: local('JetBrains Mono'), local('Courier New'), local('monospace');
+        size-adjust: 100%;
+        ascent-override: 90%;
+        descent-override: 23%;
+        line-gap-override: 0%;
+      }
+      
+      html.fonts-loading {
+        font-family: 'Monaspace Argon Fallback', monospace;
+      }
+      
+      html.fonts-loaded,
+      html.fonts-cached {
+        font-family: 'Monaspace Argon', 'JetBrains Mono', monospace;
+      }
+    </style>
+    
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
-    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}></script>
+    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
+    </script>
     <script>
       // Set theme based on user preference or system theme
       const setThemeClass = () => {
@@ -34,57 +63,24 @@
 
       // Set theme on page load
       document.addEventListener('DOMContentLoaded', setThemeClass);
-      
+
       // Listen for theme changes
       window.addEventListener('storage', (e) => {
         if (e.key === 'theme') setThemeClass();
       });
-      
-      // Improve monospace font rendering
-      document.addEventListener('DOMContentLoaded', () => {
-        // Force browser to load and apply monospace font properly
-        const fontLoader = () => {
-          // Add test elements with monospace font
-          const testElement = document.createElement('div');
-          testElement.style.position = 'absolute';
-          testElement.style.opacity = '0';
-          testElement.style.fontFamily = "'Monaspace Argon', monospace";
-          testElement.style.fontFeatureSettings = "'calt' 1, 'ss01' 1, 'ss02' 1";
-          testElement.innerHTML = "iIlL1|0Oo";
-          document.body.appendChild(testElement);
-          
-          // Force font to be applied
-          setTimeout(() => {
-            document.body.removeChild(testElement);
-            
-            // Apply monospace spacing classes - much simpler approach
-            document.querySelectorAll('pre, code').forEach(el => {
-              el.style.fontFamily = 'var(--font-family)';
-            });
-          }, 100);
-        };
-        
-        // Run font loader
-        fontLoader();
-        
-        // Remove problematic terminal transformation logic
-        /*
-        document.querySelectorAll('pre, .terminal').forEach(el => {
-          if (el.textContent.includes('$') || el.textContent.includes('>')) {
-            el.classList.add('terminal-output');
-            
-            // Wrap command lines with prompt class
-            const content = el.innerHTML;
-            const commandPattern = /^(\$|\&gt\;|\>)(.*?)$/gm;
-            el.innerHTML = content.replace(commandPattern, '<span class="prompt">$2</span>');
-          }
-        });
-        */
-      });
+
+      // Check for cached fonts
+      (function() {
+        const FONTS_LOADED_KEY = 'hydepwns_fonts_loaded';
+        if (sessionStorage.getItem(FONTS_LOADED_KEY) === 'true') {
+          document.documentElement.classList.remove('fonts-loading');
+          document.documentElement.classList.add('fonts-cached');
+        }
+      })();
     </script>
   </head>
   <body class={@theme_class || "dark-theme"}>
     <a href="#main-content" class="skip-to-content">Skip to content</a>
-    <%= @inner_content %>
+    {@inner_content}
   </body>
 </html>

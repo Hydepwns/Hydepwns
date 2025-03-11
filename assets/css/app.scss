@@ -18,6 +18,12 @@
 /* Component specific styles */
 @import "./components.scss";
 
+/* Gallery page styles */
+@import "./gallery.css";
+
+/* Accessibility focus mode */
+@import "./focus-mode.scss";
+
 /* This file is for main layout and global application styles */
 
 /* Theme transition animation */
@@ -515,19 +521,29 @@ html[data-theme="dim-theme"] .theme-toggle button.active-theme::after,
 
 /* Base variables for monospace styling */
 :root {
-  --font-family: 'Monaspace Argon', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
-  --line-height: 1.5rem;
-  --font-size: 1rem;
-  --border-thickness: 1px;
-  
-  /* These will be overridden by theme-specific CSS */
-  --text-color: #1a1a1a;
-  --background-color: #ffffff;
+  /* Base color scheme - can be overridden by themes */
+  --font-family: 'Monaspace Argon', 'JetBrains Mono', 'Courier New', monospace;
+  --line-height: 1.6rem;
+  --border-thickness: 2px;
+
+  /* Default light theme colors */
+  --text-color: #212121;
+  --text-color-alt: #555;
+  --border-color: #ccc;
+  --background-color: #fff;
   --background-color-alt: #f5f5f5;
-  --border-color: #d1d1d1;
-  --link-color: #0066cc;
-  --link-hover-color: #004080;
-  --accent-color: #ff6b6b;
+  --link-color: #0074d9;
+  --link-hover-color: #0063aa;
+  --code-background: #f1f1f1;
+  --highlight-color: rgba(0, 120, 212, 0.2);
+  --success-color: #4CAF50;
+  --error-color: #F44336;
+  --warning-color: #FF9800;
+
+  /* Animation speed variables */
+  --animation-speed-slow: 2;
+  --animation-speed-normal: 1;
+  --animation-speed-fast: 0.5;
 }
 
 /* Set basic typography on html and body */
@@ -631,4 +647,716 @@ pre code {
 
 .skip-to-content:focus {
   top: 0;
+}
+
+/* Tree View Styles */
+ul.tree {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+ul.tree ul {
+  list-style-type: none;
+  padding-left: 4ch; /* Indent by 4 characters */
+}
+
+ul.tree li {
+  position: relative;
+  line-height: var(--line-height);
+}
+
+ul.tree li::before {
+  content: "";
+  position: absolute;
+  left: -2ch;
+  top: 0;
+  height: 100%;
+  border-left: var(--border-thickness) solid var(--text-color);
+}
+
+ul.tree li:last-child::before {
+  height: var(--line-height);
+}
+
+ul.tree li::after {
+  content: "";
+  position: absolute;
+  left: -2ch;
+  top: calc(var(--line-height) / 2);
+  width: 2ch;
+  border-top: var(--border-thickness) solid var(--text-color);
+}
+
+ul.tree > li::before,
+ul.tree > li::after {
+  display: none;
+}
+
+/* ASCII Drawings Styles */
+figure {
+  margin: var(--line-height) 0;
+  border: var(--border-thickness) solid var(--border-color);
+  padding: 0.75rem 1ch;
+  background-color: var(--background-color-alt);
+}
+
+figure pre {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background-color: transparent;
+  font-family: var(--font-family);
+  white-space: pre;
+  overflow-x: auto;
+  line-height: 1.2; /* Tighter line height for ASCII art */
+}
+
+figcaption {
+  text-align: center;
+  padding-top: 0.5rem;
+  border-top: var(--border-thickness) solid var(--border-color);
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-color-alt);
+}
+
+/* Media Element Styles */
+figure img, 
+figure video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+/* Box Drawing Characters */
+.box-drawing {
+  white-space: pre;
+  font-family: var(--font-family);
+  line-height: 1.2;
+}
+
+/* Debug Mode Toggle */
+.debug-toggle-label {
+  display: inline-flex;
+  align-items: center;
+  margin: 1rem 0;
+  cursor: pointer;
+}
+
+.debug-toggle-label input[type="checkbox"] {
+  margin-right: 0.5rem;
+}
+
+/* Debug Grid */
+body.debug-grid {
+  --debug-grid-cell-width: 1ch;
+  --debug-grid-cell-height: var(--line-height);
+  --debug-grid-color: rgba(0, 0, 255, 0.1);
+  
+  background-image: 
+    linear-gradient(to right, var(--debug-grid-color) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--debug-grid-color) 1px, transparent 1px);
+  background-size: 
+    var(--debug-grid-cell-width) var(--debug-grid-cell-height),
+    var(--debug-grid-cell-width) var(--debug-grid-cell-height);
+  background-position: 0 0;
+}
+
+/* Highlight elements that are off-grid */
+body.debug-grid .off-grid {
+  outline: 1px solid rgba(255, 0, 0, 0.5) !important;
+}
+
+/* Skip navigation for accessibility */
+.skip-to-content {
+  position: absolute;
+  top: -100px;
+  left: 0;
+  padding: 10px;
+  background: var(--background-color);
+  z-index: 100;
+  transition: top 0.3s;
+}
+
+.skip-to-content:focus {
+  top: 0;
+}
+
+/* Media Queries for Responsive Design */
+@media screen and (max-width: 768px) {
+  :root {
+    --font-size: 0.9rem;
+    --line-height: 1.4rem;
+  }
+
+  body {
+    padding: 0.5rem;
+  }
+  
+  .container {
+    max-width: 100%;
+    padding: 0 0.5rem;
+  }
+  
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+    
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      margin-top: 0.5rem;
+      
+      a {
+        margin-right: 1rem;
+        margin-bottom: 0.5rem;
+      }
+    }
+  }
+  
+  main {
+    margin-top: 1rem;
+  }
+  
+  section {
+    padding: 1rem 0;
+  }
+  
+  h2 {
+    font-size: 1.3rem;
+  }
+  
+  h3 {
+    font-size: 1.1rem;
+  }
+  
+  /* Make ASCII art scrollable horizontally on mobile */
+  pre {
+    max-width: 100%;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  
+  /* Adjust navigation for mobile */
+  .toc {
+    position: static;
+    width: 100%;
+    max-height: none;
+    overflow: visible;
+    margin-bottom: 1rem;
+    
+    &.hidden {
+      display: none;
+    }
+    
+    ul {
+      padding-left: 1ch;
+    }
+  }
+  
+  /* Make the theme toggle more touch-friendly */
+  .theme-toggle {
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    
+    label {
+      padding: 0.5rem;
+    }
+  }
+  
+  /* Make forms more mobile-friendly */
+  form {
+    input, textarea, select, button {
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+  }
+  
+  /* Adjust grid layout for mobile */
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Adjust information box for mobile */
+  .information-box {
+    padding: 0.5rem;
+    margin: 0.5rem 0;
+  }
+  
+  /* Make tooltips more mobile-friendly */
+  .copy-tooltip {
+    top: -40px;
+  }
+}
+
+/* Extra small devices */
+@media screen and (max-width: 480px) {
+  pre, code {
+    font-size: 0.8rem;
+  }
+  
+  .animation-controls {
+    flex-direction: column;
+    align-items: stretch;
+    
+    button {
+      margin-bottom: 0.5rem;
+    }
+  }
+  
+  figure {
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+  }
+}
+
+/* Header styling */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--line-height);
+  padding-bottom: var(--line-height);
+  border-bottom: var(--border-thickness) solid var(--border-color);
+}
+
+.header-main {
+  h1 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: bold;
+  }
+  
+  .site-tagline {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--text-color-alt);
+  }
+}
+
+/* Mobile controls */
+.mobile-controls {
+  display: none; /* Hidden by default, shown in mobile view */
+}
+
+.toc-toggle {
+  background-color: var(--background-color);
+  border: var(--border-thickness) solid var(--border-color);
+  color: var(--text-color);
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-size: 0.9rem;
+  
+  &:hover {
+    background-color: var(--background-color-alt);
+  }
+  
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--highlight-color);
+  }
+}
+
+/* Layout grid for main content and TOC */
+.layout-grid {
+  display: grid;
+  grid-template-columns: 15ch 1fr;
+  gap: 2ch;
+}
+
+/* TOC styling */
+.toc {
+  position: sticky;
+  top: 1rem;
+  height: calc(100vh - 2rem);
+  overflow-y: auto;
+  padding-right: 1ch;
+  
+  ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+  }
+  
+  li {
+    margin-bottom: 0.5rem;
+  }
+  
+  a {
+    text-decoration: none;
+    color: var(--text-color);
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+/* Responsive overrides for mobile */
+@media screen and (max-width: 768px) {
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .mobile-controls {
+    display: block;
+    margin: 1rem 0;
+  }
+  
+  .layout-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .toc {
+    position: static;
+    height: auto;
+    max-height: 50vh;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    border: var(--border-thickness) solid var(--border-color);
+    background-color: var(--background-color-alt);
+    
+    &.hidden {
+      display: none;
+    }
+  }
+  
+  .theme-toggle {
+    align-self: flex-start;
+    margin-bottom: 1rem;
+  }
+}
+
+/* Accessibility and Keyboard Navigation Styles
+   ============================================= */
+
+/* Skip to content link - only visible when focused */
+.skip-to-content {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--accent-color);
+  color: var(--background-color);
+  padding: 8px;
+  z-index: 100;
+  transition: top 0.3s;
+  border: var(--border-thickness) solid var(--text-color);
+}
+
+.skip-to-content:focus {
+  top: 0;
+}
+
+/* Enhanced focus styles for keyboard navigation */
+.keyboard-navigation *:focus {
+  outline: 3px solid var(--accent-color) !important;
+  outline-offset: 2px !important;
+}
+
+/* Screen reader only elements */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Keyboard shortcut hints */
+.keyboard-shortcut {
+  display: inline-block;
+  padding: 2px 5px;
+  border: var(--border-thickness) solid var(--text-color);
+  margin-left: 4px;
+  font-size: 0.8em;
+  opacity: 0.7;
+}
+
+/* Ensure focus order is visible with a higher contrast outline in dark themes */
+[data-theme="dark"] .keyboard-navigation *:focus,
+[data-theme="dim"] .keyboard-navigation *:focus,
+[data-theme="high-contrast"] .keyboard-navigation *:focus {
+  outline-color: var(--accent-highlight-color) !important;
+}
+
+/* Keyboard navigation instructions panel */
+.keyboard-help {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--background-color);
+  border: var(--border-thickness) solid var(--text-color);
+  padding: 10px;
+  z-index: 1000;
+  max-width: 300px;
+  display: none;
+}
+
+.keyboard-help.visible {
+  display: block;
+}
+
+.keyboard-help h3 {
+  margin-top: 0;
+}
+
+.keyboard-help kbd {
+  display: inline-block;
+  padding: 2px 4px;
+  border: var(--border-thickness) solid var(--text-color);
+  margin: 0 2px;
+}
+
+.keyboard-help-toggle {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  z-index: 1001;
+  background: var(--background-color);
+  border: var(--border-thickness) solid var(--text-color);
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+/* Ensure all interactive elements have visible focus and hover states */
+a, button, input, select, textarea, details, [tabindex]:not([tabindex="-1"]) {
+  &:focus-visible {
+    outline: 3px solid var(--accent-color);
+    outline-offset: 2px;
+  }
+}
+
+/* Improve TOC keyboard navigation */
+.toc a {
+  display: block;
+  padding: 4px 0;
+  
+  &:focus-visible {
+    background-color: var(--accent-color-transparent);
+    outline: none;
+    padding-left: 4px;
+  }
+}
+
+/* Ensure headings have proper focus styles for keyboard navigation */
+h1[tabindex="-1"]:focus,
+h2[tabindex="-1"]:focus,
+h3[tabindex="-1"]:focus,
+h4[tabindex="-1"]:focus,
+h5[tabindex="-1"]:focus,
+h6[tabindex="-1"]:focus {
+  outline: none;
+  background-color: var(--accent-color-transparent);
+}
+
+/* Keyboard navigation and accessibility enhancements */
+/* -------------------------------------------------- */
+/* These styles support keyboard navigation throughout the site,
+   ensuring proper focus visibility and interaction patterns
+   for keyboard users while maintaining a clean visual experience 
+   for mouse users. */
+
+/* Skip to content link - hidden until focused */
+.skip-to-content {
+  position: absolute;
+  top: -100px;
+  left: 0;
+  background: var(--accent-color);
+  color: var(--text-color-inverse);
+  padding: 0.5rem 1rem;
+  z-index: 9999;
+  transition: top 0.3s;
+  text-decoration: none;
+  border: 1px solid var(--border-color);
+  
+  &:focus {
+    top: 0;
+    outline: 2px solid var(--accent-color);
+  }
+}
+
+/* Enhanced focus styles for keyboard users only */
+.keyboard-user :focus,
+.keyboard-user button:focus,
+.keyboard-user a:focus,
+.keyboard-user input:focus,
+.keyboard-user select:focus,
+.keyboard-user textarea:focus {
+  outline: 2px solid var(--accent-color) !important;
+  outline-offset: 2px !important;
+  text-decoration: underline;
+}
+
+/* Hide focus outline for mouse users */
+:focus:not(:focus-visible) {
+  outline: none !important;
+  text-decoration: none;
+}
+
+/* Focus indicator for interactive elements */
+.keyboard-user .interactive:focus::before,
+.keyboard-user button:focus::before,
+.keyboard-user a:focus::before {
+  content: '>';
+  position: absolute;
+  left: -1.5ch;
+  color: var(--accent-color);
+}
+
+/* Current navigation item indicator for keyboard users */
+.keyboard-user nav a:focus {
+  background-color: var(--background-color-alt);
+}
+
+/* Focus style for TOC items */
+.keyboard-user .toc a:focus {
+  background-color: var(--background-color-alt);
+  color: var(--accent-color);
+}
+
+/* Enhance keyboard interaction for modals and dialogs */
+[role="dialog"],
+.modal {
+  &:focus {
+    outline: none;
+  }
+  
+  .close-button:focus,
+  .modal-close:focus,
+  [data-dismiss]:focus {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+  }
+}
+
+/* Make the current section more visible when navigated to via keyboard */
+.keyboard-user h2:focus,
+.keyboard-user h3:focus,
+.keyboard-user h4:focus {
+  background-color: var(--background-color-alt);
+  padding-left: 1ch;
+  margin-left: -1ch;
+}
+
+/* Screen Reader Test Page Styles */
+.result-box {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+
+.result-status {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  margin-bottom: 0.5rem;
+  border-radius: 2px;
+  font-weight: bold;
+}
+
+.result-status.pass {
+  background-color: #28a745;
+  color: #fff;
+}
+
+.result-status.fail {
+  background-color: #dc3545;
+  color: #fff;
+}
+
+.issue-list {
+  list-style: none;
+  padding: 0;
+}
+
+.issue-item {
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  border-left: 4px solid #ccc;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.issue-severity {
+  padding: 0.2rem 0.4rem;
+  border-radius: 2px;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.issue-severity.high {
+  background-color: #dc3545;
+  color: #fff;
+}
+
+.issue-severity.medium {
+  background-color: #ffc107;
+  color: #000;
+}
+
+.issue-severity.low {
+  background-color: #17a2b8;
+  color: #fff;
+}
+
+.issue-description {
+  flex: 1;
+}
+
+.issue-location {
+  font-style: italic;
+  color: var(--text-secondary);
+}
+
+/* Accessibility Description Styles */
+.a11y-description {
+  margin-top: 1rem;
+  border-top: 1px solid var(--border-color);
+  padding-top: 1rem;
+}
+
+.a11y-description-toggle {
+  background-color: var(--background-color-alt);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-family: var(--font-family);
+  transition: background-color 0.2s ease;
+}
+
+.a11y-description-toggle:hover {
+  background-color: var(--background-color);
+}
+
+.a11y-description-toggle:focus {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+.a11y-description-text {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: var(--background-color-alt);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  line-height: 1.5;
+}
+
+.a11y-description-text[hidden] {
+  display: none;
 }

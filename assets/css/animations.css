@@ -1,0 +1,140 @@
+/**
+ * Animations CSS
+ * --------------
+ * Contains all animation-related styles for the Hydepwns website
+ */
+
+/* Typewriter Animation */
+@keyframes typewriter {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes typewriter-cursor-blink {
+  0% { border-right-color: var(--text-color); }
+  50% { border-right-color: transparent; }
+  100% { border-right-color: var(--text-color); }
+}
+
+.typewriter {
+  overflow: hidden;
+  display: inline-block;
+  white-space: nowrap;
+  width: 0;
+  border-right: 2px solid var(--text-color);
+  animation: 
+    typewriter 3.5s steps(var(--char-count, 40)) 0.5s 1 forwards,
+    typewriter-cursor-blink 0.8s step-end infinite;
+}
+
+/* Character Fade-in Animation */
+@keyframes char-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.char-fade span {
+  opacity: 0;
+  animation: char-fade-in 0.1s ease-in-out forwards;
+}
+
+/* Grid Fade-in Animation */
+@keyframes grid-fade {
+  from { clip-path: polygon(0 0, 100% 0, 100% 0, 0 0); }
+  to { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+}
+
+.grid-fade-in {
+  clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
+  animation: grid-fade 0.5s steps(var(--line-count, 10)) forwards;
+}
+
+/* Animation Speed Controls */
+.slow-speed .typewriter {
+  animation-duration: 5s, 0.8s;
+}
+
+.normal-speed .typewriter {
+  animation-duration: 3.5s, 0.8s;
+}
+
+.fast-speed .typewriter {
+  animation-duration: 2s, 0.8s;
+}
+
+.slow-speed .char-fade span {
+  animation-duration: 0.3s;
+}
+
+.normal-speed .char-fade span {
+  animation-duration: 0.1s;
+}
+
+.fast-speed .char-fade span {
+  animation-duration: 0.05s;
+}
+
+.slow-speed .grid-fade-in {
+  animation-duration: 1s;
+}
+
+.normal-speed .grid-fade-in {
+  animation-duration: 0.5s;
+}
+
+.fast-speed .grid-fade-in {
+  animation-duration: 0.25s;
+}
+
+/* Animation Example Containers */
+.animation-example {
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  margin: 1rem 0;
+  background-color: var(--background-color-alt);
+}
+
+.animation-controls {
+  display: flex;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.animation-control-button,
+.replay-button {
+  padding: 0.5rem 1rem;
+  background-color: var(--accent-color);
+  color: var(--text-color-inverse);
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-family);
+}
+
+.animation-control-button:hover,
+.replay-button:hover {
+  background-color: var(--accent-color-hover);
+}
+
+.animation-control-button:focus,
+.replay-button:focus {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 2px;
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .typewriter {
+    width: 100%;
+    animation: none;
+  }
+  
+  .char-fade span {
+    opacity: 1;
+    animation: none;
+  }
+  
+  .grid-fade-in {
+    clip-path: none;
+    animation: none;
+  }
+} 

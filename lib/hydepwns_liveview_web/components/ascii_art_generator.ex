@@ -1,11 +1,16 @@
 defmodule HydepwnsLiveviewWeb.Components.AsciiArtGenerator do
   use Phoenix.LiveComponent
-  import Phoenix.HTML
-  import Phoenix.HTML.Form
   use PhoenixHTMLHelpers
 
   @moduledoc """
   A component for generating ASCII art with various templates and customization options.
+  
+  Features:
+  - Generate various types of ASCII art (boxes, arrows, tables, banners, etc.)
+  - Customize dimensions, styles, and text content
+  - Copy generated ASCII art to clipboard
+  - Preview changes in real-time
+  - Accessibility support with ARIA labels and keyboard navigation
   """
 
   @doc """
@@ -26,6 +31,9 @@ defmodule HydepwnsLiveviewWeb.Components.AsciiArtGenerator do
       |> assign(:height, assigns[:height] || 5)
       |> assign(:text, assigns[:text] || "")
       |> assign(:style, assigns[:style] || "single")
+      |> assign(:show_code, assigns[:show_code] || true)
+
+    socket = generate_ascii_art(socket)
 
     {:ok, socket}
   end
@@ -44,6 +52,10 @@ defmodule HydepwnsLiveviewWeb.Components.AsciiArtGenerator do
               <option value="box">Box</option>
               <option value="arrow">Arrow</option>
               <option value="table">Table</option>
+              <option value="banner">Banner</option>
+              <option value="frame">Frame</option>
+              <option value="list">List</option>
+              <option value="badge">Badge</option>
               <option value="custom">Custom</option>
             </select>
           </div>
@@ -54,6 +66,8 @@ defmodule HydepwnsLiveviewWeb.Components.AsciiArtGenerator do
               <option value="single">Single Line</option>
               <option value="double">Double Line</option>
               <option value="rounded">Rounded</option>
+              <option value="heavy">Heavy</option>
+              <option value="ascii">ASCII (no unicode)</option>
             </select>
           </div>
         </div>
@@ -61,261 +75,476 @@ defmodule HydepwnsLiveviewWeb.Components.AsciiArtGenerator do
         <div class="form-row">
           <div class="form-group">
             <label for={"#{@id}-width"}>Width</label>
-            <input type="number" id={"#{@id}-width"} name="width" value={@width} min="3" max="100" />
+            <input
+              type="number"
+              id={"#{@id}-width"}
+              name="width"
+              value={@width}
+              min="5"
+              max="100"
+            />
           </div>
 
           <div class="form-group">
             <label for={"#{@id}-height"}>Height</label>
-            <input type="number" id={"#{@id}-height"} name="height" value={@height} min="1" max="50" />
+            <input
+              type="number"
+              id={"#{@id}-height"}
+              name="height"
+              value={@height}
+              min="1"
+              max="50"
+            />
           </div>
-        </div>
 
-        <div class="form-group">
-          <label for={"#{@id}-text"}>Text</label>
-          <input
-            type="text"
-            id={"#{@id}-text"}
-            name="text"
-            value={@text}
-            placeholder="Text to include in ASCII art"
-          />
+          <div class="form-group">
+            <label for={"#{@id}-text"}>Text</label>
+            <input
+              type="text"
+              id={"#{@id}-text"}
+              name="text"
+              value={@text}
+              placeholder="Optional text for the art"
+            />
+          </div>
         </div>
       </form>
 
       <div class="preview-section">
-        <h3>Preview</h3>
-        <pre aria-label={"Generated ASCII art: #{generate_alt_text(@art_type, @text, @width, @height, @style)}"} role="img"><code id={"#{@id}-code"} class="ascii-art" phx-hook="CopyableCode"><%= generate_ascii_art(@art_type, @width, @height, @text, @style) %></code></pre>
-        
-        <div class="a11y-description">
-          <button 
-            type="button" 
-            class="a11y-description-toggle" 
-            aria-expanded="false"
-            aria-controls={"#{@id}-description"}
-            onclick="toggleA11yDescription(this)"
-          >
-            Show text description
-          </button>
-          <div 
-            id={"#{@id}-description"} 
-            class="a11y-description-text" 
-            aria-live="polite"
-            hidden
-          >
-            <%= generate_alt_text(@art_type, @text, @width, @height, @style) %>
+        <div class="preview-header">
+          <h3>Preview</h3>
+          <div class="preview-controls">
+            <button
+              type="button"
+              class="preview-control-button"
+              phx-click="copy_ascii_art"
+              phx-target={@myself}
+              aria-label="Copy ASCII art to clipboard"
+            >
+              Copy
+            </button>
+            <button
+              type="button"
+              class="preview-control-button"
+              phx-click="toggle_code_view"
+              phx-target={@myself}
+              aria-label={if @show_code, do: "Hide code view", else: "Show code view"}
+            >
+              <%= if @show_code, do: "Hide Code", else: "Show Code" %>
+            </button>
           </div>
         </div>
+
+        <pre><code id={"#{@id}-art-code"} phx-hook="CopyableCode" class="ascii-art"><%= @generated_art %></code></pre>
+
+        <%= if @show_code do %>
+          <div class="code-section">
+            <h4>Code to Insert</h4>
+            <div class="code-block">Code placeholder</div>
+          </div>
+        <% end %>
       </div>
     </div>
     """
   end
 
+  @doc """
+  Handle events from the user interface
+  """
   def handle_event("update_ascii_art", params, socket) do
-    {:noreply,
-     socket
-     |> assign(:art_type, params["art_type"] || socket.assigns.art_type)
-     |> assign(:width, String.to_integer(params["width"] || "#{socket.assigns.width}"))
-     |> assign(:height, String.to_integer(params["height"] || "#{socket.assigns.height}"))
-     |> assign(:text, params["text"] || socket.assigns.text)
-     |> assign(:style, params["style"] || socket.assigns.style)}
+    # Parse and validate parameters
+    width = parse_integer(params["width"], 25)
+    height = parse_integer(params["height"], 5)
+    
+    # Update socket with new parameters
+    socket = socket
+      |> assign(:art_type, params["art_type"] || socket.assigns.art_type)
+      |> assign(:style, params["style"] || socket.assigns.style)
+      |> assign(:width, width)
+      |> assign(:height, height)
+      |> assign(:text, params["text"] || "")
+    
+    # Generate the new ASCII art
+    socket = generate_ascii_art(socket)
+    
+    {:noreply, socket}
   end
 
-  defp generate_alt_text(art_type, text, width \\ nil, height \\ nil, style \\ nil) do
-    style_desc = case style do
-      "single" -> "using single lines"
-      "double" -> "using double lines"
-      "rounded" -> "with rounded corners"
-      _ -> ""
-    end
+  def handle_event("copy_ascii_art", _params, socket) do
+    {:noreply, push_event(socket, "copy-to-clipboard", %{
+      text: socket.assigns.generated_art,
+      message: "ASCII art copied to clipboard!"
+    })}
+  end
 
-    dimensions = if width && height do
-      "with dimensions #{width}x#{height}"
-    else
-      ""
-    end
+  def handle_event("toggle_code_view", _params, socket) do
+    {:noreply, assign(socket, :show_code, !socket.assigns.show_code)}
+  end
 
-    case art_type do
-      "box" -> 
-        if text == "" do 
-          "Empty box #{style_desc} #{dimensions}"
-        else 
-          "Box #{style_desc} #{dimensions} containing text: \"#{text}\""
+  # Helper functions for generating ASCII art
+  defp generate_ascii_art(socket) do
+    %{art_type: art_type, style: style, width: width, height: height, text: text} = socket.assigns
+    
+    generated_art = case art_type do
+      "box" -> generate_box(style, width, height, text)
+      "arrow" -> generate_arrow(style, width, text)
+      "table" -> generate_table(style, width, height, text)
+      "banner" -> generate_banner(style, width, text)
+      "frame" -> generate_frame(style, width, height, text)
+      "list" -> generate_list(style, width, text)
+      "badge" -> generate_badge(style, width, text)
+      "custom" -> text # For custom, just use the text as-is
+      _ -> "Unsupported art type: #{art_type}"
+    end
+    
+    assign(socket, :generated_art, generated_art)
+  end
+
+  defp parse_integer(value, default) when is_binary(value) do
+    case Integer.parse(value) do
+      {int, _} -> int
+      :error -> default
+    end
+  end
+  defp parse_integer(_, default), do: default
+
+  # Box generator with different styles
+  defp generate_box("single", width, height, text) do
+    top = "┌" <> String.duplicate("─", width - 2) <> "┐"
+    middle = "│" <> String.pad_trailing(String.slice(text, 0, width - 2), width - 2) <> "│"
+    bottom = "└" <> String.duplicate("─", width - 2) <> "┘"
+    
+    lines = [top] ++ 
+            List.duplicate(middle, max(1, height - 2)) ++ 
+            [bottom]
+    
+    Enum.join(lines, "\n")
+  end
+  
+  defp generate_box("double", width, height, text) do
+    top = "╔" <> String.duplicate("═", width - 2) <> "╗"
+    middle = "║" <> String.pad_trailing(String.slice(text, 0, width - 2), width - 2) <> "║"
+    bottom = "╚" <> String.duplicate("═", width - 2) <> "╝"
+    
+    lines = [top] ++ 
+            List.duplicate(middle, max(1, height - 2)) ++ 
+            [bottom]
+            
+    Enum.join(lines, "\n")
+  end
+  
+  defp generate_box("rounded", width, height, text) do
+    top = "╭" <> String.duplicate("─", width - 2) <> "╮"
+    middle = "│" <> String.pad_trailing(String.slice(text, 0, width - 2), width - 2) <> "│"
+    bottom = "╰" <> String.duplicate("─", width - 2) <> "╯"
+    
+    lines = [top] ++ 
+            List.duplicate(middle, max(1, height - 2)) ++ 
+            [bottom]
+            
+    Enum.join(lines, "\n")
+  end
+  
+  defp generate_box("heavy", width, height, text) do
+    top = "┏" <> String.duplicate("━", width - 2) <> "┓"
+    middle = "┃" <> String.pad_trailing(String.slice(text, 0, width - 2), width - 2) <> "┃"
+    bottom = "┗" <> String.duplicate("━", width - 2) <> "┛"
+    
+    lines = [top] ++ 
+            List.duplicate(middle, max(1, height - 2)) ++ 
+            [bottom]
+            
+    Enum.join(lines, "\n")
+  end
+  
+  defp generate_box("ascii", width, height, text) do
+    top = "+" <> String.duplicate("-", width - 2) <> "+"
+    middle = "|" <> String.pad_trailing(String.slice(text, 0, width - 2), width - 2) <> "|"
+    bottom = "+" <> String.duplicate("-", width - 2) <> "+"
+    
+    lines = [top] ++ 
+            List.duplicate(middle, max(1, height - 2)) ++ 
+            [bottom]
+            
+    Enum.join(lines, "\n")
+  end
+  
+  # Arrow generator with different styles
+  defp generate_arrow("single", width, text) do
+    arrow_body = String.pad_trailing(String.slice(text, 0, width - 5), width - 5)
+    line = "─" <> arrow_body <> "─▶"
+    Enum.join([line], "\n")
+  end
+  
+  defp generate_arrow("double", width, text) do
+    arrow_body = String.pad_trailing(String.slice(text, 0, width - 5), width - 5)
+    line = "═" <> arrow_body <> "═▶"
+    Enum.join([line], "\n")
+  end
+  
+  defp generate_arrow("rounded", width, text) do
+    arrow_body = String.pad_trailing(String.slice(text, 0, width - 5), width - 5)
+    line = "─" <> arrow_body <> "─►"
+    Enum.join([line], "\n")
+  end
+  
+  defp generate_arrow("heavy", width, text) do
+    arrow_body = String.pad_trailing(String.slice(text, 0, width - 5), width - 5)
+    line = "━" <> arrow_body <> "━▶"
+    Enum.join([line], "\n")
+  end
+  
+  defp generate_arrow("ascii", width, text) do
+    arrow_body = String.pad_trailing(String.slice(text, 0, width - 5), width - 5)
+    line = "-" <> arrow_body <> "->"
+    Enum.join([line], "\n")
+  end
+  
+  # Table generator with different styles
+  defp generate_table("single", width, height, text) do
+    cell_width = max(5, width / 3)
+    col_count = max(1, width / cell_width)
+    
+    # Create headers and data based on text
+    parts = String.split(text, ",")
+    headers = Enum.take(parts, col_count)
+              |> Enum.map(&String.slice(&1, 0, cell_width - 2))
+              |> Enum.map(&String.pad_trailing(&1, cell_width - 2))
+    
+    # Table components
+    top = "┌" <> Enum.join(List.duplicate(String.duplicate("─", cell_width - 2), col_count), "┬") <> "┐"
+    header_row = "│ " <> Enum.join(headers, " │ ") <> " │"
+    separator = "├" <> Enum.join(List.duplicate(String.duplicate("─", cell_width - 2), col_count), "┼") <> "┤"
+    
+    # Generate data rows
+    data_rows = for row_index <- 1..(height - 3) do
+      data_cells = for col_index <- 1..col_count do
+        data_index = col_count * row_index + col_index - 1
+        if data_index < length(parts) do
+          String.slice(Enum.at(parts, data_index, ""), 0, cell_width - 2)
+          |> String.pad_trailing(cell_width - 2)
+        else
+          String.duplicate(" ", cell_width - 2)
         end
-      "arrow" -> 
-        "Arrow #{style_desc} #{dimensions} " <> 
-        if text == "", do: "without any text", else: "with text: \"#{text}\""
-      "table" -> 
-        "Table structure #{style_desc} #{dimensions} " <> 
-        if text == "", do: "with empty cells", else: "containing data: \"#{text}\""
-      "custom" -> 
-        "Custom ASCII art #{dimensions} " <> 
-        if text == "", do: "without any text", else: "containing text: \"#{text}\""
-      _ -> "ASCII art"
-    end
-  end
-
-  defp generate_ascii_art(art_type, width, height, text, style) do
-    case art_type do
-      "box" -> generate_box(width, height, text, style)
-      "arrow" -> generate_arrow(width, text, style)
-      "table" -> generate_table(width, height, text, style)
-      "custom" -> generate_custom(width, height, text)
-      _ -> "Invalid art type"
-    end
-  end
-
-  # Box generation
-  defp generate_box(width, height, text, style) do
-    # Get the appropriate characters for the selected style
-    {top_left, top_right, bottom_left, bottom_right, horizontal, vertical} =
-      case style do
-        "single" -> {"┌", "┐", "└", "┘", "─", "│"}
-        "double" -> {"╔", "╗", "╚", "╝", "═", "║"}
-        "rounded" -> {"╭", "╮", "╰", "╯", "─", "│"}
-        # Default to single
-        _ -> {"┌", "┐", "└", "┘", "─", "│"}
       end
-
-    # Create the top border
-    top = top_left <> String.duplicate(horizontal, width - 2) <> top_right <> "\n"
-
-    # Create the content (with text centered if provided)
-    content =
-      if text == "" do
-        String.duplicate(vertical <> String.duplicate(" ", width - 2) <> vertical <> "\n", height)
-      else
-        # Center the text
-        padding_total = width - 2 - String.length(text)
-        padding_left = div(padding_total, 2)
-        padding_right = padding_total - padding_left
-
-        # Generate middle rows with the text centered in one row
-        middle_with_text =
-          vertical <>
-            String.duplicate(" ", padding_left) <>
-            text <> String.duplicate(" ", padding_right) <> vertical <> "\n"
-
-        # Calculate rows before and after the text
-        rows_before = div(height - 1, 2)
-        rows_after = height - 1 - rows_before
-
-        empty_row = vertical <> String.duplicate(" ", width - 2) <> vertical <> "\n"
-
-        String.duplicate(empty_row, rows_before) <>
-          middle_with_text <> String.duplicate(empty_row, rows_after)
-      end
-
-    # Create the bottom border
-    bottom = bottom_left <> String.duplicate(horizontal, width - 2) <> bottom_right
-
+      "│ " <> Enum.join(data_cells, " │ ") <> " │"
+    end
+    
+    bottom = "└" <> Enum.join(List.duplicate(String.duplicate("─", cell_width - 2), col_count), "┴") <> "┘"
+    
     # Combine all parts
-    top <> content <> bottom
+    lines = [top, header_row, separator] ++ data_rows ++ [bottom]
+    Enum.join(lines, "\n")
+  end
+  
+  defp generate_table("double", width, height, text) do
+    cell_width = max(5, width / 3)
+    col_count = max(1, width / cell_width)
+    
+    # Create headers and data based on text
+    parts = String.split(text, ",")
+    headers = Enum.take(parts, col_count)
+              |> Enum.map(&String.slice(&1, 0, cell_width - 2))
+              |> Enum.map(&String.pad_trailing(&1, cell_width - 2))
+    
+    # Table components
+    top = "╔" <> Enum.join(List.duplicate(String.duplicate("═", cell_width - 2), col_count), "╦") <> "╗"
+    header_row = "║ " <> Enum.join(headers, " ║ ") <> " ║"
+    separator = "╠" <> Enum.join(List.duplicate(String.duplicate("═", cell_width - 2), col_count), "╬") <> "╣"
+    
+    # Generate data rows
+    data_rows = for row_index <- 1..(height - 3) do
+      data_cells = for col_index <- 1..col_count do
+        data_index = col_count * row_index + col_index - 1
+        if data_index < length(parts) do
+          String.slice(Enum.at(parts, data_index, ""), 0, cell_width - 2)
+          |> String.pad_trailing(cell_width - 2)
+        else
+          String.duplicate(" ", cell_width - 2)
+        end
+      end
+      "║ " <> Enum.join(data_cells, " ║ ") <> " ║"
+    end
+    
+    bottom = "╚" <> Enum.join(List.duplicate(String.duplicate("═", cell_width - 2), col_count), "╩") <> "╝"
+    
+    # Combine all parts
+    lines = [top, header_row, separator] ++ data_rows ++ [bottom]
+    Enum.join(lines, "\n")
+  end
+  
+  # Simplified implementations for other table styles
+  defp generate_table(_style, width, height, text) do
+    generate_table("single", width, height, text)
   end
 
-  # Arrow generation
-  defp generate_arrow(width, text, style) do
-    # Simplified arrow for now
-    horizontal =
-      case style do
-        "single" -> "─"
-        "double" -> "═"
-        _ -> "─"
-      end
-
-    # Create the arrow
-    if text == "" do
-      "#{String.duplicate(horizontal, width - 2)}>"
-    else
-      "#{String.duplicate(horizontal, 3)}[ #{text} ]#{String.duplicate(horizontal, max(3, width - 7 - String.length(text)))}>"
+  # Banner generator 
+  defp generate_banner(style, width, text) do
+    trimmed_text = String.slice(text, 0, width - 4)
+    padded_text = String.pad_trailing(trimmed_text, width - 4)
+    
+    case style do
+      "single" ->
+        [
+          "┌" <> String.duplicate("─", width - 2) <> "┐",
+          "│ " <> padded_text <> " │",
+          "└" <> String.duplicate("─", width - 2) <> "┘"
+        ] |> Enum.join("\n")
+        
+      "double" ->
+        [
+          "╔" <> String.duplicate("═", width - 2) <> "╗",
+          "║ " <> padded_text <> " ║",
+          "╚" <> String.duplicate("═", width - 2) <> "╝"
+        ] |> Enum.join("\n")
+        
+      "heavy" ->
+        [
+          "┏" <> String.duplicate("━", width - 2) <> "┓",
+          "┃ " <> padded_text <> " ┃",
+          "┗" <> String.duplicate("━", width - 2) <> "┛"
+        ] |> Enum.join("\n")
+        
+      "rounded" ->
+        [
+          "╭" <> String.duplicate("─", width - 2) <> "╮",
+          "│ " <> padded_text <> " │",
+          "╰" <> String.duplicate("─", width - 2) <> "╯"
+        ] |> Enum.join("\n")
+        
+      _ -> # ASCII
+        [
+          "+" <> String.duplicate("-", width - 2) <> "+",
+          "| " <> padded_text <> " |",
+          "+" <> String.duplicate("-", width - 2) <> "+"
+        ] |> Enum.join("\n")
     end
   end
 
-  # Table generation
-  defp generate_table(width, height, text, style) do
-    # Get the appropriate characters for the selected style
-    {h_line, v_line, tl, tr, bl, br, cross, t_down, t_up, t_right, t_left} =
-      case style do
-        "single" -> {"─", "│", "┌", "┐", "└", "┘", "┼", "┬", "┴", "┤", "├"}
-        "double" -> {"═", "║", "╔", "╗", "╚", "╝", "╬", "╦", "╩", "╣", "╠"}
-        # Default to single
-        _ -> {"─", "│", "┌", "┐", "└", "┘", "┼", "┬", "┴", "┤", "├"}
-      end
-
-    # For simplicity, create a 2x2 table
-    col_width = div(width - 3, 2)
-    row_height = div(height - 3, 2)
-
-    # Table parts
-    top =
-      tl <>
-        String.duplicate(h_line, col_width) <>
-        t_down <> String.duplicate(h_line, col_width) <> tr <> "\n"
-
-    # First row content (text in first cell if provided)
-    first_row_content =
-      if text == "" do
-        String.duplicate(
-          v_line <>
-            String.duplicate(" ", col_width) <>
-            v_line <> String.duplicate(" ", col_width) <> v_line <> "\n",
-          row_height
-        )
-      else
-        # Put text in first cell
-        padding_total = col_width - String.length(text)
-        padding_left = max(0, div(padding_total, 2))
-        padding_right = max(0, padding_total - padding_left)
-
-        first_cell =
-          v_line <>
-            String.duplicate(" ", padding_left) <> text <> String.duplicate(" ", padding_right)
-
-        second_cell = v_line <> String.duplicate(" ", col_width) <> v_line <> "\n"
-
-        first_row = first_cell <> second_cell
-
-        # Add empty rows to complete the row height
-        first_row <>
-          String.duplicate(
-            v_line <>
-              String.duplicate(" ", col_width) <>
-              v_line <> String.duplicate(" ", col_width) <> v_line <> "\n",
-            row_height - 1
-          )
-      end
-
-    # Middle divider
-    middle =
-      t_left <>
-        String.duplicate(h_line, col_width) <>
-        cross <> String.duplicate(h_line, col_width) <> t_right <> "\n"
-
-    # Second row (empty)
-    second_row =
-      String.duplicate(
-        v_line <>
-          String.duplicate(" ", col_width) <>
-          v_line <> String.duplicate(" ", col_width) <> v_line <> "\n",
-        row_height
-      )
-
-    # Bottom
-    bottom =
-      bl <>
-        String.duplicate(h_line, col_width) <> t_up <> String.duplicate(h_line, col_width) <> br
-
-    # Combine all parts
-    top <> first_row_content <> middle <> second_row <> bottom
+  # Frame generator
+  defp generate_frame(style, width, height, text) do
+    text_lines = String.split(text, ",")
+    
+    # Calculate how many lines we can display
+    max_lines = min(length(text_lines), height - 2)
+    displayed_lines = Enum.take(text_lines, max_lines)
+    
+    # Prepare the content lines with proper padding
+    content_lines = Enum.map(displayed_lines, fn line ->
+      trimmed = String.slice(line, 0, width - 4)
+      String.pad_trailing(trimmed, width - 4)
+    end)
+    
+    # Add empty lines if needed
+    content_lines = content_lines ++ List.duplicate(String.duplicate(" ", width - 4), height - 2 - length(content_lines))
+    
+    case style do
+      "single" ->
+        top = "┌" <> String.duplicate("─", width - 2) <> "┐"
+        middle = Enum.map(content_lines, fn line -> "│ " <> line <> " │" end)
+        bottom = "└" <> String.duplicate("─", width - 2) <> "┘"
+        
+        [top] ++ middle ++ [bottom] |> Enum.join("\n")
+        
+      "double" ->
+        top = "╔" <> String.duplicate("═", width - 2) <> "╗"
+        middle = Enum.map(content_lines, fn line -> "║ " <> line <> " ║" end)
+        bottom = "╚" <> String.duplicate("═", width - 2) <> "╝"
+        
+        [top] ++ middle ++ [bottom] |> Enum.join("\n")
+        
+      "rounded" ->
+        top = "╭" <> String.duplicate("─", width - 2) <> "╮"
+        middle = Enum.map(content_lines, fn line -> "│ " <> line <> " │" end)
+        bottom = "╰" <> String.duplicate("─", width - 2) <> "╯"
+        
+        [top] ++ middle ++ [bottom] |> Enum.join("\n")
+        
+      "heavy" ->
+        top = "┏" <> String.duplicate("━", width - 2) <> "┓"
+        middle = Enum.map(content_lines, fn line -> "┃ " <> line <> " ┃" end)
+        bottom = "┗" <> String.duplicate("━", width - 2) <> "┛"
+        
+        [top] ++ middle ++ [bottom] |> Enum.join("\n")
+        
+      _ -> # ASCII
+        top = "+" <> String.duplicate("-", width - 2) <> "+"
+        middle = Enum.map(content_lines, fn line -> "| " <> line <> " |" end)
+        bottom = "+" <> String.duplicate("-", width - 2) <> "+"
+        
+        [top] ++ middle ++ [bottom] |> Enum.join("\n")
+    end
   end
 
-  # Custom ASCII art (placeholder)
-  defp generate_custom(width, height, text) do
-    # For now, just provide a placeholder with the dimensions and text
-    "Custom ASCII Art\n" <>
-      "Width: #{width}\n" <>
-      "Height: #{height}\n" <>
-      "Text: #{text}\n" <>
-      "\n" <>
-      "This feature is coming soon!"
+  # List generator
+  defp generate_list(style, width, text) do
+    items = String.split(text, ",")
+    
+    bullet = case style do
+      "single" -> "• "
+      "double" -> "◆ "
+      "rounded" -> "○ "
+      "heavy" -> "■ "
+      _ -> "* "
+    end
+    
+    lines = Enum.map(items, fn item ->
+      trimmed = String.slice(item, 0, width - 4)
+      bullet <> String.pad_trailing(String.trim(trimmed), width - 4)
+    end)
+    
+    Enum.join(lines, "\n")
+  end
+
+  # Badge generator
+  defp generate_badge(style, width, text) do
+    parts = String.split(text, ":", parts: 2)
+    
+    label = if length(parts) > 0, do: Enum.at(parts, 0, ""), else: ""
+    value = if length(parts) > 1, do: Enum.at(parts, 1, ""), else: ""
+    
+    # Trim to fit within width
+    label_max = min(String.length(label), div(width, 2) - 2)
+    value_max = min(String.length(value), div(width, 2) - 2)
+    
+    trimmed_label = String.slice(label, 0, label_max)
+    trimmed_value = String.slice(value, 0, value_max)
+    
+    case style do
+      "single" ->
+        "┌" <> String.duplicate("─", String.length(trimmed_label) + 2) <> 
+        "┬" <> String.duplicate("─", String.length(trimmed_value) + 2) <> "┐\n" <>
+        "│ " <> trimmed_label <> " │ " <> trimmed_value <> " │\n" <>
+        "└" <> String.duplicate("─", String.length(trimmed_label) + 2) <> 
+        "┴" <> String.duplicate("─", String.length(trimmed_value) + 2) <> "┘"
+        
+      "double" ->
+        "╔" <> String.duplicate("═", String.length(trimmed_label) + 2) <> 
+        "╦" <> String.duplicate("═", String.length(trimmed_value) + 2) <> "╗\n" <>
+        "║ " <> trimmed_label <> " ║ " <> trimmed_value <> " ║\n" <>
+        "╚" <> String.duplicate("═", String.length(trimmed_label) + 2) <> 
+        "╩" <> String.duplicate("═", String.length(trimmed_value) + 2) <> "╝"
+        
+      "rounded" ->
+        "╭" <> String.duplicate("─", String.length(trimmed_label) + 2) <> 
+        "┬" <> String.duplicate("─", String.length(trimmed_value) + 2) <> "╮\n" <>
+        "│ " <> trimmed_label <> " │ " <> trimmed_value <> " │\n" <>
+        "╰" <> String.duplicate("─", String.length(trimmed_label) + 2) <> 
+        "┴" <> String.duplicate("─", String.length(trimmed_value) + 2) <> "╯"
+        
+      "heavy" ->
+        "┏" <> String.duplicate("━", String.length(trimmed_label) + 2) <> 
+        "┳" <> String.duplicate("━", String.length(trimmed_value) + 2) <> "┓\n" <>
+        "┃ " <> trimmed_label <> " ┃ " <> trimmed_value <> " ┃\n" <>
+        "┗" <> String.duplicate("━", String.length(trimmed_label) + 2) <> 
+        "┻" <> String.duplicate("━", String.length(trimmed_value) + 2) <> "┛"
+        
+      _ -> # ASCII
+        "+" <> String.duplicate("-", String.length(trimmed_label) + 2) <> 
+        "+" <> String.duplicate("-", String.length(trimmed_value) + 2) <> "+\n" <>
+        "| " <> trimmed_label <> " | " <> trimmed_value <> " |\n" <>
+        "+" <> String.duplicate("-", String.length(trimmed_label) + 2) <> 
+        "+" <> String.duplicate("-", String.length(trimmed_value) + 2) <> "+"
+    end
   end
 end

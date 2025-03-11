@@ -1,6 +1,5 @@
 defmodule HydepwnsLiveviewWeb.GalleryLive do
   use HydepwnsLiveviewWeb, :live_view
-  import HydepwnsLiveviewWeb.ImageHelper
   import HydepwnsLiveviewWeb.ResponsiveImageHelper
 
   @impl true

@@ -1,0 +1,195 @@
+/* 
+ * InfoBox Component Styles
+ * -----------------------
+ * Monospace-styled information boxes for tips, warnings, and contextual information
+ */
+
+/* Base InfoBox Styling */
+.info-box {
+  margin: var(--line-height) 0;
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+  font-family: var(--font-family);
+  background-color: var(--background-color-alt);
+}
+
+/* Bordered variant */
+.info-box--bordered {
+  border: var(--border-thickness) solid var(--border-color);
+}
+
+/* Header styling */
+.info-box__header {
+  display: flex;
+  align-items: center;
+  padding: 0.5ch 1ch;
+  border-bottom: var(--border-thickness) solid var(--border-color);
+  background-color: var(--background-color-alt);
+}
+
+.info-box__icon {
+  margin-right: 1ch;
+  font-weight: var(--font-weight-bold);
+}
+
+.info-box__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: var(--font-weight-medium);
+  flex: 1;
+}
+
+.info-box__close {
+  border: none;
+  background: none;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 0.5ch;
+  color: var(--text-color);
+}
+
+.info-box__close:hover {
+  color: var(--text-color-alt);
+}
+
+/* Content styling */
+.info-box__content {
+  padding: 1ch;
+}
+
+/* Type variants */
+.info-box--info {
+  --info-bg: rgba(0, 120, 215, 0.1);
+  --info-border: rgba(0, 120, 215, 0.5);
+  --info-icon: rgba(0, 120, 215, 1);
+  
+  background-color: var(--info-bg);
+  
+  &.info-box--bordered {
+    border-color: var(--info-border);
+  }
+  
+  .info-box__header {
+    background-color: var(--info-border);
+    color: var(--text-color);
+  }
+  
+  .info-box__icon {
+    color: var(--info-icon);
+  }
+}
+
+.info-box--tip {
+  --tip-bg: rgba(20, 170, 80, 0.1);
+  --tip-border: rgba(20, 170, 80, 0.5);
+  --tip-icon: rgba(20, 170, 80, 1);
+  
+  background-color: var(--tip-bg);
+  
+  &.info-box--bordered {
+    border-color: var(--tip-border);
+  }
+  
+  .info-box__header {
+    background-color: var(--tip-border);
+    color: var(--text-color);
+  }
+  
+  .info-box__icon {
+    color: var(--tip-icon);
+  }
+}
+
+.info-box--warning {
+  --warning-bg: rgba(255, 180, 0, 0.1);
+  --warning-border: rgba(255, 180, 0, 0.5);
+  --warning-icon: rgba(255, 180, 0, 1);
+  
+  background-color: var(--warning-bg);
+  
+  &.info-box--bordered {
+    border-color: var(--warning-border);
+  }
+  
+  .info-box__header {
+    background-color: var(--warning-border);
+    color: var(--text-color);
+  }
+  
+  .info-box__icon {
+    color: var(--warning-icon);
+  }
+}
+
+.info-box--error {
+  --error-bg: rgba(215, 0, 0, 0.1);
+  --error-border: rgba(215, 0, 0, 0.5);
+  --error-icon: rgba(215, 0, 0, 1);
+  
+  background-color: var(--error-bg);
+  
+  &.info-box--bordered {
+    border-color: var(--error-border);
+  }
+  
+  .info-box__header {
+    background-color: var(--error-border);
+    color: var(--text-color);
+  }
+  
+  .info-box__icon {
+    color: var(--error-icon);
+  }
+}
+
+/* Keyboard styling */
+.mono-kbd {
+  display: inline-block;
+  padding: 0.1ch 0.5ch;
+  border: 1px solid var(--border-color);
+  border-radius: 0;
+  background-color: var(--background-color-alt);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+  font-size: 0.9rem;
+  font-family: var(--font-family);
+}
+
+/* High contrast theme support */
+body.high-contrast-theme {
+  .info-box {
+    border-color: var(--color-high-contrast-border) !important;
+  }
+  
+  .info-box__header {
+    background-color: var(--background-color) !important;
+    border-color: var(--color-high-contrast-border) !important;
+  }
+  
+  .info-box__icon {
+    color: var(--color-high-contrast-text) !important;
+  }
+  
+  .mono-kbd {
+    border-color: var(--color-high-contrast-border);
+    color: var(--color-high-contrast-text);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .info-box {
+    margin: calc(var(--line-height) * 0.75) 0;
+  }
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .info-box--info .info-box__header,
+  .info-box--tip .info-box__header,
+  .info-box--warning .info-box__header,
+  .info-box--error .info-box__header {
+    color: var(--background-color);
+  }
+} 

@@ -92,6 +92,9 @@ defmodule HydepwnsLiveviewWeb do
       # Import UI components
       import HydepwnsLiveviewWeb.Components.UI.LayoutComponents
       import HydepwnsLiveviewWeb.Components.UI.DebugGrid
+      import HydepwnsLiveviewWeb.Components.UI.InfoBox
+      import HydepwnsLiveviewWeb.Components.UI.MonoForm
+      import HydepwnsLiveviewWeb.Components.UI.MonoTabs
       # Import Theme Toggle component
       import HydepwnsLiveviewWeb.Components.ThemeToggle
       # Import Theme Preview component

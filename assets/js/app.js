@@ -34,6 +34,9 @@ import DiagramEditor from "./hooks/diagram_editor"
 import AutoResize from "./hooks/auto_resize"
 import MonoGrid from "./hooks/mono_grid"
 import Terminal from "./hooks/terminal"
+import LazyLoad from "./hooks/lazy_load"
+import TimelineHook from "./hooks/timeline_hooks"
+import ProgressIndicatorHook from "./hooks/progress_indicator_hooks"
 import { CharacterAnimation, GridFadeIn } from "./components/animations"
 
 // Import accessibility functions
@@ -79,7 +82,10 @@ const Hooks = {
   MonoGrid,
   Terminal,
   CharacterAnimation,
-  GridFadeIn
+  GridFadeIn,
+  LazyLoad,
+  TimelineHook,
+  ProgressIndicatorHook
 }
 
 // Create LiveSocket with hooks and parameters
@@ -390,6 +396,37 @@ window.addEventListener("phx:hide_demo_dialog", (e) => {
   if (dialog) {
     dialog.style.display = 'none';
     dialog.setAttribute('aria-hidden', 'true');
+  }
+});
+
+// Handle replay_animations event
+window.addEventListener("phx:replay_animations", (e) => {
+  // Find all elements with CharacterAnimation hook
+  const characterElements = document.querySelectorAll('[phx-hook="CharacterAnimation"]');
+  characterElements.forEach(element => {
+    if (element.__hooks && element.__hooks.CharacterAnimation) {
+      // Call the replayAnimation method if it exists
+      if (typeof element.__hooks.CharacterAnimation.replayAnimation === 'function') {
+        element.__hooks.CharacterAnimation.replayAnimation();
+      }
+    }
+  });
+  
+  // Find all elements with GridFadeIn hook
+  const gridElements = document.querySelectorAll('[phx-hook="GridFadeIn"]');
+  gridElements.forEach(element => {
+    if (element.__hooks && element.__hooks.GridFadeIn) {
+      // Call the replayAnimation method if it exists
+      if (typeof element.__hooks.GridFadeIn.replayAnimation === 'function') {
+        element.__hooks.GridFadeIn.replayAnimation();
+      }
+    }
+  });
+  
+  // Announce to screen readers
+  const announcer = document.getElementById('accessibility-announcer');
+  if (announcer) {
+    announcer.textContent = 'Animations replaying';
   }
 });
 

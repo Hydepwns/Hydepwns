@@ -16,6 +16,8 @@ import KeyboardNavigation from "../hooks/keyboard_navigation"
 import FocusMode from "../hooks/focus_mode"
 import AutoResize from "../hooks/auto_resize"
 import MonoGrid from "../hooks/mono_grid"
+import { DismissibleInfoBox } from "../hooks/info_box_hooks"
+import { MonoTabs } from "../hooks/mono_tabs_hooks"
 
 // Import accessibility functions
 import "../accessibility/accessibility.js"
@@ -41,7 +43,9 @@ const Hooks = {
   KeyboardNavigation,
   FocusMode,
   AutoResize,
-  MonoGrid
+  MonoGrid,
+  DismissibleInfoBox,
+  MonoTabs
 };
 
 // Initialize LiveSocket

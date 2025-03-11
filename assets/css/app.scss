@@ -18,6 +18,21 @@
 /* Component specific styles */
 @import "./components.scss";
 
+/* Info Box component */
+@import "./components/info_box.scss";
+
+/* Monospace Form component */
+@import "./components/mono_form.scss";
+
+/* Monospace Tabs component */
+@import "./components/mono_tabs.scss";
+
+/* Timeline component */
+@import "./components/timeline.css";
+
+/* Progress Indicator component */
+@import "./components/progress_indicator.css";
+
 /* Gallery page styles */
 @import "./gallery.css";
 
@@ -1360,3 +1375,6 @@ h6[tabindex="-1"]:focus {
 .a11y-description-text[hidden] {
   display: none;
 }
+
+/* Import animations */
+@import 'animations.css';

@@ -1,0 +1,233 @@
+/**
+ * Progress Indicator Component Styles
+ * Provides styling for the monospace progress indicators with ASCII art.
+ */
+
+/* Base progress indicator styles */
+.monospace-progress {
+  font-family: var(--mono-font);
+  line-height: var(--line-height);
+  margin: 1rem 0;
+  position: relative;
+}
+
+/* Linear progress bar styles */
+.monospace-progress.linear .progress-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.monospace-progress.linear .progress-bar {
+  white-space: pre;
+  color: var(--text-color);
+}
+
+.monospace-progress.linear .progress-label {
+  margin-top: 0.25rem;
+  color: var(--muted-color);
+  font-size: 0.9rem;
+}
+
+/* Step indicator styles */
+.monospace-progress.step-indicator .steps-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.monospace-progress.step-indicator .steps-track {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.monospace-progress.step-indicator .step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.monospace-progress.step-indicator .step-marker {
+  white-space: pre;
+  margin-bottom: 0.25rem;
+}
+
+.monospace-progress.step-indicator .step-connector {
+  white-space: pre;
+  color: var(--muted-color);
+}
+
+.monospace-progress.step-indicator .step-label {
+  font-size: 0.9rem;
+  max-width: 120px;
+}
+
+/* Step indicator states */
+.monospace-progress.step-indicator .step-item.completed .step-marker {
+  color: var(--success-color);
+}
+
+.monospace-progress.step-indicator .step-item.current .step-marker {
+  color: var(--accent-color);
+  font-weight: bold;
+}
+
+.monospace-progress.step-indicator .step-item.pending .step-marker {
+  color: var(--muted-color);
+}
+
+/* Spinner styles */
+.monospace-progress.spinner .spinner-container {
+  display: flex;
+  align-items: center;
+  gap: 1ch;
+}
+
+.monospace-progress.spinner .spinner-animation {
+  white-space: pre;
+  min-width: 1ch;
+  text-align: center;
+}
+
+.monospace-progress.spinner .spinner-label {
+  color: var(--text-color);
+}
+
+/* Spinner style variations */
+.monospace-progress.spinner.braille .spinner-animation {
+  color: var(--accent-color);
+}
+
+.monospace-progress.spinner.ascii .spinner-animation {
+  color: var(--text-color);
+}
+
+.monospace-progress.spinner.dots .spinner-animation {
+  color: var(--accent-color);
+}
+
+.monospace-progress.spinner.line .spinner-animation {
+  color: var(--accent-color);
+}
+
+/* Circular progress styles */
+.monospace-progress.circular .circular-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.monospace-progress.circular .circular-progress {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.monospace-progress.circular .circle-art {
+  white-space: pre;
+  margin: 0;
+  color: var(--accent-color);
+  line-height: 1;
+}
+
+.monospace-progress.circular .circle-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.9rem;
+  color: var(--text-color);
+}
+
+.monospace-progress.circular .progress-label {
+  margin-top: 0.5rem;
+  color: var(--muted-color);
+  font-size: 0.9rem;
+}
+
+/* Circular progress sizes */
+.monospace-progress.circular.small .circle-art {
+  font-size: 0.9rem;
+}
+
+.monospace-progress.circular.small .circle-text {
+  font-size: 0.7rem;
+}
+
+.monospace-progress.circular.large .circle-art {
+  font-size: 1.1rem;
+}
+
+.monospace-progress.circular.large .circle-text {
+  font-size: 1rem;
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .monospace-progress.linear .progress-bar,
+[data-theme="dark"] .monospace-progress.spinner .spinner-label,
+[data-theme="dark"] .monospace-progress.circular .circle-text {
+  color: var(--dark-text-color);
+}
+
+[data-theme="dark"] .monospace-progress.linear .progress-label,
+[data-theme="dark"] .monospace-progress.step-indicator .step-connector,
+[data-theme="dark"] .monospace-progress.step-indicator .step-item.pending .step-marker,
+[data-theme="dark"] .monospace-progress.circular .progress-label {
+  color: var(--dark-muted-color);
+}
+
+[data-theme="dark"] .monospace-progress.step-indicator .step-item.completed .step-marker {
+  color: var(--dark-success-color);
+}
+
+[data-theme="dark"] .monospace-progress.step-indicator .step-item.current .step-marker,
+[data-theme="dark"] .monospace-progress.spinner.braille .spinner-animation,
+[data-theme="dark"] .monospace-progress.spinner.dots .spinner-animation,
+[data-theme="dark"] .monospace-progress.spinner.line .spinner-animation,
+[data-theme="dark"] .monospace-progress.circular .circle-art {
+  color: var(--dark-accent-color);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .monospace-progress.step-indicator .steps-track {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .monospace-progress.step-indicator .step-item {
+    flex-direction: row;
+    align-items: center;
+    text-align: left;
+    gap: 1ch;
+  }
+  
+  .monospace-progress.step-indicator .step-marker {
+    margin-bottom: 0;
+  }
+  
+  .monospace-progress.step-indicator .step-connector {
+    display: none;
+  }
+}
+
+/* Animation styles */
+@keyframes progress-pulse {
+  0% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.7;
+  }
+}
+
+.monospace-progress.linear.animate .progress-bar,
+.monospace-progress.spinner .spinner-animation {
+  animation: progress-pulse 1.5s ease-in-out infinite;
+} 

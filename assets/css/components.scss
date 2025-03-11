@@ -2367,4 +2367,25 @@ body.high-contrast-theme {
     display: block;
     padding: 0.5ch 0;
   }
+}
+
+/* LazyLoad Component Styles */
+.lazy-load-container {
+  position: relative;
+  min-height: 50px;
+}
+
+.default-placeholder {
+  background-color: var(--background-color-alt);
+  border-radius: 4px;
+  height: 100%;
+  min-height: 100px;
+  width: 100%;
+  animation: placeholder-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes placeholder-pulse {
+  0% { opacity: 0.5; }
+  50% { opacity: 0.8; }
+  100% { opacity: 0.5; }
 } 

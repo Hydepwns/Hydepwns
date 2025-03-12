@@ -25,6 +25,7 @@ import topbar from "../vendor/topbar"
 
 // Import component hooks
 import DebugGrid from "./hooks/debug_grid"
+import DebugGridToggle from "./hooks/debug_grid_toggle"
 import ThemeToggle from "./hooks/theme_toggle"
 import CopyableCode from "./hooks/copyable_code"
 import KeyboardNavigation from "./hooks/keyboard_navigation"
@@ -40,6 +41,9 @@ import ProgressIndicatorHook from "./hooks/progress_indicator_hooks"
 import HierarchicalTOC from "./hooks/hierarchical_toc"
 import { CharacterAnimation, GridFadeIn } from "./components/animations"
 import TerminalHooks from "./hooks/terminal_hooks"
+import TerminalThemeSync from "./hooks/terminal_theme_sync"
+import ViewportDetector from "./hooks/viewport_detector" 
+import AccessibilityMenuToggle from "./hooks/accessibility_menu_toggle"
 
 // Import accessibility functions
 import "./accessibility/accessibility.js"
@@ -49,6 +53,9 @@ import { initStyleGuide } from "./style_guide";
 
 // Import font optimization module
 import { initFontOptimizations } from "./font-optimizations";
+
+// Import mobile optimizations
+import mobileOptimizations from "./performance/mobile_optimizations";
 
 /**
  * Debug Utility
@@ -74,6 +81,7 @@ const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute
 // Register all component hooks
 const Hooks = {
   DebugGrid,
+  DebugGridToggle,
   ThemeToggle,
   CopyableCode,
   KeyboardNavigation,
@@ -89,6 +97,9 @@ const Hooks = {
   TimelineHook,
   ProgressIndicatorHook,
   HierarchicalTOC,
+  TerminalThemeSync,
+  ViewportDetector,
+  AccessibilityMenuToggle,
   ...TerminalHooks
 }
 
@@ -461,6 +472,20 @@ window.liveSocket = liveSocket
 
 // Connect to LiveView
 liveSocket.connect()
+
+// Initialize mobile optimizations after the page loads
+document.addEventListener('DOMContentLoaded', async () => {
+  // Initialize font optimizations
+  initFontOptimizations();
+  
+  // Initialize mobile optimizations
+  await mobileOptimizations.init();
+  
+  // Initialize style guide if needed
+  if (document.querySelector('#style-guide')) {
+    initStyleGuide();
+  }
+});
 
 // Configure global const for use in other modules
 window.DEBUG = DEBUG;

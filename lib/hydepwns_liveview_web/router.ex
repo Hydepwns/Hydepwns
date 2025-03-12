@@ -28,10 +28,22 @@ defmodule HydepwnsLiveviewWeb.Router do
     live "/api-docs", ApiDocsLive, :index
     live "/grid-playground", GridPlaygroundLive, :index
     live "/gallery", GalleryLive, :index
+    live "/theme-manager", Themes.ThemeManagerLive
+
+    # Theme system routes
+    resources "/themes", ThemeController
 
     # Playground routes
     scope "/playground", Live.Playground, as: :playground do
       live "/terminal", TerminalDemoLive, :index
+    end
+
+    # Examples routes
+    scope "/examples", Examples, as: :examples do
+      live "/type-validation", TypeValidationExample, :index
+      live "/resource-assigns", UserResourceLive, :index
+      live "/user-resource", UserResourceExampleLive, :index
+      live "/ecto-resource", EctoResourceExampleLive, :index
     end
 
     # Offline fallback page
@@ -39,6 +51,9 @@ defmodule HydepwnsLiveviewWeb.Router do
 
     # Service worker
     get "/service-worker.js", ServiceWorkerController, :index
+
+    # Add a test route for validation testing
+    live "/test", EnhancedErrorReportingTest.TestErrorLive
   end
 
   # Development-only routes

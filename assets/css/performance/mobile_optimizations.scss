@@ -118,6 +118,185 @@
   }
 }
 
+/* Battery-aware optimizations */
+.battery-low {
+  /* Reduce visual effects for low battery */
+  
+  /* Simplify shadows */
+  .card, .panel, .shadow-effect {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12) !important;
+  }
+  
+  /* Slow down animations */
+  .animated, .transition-effect {
+    transition-duration: 0.5s !important;
+  }
+  
+  /* Reduce transition property scope */
+  * {
+    transition-property: opacity !important;
+  }
+  
+  /* Simplify effects */
+  .hover-effect:hover {
+    transform: none !important;
+  }
+  
+  /* Reduce parallax and complex effects */
+  .parallax, .complex-animation {
+    display: none !important;
+  }
+}
+
+.battery-critical {
+  /* Apply extreme battery saving modes */
+  
+  /* Disable almost all visual enhancements */
+  .card, .panel, .shadow-effect {
+    box-shadow: none !important;
+    border: 1px solid var(--border-color) !important;
+  }
+  
+  /* Eliminate transitions */
+  *, *::before, *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+  
+  /* Simplify all background effects */
+  .gradient-bg, .pattern-bg {
+    background: var(--bg-color) !important;
+  }
+  
+  /* Use solid colors instead of gradients */
+  [class*="gradient"] {
+    background-image: none !important;
+  }
+  
+  /* Disable transforms on hover/focus */
+  *:hover, *:focus {
+    transform: none !important;
+  }
+  
+  /* Simplify borders */
+  .border-effect {
+    border-width: 1px !important;
+    border-style: solid !important;
+  }
+  
+  /* Reduce font variety for better rendering performance */
+  * {
+    font-family: system-ui, -apple-system, sans-serif !important;
+  }
+  
+  /* Terminal-specific optimizations */
+  .terminal-container {
+    /* Simplify cursor animation */
+    .terminal-cursor {
+      animation: none !important;
+      opacity: 1 !important;
+    }
+    
+    /* Disable syntax highlighting */
+    .highlight {
+      color: inherit !important;
+    }
+  }
+  
+  /* Images with critical data-saver */
+  img:not([critical="true"]) {
+    display: none !important;
+  }
+}
+
+/* Battery notice styling */
+.battery-notice {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #333;
+  color: white;
+  border-radius: 4px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  z-index: 9999;
+  font-size: 14px;
+  max-width: 300px;
+  animation: slide-in 0.3s ease-out;
+  opacity: 1;
+  transition: opacity 0.3s, transform 0.3s;
+  
+  .battery-notice-icon {
+    margin-right: 10px;
+    font-size: 20px;
+  }
+  
+  .battery-notice-message {
+    flex: 1;
+  }
+  
+  .battery-notice-close {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    padding: 0;
+    margin-left: 10px;
+    font-size: 16px;
+    
+    &:hover {
+      color: white;
+    }
+  }
+  
+  /* Variants */
+  &.battery-notice-low {
+    background-color: #e67e22;
+  }
+  
+  &.battery-notice-critical {
+    background-color: #e74c3c;
+  }
+  
+  /* Hiding animation */
+  &.battery-notice-hiding {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@keyframes slide-in {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Disable all animations class */
+.disable-animations {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+  
+  /* Allow critical animations only */
+  .critical-animation {
+    animation: critical-fade 0.5s !important;
+  }
+}
+
+@keyframes critical-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 /* Lazy loading styles */
 img.loaded, 
 .defer-load.loaded {
@@ -182,6 +361,39 @@ img.loaded,
         }
       }
     }
+  }
+}
+
+/* Battery-specific terminal optimizations */
+.battery-low .terminal-container,
+.battery-critical .terminal-container {
+  /* Simplify terminal UI for battery saving */
+  .terminal-screen {
+    max-height: 50vh !important;
+  }
+  
+  /* Disable terminal animations */
+  .terminal-cursor-blink {
+    animation: none !important;
+  }
+  
+  /* Simplify syntax highlighting to reduce rendering cost */
+  .syntax-highlight {
+    color: inherit !important;
+  }
+}
+
+.battery-critical .terminal-container {
+  /* More aggressive terminal optimizations for critical battery */
+  
+  /* Limit visible output lines even further */
+  .terminal-output-line:nth-child(n+50) {
+    display: none !important;
+  }
+  
+  /* Disable autocomplete dropdown to save power */
+  .terminal-autocomplete {
+    display: none !important;
   }
 }
 

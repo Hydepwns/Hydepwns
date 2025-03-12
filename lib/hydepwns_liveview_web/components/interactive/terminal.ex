@@ -90,7 +90,7 @@ defmodule HydepwnsLiveviewWeb.Components.Interactive.Terminal do
   # Default commands that are available in all terminals
   @default_commands %{
     "help" => %{
-      description: "Show available commands",
+      description: "Display help for available commands",
       usage: "help [command]"
     },
     "clear" => %{
@@ -98,20 +98,12 @@ defmodule HydepwnsLiveviewWeb.Components.Interactive.Terminal do
       usage: "clear"
     },
     "echo" => %{
-      description: "Display a line of text",
+      description: "Print text to the terminal",
       usage: "echo [text]"
     },
-    "date" => %{
-      description: "Display the current date and time",
-      usage: "date"
-    },
     "theme" => %{
-      description: "Change the terminal theme",
-      usage: "theme [light|dark|dim|high-contrast]"
-    },
-    "history" => %{
-      description: "Show command history",
-      usage: "history [clear]"
+      description: "Change terminal theme",
+      usage: "theme [light|dark|dim|high-contrast|synthwave]"
     }
   }
 
@@ -425,6 +417,71 @@ defmodule HydepwnsLiveviewWeb.Components.Interactive.Terminal do
     {:noreply, socket}
   end
 
+  @impl true
+  def handle_event("clear", _, socket) do
+    {:noreply, assign(socket, :output, [])}
+  end
+
+  @impl true
+  def handle_event("update_terminal_theme", %{"theme" => theme}, socket) do
+    # Theme validation
+    valid_themes = ["light", "dark", "dim", "high-contrast", "synthwave"]
+    theme = if theme in valid_themes, do: theme, else: "dark"
+
+    # Add output to indicate theme change
+    output =
+      socket.assigns.output ++
+        [
+          %{
+            type: :system,
+            content: "Terminal theme changed to #{theme}"
+          }
+        ]
+
+    {:noreply,
+     socket
+     |> assign(:theme, theme)
+     |> assign(:output, output)}
+  end
+
+  @impl true
+  def handle_event("terminal_command", %{"command" => command}, socket) do
+    # Execute the command
+    {outputs, status} = execute_command(command, socket.assigns)
+
+    # Add command to history
+    history = socket.assigns.command_history ++ [command]
+
+    # Handle special commands and their effects
+    case status do
+      :ok ->
+        {:noreply,
+         socket
+         |> assign(:command_history, history)
+         |> assign(:current_command, "")
+         |> assign(:history_index, 0)
+         |> update(:output, fn existing -> existing ++ outputs end)}
+
+      {:theme_change, theme} ->
+        # Process theme change
+        {:noreply,
+         socket
+         |> assign(:command_history, history)
+         |> assign(:current_command, "")
+         |> assign(:history_index, 0)
+         |> assign(:theme, theme)
+         |> update(:output, fn existing -> existing ++ outputs end)}
+
+      _ ->
+        {:noreply,
+         socket
+         |> assign(:command_history, history)
+         |> assign(:current_command, "")
+         |> assign(:history_index, 0)
+         |> update(:output, fn existing -> existing ++ outputs end)}
+    end
+  end
+
   # Private functions to handle command execution
   defp execute_command(raw_command, assigns) when is_binary(raw_command) do
     {command, args} = parse_command(raw_command)
@@ -507,24 +564,47 @@ defmodule HydepwnsLiveviewWeb.Components.Interactive.Terminal do
   end
 
   defp execute_echo(args, _assigns) do
-    {[%{type: :output, content: args}], :ok}
+    if args == "" do
+      {[%{type: :system, content: ""}], :ok}
+    else
+      {[%{type: :system, content: args}], :ok}
+    end
   end
 
   defp execute_date(_args, _assigns) do
-    now = DateTime.utc_now() |> DateTime.to_string()
-    {[%{type: :output, content: "Current date and time: #{now}"}], :ok}
+    now = DateTime.utc_now()
+    formatted_date = Calendar.strftime(now, "%Y-%m-%d %H:%M:%S UTC")
+    {[%{type: :system, content: formatted_date}], :ok}
   end
 
-  defp execute_theme(theme, _assigns) do
-    if theme in ["light", "dark", "dim", "high-contrast"] do
-      {[%{type: :system, content: "Switched to #{theme} theme."}], {:theme_change, theme}}
+  defp execute_theme(args, assigns) do
+    if args == "" do
+      # Show current theme and options
+      valid_themes = ["light", "dark", "dim", "high-contrast", "synthwave"]
+      themes_list = Enum.map_join(valid_themes, ", ", & &1)
+
+      content = """
+      Current theme: #{assigns.theme}
+
+      Available themes: #{themes_list}
+
+      Usage: theme [theme_name]
+      """
+
+      {[%{type: :system, content: content}], :ok}
     else
-      {[
-         %{
-           type: :error,
-           content: "Unknown theme: #{theme}. Available themes: light, dark, dim, high-contrast"
-         }
-       ], :error}
+      # Try to set theme
+      theme = String.trim(args)
+      valid_themes = ["light", "dark", "dim", "high-contrast", "synthwave"]
+
+      if theme in valid_themes do
+        content = "Terminal theme changed to #{theme}"
+        {[%{type: :system, content: content}], {:theme_change, theme}}
+      else
+        themes_list = Enum.join(valid_themes, ", ")
+        error = "Invalid theme '#{theme}'. Available themes: #{themes_list}"
+        {[%{type: :error, content: error}], :error}
+      end
     end
   end
 

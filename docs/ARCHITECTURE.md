@@ -67,32 +67,95 @@ The application is built on Phoenix LiveView, providing real-time interactivity 
 
 Hydepwns follows the standard Phoenix architecture with custom additions for theme management and monospace layout components.
 
-```ruby
-┌────────────────────────────────────────────────┐
-│                                                │
-│  ┌──────────────┐     ┌──────────────────────┐ │
-│  │    Phoenix   │     │ Phoenix LiveView     │ │
-│  │  Controllers │────▶│ Live Views &         │ │
-│  │              │     │ Components           │ │
-│  └──────────────┘     └──────────────────────┘ │
-│          │                       │             │
-│          ▼                       ▼             │
-│  ┌──────────────┐     ┌──────────────────────┐ │
-│  │   Phoenix    │     │    Custom Theme      │ │
-│  │   Router     │────▶│      System          │ │
-│  │              │     │                      │ │
-│  └──────────────┘     └──────────────────────┘ │
-│                                │               │
-│                                ▼               │
-│  ┌──────────────────────────────────────────┐  │
-│  │                                          │  │
-│  │           Asset Pipeline                 │  │
-│  │      (esbuild + dart-sass)              │  │
-│  │                                          │  │
-│  └──────────────────────────────────────────┘  │
-│                                                │
-└────────────────────────────────────────────────┘
-```
+### Core Layers
+
+1. **Phoenix Framework** - The foundation of the application
+   - LiveView for real-time, server-rendered UI
+   - Plug for composable web modules
+   - Routing for URL management
+
+2. **Templates & Components** - UI layer
+   - HEEX templates for page structure
+   - LiveComponents for reusable UI elements
+   - Formatting and layout helpers
+
+3. **State Management** - Session and user preferences
+   - Theme state management
+   - User preferences storage
+   - Session persistence
+
+4. **Monospace Grid System** - Typography and layout
+   - Character grid calculations
+   - CSS utilities for monospace alignment
+   - Debug visualization tools
+
+### Resource-Oriented Architecture
+
+The application now incorporates a resource-oriented architecture for socket validation and data management:
+
+1. **LiveViewResource** - Core resource definition system
+   - Declarative attribute definitions
+   - Relationship specifications
+   - Validation rules
+   - Nested attribute support
+
+2. **Resource Adapters** - Data source integration
+   - Ecto schema adapter
+   - Ash resource adapter
+   - Custom data source adapters
+   - Bidirectional data synchronization
+
+3. **LiveViewAPI** - Standardized access patterns
+   - Resource query methods
+   - Resource manipulation functions
+   - Resource transformation pipeline
+   - Lifecycle hooks for resource changes
+
+4. **Resource Events** - Change detection and propagation
+   - Resource change notifications
+   - Resource validation events
+   - Resource synchronization events
+   - Telemetry integration for resource metrics
+
+### Enhanced Error Reporting
+
+The application includes an advanced error reporting system for socket validation:
+
+1. **Context-Aware Errors** - Smart error detection
+   - Type conversion suggestions
+   - Schema validation help
+   - Code examples for fixes
+   - Value history analysis
+   - Pattern recognition for errors
+
+2. **Error Visualization** - Visual error feedback
+   - Debug grid integration
+   - Error highlighting
+   - Real-time error tracking
+   - Error rate visualization
+
+3. **Telemetry Integration** - Error metrics
+   - Error frequency tracking
+   - Resource-specific error rates
+   - Error pattern analysis
+   - Performance impact tracking
+
+### Terminal Component
+
+The terminal component provides a rich interactive experience:
+
+1. **Terminal UI** - Advanced terminal interface
+   - Command parsing and execution
+   - Visual effects for commands
+   - Fullscreen mode
+   - Custom keyboard shortcuts
+   - Theming API integration
+
+2. **Terminal Sharing** - Collaborative features
+   - Shareable terminal sessions
+   - Session state persistence
+   - Session history and playback
+   - Unique URL generation for sessions
 
 ## Key Components
 
@@ -114,6 +177,25 @@ LiveView enables real-time UI updates without writing custom JavaScript:
 - Real-time user experiences with server-rendered HTML
 - Minimal JavaScript for client interactions
 
+### BaseLive Architecture
+
+The BaseLive architecture provides an enhanced foundation for LiveView modules:
+
+- Declarative socket assign specifications using DSL
+- Resource-oriented socket assigns
+- Enhanced error reporting and validation
+- Type validation for socket assigns
+- Data source abstraction through adapter pattern
+
+### Resource Adapter System
+
+The Resource Adapter system enables flexible data validation sources:
+
+- Adapter behavior pattern for multiple data source types
+- Ecto schema support through EctoAdapter
+- In-memory testing support through MemoryAdapter
+- Planned support for Ash resources
+
 ### Theme System
 
 The theme system manages light, dark, and dim themes:
@@ -122,6 +204,7 @@ The theme system manages light, dark, and dim themes:
 - Theme toggle component with JavaScript hooks
 - LocalStorage for theme persistence
 - System preference detection
+- High contrast mode for accessibility
 
 ### Asset Pipeline
 
@@ -197,6 +280,15 @@ test/                            # Tests
 3. CSS variables are updated based on the selected theme
 4. The UI reflects the theme changes immediately
 
+### Socket Validation Flow
+
+1. LiveView declares assign specifications using the resource-oriented DSL
+2. When assigns are updated, the validation system checks against specifications
+3. Resource adapters connect to appropriate data sources for validation
+4. Validation errors are processed through the enhanced error reporting system
+5. Error information is presented to developers in development environment
+6. Telemetry events are emitted for error tracking
+
 ## Development Patterns
 
 ### Components
@@ -248,8 +340,9 @@ The application can be deployed using:
 
 - Database integration for dynamic content
 - Authentication system for admin features
-- API layer for external integrations
-- Content management capabilities
+- Complete Ash resource integration for socket validation
+- Shareable terminal sessions with collaborative features
+- Enhanced CI/CD pipeline with visual regression testing
 
 ## Metrics and Success Criteria
 

@@ -79,7 +79,30 @@ defmodule HydepwnsLiveviewWeb.Telemetry do
       summary("vm.memory.total", unit: {:byte, :kilobyte}),
       summary("vm.total_run_queue_lengths.total"),
       summary("vm.total_run_queue_lengths.cpu"),
-      summary("vm.total_run_queue_lengths.io")
+      summary("vm.total_run_queue_lengths.io"),
+
+      # Socket Validator Metrics
+      counter("hydepwns.socket_validator.validation.type_error.count",
+        tags: [:key, :view_module],
+        description: "Number of type validation errors in socket assigns"
+      ),
+      counter("hydepwns.socket_validator.validation.missing_key.count",
+        tags: [:key, :view_module],
+        description: "Number of missing key errors in socket assigns during type validation"
+      ),
+      counter("hydepwns.socket_validator.validation.missing_assigns.count",
+        tags: [:view_module],
+        description: "Number of missing required assigns in sockets"
+      ),
+
+      # Add distribution metrics for validation errors by type
+      distribution("hydepwns.socket_validator.validation.type_error.count",
+        tags: [:view_module],
+        reporter_options: [
+          buckets: [1, 5, 10, 20, 50, 100]
+        ],
+        description: "Distribution of type validation errors per LiveView module"
+      )
     ]
   end
 

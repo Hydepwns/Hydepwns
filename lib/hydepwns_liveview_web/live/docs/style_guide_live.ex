@@ -1,24 +1,30 @@
 defmodule HydepwnsLiveviewWeb.StyleGuideLive do
-  use HydepwnsLiveviewWeb, :live_view
+  use HydepwnsLiveviewWeb.BaseLive,
+    required_assigns: [
+      :page_title,
+      :theme_class,
+      :high_contrast_enabled,
+      :reduced_motion_code
+    ]
+
   alias HydepwnsLiveviewWeb.Components.Common.ThemeToggle
   alias HydepwnsLiveviewWeb.Helpers.PathHelper
 
   @impl true
-  def mount(_params, _session, socket) do
-    {:ok,
-     socket
-     |> PathHelper.assign_specific_path("/style-guide")
-     |> assign(:page_title, "Style Guide")
-     |> assign(:theme_class, "dark-theme")
-     |> assign(:high_contrast_enabled, false)
-     |> assign(:reduced_motion_code, """
-     @media (prefers-reduced-motion: reduce) {
-       * {
-         animation-duration: 0.001s !important;
-         transition-duration: 0.001s !important;
-       }
-     }
-     """)}
+  def do_mount(_params, _session, socket) do
+    socket
+    |> PathHelper.assign_specific_path("/style-guide")
+    |> assign(:page_title, "Style Guide")
+    |> assign(:theme_class, "dark-theme")
+    |> assign(:high_contrast_enabled, false)
+    |> assign(:reduced_motion_code, """
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.001s !important;
+        transition-duration: 0.001s !important;
+      }
+    }
+    """)
   end
 
   @impl true

@@ -1,25 +1,31 @@
 defmodule HydepwnsLiveviewWeb.Live.Docs.ApiDocsLive do
-  use HydepwnsLiveviewWeb, :live_view
+  use HydepwnsLiveviewWeb.BaseLive,
+    required_assigns: [
+      :page_title,
+      :theme_class,
+      :show_toc,
+      :toc_items
+    ]
+
   alias HydepwnsLiveviewWeb.Components.Documentation.ApiDocs
   import ApiDocs
   alias HydepwnsLiveviewWeb.Helpers.PathHelper
 
   @impl true
-  def mount(_params, _session, socket) do
-    {:ok,
-     socket
-     |> PathHelper.assign_specific_path("/api-docs")
-     |> assign(:page_title, "API Documentation")
-     |> assign(:theme_class, "dark-theme")
-     |> assign(:show_toc, true)
-     |> assign(:toc_items, [
-       {"intro", "Introduction"},
-       {"grid-components", "Grid Components"},
-       {"terminal-component", "Terminal Component"},
-       {"ascii-art-components", "ASCII Art Components"},
-       {"ui-components", "UI Components"},
-       {"theme-components", "Theme Components"}
-     ])}
+  def do_mount(_params, _session, socket) do
+    socket
+    |> PathHelper.assign_specific_path("/api-docs")
+    |> assign(:page_title, "API Documentation")
+    |> assign(:theme_class, "dark-theme")
+    |> assign(:show_toc, true)
+    |> assign(:toc_items, [
+      {"intro", "Introduction"},
+      {"grid-components", "Grid Components"},
+      {"terminal-component", "Terminal Component"},
+      {"ascii-art-components", "ASCII Art Components"},
+      {"ui-components", "UI Components"},
+      {"theme-components", "Theme Components"}
+    ])
   end
 
   @impl true

@@ -1,14 +1,18 @@
 defmodule HydepwnsLiveviewWeb.ScreenReaderTestLive do
-  use HydepwnsLiveviewWeb, :live_view
+  use HydepwnsLiveviewWeb.BaseLive,
+    required_assigns: [
+      :page_title,
+      :theme_class
+    ]
+
   alias HydepwnsLiveviewWeb.Helpers.PathHelper
 
   @impl true
-  def mount(_params, _session, socket) do
-    {:ok,
-     socket
-     |> PathHelper.assign_specific_path("/screen-reader-test")
-     |> assign(:page_title, "Screen Reader Test")
-     |> assign(:theme_class, "dark-theme")}
+  def do_mount(_params, _session, socket) do
+    socket
+    |> PathHelper.assign_specific_path("/screen-reader-test")
+    |> assign(:page_title, "Screen Reader Test")
+    |> assign(:theme_class, "dark-theme")
   end
 
   @impl true

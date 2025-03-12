@@ -9,25 +9,29 @@ defmodule HydepwnsLiveviewWeb.Live.Playground.TerminalDemoLive do
   - Theme customization
   - Fullscreen mode
   """
-  use HydepwnsLiveviewWeb, :live_view
+  use HydepwnsLiveviewWeb.BaseLive,
+    required_assigns: [
+      :page_title,
+      :custom_commands
+    ]
+
   alias HydepwnsLiveviewWeb.Components.Interactive.Terminal
   alias HydepwnsLiveviewWeb.Components.Interactive.Plugins.Navigation
 
   @impl true
-  def mount(_params, _session, socket) do
-    {:ok,
-     socket
-     |> assign(:page_title, "Terminal Demo")
-     |> assign(:custom_commands, %{
-       "hello" => %{
-         description: "Say hello to the user",
-         usage: "hello [name]"
-       },
-       "count" => %{
-         description: "Count from 1 to N",
-         usage: "count [number]"
-       }
-     })}
+  def do_mount(_params, _session, socket) do
+    socket
+    |> assign(:page_title, "Terminal Demo")
+    |> assign(:custom_commands, %{
+      "hello" => %{
+        description: "Say hello to the user",
+        usage: "hello [name]"
+      },
+      "count" => %{
+        description: "Count from 1 to N",
+        usage: "count [number]"
+      }
+    })
   end
 
   @impl true

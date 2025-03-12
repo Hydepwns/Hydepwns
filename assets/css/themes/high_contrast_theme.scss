@@ -1,0 +1,315 @@
+/**
+ * High Contrast Theme for Accessibility
+ * 
+ * This stylesheet provides enhanced contrast styles for users with visual impairments.
+ * It follows WCAG 2.1 AA guidelines for contrast ratios.
+ */
+
+/* High Contrast Theme Variables */
+html[data-theme="high-contrast-theme"], .high-contrast-theme {
+  /* Core Variables */
+  --background-color: #000000;
+  --text-color: #ffffff;
+  --background-color-alt: #111111;
+  --text-color-alt: #ffffff;
+  
+  /* Accent Colors with High Contrast */
+  --accent-color: #ffff00; /* Yellow for highest visibility */
+  --accent-color-alt: #00ffff; /* Cyan as secondary accent */
+  --error-color: #ff0000; /* Pure red for errors */
+  --success-color: #00ff00; /* Pure green for success */
+  --warning-color: #ffff00; /* Yellow for warnings */
+  --info-color: #00ffff; /* Cyan for information */
+  
+  /* Interactive Elements */
+  --focus-color: #ffff00;
+  --focus-width: 3px;
+  --focus-style: solid;
+  --hover-color: #00ffff;
+  --active-color: #ffffff;
+  
+  /* Borders for Enhanced Visibility */
+  --border-color: #ffffff;
+  --border-thickness: 2px;
+  
+  /* Links */
+  --link-color: #00ffff;
+  --link-hover-color: #ffff00;
+  --link-visited-color: #ff00ff; /* Magenta for visited links */
+  
+  /* Form Elements */
+  --input-bg: #000000;
+  --input-border: #ffffff;
+  --input-text: #ffffff;
+  --input-placeholder: #cccccc;
+  --input-focus-outline: #ffff00;
+  
+  /* Buttons */
+  --button-bg: #000000;
+  --button-text: #ffffff;
+  --button-border: #ffffff;
+  --button-hover-bg: #0000ff;
+  --button-hover-text: #ffffff;
+  
+  /* UI Component Colors */
+  --card-bg: #000000;
+  --card-border: #ffffff;
+  --header-bg: #000000;
+  --footer-bg: #000000;
+  --tooltip-bg: #000000;
+  --tooltip-text: #ffffff;
+  --tooltip-border: #ffffff;
+  
+  /* Code & Terminal */
+  --code-bg: #000000;
+  --code-text: #ffffff;
+  --code-border: #ffffff;
+  --terminal-bg: #000000;
+  --terminal-text: #ffffff;
+  --terminal-border: #ffffff;
+  --terminal-prompt: #ffff00;
+  --terminal-system-output: #00ffff;
+  --terminal-error-output: #ff0000;
+  --terminal-success-output: #00ff00;
+  
+  /* Selection Colors */
+  --selection-bg: #ffff00;
+  --selection-text: #000000;
+}
+
+/* Global High Contrast Styles */
+.high-contrast-theme {
+  /* Enhanced focus styles for keyboard navigation */
+  *:focus {
+    outline: var(--focus-width) var(--focus-style) var(--focus-color) !important;
+    outline-offset: 3px !important;
+  }
+  
+  /* Text selections */
+  ::selection {
+    background-color: var(--selection-bg) !important;
+    color: var(--selection-text) !important;
+  }
+  
+  /* Links */
+  a {
+    color: var(--link-color) !important;
+    text-decoration: underline !important;
+    text-decoration-thickness: 2px !important;
+    text-underline-offset: 0.2em !important;
+    font-weight: bold !important;
+  }
+  
+  a:hover, a:focus {
+    color: var(--link-hover-color) !important;
+    text-decoration-thickness: 3px !important;
+  }
+  
+  a:visited {
+    color: var(--link-visited-color) !important;
+  }
+  
+  /* Buttons */
+  button, .button, [role="button"] {
+    border: var(--border-thickness) solid var(--button-border) !important;
+    background-color: var(--button-bg) !important;
+    color: var(--button-text) !important;
+    font-weight: bold !important;
+  }
+  
+  button:hover, .button:hover, [role="button"]:hover,
+  button:focus, .button:focus, [role="button"]:focus {
+    background-color: var(--button-hover-bg) !important;
+    color: var(--button-hover-text) !important;
+  }
+  
+  /* Form Elements */
+  input, textarea, select {
+    border: var(--border-thickness) solid var(--input-border) !important;
+    background-color: var(--input-bg) !important;
+    color: var(--input-text) !important;
+  }
+  
+  input:focus, textarea:focus, select:focus {
+    outline: 3px solid var(--input-focus-outline) !important;
+    outline-offset: 0 !important;
+  }
+  
+  /* Disabled elements */
+  button:disabled, input:disabled, textarea:disabled, select:disabled {
+    opacity: 0.5 !important;
+    border: 2px dashed var(--border-color) !important;
+  }
+  
+  /* Headings */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--text-color) !important;
+    font-weight: bold !important;
+    margin: 1em 0 0.5em 0 !important;
+  }
+  
+  /* Lists for better visibility */
+  ul, ol {
+    padding-left: 2em !important;
+  }
+  
+  li {
+    margin-bottom: 0.5em !important;
+  }
+  
+  ul li::marker {
+    color: var(--accent-color) !important;
+  }
+  
+  ol li::marker {
+    color: var(--accent-color) !important;
+    font-weight: bold !important;
+  }
+  
+  /* Tables */
+  table {
+    border-collapse: separate !important;
+    border-spacing: 2px !important;
+    border: var(--border-thickness) solid var(--border-color) !important;
+  }
+  
+  th, td {
+    border: 1px solid var(--border-color) !important;
+    padding: 0.5em !important;
+  }
+  
+  th {
+    background-color: var(--background-color-alt) !important;
+    font-weight: bold !important;
+  }
+  
+  /* For iframes and embedded content */
+  iframe, embed, object {
+    border: var(--border-thickness) solid var(--border-color) !important;
+  }
+  
+  /* Image borders for visibility */
+  img {
+    border: 1px solid var(--border-color) !important;
+  }
+  
+  /* Code blocks */
+  code, pre {
+    background-color: var(--code-bg) !important;
+    color: var(--code-text) !important;
+    border: 1px solid var(--code-border) !important;
+  }
+}
+
+/* Terminal High Contrast Enhancements */
+.high-contrast-theme .terminal-container,
+.terminal-theme-high-contrast {
+  background-color: var(--terminal-bg) !important;
+  color: var(--terminal-text) !important;
+  border: 3px solid var(--terminal-border) !important;
+  
+  .terminal-header {
+    background-color: var(--background-color-alt) !important;
+    border-bottom: 2px solid var(--terminal-border) !important;
+  }
+  
+  .terminal-title {
+    color: var(--terminal-text) !important;
+    font-weight: bold !important;
+  }
+  
+  .terminal-control {
+    border: 2px solid var(--terminal-border) !important;
+    color: var(--terminal-text) !important;
+    background-color: transparent !important;
+  }
+  
+  .terminal-control:hover, .terminal-control:focus {
+    background-color: var(--button-hover-bg) !important;
+  }
+  
+  .terminal-prompt {
+    color: var(--terminal-prompt) !important;
+    font-weight: bold !important;
+  }
+  
+  .terminal-line-error {
+    color: var(--terminal-error-output) !important;
+    font-weight: bold !important;
+  }
+  
+  .terminal-line-system {
+    color: var(--terminal-system-output) !important;
+  }
+  
+  .terminal-line-success {
+    color: var(--terminal-success-output) !important;
+  }
+  
+  .terminal-input {
+    color: var(--terminal-text) !important;
+    background-color: transparent !important;
+    caret-color: var(--terminal-prompt) !important;
+  }
+  
+  .terminal-autocomplete {
+    border: 2px solid var(--terminal-border) !important;
+    background-color: var(--terminal-bg) !important;
+  }
+  
+  .autocomplete-option, .terminal-autocomplete-option {
+    padding: 0.5em 0.75em !important;
+  }
+  
+  .autocomplete-option:hover, .terminal-autocomplete-option:hover,
+  .autocomplete-selected, .terminal-autocomplete-option.selected {
+    background-color: var(--button-hover-bg) !important;
+    color: var(--terminal-text) !important;
+  }
+}
+
+/* Mobile Optimizations for High Contrast Theme */
+@media (max-width: 768px) {
+  .high-contrast-theme {
+    /* Increase tap target sizes on mobile */
+    button, .button, a, [role="button"] {
+      min-height: 44px !important;
+      min-width: 44px !important;
+      padding: 12px !important;
+    }
+    
+    /* Increase spacing between interactive elements */
+    button + button, a + a {
+      margin-left: 12px !important;
+    }
+    
+    /* Terminal mobile adjustments */
+    .terminal-container {
+      border-width: 3px !important;
+    }
+    
+    .terminal-control {
+      min-width: 36px !important;
+      min-height: 36px !important;
+    }
+  }
+}
+
+/* Animation Reduction for Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.001s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001s !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.high-contrast-theme {
+  *, ::before, ::after {
+    animation-duration: 0.001s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001s !important;
+    scroll-behavior: auto !important;
+  }
+} 

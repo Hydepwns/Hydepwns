@@ -12,6 +12,7 @@ import { initServiceWorker } from "../service-worker-registration"
 // Import performance optimizations
 import MobilePerformance from "../performance/mobile_optimizations"
 import CodeSplitting from "../performance/code_splitting"
+import TerminalMobileOptimizations from "../terminal_mobile_optimizations"
 
 // Import core hooks that should be available across all pages
 import DebugGrid from "../hooks/debug_grid"
@@ -153,6 +154,9 @@ document.addEventListener("DOMContentLoaded", function() {
     
     // Initialize mobile performance optimizations
     MobilePerformance.init();
+    
+    // Initialize terminal-specific optimizations for mobile
+    TerminalMobileOptimizations.init();
   }
   
   // Initialize code splitting for all devices
@@ -197,6 +201,15 @@ function loadRouteSpecificBundle() {
     import('../routes/terminal')
       .then(module => {
         console.log('Terminal bundle loaded');
+        // Initialize terminal optimizations even on non-mobile devices
+        // when visiting the terminal pages
+        import('../terminal_mobile_optimizations')
+          .then(terminalModule => {
+            terminalModule.default.init();
+          })
+          .catch(error => {
+            console.error('Failed to load terminal optimizations:', error);
+          });
       })
       .catch(error => {
         console.error('Failed to load terminal bundle:', error);

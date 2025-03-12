@@ -1,9 +1,17 @@
 defmodule HydepwnsLiveviewWeb.ProjectsLive do
-  use HydepwnsLiveviewWeb, :live_view
+  use HydepwnsLiveviewWeb.BaseLive,
+    required_assigns: [
+      :page_title,
+      :theme_class,
+      :show_toc,
+      :toc_items,
+      :diagram
+    ]
+
   alias HydepwnsLiveviewWeb.Helpers.PathHelper
 
   @impl true
-  def mount(_params, _session, socket) do
+  def do_mount(_params, _session, socket) do
     diagram = """
     +--------+    +---------+    +--------+
     |        |    |         |    |        |
@@ -12,18 +20,17 @@ defmodule HydepwnsLiveviewWeb.ProjectsLive do
     +--------+    +---------+    +--------+
     """
 
-    {:ok,
-     socket
-     |> PathHelper.assign_specific_path("/projects")
-     |> assign(:page_title, "Projects")
-     |> assign(:theme_class, "dark-theme")
-     |> assign(:show_toc, true)
-     |> assign(:toc_items, [
-       {"personal", "Personal Projects"},
-       {"open-source", "Open Source"},
-       {"experiments", "Experiments"}
-     ])
-     |> assign(:diagram, diagram)}
+    socket
+    |> PathHelper.assign_specific_path("/projects")
+    |> assign(:page_title, "Projects")
+    |> assign(:theme_class, "dark-theme")
+    |> assign(:show_toc, true)
+    |> assign(:toc_items, [
+      {"personal", "Personal Projects"},
+      {"open-source", "Open Source"},
+      {"experiments", "Experiments"}
+    ])
+    |> assign(:diagram, diagram)
   end
 
   @impl true

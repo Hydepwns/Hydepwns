@@ -1,3 +1,22 @@
+/**
+ * Hydepwns Main Stylesheet
+ * ------------------------
+ * This is the main stylesheet for the application.
+ */
+
+/* Import base styles and themes */
+@import "./base/reset";
+@import "./base/normalize";
+@import "./base/typography";
+@import "./themes/themes";
+@import "./themes/high_contrast_theme";
+
+/* Import component styles */
+@import "./components";
+
+/* Import performance optimizations */
+@import "./performance/terminal_mobile_optimizations";
+
 /* Import all CSS files as SCSS */
 
 /* Phoenix specific styling */
@@ -14,6 +33,9 @@
 
 /* Grid-based animations */
 @import "./themes/animations.scss";
+
+/* Accessibility styles and features */
+@import "./accessibility.css";
 
 /* Component specific styles */
 @import "./components.scss";
@@ -60,26 +82,132 @@ body {
   /* Improve monospace rhythm */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Remove problematic grid layout and background pattern */
-  /* background-image: linear-gradient(transparent 95%, rgba(255, 255, 255, 0.05) 0%);
-  background-size: 100% var(--line-height);
-  display: grid;
-  grid-template-rows: repeat(auto-fill, minmax(var(--line-height), auto));
-  grid-row-gap: 0;
-  grid-auto-flow: row; */
 }
 
 /* Main section areas */
 main {
   margin-bottom: calc(var(--line-height) * 2);
-  /* Remove problematic grid layout */
-  /* display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(1ch, 1ch));
-  grid-auto-flow: dense; */
+  width: 100%;
 }
 
+/* Flexbox layout for main content area */
+.container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Content layout with TOC */
+.content-with-toc {
+  display: flex;
+  gap: 2rem;
+  width: 100%;
+}
+
+/* Table of contents */
+.table-of-contents {
+  min-width: 200px;
+  max-width: 250px;
+  position: sticky;
+  top: 1rem;
+  align-self: flex-start;
+  border: var(--border-thickness) solid var(--border-color);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background-color: var(--background-color);
+}
+
+/* Main content area */
+.content {
+  flex: 1;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Fix for TOC button */
+.toc-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: var(--background-color);
+  border: var(--border-thickness) solid var(--border-color);
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+
+/* ASCII art banner */
+.ascii-banner {
+  margin: 2rem 0;
+  text-align: center;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.ascii-banner pre {
+  display: inline-block;
+  text-align: left;
+  margin: 0 auto;
+  max-width: 100%;
+  font-family: var(--mono-font);
+  color: var(--accent-color);
+}
+
+/* Added to ensure content sections have proper spacing and layout */
 section {
-  margin-bottom: calc(var(--line-height) * 2);
+  margin-bottom: 2rem;
+  width: 100%;
+  max-width: 100%;
+}
+
+section h2 {
+  margin-bottom: 1rem;
+}
+
+/* Ensure proper wrapping of text content */
+p, h1, h2, h3, h4, h5, h6 {
+  max-width: 100%;
+  word-wrap: break-word;
+}
+
+/* Ensure images don't overflow their containers */
+img, pre {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Terminal Integration Section */
+.interactive-terminal-container {
+  margin: 1rem 0;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Ensure proper spacing between elements */
+.feature-legend, .theme-gallery {
+  margin-top: 1.5rem;
+}
+
+/* Fix for content without TOC */
+.content-no-toc {
+  width: 100%;
+}
+
+.content-no-toc .content {
+  width: 100%;
+}
+
+/* Responsive layout adjustments */
+@media (max-width: 768px) {
+  .content-with-toc {
+    flex-direction: column;
+  }
+  
+  .table-of-contents {
+    max-width: 100%;
+    position: static;
+  }
 }
 
 /* Custom classes to replace Tailwind */
@@ -974,414 +1102,278 @@ body.debug-grid {
 /* Highlight elements that are off-grid */
 body.debug-grid .off-grid {
   outline: 1px solid rgba(255, 0, 0, 0.5) !important;
+  position: relative;
 }
 
-/* Skip navigation for accessibility */
-.skip-to-content {
+/* Add measurement info tooltip to misaligned elements */
+body.debug-grid .off-grid:hover::after {
+  content: attr(data-grid-info);
   position: absolute;
-  top: -100px;
+  top: -20px;
   left: 0;
-  padding: 10px;
-  background: var(--background-color);
-  z-index: 100;
-  transition: top 0.3s;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
 }
 
-.skip-to-content:focus {
-  top: 0;
+/* Debug Grid Settings Panel */
+.debug-grid-settings {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 300px;
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  z-index: 9999;
+  border-radius: 4px;
+  overflow: hidden;
+  font-family: var(--system-font);
+  color: var(--text-color);
 }
 
-/* Media Queries for Responsive Design */
-@media screen and (max-width: 768px) {
-  :root {
-    --font-size: 0.9rem;
-    --line-height: 1.4rem;
-  }
-
-  body {
-    padding: 0.5rem;
-  }
-  
-  .container {
-    max-width: 100%;
-    padding: 0 0.5rem;
-  }
-  
-  header {
-    flex-direction: column;
-    align-items: flex-start;
-    
-    h1 {
-      font-size: 1.5rem;
-      margin-bottom: 0.5rem;
-    }
-    
-    nav {
-      display: flex;
-      flex-wrap: wrap;
-      margin-top: 0.5rem;
-      
-      a {
-        margin-right: 1rem;
-        margin-bottom: 0.5rem;
-      }
-    }
-  }
-  
-  main {
-    margin-top: 1rem;
-  }
-  
-  section {
-    padding: 1rem 0;
-  }
-  
-  h2 {
-    font-size: 1.3rem;
-  }
-  
-  h3 {
-    font-size: 1.1rem;
-  }
-  
-  /* Make ASCII art scrollable horizontally on mobile */
-  pre {
-    max-width: 100%;
-    overflow-x: auto;
-    white-space: pre;
-  }
-  
-  /* Adjust navigation for mobile */
-  .toc {
-    position: static;
-    width: 100%;
-    max-height: none;
-    overflow: visible;
-    margin-bottom: 1rem;
-    
-    &.hidden {
-      display: none;
-    }
-    
-    ul {
-      padding-left: 1ch;
-    }
-  }
-  
-  /* Make the theme toggle more touch-friendly */
-  .theme-toggle {
-    padding: 0.5rem;
-    margin-bottom: 1rem;
-    
-    label {
-      padding: 0.5rem;
-    }
-  }
-  
-  /* Make forms more mobile-friendly */
-  form {
-    input, textarea, select, button {
-      width: 100%;
-      margin-bottom: 1rem;
-    }
-  }
-  
-  /* Adjust grid layout for mobile */
-  .grid {
-    grid-template-columns: 1fr;
-  }
-  
-  /* Adjust information box for mobile */
-  .information-box {
-    padding: 0.5rem;
-    margin: 0.5rem 0;
-  }
-  
-  /* Make tooltips more mobile-friendly */
-  .copy-tooltip {
-    top: -40px;
-  }
-}
-
-/* Extra small devices */
-@media screen and (max-width: 480px) {
-  pre, code {
-    font-size: 0.8rem;
-  }
-  
-  .animation-controls {
-    flex-direction: column;
-    align-items: stretch;
-    
-    button {
-      margin-bottom: 0.5rem;
-    }
-  }
-  
-  figure {
-    margin: 0.5rem 0;
-    padding: 0.5rem;
-  }
-}
-
-/* Accessibility: Reduced Motion Support */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  ::before,
-  ::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-    scroll-behavior: auto !important;
-  }
-  
-  /* Ensure typewriter text is fully visible */
-  .typewriter, .character-fade {
-    opacity: 1 !important;
-    visibility: visible !important;
-  }
-  
-  /* Make sure character animations show immediately */
-  .character-fade span, .typewriter span {
-    opacity: 1 !important;
-    animation: none !important;
-  }
-  
-  /* Disable clip-path and visual animations */
-  .animation-container {
-    animation: none !important;
-    clip-path: none !important;
-  }
-  
-  /* Ensure grid cells are visible */
-  .grid-fade-container .grid-cell {
-    opacity: 1 !important;
-  }
-}
-
-/* Header styling */
-header {
+.debug-grid-settings-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--line-height);
-  padding-bottom: var(--line-height);
-  border-bottom: var(--border-thickness) solid var(--border-color);
+  padding: 8px 12px;
+  background-color: var(--background-color-alt);
+  border-bottom: 1px solid var(--border-color);
 }
 
-.header-main {
-  h1 {
-    margin: 0;
-    font-size: 2rem;
-    font-weight: bold;
-  }
-  
-  .site-tagline {
-    margin: 0;
-    font-size: 1rem;
-    color: var(--text-color-alt);
-  }
-}
-
-/* Mobile controls */
-.mobile-controls {
-  display: none; /* Hidden by default, shown in mobile view */
-}
-
-.toc-toggle {
-  background-color: var(--background-color);
-  border: var(--border-thickness) solid var(--border-color);
-  color: var(--text-color);
-  padding: 0.25rem 0.5rem;
-  cursor: pointer;
-  font-family: var(--font-family);
-  font-size: 0.9rem;
-  
-  &:hover {
-    background-color: var(--background-color-alt);
-  }
-  
-  &:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px var(--highlight-color);
-  }
-}
-
-/* Layout grid for main content and TOC */
-.layout-grid {
-  display: grid;
-  grid-template-columns: 15ch 1fr;
-  gap: 2ch;
-}
-
-/* TOC styling */
-.toc {
-  position: sticky;
-  top: 1rem;
-  height: calc(100vh - 2rem);
-  overflow-y: auto;
-  padding-right: 1ch;
-  
-  ul {
-    list-style-type: none;
-    padding-left: 0;
-    margin: 0;
-  }
-  
-  li {
-    margin-bottom: 0.5rem;
-  }
-  
-  a {
-    text-decoration: none;
-    color: var(--text-color);
-    
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-}
-
-/* Hierarchical TOC styling */
-.hierarchical-toc-nav {
-  position: sticky;
-  top: 1rem;
-  height: calc(100vh - 2rem);
-  overflow-y: auto;
-  padding-right: 1ch;
-  max-width: 300px;
-  font-family: var(--font-family);
-}
-
-.toc-list,
-.toc-sublist {
-  list-style-type: none;
-  padding-left: 0;
+.debug-grid-settings-header h3 {
   margin: 0;
+  font-size: 14px;
+  font-weight: bold;
 }
 
-.toc-sublist {
-  padding-left: 1.5ch;
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-
-  &.collapsed {
-    display: none;
-  }
-}
-
-.toc-item {
-  margin-bottom: 0.5rem;
-  position: relative;
-  
-  &.active > .toc-link {
-    color: var(--accent-color);
-    font-weight: bold;
-  }
-  
-  &.has-children {
-    padding-left: 1ch;
-  }
-
-  &.level-2 {
-    font-weight: 500;
-  }
-  
-  &.level-3 {
-    font-size: 0.95em;
-  }
-  
-  &.level-4,
-  &.level-5,
-  &.level-6 {
-    font-size: 0.9em;
-  }
-}
-
-.toc-link {
-  display: block;
-  text-decoration: none;
-  color: var(--text-color);
-  padding: 0.2rem 0;
-  border-left: 2px solid transparent;
-  
-  &:hover {
-    color: var(--accent-color);
-  }
-  
-  &:focus-visible {
-    outline: none;
-    background-color: var(--accent-color-transparent);
-    color: var(--accent-color);
-  }
-}
-
-.toggle-indicator {
-  position: absolute;
-  left: -1ch;
+.debug-grid-close {
+  background: none;
+  border: none;
+  font-size: 18px;
   cursor: pointer;
+  color: var(--text-color);
+  opacity: 0.7;
+}
+
+.debug-grid-close:hover {
+  opacity: 1;
+}
+
+.debug-grid-settings-content {
+  padding: 12px;
+}
+
+.debug-grid-setting {
+  margin-bottom: 12px;
+}
+
+.debug-grid-setting label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+.debug-grid-setting select,
+.debug-grid-setting input[type="color"],
+.debug-grid-setting input[type="range"] {
+  width: 100%;
+  padding: 4px;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.debug-grid-setting button {
+  width: 100%;
+  padding: 6px 12px;
+  background-color: var(--background-color-alt);
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  color: var(--text-color);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.debug-grid-setting button:hover {
+  background-color: var(--accent-color);
+  color: var(--background-color);
+}
+
+.debug-grid-keyboard-shortcuts {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+}
+
+.debug-grid-keyboard-shortcuts h4 {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+}
+
+.debug-grid-keyboard-shortcuts ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.debug-grid-keyboard-shortcuts option {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 4px;
   color: var(--text-color-alt);
-  font-size: 0.8em;
-  width: 1ch;
-  height: 1ch;
+}
+
+/* Debug Grid Measurement Tool */
+.debug-grid-measurement {
+  position: absolute;
+  border: 1px dashed rgba(255, 165, 0, 0.7);
+  background-color: rgba(255, 165, 0, 0.1);
+  z-index: 9990;
+  pointer-events: none;
   display: flex;
   align-items: center;
   justify-content: center;
+  
+  &::after {
+    content: attr(data-measurement);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 3px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
 }
 
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
+/* Debug Grid Measurement Display */
+.debug-grid-measurement-display {
+  position: fixed;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 5px 8px;
+  border-radius: 4px;
+  font-size: 12px;
   white-space: nowrap;
-  border-width: 0;
+  z-index: 9991;
+  pointer-events: none;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  font-family: var(--system-font);
 }
 
-/* Responsive overrides for mobile */
-@media screen and (max-width: 768px) {
-  header {
-    flex-direction: column;
-    align-items: flex-start;
+/* Debug Grid Alignment Marker */
+.debug-grid-alignment-marker {
+  position: fixed;
+  width: 20px;
+  height: 20px;
+  background-color: rgba(255, 0, 255, 0.5);
+  border: 1px solid rgba(255, 0, 255, 0.8);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9992;
+  pointer-events: none;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+}
+
+/* Debug Grid Element Info Display */
+.debug-grid-element-info {
+  position: fixed;
+  background: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 0;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 9993;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+  font-family: var(--system-font);
+  max-width: 300px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 165, 0, 0.5);
+}
+
+.element-info-header {
+  background: rgba(255, 165, 0, 0.8);
+  color: #000;
+  padding: 5px 8px;
+  font-weight: bold;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.element-info-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.element-info-table td {
+  padding: 4px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.element-info-table td:first-child {
+  font-weight: bold;
+  width: 30%;
+  color: rgba(255, 165, 0, 0.9);
+}
+
+/* Measurement display options in settings panel */
+.measurement-display-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 5px;
+}
+
+.measurement-display-options label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.measurement-display-options input[type="checkbox"] {
+  margin: 0;
+}
+
+/* Media queries for mobile compatibility */
+@media (max-width: 768px) {
+  .debug-grid-settings {
+    width: 250px;
+    font-size: 12px;
   }
   
-  .mobile-controls {
-    display: block;
-    margin: 1rem 0;
+  .debug-grid-element-info {
+    max-width: 250px;
   }
-  
-  .layout-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .toc {
-    position: static;
-    height: auto;
-    max-height: 50vh;
+}
+
+/* Debug settings panel mobile adaptations */
+@media (max-width: 480px) {
+  .debug-grid-settings {
+    width: calc(100% - 40px);
+    max-height: 80vh;
     overflow-y: auto;
-    margin-bottom: 1rem;
-    padding: 0.5rem;
-    border: var(--border-thickness) solid var(--border-color);
-    background-color: var(--background-color-alt);
-    
-    &.hidden {
-      display: none;
-    }
   }
   
-  .theme-toggle {
-    align-self: flex-start;
-    margin-bottom: 1rem;
+  .debug-grid-element-info {
+    max-width: 200px;
+  }
+  
+  .debug-toggle {
+    padding: 0.3rem 0.4rem;
   }
 }
 
-/* Accessibility and Keyboard Navigation Styles
-   ============================================= */
-
-/* Skip to content link - only visible when focused */
+/* Skip navigation for accessibility */
 .skip-to-content {
   position: absolute;
   top: -40px;
@@ -2056,6 +2048,95 @@ h6[tabindex="-1"]:focus {
 /* Responsive components */
 @import "./responsive/terminal.scss";
 @import "./responsive/mobile_optimizations.scss";
+@import "./responsive/home.scss";
+
+/* Media queries for font size adjustments */
+@media (max-width: 768px) {
+  .component-showcase {
+    flex-direction: column;
+    
+    .component-card {
+      min-width: 100%;
+    }
+  }
+  
+  .theme-gallery {
+    flex-direction: column;
+    align-items: center;
+    
+    .theme-option {
+      min-width: 100%;
+    }
+  }
+  
+  .site-map-visualization {
+    overflow-x: auto;
+    max-width: 100%;
+    
+    .ascii-diagram {
+      font-size: 0.8rem;
+    }
+  }
+}
+
+/* Interactive Terminal Section */
+#interactive-terminal {
+  margin: 3rem 0;
+  
+  .interactive-terminal-container {
+    margin: 1.5rem 0;
+    border: 2px solid var(--primary-color);
+    border-radius: 8px;
+    overflow: hidden;
+    
+    /* Add a subtle glow effect to match the synthwave theme */
+    box-shadow: 0 0 10px rgba(255, 46, 151, 0.3);
+  }
+  
+  .terminal-help-text {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+    
+    h3 {
+      margin-top: 0;
+      margin-bottom: 0.75rem;
+      color: var(--primary-color);
+    }
+    
+    .command-suggestions {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 0.5rem 1rem;
+      list-style: none;
+      padding: 0;
+      
+      li {
+        padding: 0.25rem 0;
+      }
+      
+      code {
+        background-color: var(--code-bg);
+        padding: 0.1rem 0.25rem;
+        border-radius: 3px;
+        font-family: var(--mono-font);
+        color: var(--accent-color);
+      }
+    }
+  }
+}
+
+/* Site Structure - ASCII Diagram */
+
+/* Import the terminal.scss file at the appropriate location */
+@import "components/terminal.scss";
+
+/* Responsive components */
+@import "./responsive/terminal.scss";
+@import "./responsive/mobile_optimizations.scss";
 
 /* Performance optimizations */
 @import "./performance/mobile_optimizations.scss";
+@import "./performance/device-specific.scss";
+

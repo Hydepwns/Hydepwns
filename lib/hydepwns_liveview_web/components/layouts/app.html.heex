@@ -91,6 +91,11 @@
 <%!-- Debug grid (only visible when debug query param is present) --%>
 <.debug_grid />
 
+<%!-- Socket Validation Panel (only visible in development mode) --%>
+<%= if Mix.env() == :dev do %>
+  <.live_component module={HydepwnsLiveviewWeb.Components.Debug.SocketValidationPanel} id="socket-validation-panel" />
+<% end %>
+
 <%!-- Performance monitoring - Page render timing --%>
 <script>
   window.addEventListener('DOMContentLoaded', () => {

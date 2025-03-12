@@ -16,6 +16,7 @@ defmodule HydepwnsLiveviewWeb.Components.Layout.Layouts do
   # Import UI components that are used
   import HydepwnsLiveviewWeb.Components.UI.DebugGrid
   import HydepwnsLiveviewWeb.Components.Common.ThemeToggle
+  import HydepwnsLiveviewWeb.Components.Debug.SocketValidationPanel
 
   embed_templates "layouts/*"
 end

@@ -80,7 +80,7 @@
   --font-weight-medium: 600;
   --font-weight-bold: 800;
   
-  /* Simplified monospace-specific features */
+  /* Streamlined monospace-specific features */
   font-feature-settings: 'calt' 1, 'zero' 1;
 }
 
@@ -535,7 +535,7 @@ pre, .code-block, .pre {
   background-color: var(--background-color-alt);
 }
 
-/* Simplified line numbers for code blocks */
+/* Optimized line numbers for code blocks */
 pre.line-numbers {
   counter-reset: line;
 }
@@ -550,14 +550,14 @@ pre.line-numbers > code > .line::before {
   color: var(--text-color-alt);
 }
 
-/* Inline code - simplified */
+/* Inline code - optimized */
 :not(pre) > code {
   padding: 0 0.5ch;
   background-color: var(--background-color-alt);
   white-space: nowrap;
 }
 
-/* Terminal output styling - simplified to preserve existing layout */
+/* Terminal output styling - optimized to preserve existing layout */
 .terminal, .terminal-output {
   font-family: var(--font-family);
   background-color: rgba(0, 0, 0, 0.8);

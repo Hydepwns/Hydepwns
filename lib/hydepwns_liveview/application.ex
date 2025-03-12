@@ -7,8 +7,13 @@ defmodule HydepwnsLiveview.Application do
 
   @impl true
   def start(_type, _args) do
+    # Initialize telemetry storage for socket validation
+    HydepwnsLiveview.Telemetry.init_storage()
+
     children = [
       HydepwnsLiveviewWeb.Telemetry,
+      # Add our Telemetry module
+      HydepwnsLiveview.Telemetry,
       HydepwnsLiveview.Repo,
       {DNSCluster, query: Application.get_env(:hydepwns_liveview, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: HydepwnsLiveview.PubSub},

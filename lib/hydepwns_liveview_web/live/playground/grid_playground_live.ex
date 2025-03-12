@@ -1,5 +1,18 @@
 defmodule HydepwnsLiveviewWeb.GridPlaygroundLive do
-  use HydepwnsLiveviewWeb, :live_view
+  use HydepwnsLiveviewWeb.BaseLive,
+    required_assigns: [
+      :page_title,
+      :theme_class,
+      :grid_columns,
+      :cell_width,
+      :cell_height,
+      :debug_mode,
+      :container_type,
+      :grid_content,
+      :show_code,
+      :generated_code,
+      :example_layouts
+    ]
 
   import HydepwnsLiveviewWeb.Components.MonoGrid
   import Phoenix.HTML, only: [raw: 1]
@@ -21,26 +34,25 @@ defmodule HydepwnsLiveviewWeb.GridPlaygroundLive do
   """
 
   @impl true
-  def mount(_params, _session, socket) do
-    {:ok,
-     socket
-     |> PathHelper.assign_specific_path("/grid-playground")
-     |> assign(:page_title, "Grid Playground")
-     |> assign(:theme_class, "dark-theme")
-     |> assign(:grid_columns, 40)
-     |> assign(:cell_width, "1ch")
-     |> assign(:cell_height, "1.5rem")
-     |> assign(:debug_mode, false)
-     |> assign(:container_type, "div")
-     |> assign(:grid_content, @default_grid_content)
-     |> assign(:show_code, false)
-     |> assign(:generated_code, "")
-     |> assign(:example_layouts, [
-       {"box", "Box Layout", simple_box_layout()},
-       {"table", "Table Layout", table_layout()},
-       {"chart", "Chart Layout", chart_layout()},
-       {"layout", "Page Layout", page_layout()}
-     ])}
+  def do_mount(_params, _session, socket) do
+    socket
+    |> PathHelper.assign_specific_path("/grid-playground")
+    |> assign(:page_title, "Grid Playground")
+    |> assign(:theme_class, "dark-theme")
+    |> assign(:grid_columns, 40)
+    |> assign(:cell_width, "1ch")
+    |> assign(:cell_height, "1.5rem")
+    |> assign(:debug_mode, false)
+    |> assign(:container_type, "div")
+    |> assign(:grid_content, @default_grid_content)
+    |> assign(:show_code, false)
+    |> assign(:generated_code, "")
+    |> assign(:example_layouts, [
+      {"box", "Box Layout", simple_box_layout()},
+      {"table", "Table Layout", table_layout()},
+      {"chart", "Chart Layout", chart_layout()},
+      {"layout", "Page Layout", page_layout()}
+    ])
   end
 
   @impl true

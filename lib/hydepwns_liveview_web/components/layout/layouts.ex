@@ -13,6 +13,7 @@ defmodule HydepwnsLiveviewWeb.Layouts do
 
   # Keep the MobileNav alias which is used in the template
   alias HydepwnsLiveviewWeb.Components.Layout.MobileNav
+  alias HydepwnsLiveviewWeb.Components.Debug.SocketValidationPanel
 
   # Only keep imports that are actually used in the embedded templates
   embed_templates "layouts/*"
@@ -42,6 +43,11 @@ defmodule HydepwnsLiveviewWeb.Layouts do
       
     <!-- Mobile navigation (only appears on mobile devices) -->
       <MobileNav.mobile_nav current_path={@current_path} />
+      
+    <!-- Socket Validation Panel (only visible in development mode) -->
+      <%= if Mix.env() == :dev do %>
+        <.live_component module={SocketValidationPanel} id="socket-validation-panel" />
+      <% end %>
     </div>
     """
   end

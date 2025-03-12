@@ -1,10 +1,18 @@
 defmodule HydepwnsLiveviewWeb.GalleryLive do
-  use HydepwnsLiveviewWeb, :live_view
+  use HydepwnsLiveviewWeb.BaseLive,
+    required_assigns: [
+      :page_title,
+      :theme_class,
+      :show_toc,
+      :toc_items,
+      :images
+    ]
+
   import HydepwnsLiveviewWeb.ResponsiveImageHelper
   alias HydepwnsLiveviewWeb.Helpers.PathHelper
 
   @impl true
-  def mount(_params, _session, socket) do
+  def do_mount(_params, _session, socket) do
     images = [
       %{
         path: "/images/foxmask.png",
@@ -23,18 +31,17 @@ defmodule HydepwnsLiveviewWeb.GalleryLive do
       }
     ]
 
-    {:ok,
-     socket
-     |> PathHelper.assign_specific_path("/gallery")
-     |> assign(:page_title, "Image Gallery")
-     |> assign(:theme_class, "dark-theme")
-     |> assign(:show_toc, true)
-     |> assign(:toc_items, [
-       {"gallery", "Image Gallery"},
-       {"responsive", "Responsive Images"},
-       {"optimization", "Image Optimization"}
-     ])
-     |> assign(:images, images)}
+    socket
+    |> PathHelper.assign_specific_path("/gallery")
+    |> assign(:page_title, "Image Gallery")
+    |> assign(:theme_class, "dark-theme")
+    |> assign(:show_toc, true)
+    |> assign(:toc_items, [
+      {"gallery", "Image Gallery"},
+      {"responsive", "Responsive Images"},
+      {"optimization", "Image Optimization"}
+    ])
+    |> assign(:images, images)
   end
 
   @impl true

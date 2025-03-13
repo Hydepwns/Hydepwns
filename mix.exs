@@ -63,7 +63,18 @@ defmodule HydepwnsLiveview.MixProject do
       {:dart_sass, "~> 0.7", runtime: Mix.env() == :dev},
 
       # Add code quality tools
-      {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+
+      # Testing tools
+      {:mox, "~> 1.0", only: :test},
+      {:meck, "~> 0.9.2", only: :test},
+      {:wallaby, "~> 0.30.0", only: :test, runtime: false},
+
+      # Add UUID generation
+      {:uuid, "~> 1.1"},
+
+      # Add Inflex for pluralization
+      {:inflex, "~> 2.0"}
 
       # Authentication - Uncomment to add authentication
       # {:phx_gen_auth, "~> 0.7.1", only: [:dev], runtime: false}

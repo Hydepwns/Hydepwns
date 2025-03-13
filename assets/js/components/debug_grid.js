@@ -1,20 +1,42 @@
 /**
  * Debug Grid Component
  * Provides a grid overlay to help align elements to the monospace grid
+ * 
+ * This component has been refactored to:
+ * 1. Use the EventManager for centralized event handling
+ * 2. Implement DOM Cleanup Protocol for proper teardown
+ * 3. Use CSS variables for theming and z-index management
+ * 4. Isolate functionality to prevent interference with other components
  */
+
+import EventManager from './event_manager';
+import DOMCleanup from '../utils/dom_cleanup';
 
 const DebugGrid = {
   mounted() {
+    // Generate a unique component ID
+    this.componentId = `debug-grid-${Date.now()}`;
+    
+    // Initialize event management and DOM cleanup
+    this.events = EventManager.registerComponent(this.componentId);
+    this.cleanup = DOMCleanup.register(this.componentId);
+    
     // Cache DOM elements and state
     this.grid = document.querySelector('.debug-grid');
     this.enableDebug = localStorage.getItem('debugGrid') === 'true';
     this.el.checked = this.enableDebug;
     
+    // Store references to dynamically created elements for later cleanup
+    this.dynamicElements = {};
+    
+    // Load settings from localStorage (with defaults)
+    this.loadSettings();
+    
     // Initialize debug mode
     this.setDebugMode(this.enableDebug);
     
-    // Set up event listener for toggle changes
-    this.el.addEventListener('change', () => {
+    // Set up event listener for toggle changes using event manager
+    this.events.addEventListener(this.el, 'change', () => {
       this.enableDebug = this.el.checked;
       localStorage.setItem('debugGrid', this.enableDebug);
       this.setDebugMode(this.enableDebug);
@@ -27,9 +49,58 @@ const DebugGrid = {
     if (this.isMobile) {
       this.createMobileControls();
     }
+    
+    // Clean up event listeners when component is unmounted
+    this.handleBeforeUnmount();
   },
   
-  // Helper method to set debug mode
+  /**
+   * Load settings from localStorage with defaults
+   */
+  loadSettings() {
+    try {
+      const savedSettings = localStorage.getItem('debugGridSettings');
+      if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
+        this.gridDensity = settings.gridDensity || 'character';
+        this.measurementMode = settings.measurementMode || 'pixels';
+        this.gridColor = settings.gridColor || '#0000ff';
+        this.gridOpacity = settings.gridOpacity || 0.1;
+        this.measurementOptions = settings.measurementOptions || {
+          showPixels: true,
+          showCharacters: true,
+          showLines: true
+        };
+      } else {
+        // Default settings
+        this.gridDensity = 'character';
+        this.measurementMode = 'pixels';
+        this.gridColor = '#0000ff';
+        this.gridOpacity = 0.1;
+        this.measurementOptions = {
+          showPixels: true,
+          showCharacters: true,
+          showLines: true
+        };
+      }
+    } catch (e) {
+      console.warn('Failed to load debug grid settings:', e);
+      // Use defaults on error
+      this.gridDensity = 'character';
+      this.measurementMode = 'pixels';
+      this.gridColor = '#0000ff';
+      this.gridOpacity = 0.1;
+      this.measurementOptions = {
+        showPixels: true,
+        showCharacters: true,
+        showLines: true
+      };
+    }
+  },
+  
+  /**
+   * Helper method to set debug mode
+   */
   setDebugMode(enabled) {
     document.body.classList.toggle('debug', enabled);
     this.grid.style.display = enabled ? 'block' : 'none';
@@ -39,96 +110,128 @@ const DebugGrid = {
     } else {
       document.querySelectorAll('.off-grid').forEach(el => {
         el.classList.remove('off-grid');
+        el.removeAttribute('data-grid-info');
       });
+      
+      // Ensure inspector and measurement tool are disabled
+      this.disableElementInspector();
+      this.disableMeasurementTool();
     }
 
     // Show mobile controls if they exist and debug is enabled
-    if (this.mobileControls && enabled) {
-      this.mobileControls.style.display = 'flex';
-    } else if (this.mobileControls) {
-      this.mobileControls.style.display = 'none';
+    if (this.dynamicElements.mobileControls) {
+      this.dynamicElements.mobileControls.style.display = enabled ? 'flex' : 'none';
     }
   },
   
-  // Helper method to highlight elements that might be misaligned
+  /**
+   * Highlight elements that are misaligned with the monospace grid
+   */
   highlightMisalignedElements() {
-    // Cache CSS variables for performance
-    const charWidth = parseFloat(getComputedStyle(document.documentElement).fontSize);
-    const lineHeight = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--line-height'));
+    if (!this.enableDebug) return;
     
-    // Use requestAnimationFrame to avoid layout thrashing
-    requestAnimationFrame(() => {
-      document.querySelectorAll('*').forEach(el => {
-        const rect = el.getBoundingClientRect();
-        const isOffGridX = rect.width % charWidth !== 0;
-        const isOffGridY = rect.height % lineHeight !== 0;
+    // Clear previous highlights
+    document.querySelectorAll('.off-grid').forEach(el => {
+      el.classList.remove('off-grid');
+      el.removeAttribute('data-grid-info');
+    });
+    
+    // Get monospace font metrics
+    const root = document.documentElement;
+    const computedStyle = getComputedStyle(root);
+    const fontSizeInPx = parseFloat(computedStyle.fontSize);
+    const chWidthInPx = fontSizeInPx * 0.6; // Approximation for monospace
+    const lineHeightInRem = parseFloat(computedStyle.getPropertyValue('--line-height') || '1.5');
+    const lineHeightInPx = lineHeightInRem * fontSizeInPx;
+    
+    // Select elements to check (excluding debug UI elements)
+    const elements = Array.from(document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, div, span, pre, code, li, ul, ol'))
+      .filter(el => !el.closest('.debug-grid-settings, .debug-grid-mobile-controls, .debug-grid-element-info'));
+    
+    elements.forEach(el => {
+      const rect = el.getBoundingClientRect();
+      const { left, top, width, height } = rect;
+      
+      // Check alignment with ch grid
+      const isLeftAligned = Math.abs(left % chWidthInPx) < 0.5;
+      const isWidthAligned = Math.abs(width % chWidthInPx) < 0.5;
+      
+      // Check alignment with line height grid
+      const isTopAligned = Math.abs(top % lineHeightInPx) < 0.5;
+      const isHeightAligned = Math.abs(height % lineHeightInPx) < 0.5;
+      
+      // If any dimension is misaligned, mark the element
+      if (!isLeftAligned || !isWidthAligned || !isTopAligned || !isHeightAligned) {
+        el.classList.add('off-grid');
         
-        if (isOffGridX || isOffGridY) {
-          el.classList.add('off-grid');
-        } else {
-          el.classList.remove('off-grid');
-        }
-      });
+        // Add measurement info as data attribute
+        const info = `Position: ${Math.round(left)}px × ${Math.round(top)}px, Size: ${Math.round(width)}px × ${Math.round(height)}px`;
+        el.setAttribute('data-grid-info', info);
+      }
     });
   },
-
-  // Detect if running on a mobile device
+  
+  /**
+   * Detect if the current device is mobile
+   */
   detectMobileDevice() {
-    return (
-      ('ontouchstart' in window) ||
-      (navigator.maxTouchPoints > 0) ||
-      (navigator.msMaxTouchPoints > 0) ||
-      window.matchMedia("(max-width: 768px)").matches
-    );
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
   },
-
-  // Create mobile-friendly controls for the debug grid
+  
+  /**
+   * Create mobile-friendly controls for debug grid
+   */
   createMobileControls() {
-    // Create a floating control panel for mobile
-    this.mobileControls = document.createElement('div');
-    this.mobileControls.className = 'debug-grid-mobile-controls';
-    this.mobileControls.style.display = this.enableDebug ? 'flex' : 'none';
-    
-    // Add buttons with touch-friendly sizes
-    const inspectBtn = this.createMobileButton('Inspect', () => this.toggleElementInspector());
-    const highlightBtn = this.createMobileButton('Highlight', () => this.toggleMisalignedHighlights());
-    const measureBtn = this.createMobileButton('Measure', () => this.toggleMeasurementTool());
-    const closeBtn = this.createMobileButton('×', () => {
-      this.enableDebug = false;
-      this.el.checked = false;
-      localStorage.setItem('debugGrid', 'false');
-      this.setDebugMode(false);
+    // Create container
+    const controlsContainer = DOMCleanup.createElement('div', {
+      className: 'debug-grid-mobile-controls z-debug-controls',
+      style: {
+        display: this.enableDebug ? 'flex' : 'none'
+      }
     });
-    closeBtn.className = 'debug-grid-mobile-button debug-grid-mobile-close';
     
-    // Add buttons to control panel
-    this.mobileControls.appendChild(inspectBtn);
-    this.mobileControls.appendChild(highlightBtn);
-    this.mobileControls.appendChild(measureBtn);
-    this.mobileControls.appendChild(closeBtn);
+    // Create buttons
+    const inspectorButton = this.createMobileButton('Inspect', () => this.toggleElementInspector());
+    const measureButton = this.createMobileButton('Measure', () => this.toggleMeasurementTool());
+    const highlightButton = this.createMobileButton('Highlight', () => this.toggleMisalignedHighlights());
     
-    // Add panel to document
-    document.body.appendChild(this.mobileControls);
+    // Add close button
+    const closeButton = DOMCleanup.createElement('button', {
+      className: 'debug-grid-mobile-button debug-grid-mobile-close',
+      onclick: () => this.setDebugMode(false)
+    }, '✕');
+    
+    // Append all buttons to container
+    controlsContainer.appendChild(inspectorButton);
+    controlsContainer.appendChild(measureButton);
+    controlsContainer.appendChild(highlightButton);
+    controlsContainer.appendChild(closeButton);
+    
+    // Add to DOM
+    document.body.appendChild(controlsContainer);
+    
+    // Store for later cleanup
+    this.dynamicElements.mobileControls = controlsContainer;
+    this.cleanup.registerElement(controlsContainer);
   },
-
-  // Helper to create a mobile-friendly button
+  
+  /**
+   * Create a mobile-friendly button
+   */
   createMobileButton(text, onClick) {
-    const button = document.createElement('button');
-    button.className = 'debug-grid-mobile-button';
-    button.textContent = text;
-    button.addEventListener('click', onClick);
-    button.addEventListener('touchstart', (e) => {
-      // Add active state for touch feedback
-      button.classList.add('active');
-    });
-    button.addEventListener('touchend', (e) => {
-      // Remove active state
-      button.classList.remove('active');
-    });
+    const button = DOMCleanup.createElement('button', {
+      className: 'debug-grid-mobile-button',
+    }, text);
+    
+    // Register click event with event manager
+    this.events.addEventListener(button, 'click', onClick);
+    
     return button;
   },
-
-  // Toggle element inspector mode
+  
+  /**
+   * Toggle element inspector mode
+   */
   toggleElementInspector() {
     if (this.inspectorMode) {
       this.disableElementInspector();
@@ -136,265 +239,411 @@ const DebugGrid = {
       this.enableElementInspector();
     }
   },
-
-  // Enable element inspector
+  
+  /**
+   * Enable element inspector mode
+   */
   enableElementInspector() {
-    this.inspectorMode = true;
-    document.body.classList.add('debug-inspector-mode');
+    if (this.inspectorMode) return;
     
-    // Add touch event handler for element inspection
-    this.inspectTouchHandler = (event) => {
-      event.preventDefault();
-      const touch = event.touches[0];
-      const element = document.elementFromPoint(touch.clientX, touch.clientY);
-      if (element) {
-        this.showElementInfo(element, touch.clientX, touch.clientY);
+    this.inspectorMode = true;
+    
+    // Show notification
+    this.showNotification('Element inspector enabled. Click on any element to inspect.');
+    
+    // Add click event listener to document
+    const clickHandler = (e) => {
+      // Prevent default behavior
+      e.preventDefault();
+      
+      // Get clicked element
+      const element = e.target;
+      
+      // Don't inspect debug UI elements
+      if (element.closest('.debug-grid-settings, .debug-grid-mobile-controls, .debug-grid-element-info')) {
+        return;
       }
+      
+      // Show element info
+      this.showElementInfo(element, e.clientX, e.clientY);
     };
     
-    document.addEventListener('touchstart', this.inspectTouchHandler);
+    // Register with event manager for proper cleanup
+    this.events.addEventListener(document, 'click', clickHandler);
     
-    // Show user notification
-    this.showNotification('Element inspector enabled. Tap any element to inspect it.');
+    // Store handler reference for cleanup
+    this.inspectorClickHandler = clickHandler;
   },
-
-  // Disable element inspector
+  
+  /**
+   * Disable element inspector mode
+   */
   disableElementInspector() {
-    this.inspectorMode = false;
-    document.body.classList.remove('debug-inspector-mode');
-    document.removeEventListener('touchstart', this.inspectTouchHandler);
+    if (!this.inspectorMode) return;
     
-    // Remove info panel if it exists
-    if (this.infoPanel) {
-      document.body.removeChild(this.infoPanel);
-      this.infoPanel = null;
+    this.inspectorMode = false;
+    
+    // Remove click event listener
+    if (this.inspectorClickHandler) {
+      document.removeEventListener('click', this.inspectorClickHandler);
+      this.inspectorClickHandler = null;
+    }
+    
+    // Remove any existing info panel
+    if (this.dynamicElements.infoPanel) {
+      if (this.dynamicElements.infoPanel.parentNode) {
+        this.dynamicElements.infoPanel.parentNode.removeChild(this.dynamicElements.infoPanel);
+      }
+      this.dynamicElements.infoPanel = null;
     }
   },
-
-  // Show element information in a panel
+  
+  /**
+   * Show information about an element
+   */
   showElementInfo(element, x, y) {
     // Remove existing info panel if any
-    if (this.infoPanel) {
-      document.body.removeChild(this.infoPanel);
+    if (this.dynamicElements.infoPanel) {
+      if (this.dynamicElements.infoPanel.parentNode) {
+        this.dynamicElements.infoPanel.parentNode.removeChild(this.dynamicElements.infoPanel);
+      }
+      this.dynamicElements.infoPanel = null;
     }
     
-    // Create info panel
-    this.infoPanel = document.createElement('div');
-    this.infoPanel.className = 'debug-grid-element-info';
-    
-    // Get element details
-    const styles = window.getComputedStyle(element);
+    // Get element info
     const rect = element.getBoundingClientRect();
+    const computedStyle = getComputedStyle(element);
     
-    // Calculate positions in terms of grid
-    const charWidth = parseFloat(getComputedStyle(document.documentElement).fontSize);
-    const lineHeight = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--line-height'));
-    const widthInCh = (rect.width / charWidth).toFixed(2);
-    const heightInLines = (rect.height / lineHeight).toFixed(2);
+    // Create info panel using DOM Cleanup utility
+    const infoPanel = DOMCleanup.createElement('div', {
+      className: 'debug-grid-element-info z-debug-panel'
+    });
     
-    // Create info content
-    this.infoPanel.innerHTML = `
-      <div class="debug-grid-element-info-header">
-        <span>${element.tagName.toLowerCase()}</span>
-        <button class="debug-grid-element-info-close">×</button>
-      </div>
-      <div class="debug-grid-element-info-content">
-        <table class="element-info-table">
-          <tr><td>Width:</td><td>${rect.width.toFixed(0)}px (${widthInCh} ch)</td></tr>
-          <tr><td>Height:</td><td>${rect.height.toFixed(0)}px (${heightInLines} lines)</td></tr>
-          <tr><td>Position:</td><td>x: ${rect.left.toFixed(0)}px, y: ${rect.top.toFixed(0)}px</td></tr>
-          <tr><td>Classes:</td><td>${element.className || 'none'}</td></tr>
-          <tr><td>Font:</td><td>${styles.fontFamily} (${styles.fontSize})</td></tr>
-        </table>
-      </div>
+    // Create header
+    const header = DOMCleanup.createElement('div', {
+      className: 'debug-grid-element-info-header'
+    });
+    
+    // Add element tag name
+    const tagName = DOMCleanup.createElement('span', {}, element.tagName.toLowerCase());
+    header.appendChild(tagName);
+    
+    // Add close button
+    const closeButton = DOMCleanup.createElement('button', {
+      className: 'debug-grid-element-info-close'
+    }, '×');
+    this.events.addEventListener(closeButton, 'click', () => {
+      if (infoPanel.parentNode) {
+        infoPanel.parentNode.removeChild(infoPanel);
+      }
+      this.dynamicElements.infoPanel = null;
+    });
+    header.appendChild(closeButton);
+    
+    // Add content
+    const content = DOMCleanup.createElement('div', {
+      className: 'debug-grid-element-info-content'
+    });
+    
+    // Position info
+    content.innerHTML = `
+      <h4>Position & Size</h4>
+      <p>Left: ${Math.round(rect.left)}px (${(rect.left / parseFloat(computedStyle.fontSize) * 0.6).toFixed(1)}ch)</p>
+      <p>Top: ${Math.round(rect.top)}px (${(rect.top / (parseFloat(computedStyle.fontSize) * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--line-height') || 1.5))).toFixed(1)}em)</p>
+      <p>Width: ${Math.round(rect.width)}px (${(rect.width / parseFloat(computedStyle.fontSize) * 0.6).toFixed(1)}ch)</p>
+      <p>Height: ${Math.round(rect.height)}px (${(rect.height / (parseFloat(computedStyle.fontSize) * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--line-height') || 1.5))).toFixed(1)}em)</p>
+      
+      <h4>Grid Alignment</h4>
+      <p>Left aligned: ${Math.abs(rect.left % (parseFloat(computedStyle.fontSize) * 0.6)) < 0.5 ? 'Yes ✓' : 'No ✗'}</p>
+      <p>Top aligned: ${Math.abs(rect.top % (parseFloat(computedStyle.fontSize) * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--line-height') || 1.5))) < 0.5 ? 'Yes ✓' : 'No ✗'}</p>
+      <p>Width aligned: ${Math.abs(rect.width % (parseFloat(computedStyle.fontSize) * 0.6)) < 0.5 ? 'Yes ✓' : 'No ✗'}</p>
+      <p>Height aligned: ${Math.abs(rect.height % (parseFloat(computedStyle.fontSize) * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--line-height') || 1.5))) < 0.5 ? 'Yes ✓' : 'No ✗'}</p>
     `;
     
+    // Add to DOM
+    infoPanel.appendChild(header);
+    infoPanel.appendChild(content);
+    
     // Position the panel
-    const panelWidth = 250;
-    const panelHeight = 220;
     let posX = x + 10;
     let posY = y + 10;
     
-    // Ensure the panel stays within viewport
+    // Ensure panel stays within viewport
+    const panelWidth = 250;
+    const panelHeight = 300;
+    
     if (posX + panelWidth > window.innerWidth) {
       posX = window.innerWidth - panelWidth - 10;
     }
+    
     if (posY + panelHeight > window.innerHeight) {
       posY = window.innerHeight - panelHeight - 10;
     }
     
-    this.infoPanel.style.left = `${posX}px`;
-    this.infoPanel.style.top = `${posY}px`;
+    infoPanel.style.left = `${posX}px`;
+    infoPanel.style.top = `${posY}px`;
     
-    // Add close button handler
-    document.body.appendChild(this.infoPanel);
-    this.infoPanel.querySelector('.debug-grid-element-info-close').addEventListener('click', () => {
-      document.body.removeChild(this.infoPanel);
-      this.infoPanel = null;
-    });
+    document.body.appendChild(infoPanel);
+    
+    // Store for later cleanup
+    this.dynamicElements.infoPanel = infoPanel;
+    this.cleanup.registerElement(infoPanel);
   },
-
-  // Toggle highlight of misaligned elements
+  
+  /**
+   * Toggle visibility of misaligned elements
+   */
   toggleMisalignedHighlights() {
-    const highlightingActive = document.body.classList.toggle('debug-highlight-misaligned');
-    
-    if (highlightingActive) {
-      this.highlightMisalignedElements();
-      this.showNotification('Highlighting misaligned elements. Tap again to disable.');
-    } else {
+    if (document.querySelectorAll('.off-grid').length > 0) {
+      // Hide all highlights
       document.querySelectorAll('.off-grid').forEach(el => {
         el.classList.remove('off-grid');
+        el.removeAttribute('data-grid-info');
       });
-      this.showNotification('Misaligned element highlighting disabled.');
+      this.showNotification('Grid alignment highlights hidden');
+    } else {
+      // Show all highlights
+      this.highlightMisalignedElements();
+      this.showNotification('Showing elements misaligned with the grid');
     }
   },
-
-  // Toggle measurement tool
+  
+  /**
+   * Toggle measurement tool
+   */
   toggleMeasurementTool() {
-    if (this.measurementActive) {
+    if (this.measurementMode) {
       this.disableMeasurementTool();
     } else {
       this.enableMeasurementTool();
     }
   },
-
-  // Enable measurement tool
+  
+  /**
+   * Enable measurement tool
+   */
   enableMeasurementTool() {
-    this.measurementActive = true;
-    document.body.classList.add('debug-measurement-mode');
+    if (this.measurementMode) return;
     
-    // Create measurement elements if they don't exist
-    if (!this.measureElement) {
-      this.measureElement = document.createElement('div');
-      this.measureElement.className = 'debug-grid-measure';
-      document.body.appendChild(this.measureElement);
+    this.measurementMode = true;
+    
+    // Show notification
+    this.showNotification('Measurement tool enabled. Click and drag to measure.');
+    
+    // Create measurement element
+    const measureEl = DOMCleanup.createElement('div', {
+      className: 'debug-grid-measure z-debug-overlay',
+      style: {
+        display: 'none'
+      }
+    });
+    
+    // Create info display
+    const infoEl = DOMCleanup.createElement('div', {
+      className: 'debug-grid-measure-info z-debug-panel',
+      style: {
+        display: 'none'
+      }
+    });
+    
+    // Add to DOM
+    document.body.appendChild(measureEl);
+    document.body.appendChild(infoEl);
+    
+    // Store for later cleanup
+    this.dynamicElements.measureElement = measureEl;
+    this.dynamicElements.measureInfo = infoEl;
+    this.cleanup.registerElement(measureEl);
+    this.cleanup.registerElement(infoEl);
+    
+    // Mouse event data
+    let isMouseDown = false;
+    let startX = 0;
+    let startY = 0;
+    let currentX = 0;
+    let currentY = 0;
+    
+    // Mouse down handler
+    const mouseDownHandler = (e) => {
+      // Don't measure on debug UI elements
+      if (e.target.closest('.debug-grid-settings, .debug-grid-mobile-controls, .debug-grid-element-info, .debug-grid-measure, .debug-grid-measure-info')) {
+        return;
+      }
       
-      this.measureInfo = document.createElement('div');
-      this.measureInfo.className = 'debug-grid-measure-info';
-      document.body.appendChild(this.measureInfo);
-    } else {
-      this.measureElement.style.display = 'block';
-      this.measureInfo.style.display = 'block';
-    }
-    
-    // Set up measurement state
-    this.measuring = false;
-    this.measureStartX = 0;
-    this.measureStartY = 0;
-    
-    // Add touch event handlers
-    this.measureTouchStartHandler = (event) => {
-      if (!this.measuring) {
-        const touch = event.touches[0];
-        this.measureStartX = touch.clientX;
-        this.measureStartY = touch.clientY;
-        this.measuring = true;
-        
-        // Visualize the starting point
-        this.measureElement.style.left = `${this.measureStartX}px`;
-        this.measureElement.style.top = `${this.measureStartY}px`;
-        this.measureElement.style.width = '0';
-        this.measureElement.style.height = '0';
-        this.measureElement.style.display = 'block';
-        
-        this.showNotification('Touch and drag to measure. Tap to finish.');
-      } else {
-        // Finish measurement on second tap
-        this.measuring = false;
-      }
-      event.preventDefault();
+      isMouseDown = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      
+      // Show measurement element
+      measureEl.style.display = 'block';
+      measureEl.style.left = `${startX}px`;
+      measureEl.style.top = `${startY}px`;
+      measureEl.style.width = '0px';
+      measureEl.style.height = '0px';
+      
+      // Show info element
+      infoEl.style.display = 'block';
     };
     
-    this.measureTouchMoveHandler = (event) => {
-      if (this.measuring) {
-        const touch = event.touches[0];
-        const currentX = touch.clientX;
-        const currentY = touch.clientY;
-        
-        // Calculate dimensions
-        const width = Math.abs(currentX - this.measureStartX);
-        const height = Math.abs(currentY - this.measureStartY);
-        const left = Math.min(currentX, this.measureStartX);
-        const top = Math.min(currentY, this.measureStartY);
-        
-        // Update visualization
-        this.measureElement.style.left = `${left}px`;
-        this.measureElement.style.top = `${top}px`;
-        this.measureElement.style.width = `${width}px`;
-        this.measureElement.style.height = `${height}px`;
-        
-        // Calculate grid measurements
-        const charWidth = parseFloat(getComputedStyle(document.documentElement).fontSize);
-        const lineHeight = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--line-height'));
-        const widthInCh = (width / charWidth).toFixed(2);
-        const heightInLines = (height / lineHeight).toFixed(2);
-        
-        // Update info display
-        this.measureInfo.textContent = `${width.toFixed(0)}px × ${height.toFixed(0)}px (${widthInCh}ch × ${heightInLines}lines)`;
-        this.measureInfo.style.left = `${left + width / 2 - 125}px`;
-        this.measureInfo.style.top = `${top + height + 10}px`;
-        this.measureInfo.style.display = 'block';
-        
-        event.preventDefault();
-      }
+    // Mouse move handler
+    const mouseMoveHandler = (e) => {
+      if (!isMouseDown) return;
+      
+      currentX = e.clientX;
+      currentY = e.clientY;
+      
+      // Calculate dimensions
+      const left = Math.min(startX, currentX);
+      const top = Math.min(startY, currentY);
+      const width = Math.abs(currentX - startX);
+      const height = Math.abs(currentY - startY);
+      
+      // Update measurement element
+      measureEl.style.left = `${left}px`;
+      measureEl.style.top = `${top}px`;
+      measureEl.style.width = `${width}px`;
+      measureEl.style.height = `${height}px`;
+      
+      // Get monospace metrics
+      const fontSizeInPx = parseFloat(getComputedStyle(document.documentElement).fontSize);
+      const chWidth = fontSizeInPx * 0.6; // Approximation for monospace
+      const lineHeightInRem = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--line-height') || '1.5');
+      const lineHeight = lineHeightInRem * fontSizeInPx;
+      
+      // Update info display
+      infoEl.innerHTML = `
+        ${width.toFixed(0)}px × ${height.toFixed(0)}px<br>
+        ${(width / chWidth).toFixed(1)}ch × ${(height / lineHeight).toFixed(1)}em
+      `;
+      
+      // Position info display
+      infoEl.style.left = `${left + (width / 2) - (infoEl.offsetWidth / 2)}px`;
+      infoEl.style.top = `${top + height + 10}px`;
     };
     
-    this.measureTouchEndHandler = (event) => {
-      if (this.measuring) {
-        // Keep the measurement visible but stop active measuring
-        this.measuring = false;
-      }
+    // Mouse up handler
+    const mouseUpHandler = () => {
+      isMouseDown = false;
     };
     
-    document.addEventListener('touchstart', this.measureTouchStartHandler);
-    document.addEventListener('touchmove', this.measureTouchMoveHandler);
-    document.addEventListener('touchend', this.measureTouchEndHandler);
+    // Register event listeners with event manager
+    this.events.addEventListener(document, 'mousedown', mouseDownHandler);
+    this.events.addEventListener(document, 'mousemove', mouseMoveHandler);
+    this.events.addEventListener(document, 'mouseup', mouseUpHandler);
     
-    this.showNotification('Measurement tool enabled. Tap to set start point, then drag or tap again.');
+    // Store handlers for cleanup
+    this.measurementHandlers = {
+      mouseDown: mouseDownHandler,
+      mouseMove: mouseMoveHandler,
+      mouseUp: mouseUpHandler
+    };
   },
-
-  // Disable measurement tool
+  
+  /**
+   * Disable measurement tool
+   */
   disableMeasurementTool() {
-    this.measurementActive = false;
-    document.body.classList.remove('debug-measurement-mode');
+    if (!this.measurementMode) return;
     
-    // Hide measurement elements
-    if (this.measureElement) {
-      this.measureElement.style.display = 'none';
-      this.measureInfo.style.display = 'none';
+    this.measurementMode = false;
+    
+    // Remove event listeners
+    if (this.measurementHandlers) {
+      document.removeEventListener('mousedown', this.measurementHandlers.mouseDown);
+      document.removeEventListener('mousemove', this.measurementHandlers.mouseMove);
+      document.removeEventListener('mouseup', this.measurementHandlers.mouseUp);
+      this.measurementHandlers = null;
     }
     
-    // Remove event handlers
-    document.removeEventListener('touchstart', this.measureTouchStartHandler);
-    document.removeEventListener('touchmove', this.measureTouchMoveHandler);
-    document.removeEventListener('touchend', this.measureTouchEndHandler);
-    
-    this.showNotification('Measurement tool disabled.');
-  },
-
-  // Helper method to show notifications
-  showNotification(message) {
-    if (this.notification) {
-      document.body.removeChild(this.notification);
-    }
-    
-    this.notification = document.createElement('div');
-    this.notification.className = 'debug-grid-notification';
-    this.notification.textContent = message;
-    document.body.appendChild(this.notification);
-    
-    // Auto-hide notification after 3 seconds
-    setTimeout(() => {
-      if (this.notification) {
-        this.notification.classList.add('hiding');
-        setTimeout(() => {
-          if (this.notification) {
-            document.body.removeChild(this.notification);
-            this.notification = null;
-          }
-        }, 500);
+    // Remove measurement elements
+    if (this.dynamicElements.measureElement) {
+      if (this.dynamicElements.measureElement.parentNode) {
+        this.dynamicElements.measureElement.parentNode.removeChild(this.dynamicElements.measureElement);
       }
+      this.dynamicElements.measureElement = null;
+    }
+    
+    if (this.dynamicElements.measureInfo) {
+      if (this.dynamicElements.measureInfo.parentNode) {
+        this.dynamicElements.measureInfo.parentNode.removeChild(this.dynamicElements.measureInfo);
+      }
+      this.dynamicElements.measureInfo = null;
+    }
+  },
+  
+  /**
+   * Show a notification message
+   */
+  showNotification(message) {
+    // Remove existing notification
+    if (this.dynamicElements.notification) {
+      if (this.dynamicElements.notification.parentNode) {
+        this.dynamicElements.notification.parentNode.removeChild(this.dynamicElements.notification);
+      }
+      this.dynamicElements.notification = null;
+    }
+    
+    // Create notification element
+    const notification = DOMCleanup.createElement('div', {
+      className: 'debug-grid-notification z-debug-panel'
+    }, message);
+    
+    // Add to DOM
+    document.body.appendChild(notification);
+    
+    // Store for later cleanup
+    this.dynamicElements.notification = notification;
+    this.cleanup.registerElement(notification);
+    
+    // Auto-hide after delay
+    const notificationTimeout = setTimeout(() => {
+      notification.classList.add('hiding');
+      
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+        this.dynamicElements.notification = null;
+      }, 300);
     }, 3000);
+    
+    // Register timeout for cleanup
+    this.cleanup.registerTimeout(notificationTimeout);
+  },
+  
+  /**
+   * Handle component cleanup before unmount
+   */
+  handleBeforeUnmount() {
+    // Add event listener for beforeunload to clean up resources
+    window.addEventListener('beforeunload', this.cleanupResources.bind(this));
+    
+    // For Phoenix LiveView hooks, this should be called in the destroyed callback
+    // if available in your hook implementation
+  },
+  
+  /**
+   * Clean up resources
+   */
+  cleanupResources() {
+    // Disable features that might have active event listeners
+    this.disableElementInspector();
+    this.disableMeasurementTool();
+    
+    // Use our cleanup utility to clean up any remaining resources
+    if (this.cleanup) {
+      this.cleanup.cleanup();
+    }
+    
+    // Unregister from event manager
+    if (this.componentId) {
+      EventManager.unregisterComponent(this.componentId);
+    }
+  },
+  
+  destroyed() {
+    // This is called when a Phoenix LiveView hook is destroyed
+    this.cleanupResources();
   }
 };
 

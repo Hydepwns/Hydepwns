@@ -44,6 +44,12 @@ defmodule HydepwnsLiveviewWeb.Router do
       live "/resource-assigns", UserResourceLive, :index
       live "/user-resource", UserResourceExampleLive, :index
       live "/ecto-resource", EctoResourceExampleLive, :index
+      live "/change-tracking", ChangeTrackingExampleLive, :index
+      live "/nested-validation", NestedValidationExampleLive, :index
+      live "/transformation", TransformationExampleLive, :index
+      live "/transformation-metrics", TransformationMetricsLive, :index
+      live "/context-validation-tracking", ContextValidationTrackingExampleLive, :index
+      live "/event-system", EventSystemExampleLive, :index
     end
 
     # Offline fallback page
@@ -54,6 +60,11 @@ defmodule HydepwnsLiveviewWeb.Router do
 
     # Add a test route for validation testing
     live "/test", EnhancedErrorReportingTest.TestErrorLive
+
+    # Admin routes
+    scope "/admin", Admin, as: :admin do
+      live "/event-dashboard", EventDashboardLive, :index
+    end
   end
 
   # Development-only routes

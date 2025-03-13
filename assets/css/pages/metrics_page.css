@@ -1,0 +1,125 @@
+/* Metrics Page Styles */
+
+.metrics-page {
+  --success-color: #4CAF50;
+  --error-color: #F44336;
+  --primary-color: #2196F3;
+  --secondary-color: #607D8B;
+  --light-bg: #f5f5f5;
+  --border-color: #e0e0e0;
+  
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.metrics-page__header {
+  margin-bottom: 2rem;
+}
+
+.metrics-page__header h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+.metrics-page__description {
+  color: #666;
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.metrics-page__actions {
+  margin-top: 3rem;
+}
+
+.metrics-page__actions-section {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+}
+
+.metrics-page__actions-section h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+.metrics-page__actions-section p {
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+
+.metrics-page__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.button {
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.75rem 1.25rem;
+  transition: background-color 0.2s, opacity 0.2s;
+}
+
+.button--primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.button--primary:hover {
+  opacity: 0.9;
+}
+
+.button--success {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.button--success:hover {
+  opacity: 0.9;
+}
+
+.button--error {
+  background-color: var(--error-color);
+  color: white;
+}
+
+.button--error:hover {
+  opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+  .metrics-page__buttons {
+    flex-direction: column;
+  }
+  
+  .button {
+    width: 100%;
+  }
+}
+
+/* Metrics Dashboard Link on Transformation Example Page */
+.metrics-dashboard-link {
+  margin-bottom: 1.5rem;
+  text-align: right;
+}
+
+.metrics-dashboard-link .button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.metrics-dashboard-link .button span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+} 

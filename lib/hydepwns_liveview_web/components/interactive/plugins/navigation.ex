@@ -23,7 +23,8 @@ defmodule HydepwnsLiveviewWeb.Components.Interactive.Plugins.Navigation do
          "/docs",
          "/gallery",
          "/playground",
-         "/projects"
+         "/projects",
+         "/docs/PRD/FEATURES"
        ]
      }}
   end

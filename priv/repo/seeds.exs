@@ -10,8 +10,8 @@
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
 
-alias HydepwnsLiveview.Themes
-alias HydepwnsLiveview.Themes.Theme
+alias HydepwnsLiveview.ThemeSystem
+alias HydepwnsLiveview.ThemeSystem.Models.Theme
 
 # Clear existing themes
 HydepwnsLiveview.Repo.delete_all(Theme)
@@ -57,8 +57,8 @@ system_theme = %{
 }
 
 # Insert themes
-{:ok, _} = Themes.create_theme(light_theme)
-{:ok, _} = Themes.create_theme(dark_theme)
-{:ok, _} = Themes.create_theme(system_theme)
+{:ok, _} = ThemeSystem.create_theme(light_theme)
+{:ok, _} = ThemeSystem.create_theme(dark_theme)
+{:ok, _} = ThemeSystem.create_theme(system_theme)
 
 IO.puts("Database seeded with default themes!")

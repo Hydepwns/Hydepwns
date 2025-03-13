@@ -4,6 +4,10 @@
  * This is the main stylesheet for the application.
  */
 
+/* Import CSS variables and design system first */
+@import "./variables/theme";
+@import "./variables/z-index";
+
 /* Import base styles and themes */
 @import "./base/reset";
 @import "./base/normalize";
@@ -1087,14 +1091,13 @@ figure video {
 /* Debug Grid */
 body.debug-grid {
   --debug-grid-cell-width: 1ch;
-  --debug-grid-cell-height: var(--line-height);
+  --debug-grid-cell-height: 1.5em;
   --debug-grid-color: rgba(0, 0, 255, 0.1);
   
   background-image: 
     linear-gradient(to right, var(--debug-grid-color) 1px, transparent 1px),
     linear-gradient(to bottom, var(--debug-grid-color) 1px, transparent 1px);
   background-size: 
-    var(--debug-grid-cell-width) var(--debug-grid-cell-height),
     var(--debug-grid-cell-width) var(--debug-grid-cell-height);
   background-position: 0 0;
 }

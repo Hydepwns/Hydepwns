@@ -103,7 +103,7 @@ The socket validation utilities are tested in:
 
 Comprehensive documentation is available in:
 
-- `docs/socket_validation/resource_oriented_sockets.md`: Overview of resource-oriented socket assigns
+- `docs/PRD/FEATURES/SOCKET_VALIDATION.md`: Overview of resource-oriented socket assigns
 
 ## Next Steps
 

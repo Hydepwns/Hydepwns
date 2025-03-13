@@ -40,6 +40,7 @@ defmodule HydepwnsLiveview.Utils.LiveViewAPI do
   alias Phoenix.LiveView.Socket
   alias HydepwnsLiveview.Utils.SocketValidator
   alias HydepwnsLiveview.Utils.LiveViewResource
+  alias HydepwnsLiveview.Utils.ChangeTracker
 
   @doc """
   Gets a value from a resource-oriented socket assign.
@@ -378,6 +379,242 @@ defmodule HydepwnsLiveview.Utils.LiveViewAPI do
       end
     else
       {:ok, Phoenix.Component.assign(socket, resource_key, values)}
+    end
+  end
+
+  @doc """
+  Updates a resource in the socket assigns with change tracking.
+
+  This function updates a resource and tracks the changes made, creating
+  a change history entry. It also performs validation and optimistic concurrency control.
+
+  ## Parameters
+
+  - `socket` - The LiveView socket.
+  - `resource_key` - The resource key in socket assigns.
+  - `updates` - A map of updates to apply to the resource.
+  - `metadata` - A map containing metadata about the change:
+    - `:actor` - Who made the change (optional)
+    - `:reason` - Why the change was made (optional)
+    - `:source` - Where the change originated from (optional)
+    - `:expected_version` - The expected version for optimistic concurrency control (optional)
+
+  ## Returns
+
+  - `{:ok, socket}` - If the update was successful.
+  - `{:error, :stale_resource, socket}` - If the resource has been updated by someone else.
+  - `{:error, message, socket}` - If the update failed due to validation.
+
+  ## Examples
+
+  ```elixir
+  case LiveViewAPI.update_with_tracking(socket, :user, %{name: "New Name"}, %{
+    actor: "admin@example.com",
+    reason: "Name correction"
+  }) do
+    {:ok, updated_socket} ->
+      {:noreply, updated_socket}
+    
+    {:error, :stale_resource, socket} ->
+      {:noreply, put_flash(socket, :error, "Resource was updated by someone else")}
+    
+    {:error, message, socket} ->
+      {:noreply, put_flash(socket, :error, message)}
+  end
+  ```
+  """
+  def update_with_tracking(%Socket{} = socket, resource_key, updates, metadata \\ %{})
+      when is_atom(resource_key) and is_map(updates) do
+    # Get the resource from socket assigns
+    resource = Map.get(socket.assigns, resource_key)
+
+    if is_nil(resource) do
+      {:error, "Resource #{resource_key} not found in socket assigns", socket}
+    else
+      # First validate the resource updates
+      with {:validation, {:ok, validated_updates}} <-
+             {:validation, validate_resource_update(socket, resource_key, updates)} do
+        # Get the resource module
+        resource_module = Map.get(resource, :__resource_module__)
+
+        if is_nil(resource_module) do
+          {:error, "Resource #{resource_key} does not have a __resource_module__ attribute",
+           socket}
+        else
+          # Add any context validation data to metadata
+          enhanced_metadata =
+            if Map.get(metadata, :context_validation, false) do
+              metadata
+            else
+              # If context_validation isn't specified, check if there's a 
+              # context_validation module attribute on the resource module
+              context_validation =
+                if function_exported?(resource_module, :__context_validation__, 0) do
+                  resource_module.__context_validation__()
+                else
+                  false
+                end
+
+              Map.put(metadata, :context_validation, context_validation)
+            end
+
+          # Call the resource's update_with_tracking function
+          case resource_module.update_with_tracking(
+                 resource,
+                 validated_updates,
+                 enhanced_metadata
+               ) do
+            {:ok, updated_resource} ->
+              # Update the socket with the new resource value
+              updated_socket = Phoenix.Component.assign(socket, resource_key, updated_resource)
+              {:ok, updated_socket}
+
+            {:error, :stale_resource} ->
+              {:error, :stale_resource, socket}
+
+            {:error, errors} ->
+              error_message = format_errors(errors)
+              {:error, error_message, socket}
+          end
+        end
+      else
+        {:validation, {:error, message}} ->
+          {:error, message, socket}
+      end
+    end
+  end
+
+  # Helper function to format error messages
+  defp format_errors(errors) when is_list(errors) do
+    errors
+    |> Enum.map(fn
+      {_key, message} when is_binary(message) -> message
+      message when is_binary(message) -> message
+      error -> inspect(error)
+    end)
+    |> Enum.join("; ")
+  end
+
+  defp format_errors(errors) when is_binary(errors), do: errors
+  defp format_errors(errors), do: inspect(errors)
+
+  @doc """
+  Gets the change history for a resource in the socket assigns.
+
+  ## Parameters
+
+  - `socket` - The LiveView socket.
+  - `resource_key` - The resource key in socket assigns.
+  - `opts` - Options for filtering the history:
+    - `:limit` - Maximum number of changes to return
+    - `:since` - Only return changes since this timestamp
+    - `:until` - Only return changes until this timestamp
+    - `:by_actor` - Only return changes by this actor
+
+  ## Returns
+
+  - `{:ok, changes}` - The change history
+  - `{:error, reason}` - An error occurred
+
+  ## Examples
+
+  ```elixir
+  case LiveViewAPI.get_history(socket, :user) do
+    {:ok, changes} ->
+      # Do something with the changes...
+    
+    {:error, reason} ->
+      # Handle error...
+  end
+  ```
+  """
+  def get_history(%Socket{} = socket, resource_key, opts \\ [])
+      when is_atom(resource_key) do
+    # Get the resource
+    resource = Map.get(socket.assigns, resource_key)
+
+    if is_nil(resource) do
+      {:error, "Resource #{resource_key} not found in socket assigns"}
+    else
+      ChangeTracker.get_history(resource, opts)
+    end
+  end
+
+  @doc """
+  Gets a specific version of a resource from the socket assigns.
+
+  ## Parameters
+
+  - `socket` - The LiveView socket.
+  - `resource_key` - The resource key in socket assigns.
+  - `version` - The version number to retrieve.
+
+  ## Returns
+
+  - `{:ok, versioned_resource}` - The resource at the specified version
+  - `{:error, reason}` - An error occurred
+
+  ## Examples
+
+  ```elixir
+  case LiveViewAPI.get_version(socket, :user, 1) do
+    {:ok, previous_version} ->
+      # Do something with the previous version...
+    
+    {:error, reason} ->
+      # Handle error...
+  end
+  ```
+  """
+  def get_version(%Socket{} = socket, resource_key, version)
+      when is_atom(resource_key) and is_integer(version) do
+    # Get the resource
+    resource = Map.get(socket.assigns, resource_key)
+
+    if is_nil(resource) do
+      {:error, "Resource #{resource_key} not found in socket assigns"}
+    else
+      ChangeTracker.get_version(resource, version)
+    end
+  end
+
+  @doc """
+  Creates a diff between two versions of a resource in the socket assigns.
+
+  ## Parameters
+
+  - `socket` - The LiveView socket.
+  - `resource_key` - The resource key in socket assigns.
+  - `opts` - Options for specifying the versions:
+    - `:version1` - First version (default: previous version)
+    - `:version2` - Second version (default: current version)
+
+  ## Returns
+
+  - `{:ok, diff}` - The diff between the two versions
+  - `{:error, reason}` - An error occurred
+
+  ## Examples
+
+  ```elixir
+  case LiveViewAPI.diff_versions(socket, :user, version1: 1, version2: 2) do
+    {:ok, diff} ->
+      # Do something with the diff...
+    
+    {:error, reason} ->
+      # Handle error...
+  end
+  ```
+  """
+  def diff_versions(%Socket{} = socket, resource_key, opts \\ [])
+      when is_atom(resource_key) do
+    # Get the resource
+    resource = Map.get(socket.assigns, resource_key)
+
+    if is_nil(resource) do
+      {:error, "Resource #{resource_key} not found in socket assigns"}
+    else
+      ChangeTracker.diff(resource, opts)
     end
   end
 

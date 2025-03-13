@@ -1,15 +1,20 @@
 defmodule HydepwnsLiveview.Themes do
   @moduledoc """
   The Themes context.
+
+  DEPRECATED: This module is maintained for backward compatibility.
+  Please use HydepwnsLiveview.ThemeSystem for new code.
   """
 
   import Ecto.Query, warn: false
   alias HydepwnsLiveview.Repo
-
   alias HydepwnsLiveview.Themes.Theme
+  alias HydepwnsLiveview.ThemeSystem
 
   @doc """
   Returns the list of themes.
+
+  DEPRECATED: Use ThemeSystem.list_themes/0 instead.
 
   ## Examples
 
@@ -18,11 +23,18 @@ defmodule HydepwnsLiveview.Themes do
 
   """
   def list_themes do
-    Repo.all(Theme)
+    IO.warn(
+      "HydepwnsLiveview.Themes.list_themes/0 is deprecated. " <>
+        "Use HydepwnsLiveview.ThemeSystem.list_themes/0 instead."
+    )
+
+    ThemeSystem.list_themes()
   end
 
   @doc """
   Gets a single theme.
+
+  DEPRECATED: Use ThemeSystem.get_theme!/1 instead.
 
   Raises `Ecto.NoResultsError` if the Theme does not exist.
 
@@ -35,10 +47,19 @@ defmodule HydepwnsLiveview.Themes do
       ** (Ecto.NoResultsError)
 
   """
-  def get_theme!(id), do: Repo.get!(Theme, id)
+  def get_theme!(id) do
+    IO.warn(
+      "HydepwnsLiveview.Themes.get_theme!/1 is deprecated. " <>
+        "Use HydepwnsLiveview.ThemeSystem.get_theme!/1 instead."
+    )
+
+    ThemeSystem.get_theme!(id)
+  end
 
   @doc """
   Gets a single theme by name.
+
+  DEPRECATED: Use ThemeSystem.get_theme_by_name/1 instead.
 
   Returns nil if the Theme does not exist.
 
@@ -52,11 +73,18 @@ defmodule HydepwnsLiveview.Themes do
 
   """
   def get_theme_by_name(name) when is_binary(name) do
-    Repo.get_by(Theme, name: name)
+    IO.warn(
+      "HydepwnsLiveview.Themes.get_theme_by_name/1 is deprecated. " <>
+        "Use HydepwnsLiveview.ThemeSystem.get_theme_by_name/1 instead."
+    )
+
+    ThemeSystem.get_theme_by_name(name)
   end
 
   @doc """
   Gets the default theme.
+
+  DEPRECATED: Use ThemeSystem.get_default_theme/0 instead.
 
   Returns nil if no default theme exists.
 
@@ -70,11 +98,18 @@ defmodule HydepwnsLiveview.Themes do
 
   """
   def get_default_theme do
-    Repo.get_by(Theme, is_default: true)
+    IO.warn(
+      "HydepwnsLiveview.Themes.get_default_theme/0 is deprecated. " <>
+        "Use HydepwnsLiveview.ThemeSystem.get_default_theme/0 instead."
+    )
+
+    ThemeSystem.get_default_theme()
   end
 
   @doc """
   Creates a theme.
+
+  DEPRECATED: Use ThemeSystem.create_theme/1 instead.
 
   ## Examples
 
@@ -86,26 +121,18 @@ defmodule HydepwnsLiveview.Themes do
 
   """
   def create_theme(attrs \\ %{}) do
-    result =
-      %Theme{}
-      |> Theme.changeset(attrs)
-      |> Repo.insert()
+    IO.warn(
+      "HydepwnsLiveview.Themes.create_theme/1 is deprecated. " <>
+        "Use HydepwnsLiveview.ThemeSystem.create_theme/1 instead."
+    )
 
-    case result do
-      {:ok, theme} ->
-        if theme.is_default do
-          unset_other_defaults(theme.id)
-        end
-
-        {:ok, theme}
-
-      error ->
-        error
-    end
+    ThemeSystem.create_theme(attrs)
   end
 
   @doc """
   Updates a theme.
+
+  DEPRECATED: Use ThemeSystem.update_theme/2 instead.
 
   ## Examples
 
@@ -117,26 +144,18 @@ defmodule HydepwnsLiveview.Themes do
 
   """
   def update_theme(%Theme{} = theme, attrs) do
-    result =
-      theme
-      |> Theme.changeset(attrs)
-      |> Repo.update()
+    IO.warn(
+      "HydepwnsLiveview.Themes.update_theme/2 is deprecated. " <>
+        "Use HydepwnsLiveview.ThemeSystem.update_theme/2 instead."
+    )
 
-    case result do
-      {:ok, updated_theme} ->
-        if updated_theme.is_default do
-          unset_other_defaults(updated_theme.id)
-        end
-
-        {:ok, updated_theme}
-
-      error ->
-        error
-    end
+    ThemeSystem.update_theme(theme, attrs)
   end
 
   @doc """
   Deletes a theme.
+
+  DEPRECATED: Use ThemeSystem.delete_theme/1 instead.
 
   ## Examples
 
@@ -148,11 +167,18 @@ defmodule HydepwnsLiveview.Themes do
 
   """
   def delete_theme(%Theme{} = theme) do
-    Repo.delete(theme)
+    IO.warn(
+      "HydepwnsLiveview.Themes.delete_theme/1 is deprecated. " <>
+        "Use HydepwnsLiveview.ThemeSystem.delete_theme/1 instead."
+    )
+
+    ThemeSystem.delete_theme(theme)
   end
 
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking theme changes.
+
+  DEPRECATED: Use ThemeSystem.change_theme/2 instead.
 
   ## Examples
 
@@ -161,15 +187,11 @@ defmodule HydepwnsLiveview.Themes do
 
   """
   def change_theme(%Theme{} = theme, attrs \\ %{}) do
-    Theme.changeset(theme, attrs)
-  end
+    IO.warn(
+      "HydepwnsLiveview.Themes.change_theme/2 is deprecated. " <>
+        "Use HydepwnsLiveview.ThemeSystem.change_theme/2 instead."
+    )
 
-  # Unset default flag for all other themes
-  defp unset_other_defaults(current_id) do
-    query =
-      from t in Theme,
-        where: t.is_default == true and t.id != ^current_id
-
-    Repo.update_all(query, set: [is_default: false])
+    ThemeSystem.change_theme(theme, attrs)
   end
 end

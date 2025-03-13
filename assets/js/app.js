@@ -15,6 +15,10 @@
 //     import "some-package"
 //
 
+// Import utilities
+import EventManager from "./components/event_manager"
+import DOMCleanup from "./utils/dom_cleanup"
+
 // Remove CSS imports - now handled by Phoenix's built-in CSS processing
 
 // Include phoenix_html to handle method=PUT/DELETE in forms and buttons
@@ -24,7 +28,7 @@ import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 
 // Import component hooks
-import DebugGrid from "./hooks/debug_grid"
+import DebugGrid from "./components/debug_grid"
 import DebugGridToggle from "./hooks/debug_grid_toggle"
 import ThemeToggle from "./hooks/theme_toggle"
 import CopyableCode from "./hooks/copyable_code"
@@ -44,6 +48,7 @@ import TerminalHooks from "./hooks/terminal_hooks"
 import TerminalThemeSync from "./hooks/terminal_theme_sync"
 import ViewportDetector from "./hooks/viewport_detector" 
 import AccessibilityMenuToggle from "./hooks/accessibility_menu_toggle"
+import NotificationsHandler from "./hooks/notifications"
 
 // Import accessibility functions
 import "./accessibility/accessibility.js"
@@ -100,6 +105,7 @@ const Hooks = {
   TerminalThemeSync,
   ViewportDetector,
   AccessibilityMenuToggle,
+  NotificationsHandler,
   ...TerminalHooks
 }
 

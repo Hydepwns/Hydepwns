@@ -315,28 +315,13 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
         <div class="animation-speed-controls">
           <label>Animation Speed:</label>
           <div class="speed-buttons">
-            <button 
-              phx-click="set_animation_speed" 
-              phx-value-speed="slow"
-              class={@animation_speed_class == "slow-speed" && "active"}
-              aria-label="Set slow animation speed"
-            >
+            <button phx-click="set_animation_speed" phx-value-speed="slow" class={@animation_speed_class == "slow-speed" && "active"} aria-label="Set slow animation speed">
               Slow
             </button>
-            <button 
-              phx-click="set_animation_speed" 
-              phx-value-speed="normal"
-              class={@animation_speed_class == "normal-speed" && "active"}
-              aria-label="Set normal animation speed"
-            >
+            <button phx-click="set_animation_speed" phx-value-speed="normal" class={@animation_speed_class == "normal-speed" && "active"} aria-label="Set normal animation speed">
               Normal
             </button>
-            <button 
-              phx-click="set_animation_speed" 
-              phx-value-speed="fast"
-              class={@animation_speed_class == "fast-speed" && "active"}
-              aria-label="Set fast animation speed"
-            >
+            <button phx-click="set_animation_speed" phx-value-speed="fast" class={@animation_speed_class == "fast-speed" && "active"} aria-label="Set fast animation speed">
               Fast
             </button>
           </div>
@@ -355,7 +340,7 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
             <ul>
               <%= for {id, label} <- @toc_items do %>
                 <li>
-                  <a href={"##{id}"}><%= label %></a>
+                  <a href={"##{id}"}>{label}</a>
                 </li>
               <% end %>
             </ul>
@@ -368,18 +353,18 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
             <!-- ASCII Banner Section -->
             <section id="ascii-banner" class={["ascii-banner", @animation_speed_class]}>
               <pre id="hydepwns-banner" class="ascii-header" aria-label="Hydepwns ASCII art logo banner">
-<span class="ascii-logo">
-██╗  ██╗██╗   ██╗██████╗ ███████╗██████╗ ██╗    ██╗███╗   ██╗███████╗
-██║  ██║╚██╗ ██╔╝██╔══██╗██╔════╝██╔══██╗██║    ██║████╗  ██║██╔════╝
-███████║ ╚████╔╝ ██║  ██║█████╗  ██████╔╝██║ █╗ ██║██╔██╗ ██║███████╗
-██╔══██║  ╚██╔╝  ██║  ██║██╔══╝  ██╔═══╝ ██║███╗██║██║╚██╗██║╚════██║
-██║  ██║   ██║   ██████╔╝███████╗██║     ╚███╔███╔╝██║ ╚████║███████║
-╚═╝  ╚═╝   ╚═╝   ╚═════╝ ╚══════╝╚═╝      ╚══╝╚══╝ ╚═╝  ╚═══╝╚══════╝
-</span>
-<span class="ascii-version">MONOSPACE WEB DESIGN SYSTEM v1.3.1</span>
+    <span class="ascii-logo">
+    ██╗  ██╗██╗   ██╗██████╗ ███████╗██████╗ ██╗    ██╗███╗   ██╗███████╗
+    ██║  ██║╚██╗ ██╔╝██╔══██╗██╔════╝██╔══██╗██║    ██║████╗  ██║██╔════╝
+    ███████║ ╚████╔╝ ██║  ██║█████╗  ██████╔╝██║ █╗ ██║██╔██╗ ██║███████╗
+    ██╔══██║  ╚██╔╝  ██║  ██║██╔══╝  ██╔═══╝ ██║███╗██║██║╚██╗██║╚════██║
+    ██║  ██║   ██║   ██████╔╝███████╗██║     ╚███╔███╔╝██║ ╚████║███████║
+    ╚═╝  ╚═╝   ╚═╝   ╚═════╝ ╚══════╝╚═╝      ╚══╝╚══╝ ╚═╝  ╚═══╝╚══════╝
+    </span>
+    <span class="ascii-version">MONOSPACE WEB DESIGN SYSTEM v1.3.1</span>
               </pre>
             </section>
-
+            
     <!-- Introduction Section -->
             <section id="introduction">
               <h2>Introduction</h2>
@@ -388,7 +373,7 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
               <h3 id="background">Background</h3>
               <p>The design is inspired by terminal UIs and uses monospace fonts technical aesthetic. This approach allows for precise control over ASCII art integration.</p>
             </section>
-
+            
     <!-- Features Section -->
             <section id="features">
               <h2>Features</h2>
@@ -554,7 +539,7 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
           </main>
         </div>
       <% end %>
-      
+
       <.debug_grid />
     </div>
     """

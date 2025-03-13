@@ -1,12 +1,15 @@
 defmodule HydepwnsLiveview.ThemeSystem do
   @moduledoc """
   The ThemeSystem context.
+
+  This module provides functions for managing themes in the application,
+  including creating, updating, and retrieving themes. It also handles
+  setting default themes and theme preferences.
   """
 
   import Ecto.Query, warn: false
   alias HydepwnsLiveview.Repo
-
-  alias HydepwnsLiveview.ThemeSystem.Theme
+  alias HydepwnsLiveview.ThemeSystem.Models.Theme
 
   @doc """
   Returns the list of themes.
@@ -38,6 +41,42 @@ defmodule HydepwnsLiveview.ThemeSystem do
   def get_theme!(id), do: Repo.get!(Theme, id)
 
   @doc """
+  Gets a single theme by name.
+
+  Returns nil if the Theme does not exist.
+
+  ## Examples
+
+      iex> get_theme_by_name("dark")
+      %Theme{}
+
+      iex> get_theme_by_name("nonexistent")
+      nil
+
+  """
+  def get_theme_by_name(name) when is_binary(name) do
+    Repo.get_by(Theme, name: name)
+  end
+
+  @doc """
+  Gets the default theme.
+
+  Returns nil if no default theme is set.
+
+  ## Examples
+
+      iex> get_default_theme()
+      %Theme{}
+
+      iex> get_default_theme()
+      nil
+
+  """
+  def get_default_theme do
+    Repo.get_by(Theme, is_default: true)
+  end
+
+  @doc """
   Creates a theme.
 
   ## Examples
@@ -50,9 +89,23 @@ defmodule HydepwnsLiveview.ThemeSystem do
 
   """
   def create_theme(attrs \\ %{}) do
-    %Theme{}
-    |> Theme.changeset(attrs)
-    |> Repo.insert()
+    result =
+      %Theme{}
+      |> Theme.changeset(attrs)
+      |> Repo.insert()
+
+    case result do
+      {:ok, theme} ->
+        # If this is a default theme, unset other defaults
+        if theme.__unset_other_defaults__ do
+          unset_other_defaults(theme.id)
+        end
+
+        {:ok, theme}
+
+      error ->
+        error
+    end
   end
 
   @doc """
@@ -68,9 +121,23 @@ defmodule HydepwnsLiveview.ThemeSystem do
 
   """
   def update_theme(%Theme{} = theme, attrs) do
-    theme
-    |> Theme.changeset(attrs)
-    |> Repo.update()
+    result =
+      theme
+      |> Theme.changeset(attrs)
+      |> Repo.update()
+
+    case result do
+      {:ok, theme} ->
+        # If this is a default theme, unset other defaults
+        if theme.__unset_other_defaults__ do
+          unset_other_defaults(theme.id)
+        end
+
+        {:ok, theme}
+
+      error ->
+        error
+    end
   end
 
   @doc """
@@ -100,5 +167,24 @@ defmodule HydepwnsLiveview.ThemeSystem do
   """
   def change_theme(%Theme{} = theme, attrs \\ %{}) do
     Theme.changeset(theme, attrs)
+  end
+
+  @doc """
+  Sets a theme as the default, unsetting any existing default.
+
+  ## Examples
+
+      iex> set_default_theme(theme)
+      {:ok, %Theme{}}
+
+  """
+  def set_default_theme(%Theme{} = theme) do
+    update_theme(theme, %{is_default: true})
+  end
+
+  # Unsets default status for all themes except the given ID
+  defp unset_other_defaults(except_id) do
+    from(t in Theme, where: t.id != ^except_id and t.is_default == true)
+    |> Repo.update_all(set: [is_default: false])
   end
 end

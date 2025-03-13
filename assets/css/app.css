@@ -2,6 +2,10 @@
 
 /* ... existing CSS ... */
 
+/* Import transformation metrics styles */
+@import "transformation_metrics.css";
+@import "pages/metrics_page.css";
+
 /* Socket Validation Panel Styles */
 .socket-validation-panel {
   position: fixed;
@@ -639,3 +643,97 @@
 
 /* Import the debug validation grid stylesheet */
 @import "./components/debug_validation_grid.css";
+
+/* Import the transformation visualizer stylesheet */
+@import "./components/transformation_visualizer.css";
+
+/* Import the transformation example stylesheet */
+@import "./components/transformation_example.css";
+
+/* Change History Timeline Styles */
+.timeline {
+  position: relative;
+  padding: 20px 0;
+  width: 100%;
+}
+
+.timeline-track {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.timeline-line {
+  height: 2px;
+  background-color: #e2e8f0;
+  flex-grow: 1;
+}
+
+.timeline-marker {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #4299e1;
+  position: relative;
+  cursor: pointer;
+  z-index: 1;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.timeline-marker:hover {
+  transform: scale(1.5);
+  background-color: #2b6cb0;
+}
+
+.timeline-marker.selected {
+  background-color: #2c5282;
+  border: 2px solid #ebf8ff;
+  transform: scale(1.5);
+}
+
+.timeline-tooltip {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #1a202c;
+  color: white;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  min-width: 200px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  z-index: 10;
+}
+
+.timeline-marker:hover .timeline-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.diff-item {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.diff-key {
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.diff-values {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.diff-old {
+  color: #e53e3e;
+}
+
+.diff-new {
+  color: #38a169;
+}

@@ -1,79 +1,50 @@
-# Hydepwns Monospace Design System Documentation
+# Hydepwns Documentation
 
-This directory contains comprehensive documentation for the Hydepwns monospace design system, a modern web application framework built on the aesthetic principles of monospace typography and grid-based layouts.
+Welcome to the Hydepwns project documentation. This directory contains all documentation for the project.
 
-## Core Documentation
+## Documentation Structure
 
-- [Architecture](ARCHITECTURE.md) - System architecture overview
-- [Development Setup](DEVELOPMENT_SETUP.md) - Getting started with development
-- [Design Principles](DESIGN_PRINCIPLES.md) - Core design philosophy
-- [Guide](GUIDE.md) - General usage guide
-- [Testing Strategy](TESTING_STRATEGY.md) - Testing approach and methodology
+All documentation has been migrated to the Product Requirements Documentation (PRD) structure for better organization and maintainability.
 
-## Component Documentation
+### Product Requirements Documentation (PRD)
 
-- [ASCII Art Components](ASCII_ART_COMPONENTS.md) - **NEW!** Diagrams, charts, and synthwave-styled headers using ASCII characters
-- [Animations](ANIMATIONS.md) - Animation principles and implementation
-- [Path Helper](PATH_HELPER.md) - Path management utilities
-- [Terminal Plugins](TERMINAL_PLUGINS.md) - **NEW!** Terminal plugin system with behavior definitions and examples
+The [PRD directory](PRD/README.md) contains the core product documentation, organized by category:
 
-## Style System
+- [Overview and Quick Start](PRD/README.md)
+- [Getting Started Guide](PRD/GETTING_STARTED.md)
+- [Architecture Documentation](PRD/ARCHITECTURE/)
+- [Development Guides](PRD/DEVELOPMENT/)
+- [Feature Documentation](PRD/FEATURES/)
+- [Deployment Instructions](PRD/DEPLOYMENT/)
+- [Project Management](PRD/PROJECT_MANAGEMENT/)
+- [Design Principles](PRD/DESIGN/)
 
-- [Themes](THEMES.md) - Theme management including our new synthwave color palette
+### Feature-Specific Documentation
 
-## Development Reference
+The following documents provide detailed information about specific features and components:
 
-- [Module Organization](MODULE_ORGANIZATION.md) - Code organization guidelines
-- [Error Handling](ERROR_HANDLING.md) - Error handling strategy
-- [LiveView](LIVEVIEW.md) - LiveView implementation details
+- [Relationship Management](RELATIONSHIP_MANAGEMENT.md)
+- [Socket Validation](SOCKET_VALIDATION.md)
+- [Enhanced Error Reporting](ENHANCED_ERROR_REPORTING.md)
+- [BaseLive Flint Integration](BASELIVE_FLINT_INTEGRATION.md)
+- [Mobile Optimizations](MOBILE_OPTIMIZATIONS.md)
+- [Terminal Plugins](TERMINAL_PLUGINS.md)
+- [ASCII Art Components](ASCII_ART_COMPONENTS.md)
+- [Path Helper](PATH_HELPER.md)
+- [Error Handling](ERROR_HANDLING.md)
+- [Image Optimization](IMAGE_OPTIMIZATION.md)
+- [Animations](ANIMATIONS.md)
+- [Screen Reader Testing](screen_reader_testing.md)
 
-## Deployment & Infrastructure
+### Development Process
 
-- [Deployment](DEPLOYMENT.md) - Deployment procedures
-- [Docker Setup](DOCKER_SETUP.md) - Docker configuration
+- [Component Documentation Template](COMPONENT_DOCUMENTATION_TEMPLATE.md) - Template for documenting components
+- [Testing Strategy](TESTING_STRATEGY.md) - Overall testing approach
 
-## Quality Assurance
+## Getting Started
 
-- [Testing Guide](TESTING_GUIDE.md) - Testing guidelines
-- [Screen Reader Testing](screen_reader_testing.md) - Accessibility testing
-
-## Contributing
-
-See [Contributing](../CONTRIBUTING.md) for contribution guidelines.
-
-## New Features (v1.3.1)
-
-### Synthwave Color Palette
-
-We've updated our color system with a vibrant synthwave-inspired palette:
-
-- Primary Purple (#9D53F2) - Main accent color
-- Neon Pink (#FF2E97) - Highlights and attention
-- Electric Cyan (#19DCFF) - Information and process flows
-- Neon Yellow (#FFD319) - Warnings and charts
-- Synthwave Teal (#36F9F6) - Secondary elements
-
-### Grid Selection System
-
-Our monospace grid system now includes comprehensive selection patterns:
-
-- Single cell selection
-- Row selection
-- Column selection
-- Range selection (rectangular)
-- Multi-cell (non-contiguous) selection
-
-### ASCII Art Components
-
-New ASCII art components leverage monospace typography for:
-
-- Box containers with various styles
-- Flow diagrams and sequence diagrams
-- Charts and data visualization
-- Decorative headers with neon and gradient effects
-
-Visit [ASCII Art Components](ASCII_ART_COMPONENTS.md) for detailed documentation and usage examples.
+For new users and contributors, we recommend starting with the [PRD Overview](PRD/README.md) and then the [Getting Started Guide](PRD/GETTING_STARTED.md).
 
 ## License
 
-See [License](LICENSE.md) for licensing information.
+This project is licensed under the terms specified in the [LICENSE.md](LICENSE.md) file.

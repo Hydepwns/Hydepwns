@@ -2,6 +2,8 @@
  * Debug Grid Styles
  * Provides styling for the debug grid and measurement tools
  * Includes responsive design for mobile devices
+ * 
+ * This file uses the standardized CSS variable-based theming and z-index system
  */
 
 /* Debug Grid Overlay */
@@ -11,13 +13,13 @@
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 9990;
+  z-index: var(--z-index-debug-grid);
   pointer-events: none;
   background-color: transparent;
   background-image: 
-    linear-gradient(to right, rgba(0, 0, 255, 0.1) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0, 0, 255, 0.1) 1px, transparent 1px);
-  background-size: 1ch 1em;
+    linear-gradient(to right, var(--debug-grid-color) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--debug-grid-color) 1px, transparent 1px);
+  background-size: var(--debug-grid-cell-width) var(--debug-grid-cell-height);
 }
 
 /* Debug Grid Settings Panel */
@@ -27,15 +29,16 @@
   right: 20px;
   width: 320px;
   max-width: calc(100vw - 40px);
-  background-color: rgba(30, 30, 40, 0.95);
-  color: #f0f0f0;
-  border: 1px solid #4a4a6a;
-  border-radius: 6px;
-  z-index: 9995;
-  font-family: monospace;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  background-color: var(--debug-panel-bg);
+  color: var(--debug-panel-text);
+  border: 1px solid var(--debug-panel-border);
+  border-radius: var(--border-radius-md);
+  z-index: var(--z-index-debug-panel);
+  font-family: var(--font-mono);
+  box-shadow: var(--shadow-lg);
   max-height: calc(100vh - 40px);
   overflow-y: auto;
+  transition: transform var(--transition-normal), opacity var(--transition-normal);
   
   /* Touch-friendly version */
   &.touch-friendly {
@@ -107,63 +110,73 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 15px;
-  border-bottom: 1px solid #4a4a6a;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--color-bg-tertiary);
+  border-bottom: 1px solid var(--debug-panel-border);
   
   h3 {
     margin: 0;
-    font-size: 1.1em;
+    font-size: var(--font-size-sm);
     font-weight: bold;
   }
   
   .debug-grid-close {
     background: none;
     border: none;
-    color: #f0f0f0;
-    font-size: 1.5em;
+    color: var(--debug-panel-text);
+    font-size: var(--font-size-lg);
     cursor: pointer;
-    padding: 0 5px;
-    line-height: 1;
+    padding: 0;
+    margin: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color var(--transition-fast);
     
     &:hover {
-      color: #ff5a5a;
+      background-color: rgba(255, 90, 90, 0.2);
+      color: var(--color-error);
     }
   }
 }
 
 .debug-grid-settings-content {
-  padding: 15px;
+  padding: var(--spacing-md);
 }
 
 .debug-grid-setting {
-  margin-bottom: 15px;
+  margin-bottom: var(--spacing-md);
   
   label {
     display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
+    margin-bottom: var(--spacing-xs);
+    font-size: var(--font-size-sm);
   }
   
-  select, input[type="range"], input[type="color"] {
+  select, input[type="color"], input[type="range"] {
     width: 100%;
-    padding: 6px;
-    border-radius: 4px;
-    border: 1px solid #4a4a6a;
-    background-color: #2a2a36;
-    color: #f0f0f0;
+    padding: var(--spacing-xs);
+    background-color: var(--color-bg-input);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
   }
   
   button {
-    width: 100%;
-    padding: 8px 12px;
-    background-color: #4a4a6a;
-    color: #f0f0f0;
+    background-color: var(--color-button-bg);
+    color: var(--color-button-text);
     border: none;
-    border-radius: 4px;
+    border-radius: var(--border-radius-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-sm);
     cursor: pointer;
+    transition: background-color var(--transition-fast);
     
     &:hover {
-      background-color: #5a5a7a;
+      background-color: var(--color-button-hover-bg);
     }
     
     &#toggle-shortcuts {
@@ -353,6 +366,8 @@
   justify-content: center;
   align-items: center;
   font-family: monospace;
+  overflow: auto;
+  overscroll-behavior: contain;
 }
 
 .debug-grid-tutorial-container {
@@ -529,12 +544,12 @@
 /* Mobile-friendly debug controls */
 .debug-grid-mobile-controls {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
+  bottom: var(--spacing-lg);
+  right: var(--spacing-lg);
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  z-index: 9997;
+  gap: var(--spacing-sm);
+  z-index: var(--z-index-debug-controls);
   max-width: 80px;
 }
 
@@ -542,34 +557,34 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background-color: rgba(30, 30, 40, 0.9);
-  color: #f0f0f0;
-  border: 1px solid #4a4a6a;
-  font-size: 14px;
-  font-family: monospace;
+  background-color: var(--debug-panel-bg);
+  color: var(--debug-panel-text);
+  border: 1px solid var(--debug-panel-border);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-mono);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-md);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
-  transition: transform 0.1s ease, background-color 0.2s ease;
+  transition: transform var(--transition-fast), background-color var(--transition-normal);
   
   &:active, &.active {
     transform: scale(0.95);
-    background-color: rgba(60, 60, 80, 0.9);
+    background-color: var(--color-bg-tertiary);
   }
   
   &.debug-grid-mobile-close {
     width: 40px;
     height: 40px;
-    background-color: rgba(180, 30, 30, 0.9);
+    background-color: rgba(var(--color-error), 0.9);
     align-self: center;
-    font-size: 20px;
+    font-size: var(--font-size-lg);
     
     &:active, &.active {
-      background-color: rgba(220, 50, 50, 0.9);
+      background-color: var(--color-error);
     }
   }
 }
@@ -577,15 +592,15 @@
 /* Mobile-friendly element info panel */
 .debug-grid-element-info {
   position: fixed;
-  z-index: 9998;
-  background-color: rgba(30, 30, 40, 0.95);
-  border: 1px solid #4a4a6a;
-  border-radius: 6px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  z-index: var(--z-index-debug-panel);
+  background-color: var(--debug-panel-bg);
+  border: 1px solid var(--debug-panel-border);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-lg);
   width: 250px;
-  font-family: monospace;
-  font-size: 12px;
-  color: #f0f0f0;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  color: var(--debug-panel-text);
   overflow: hidden;
 }
 
@@ -593,20 +608,20 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
-  background-color: rgba(60, 60, 80, 0.9);
-  border-bottom: 1px solid #4a4a6a;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: var(--color-bg-tertiary);
+  border-bottom: 1px solid var(--debug-panel-border);
   
   span {
     font-weight: bold;
-    font-size: 14px;
+    font-size: var(--font-size-sm);
   }
   
   .debug-grid-element-info-close {
     background: none;
     border: none;
-    color: #f0f0f0;
-    font-size: 18px;
+    color: var(--debug-panel-text);
+    font-size: var(--font-size-lg);
     cursor: pointer;
     padding: 0;
     margin: 0;
@@ -620,38 +635,56 @@
     
     &:hover, &:active {
       background-color: rgba(255, 90, 90, 0.2);
-      color: #ff5a5a;
+      color: var(--color-error);
     }
   }
 }
 
 .debug-grid-element-info-content {
-  padding: 10px 12px;
+  padding: var(--spacing-sm);
   max-height: 300px;
   overflow-y: auto;
+  
+  h4 {
+    margin: var(--spacing-sm) 0 var(--spacing-xs);
+    font-size: var(--font-size-xs);
+    font-weight: bold;
+    color: var(--color-text-accent);
+  }
+  
+  p {
+    margin: 0 0 var(--spacing-xs);
+    font-size: var(--font-size-xs);
+    line-height: var(--line-height-tight);
+  }
+  
+  &:first-child h4 {
+    margin-top: 0;
+  }
 }
 
 /* Mobile-friendly measurement tool */
 .debug-grid-measure {
   position: absolute;
-  border: 2px dashed #ff5a5a;
-  background-color: rgba(255, 90, 90, 0.1);
-  z-index: 9990;
+  border: 2px dashed var(--color-accent);
+  background-color: rgba(var(--color-accent-light), 0.1);
+  z-index: var(--z-index-debug-overlay);
   pointer-events: none;
 }
 
 .debug-grid-measure-info {
   position: fixed;
-  background-color: rgba(0, 0, 0, 0.8);
-  color: #fff;
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-family: monospace;
-  font-size: 14px;
-  z-index: 9991;
+  background-color: var(--debug-panel-bg);
+  color: var(--debug-panel-text);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  z-index: var(--z-index-debug-panel);
   pointer-events: none;
   text-align: center;
-  width: 250px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--debug-panel-border);
 }
 
 /* Mobile-friendly notification */
@@ -660,17 +693,18 @@
   bottom: 100px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: rgba(0, 0, 0, 0.8);
-  color: #fff;
-  padding: 12px 16px;
-  border-radius: 4px;
-  font-family: monospace;
-  font-size: 14px;
-  z-index: 9999;
+  background-color: var(--debug-panel-bg);
+  color: var(--debug-panel-text);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  z-index: var(--z-index-debug-panel);
   max-width: 80%;
   text-align: center;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  transition: opacity 0.3s ease;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--debug-panel-border);
+  transition: opacity var(--transition-normal);
   
   &.hiding {
     opacity: 0;
@@ -680,16 +714,16 @@
 /* Media queries for smaller screens */
 @media (max-width: 480px) {
   .debug-grid-mobile-controls {
-    bottom: 15px;
-    right: 15px;
+    bottom: var(--spacing-md);
+    right: var(--spacing-md);
     max-width: 70px;
-    gap: 8px;
+    gap: var(--spacing-sm);
   }
   
   .debug-grid-mobile-button {
     width: 50px;
     height: 50px;
-    font-size: 12px;
+    font-size: var(--font-size-xs);
     
     &.debug-grid-mobile-close {
       width: 36px;
@@ -700,36 +734,39 @@
   .debug-grid-element-info {
     width: calc(100% - 30px);
     max-width: 280px;
-    font-size: 13px;
+    font-size: var(--font-size-xs);
   }
   
   .debug-grid-measure-info {
     width: 200px;
-    font-size: 12px;
+    font-size: var(--font-size-xs);
   }
   
   .debug-grid-notification {
-    bottom: 80px;
-    padding: 10px 14px;
-    font-size: 13px;
+    bottom: var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-xs);
   }
 }
 
 /* Styles for debug highlight mode */
 .debug-highlight-misaligned .off-grid {
-  outline: 2px dashed #ff5a5a !important;
+  outline: 2px dashed var(--debug-error-color) !important;
   position: relative;
   
   &::after {
-    content: '';
+    content: attr(data-grid-info);
     position: absolute;
-    top: 0;
+    top: -20px;
     left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(255, 90, 90, 0.1);
-    pointer-events: none;
-    z-index: 9980;
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-xs);
+    white-space: nowrap;
+    z-index: var(--z-index-debug-overlay);
+    box-shadow: var(--shadow-sm);
   }
 }
 
@@ -744,5 +781,31 @@
 .debug-measurement-mode {
   * {
     cursor: crosshair !important;
+  }
+}
+
+/* Debug Grid Measurement & Inspection Style */
+body.debug {
+  --debug-grid-cell-width: 1ch;
+  --debug-grid-cell-height: 1.5em;
+  
+  .off-grid {
+    outline: 1px solid var(--debug-error-color) !important;
+    position: relative;
+  }
+  
+  .off-grid:hover::after {
+    content: attr(data-grid-info);
+    position: absolute;
+    top: -20px;
+    left: 0;
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-xs);
+    white-space: nowrap;
+    z-index: var(--z-index-debug-overlay);
+    box-shadow: var(--shadow-sm);
   }
 } 

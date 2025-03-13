@@ -142,6 +142,34 @@ defmodule HydepwnsLiveview.Telemetry do
       ),
       last_value("hydepwns.socket.validation.metrics.success_rate",
         description: "Current rate of successful validations per minute"
+      ),
+
+      # Event System Metrics
+      summary("hydepwns_liveview.events.process.duration",
+        description: "Event processing duration",
+        unit: {:native, :millisecond},
+        tags: [:event_type, :handler, :status],
+        tag_values: &extract_event_tags/1
+      ),
+      distribution("hydepwns_liveview.events.process.duration",
+        description: "Distribution of event processing times",
+        unit: {:native, :millisecond},
+        tags: [:event_type, :handler],
+        reporter_options: [buckets: [1, 5, 10, 50, 100, 500, 1000]]
+      ),
+      last_value("hydepwns_liveview.events.queue_size.size",
+        description: "Current event handler queue size",
+        tags: [:handler]
+      ),
+      last_value("hydepwns_liveview.events.backpressure.value",
+        description: "Current backpressure status (0=normal, 1=warning, 2=critical)",
+        tags: [:status]
+      ),
+      sum("hydepwns_liveview.events.metrics.event_count",
+        description: "Total number of events processed"
+      ),
+      last_value("hydepwns_liveview.events.metrics.events_per_second",
+        description: "Current event processing rate"
       )
     ]
   end
@@ -152,6 +180,15 @@ defmodule HydepwnsLiveview.Telemetry do
       view_module: Map.get(metadata, :view_module, "unknown"),
       key: Map.get(metadata, :key, "unknown"),
       error_type: Map.get(metadata, :error_type, "unknown")
+    }
+  end
+
+  # Helper to extract event-related tags from metadata
+  defp extract_event_tags(metadata) do
+    %{
+      event_type: Map.get(metadata, :event_type, "unknown"),
+      handler: Map.get(metadata, :handler, "unknown"),
+      status: Map.get(metadata, :status, "unknown")
     }
   end
 

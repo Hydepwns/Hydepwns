@@ -22,6 +22,9 @@ const DebugGrid = {
     this.tutorialStep = 0;
     this.tutorialSeen = localStorage.getItem('debugGridTutorialSeen') === 'true';
     
+    // Clean up any existing tutorials from previous page load
+    this.cleanupExistingTutorials();
+    
     // Bind methods to this instance to ensure proper context
     this.toggleDebugGrid = this.toggleDebugGrid.bind(this);
     this.handleKeyPress = this.handleKeyPress.bind(this);
@@ -64,6 +67,9 @@ const DebugGrid = {
     this.settingsPanel = document.createElement('div');
     this.settingsPanel.id = 'debug-grid-settings';
     this.settingsPanel.className = 'debug-grid-settings';
+    
+    // Ensure clicks work on the settings panel
+    this.settingsPanel.style.pointerEvents = 'auto';
     
     // Add mobile class if touch is available
     if ('ontouchstart' in window) {
@@ -391,13 +397,20 @@ const DebugGrid = {
         });
       }
       
+      // Clean up any existing tutorials
+      this.cleanupExistingTutorials();
+      
       // Show the grid overlay
       this.gridOverlay.style.display = 'block';
       
       // Update grid based on current settings
       this.updateGridSizing();
       
-      // Show the settings panel
+      // Position and show the settings panel
+      this.settingsPanel.style.position = 'fixed';
+      this.settingsPanel.style.top = '20px';
+      this.settingsPanel.style.right = '20px';
+      this.settingsPanel.style.zIndex = '9995';
       this.settingsPanel.style.display = 'block';
       
       // Restore settings if available
@@ -405,6 +418,25 @@ const DebugGrid = {
       
       // Show tutorial for first-time users
       if (!this.tutorialSeen) {
+        // Pre-initialize the tutorial element with proper positioning
+        if (!this.tutorialElement) {
+          this.tutorialElement = document.createElement('div');
+          this.tutorialElement.className = 'debug-grid-tutorial';
+          this.tutorialElement.style.position = 'fixed';
+          this.tutorialElement.style.top = '0';
+          this.tutorialElement.style.left = '0';
+          this.tutorialElement.style.right = '0';
+          this.tutorialElement.style.bottom = '0';
+          this.tutorialElement.style.zIndex = '10000';
+          this.tutorialElement.style.display = 'none';
+          this.tutorialElement.style.justifyContent = 'center';
+          this.tutorialElement.style.alignItems = 'center';
+          document.body.appendChild(this.tutorialElement);
+        }
+        
+        // Ensure we're scrolled to the top of the page
+        window.scrollTo(0, 0);
+        
         setTimeout(() => {
           this.showTutorial();
           this.tutorialSeen = true;
@@ -428,6 +460,11 @@ const DebugGrid = {
       // Disable measurement tool if active
       if (this.measurementEnabled) {
         this.toggleMeasurementTool();
+      }
+      
+      // Clean up any tutorials
+      if (this.tutorialActive) {
+        this.hideTutorial();
       }
       
       // Save settings before disabling
@@ -1226,6 +1263,23 @@ const DebugGrid = {
     this.tutorialActive = true;
     this.tutorialElement.style.display = 'flex';
     
+    // Ensure tutorial is visible in the viewport
+    window.scrollTo(0, 0);
+    
+    // Set explicit positioning to ensure visibility
+    this.tutorialElement.style.position = 'fixed';
+    this.tutorialElement.style.top = '0';
+    this.tutorialElement.style.left = '0';
+    this.tutorialElement.style.right = '0';
+    this.tutorialElement.style.bottom = '0';
+    this.tutorialElement.style.zIndex = '10000';
+    this.tutorialElement.style.display = 'flex';
+    this.tutorialElement.style.justifyContent = 'center';
+    this.tutorialElement.style.alignItems = 'center';
+    
+    // Ensure visibility
+    this.ensureVisible(this.tutorialElement);
+    
     // Initialize tutorial to first step
     this.goToTutorialStep(0);
   },
@@ -1235,14 +1289,34 @@ const DebugGrid = {
    */
   hideTutorial() {
     if (this.tutorialElement) {
-      this.tutorialElement.style.display = 'none';
+      // Remove completely from DOM instead of just hiding
+      if (this.tutorialElement.parentNode) {
+        this.tutorialElement.parentNode.removeChild(this.tutorialElement);
+      }
+      this.tutorialElement = null;
     }
     
     if (this.tutorialHighlight) {
-      this.tutorialHighlight.style.display = 'none';
+      if (this.tutorialHighlight.parentNode) {
+        this.tutorialHighlight.parentNode.removeChild(this.tutorialHighlight);
+      }
+      this.tutorialHighlight = null;
     }
     
+    // Ensure any potential barriers to clicks are removed
+    document.querySelectorAll('.debug-grid-tutorial').forEach(el => {
+      if (el.parentNode) {
+        el.parentNode.removeChild(el);
+      }
+    });
+    
+    // Reset state
     this.tutorialActive = false;
+    
+    // Ensure body can receive clicks
+    document.body.style.pointerEvents = 'auto';
+    
+    console.log('Tutorial cleaned up, pointer events should work now');
   },
   
   /**
@@ -1433,6 +1507,57 @@ const DebugGrid = {
     } else {
       this.tutorialHighlight.style.display = 'none';
     }
+  },
+  
+  /**
+   * Ensure an element is visible in the viewport
+   * @param {HTMLElement} element - The element to ensure is visible
+   */
+  ensureVisible(element) {
+    // Force browser to recalculate layout
+    void element.offsetWidth;
+    
+    const rect = element.getBoundingClientRect();
+    const isInViewport = (
+      rect.top >= 0 &&
+      rect.left >= 0 &&
+      rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+      rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+    );
+    
+    if (!isInViewport) {
+      // If not in viewport, position at the center of current viewport
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+      const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+      
+      // Force the position to be in the middle of the current viewport
+      element.style.position = 'fixed';
+      element.style.top = '0';
+      element.style.left = '0';
+      element.style.width = '100%';
+      element.style.height = '100%';
+      
+      // Log the viewport dimensions for debugging
+      console.log('Viewport dimensions:', {
+        width: viewportWidth,
+        height: viewportHeight,
+        scrollY: window.scrollY,
+        documentHeight: document.documentElement.scrollHeight
+      });
+    }
+  },
+  
+  /**
+   * Clean up any existing tutorials from previous page load
+   */
+  cleanupExistingTutorials() {
+    // Remove any existing tutorial elements from the DOM
+    const existingTutorials = document.querySelectorAll('.debug-grid-tutorial');
+    existingTutorials.forEach(el => {
+      if (el.parentNode) {
+        el.parentNode.removeChild(el);
+      }
+    });
   }
 };
 
@@ -1440,6 +1565,73 @@ const DebugGrid = {
 // while maintaining compatibility with LiveView hooks
 if (typeof window !== 'undefined') {
   window.DebugGrid = DebugGrid;
+  
+  // Emergency fix for debug grid issues
+  window.addEventListener('DOMContentLoaded', function() {
+    // Wait a moment for the page to be fully loaded
+    setTimeout(function() {
+      debugGridEmergencyFix();
+    }, 1000);
+  });
+}
+
+/**
+ * Emergency fix for debug grid issues
+ * This creates a simple button that toggles the grid without interfering with existing UI
+ */
+function debugGridEmergencyFix() {
+  // First clean up any existing debug elements that might be blocking clicks
+  document.querySelectorAll('.debug-grid-tutorial, #debug-grid-settings, #debug-grid-overlay').forEach(el => {
+    if (el && el.parentNode) {
+      el.parentNode.removeChild(el);
+    }
+  });
+  
+  // Reset any localStorage settings that might be causing issues
+  localStorage.removeItem('debugGridTutorialSeen');
+  
+  // Create a simple toggle button
+  const toggleButton = document.createElement('button');
+  toggleButton.textContent = 'Toggle Grid';
+  toggleButton.style.position = 'fixed';
+  toggleButton.style.bottom = '20px';
+  toggleButton.style.right = '20px';
+  toggleButton.style.zIndex = '10000';
+  toggleButton.style.padding = '10px 15px';
+  toggleButton.style.backgroundColor = '#3b82f6';
+  toggleButton.style.color = 'white';
+  toggleButton.style.border = 'none';
+  toggleButton.style.borderRadius = '4px';
+  toggleButton.style.cursor = 'pointer';
+  toggleButton.style.fontFamily = 'system-ui, sans-serif';
+  toggleButton.style.fontSize = '14px';
+  toggleButton.style.fontWeight = 'bold';
+  toggleButton.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+  
+  // Add hover effect
+  toggleButton.addEventListener('mouseover', function() {
+    this.style.backgroundColor = '#2563eb';
+  });
+  
+  toggleButton.addEventListener('mouseout', function() {
+    this.style.backgroundColor = '#3b82f6';
+  });
+  
+  // Add click handler
+  toggleButton.addEventListener('click', function() {
+    // Toggle grid class on body
+    document.body.classList.toggle('debug-grid');
+    
+    // Simple notification
+    alert(document.body.classList.contains('debug-grid') ? 
+          "Debug grid enabled - click again to disable" : 
+          "Debug grid disabled");
+  });
+  
+  // Add to the document
+  document.body.appendChild(toggleButton);
+  
+  console.log('Emergency debug grid button has been added to the bottom right corner');
 }
 
 export default DebugGrid; 

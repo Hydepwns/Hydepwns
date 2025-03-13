@@ -1,5 +1,5 @@
 defmodule HydepwnsLiveviewWeb.ThemeJSON do
-  alias HydepwnsLiveview.Themes.Theme
+  alias HydepwnsLiveview.ThemeSystem.Models.Theme
 
   @doc """
   Renders a list of themes.

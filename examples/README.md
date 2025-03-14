@@ -54,7 +54,7 @@ The demo will process several example resources, applying transformations as app
 
 For more information about the Resource Transformation Pipeline, see:
 
-- [Resource Transformation Pipeline Documentation](../docs/PRD/resource_transformation_pipeline.md)
+- [Resource Transformation Pipeline Documentation](../docs/reference/architecture/transformation-pipeline.md)
 - [NormalizeEmail Implementation](../lib/hydepwns_liveview/transformations/normalize_email.ex)
 - [GenerateUsername Implementation](../lib/hydepwns_liveview/transformations/generate_username.ex)
 - [Transformation Tests](../test/hydepwns_liveview/transformations/transformation_examples_test.exs) 

@@ -119,4 +119,32 @@ jobs:
           echo "| --------- | ------ |" >> $GITHUB_STEP_SUMMARY
           echo "| Unit Tests | ${{ job.steps.unit.outcome == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Visual Tests | ${{ job.steps.visual.outcome == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Performance Tests | ${{ job.steps.performance.outcome == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY 
+          echo "| Performance Tests | ${{ job.steps.performance.outcome == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+
+  validate-docs:
+    name: Validate Documentation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Validate documentation
+        id: validate-docs
+        run: npm run validate:docs
+      
+      - name: Report documentation validation results
+        if: always()
+        run: |
+          echo "## Documentation Validation Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "| ----- | ------ |" >> $GITHUB_STEP_SUMMARY
+          echo "| Documentation Validation | ${{ steps.validate-docs.outcome == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY 

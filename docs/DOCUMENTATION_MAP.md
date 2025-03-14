@@ -1,70 +1,98 @@
+---
+title: Documentation Map
+description: Complete map of the documentation structure and organization
+last_updated: 2025-03-14
+---
+
 # Documentation Map
 
-This file helps you find documentation that has been moved to the new PRD structure.
+This document provides a complete map of the documentation structure and organization.
 
-## Documentation Structure Changes
+## Directory Structure
 
-We have reorganized our documentation to improve navigation and discoverability. The main documentation is now organized in the `docs/PRD/` directory.
+```
+docs/
+├── development/           # Development documentation
+│   ├── components/       # Component system documentation
+│   ├── contributing/     # Contribution guidelines
+│   ├── design/          # Design system documentation
+│   ├── integration/     # Integration guides
+│   ├── performance/     # Performance optimization
+│   ├── testing/         # Testing documentation
+│   └── tools/           # Development tools
+├── guides/               # User and developer guides
+│   ├── getting-started/ # Getting started guides
+│   └── user-guides/     # End-user documentation
+├── reference/            # Reference documentation
+│   ├── api/             # API documentation
+│   ├── architecture/    # Architecture documentation
+│   └── data-models/     # Data model documentation
+├── project/             # Project management
+│   ├── documentation/   # Documentation about docs
+│   └── planning/        # Project planning docs
+├── archive/             # Archived documentation
+│   └── 2025-03-14/     # March 2025 archive
+└── test/                # Documentation tests
+```
 
-## Where to Find Documentation
+## Key Documents
 
-| Looking for... | New Location |
-|----------------|--------------|
-| Main Documentation Index | [PRD/README.md](PRD/README.md) |
-| Getting Started | [PRD/GETTING_STARTED.md](PRD/GETTING_STARTED.md) |
-| Hydepwns Architecture & Requirements | [PRD/ARCHITECTURE/ARCHITECTURE.md](PRD/ARCHITECTURE/ARCHITECTURE.md) |
-| Integrating BaseLive and Flint | [PRD/ARCHITECTURE/BASELIVE_FLINT_INTEGRATION.md](PRD/ARCHITECTURE/BASELIVE_FLINT_INTEGRATION.md) |
-| Resource-Oriented Architecture for Socket Validation | [PRD/ARCHITECTURE/COMPONENT_ARCHITECTURE.md](PRD/ARCHITECTURE/COMPONENT_ARCHITECTURE.md) |
-| Enhanced Error Reporting System | [PRD/ARCHITECTURE/ENHANCED_ERROR_REPORTING.md](PRD/ARCHITECTURE/ENHANCED_ERROR_REPORTING.md) |
-| Error Handling Best Practices for Hydepwns Components | [PRD/ARCHITECTURE/ERROR_HANDLING.md](PRD/ARCHITECTURE/ERROR_HANDLING.md) |
-| Hydepwns Module Organization | [PRD/ARCHITECTURE/MODULE_ORGANIZATION.md](PRD/ARCHITECTURE/MODULE_ORGANIZATION.md) |
-| Resource-Oriented Architecture for Socket Validation | [PRD/ARCHITECTURE/RESOURCE_ARCHITECTURE.md](PRD/ARCHITECTURE/RESOURCE_ARCHITECTURE.md) |
-| Socket Validation System | [PRD/ARCHITECTURE/SOCKET_VALIDATION.md](PRD/ARCHITECTURE/SOCKET_VALIDATION.md) |
-| Deployment Guide | [PRD/DEPLOYMENT/DEPLOYMENT.md](PRD/DEPLOYMENT/DEPLOYMENT.md) |
-| Design Principles | [PRD/DESIGN/DESIGN_PRINCIPLES.md](PRD/DESIGN/DESIGN_PRINCIPLES.md) |
-| Mobile Performance Optimizations | [PRD/DESIGN/MOBILE_OPTIMIZATIONS.md](PRD/DESIGN/MOBILE_OPTIMIZATIONS.md) |
-| Screen Reader Testing Guide for Hydepwns | [PRD/DESIGN/SCREEN_READER_TESTING.md](PRD/DESIGN/SCREEN_READER_TESTING.md) |
-| Code Quality Improvement Plan | [PRD/DEVELOPMENT/CODE_QUALITY_IMPROVEMENT_PLAN.md](PRD/DEVELOPMENT/CODE_QUALITY_IMPROVEMENT_PLAN.md) |
-| Codebase Naming Conventions | [PRD/DEVELOPMENT/NAMING_CONVENTIONS.md](PRD/DEVELOPMENT/NAMING_CONVENTIONS.md) |
-| Contributing Guide | [PRD/DEVELOPMENT/CONTRIBUTING.md](PRD/DEVELOPMENT/CONTRIBUTING.md) |
-| Development Environment Setup | [PRD/DEVELOPMENT/DEVELOPMENT_SETUP.md](PRD/DEVELOPMENT/DEVELOPMENT_SETUP.md) |
-| Documentation Update Guidelines | [PRD/DEVELOPMENT/DOCUMENTATION_UPDATES.md](PRD/DEVELOPMENT/DOCUMENTATION_UPDATES.md) |
-| Documentation Process | [PRD/DEVELOPMENT/DOCUMENTATION_PROCESS.md](PRD/DEVELOPMENT/DOCUMENTATION_PROCESS.md) |
-| Docker Development Environment | [PRD/DEVELOPMENT/DOCKER_SETUP.md](PRD/DEVELOPMENT/DOCKER_SETUP.md) |
-| Image Optimization Guide | [PRD/DEVELOPMENT/IMAGE_OPTIMIZATION.md](PRD/DEVELOPMENT/IMAGE_OPTIMIZATION.md) |
-| PathHelper Module Documentation | [PRD/DEVELOPMENT/PATH_HELPER.md](PRD/DEVELOPMENT/PATH_HELPER.md) |
-| Hydepwns Testing Guide | [PRD/DEVELOPMENT/TESTING_GUIDE.md](PRD/DEVELOPMENT/TESTING_GUIDE.md) |
-| Testing Strategy for Hydepwns | [PRD/DEVELOPMENT/TESTING_STRATEGY.md](PRD/DEVELOPMENT/TESTING_STRATEGY.md) |
-| Hydepwns Animation Guide | [PRD/FEATURES/ANIMATIONS.md](PRD/FEATURES/ANIMATIONS.md) |
-| ASCII Art Components | [PRD/FEATURES/ASCII_ART_COMPONENTS.md](PRD/FEATURES/ASCII_ART_COMPONENTS.md) |
-| Change Tracking Architecture | [PRD/FEATURES/CHANGE_TRACKING.md](PRD/FEATURES/CHANGE_TRACKING.md) |
-| Phoenix LiveView Integration | [PRD/FEATURES/LIVEVIEW.md](PRD/FEATURES/LIVEVIEW.md) |
-| Nested Resource Validation | [PRD/FEATURES/NESTED_RESOURCE_VALIDATION.md](PRD/FEATURES/NESTED_RESOURCE_VALIDATION.md) |
-| Relationship Management System | [PRD/FEATURES/RELATIONSHIP_MANAGEMENT.md](PRD/FEATURES/RELATIONSHIP_MANAGEMENT.md) |
-| Resource Management System | [PRD/FEATURES/RESOURCE_MANAGEMENT.md](PRD/FEATURES/RESOURCE_MANAGEMENT.md) |
-| Terminal Plugin System | [PRD/FEATURES/TERMINAL_PLUGINS.md](PRD/FEATURES/TERMINAL_PLUGINS.md) |
-| Theme System | [PRD/FEATURES/THEMES.md](PRD/FEATURES/THEMES.md) |
-| Hydepwns Monospace Web Changelog | [PRD/PROJECT_MANAGEMENT/CHANGELOG.md](PRD/PROJECT_MANAGEMENT/CHANGELOG.md) |
-| Code Quality Improvement Progress Tracker | [PRD/PROJECT_MANAGEMENT/CODE_QUALITY_IMPROVEMENT_PROGRESS.md](PRD/PROJECT_MANAGEMENT/CODE_QUALITY_IMPROVEMENT_PROGRESS.md) |
-| Documentation Migration Progress | [PRD/PROJECT_MANAGEMENT/DOCUMENTATION_MIGRATION.md](PRD/PROJECT_MANAGEMENT/DOCUMENTATION_MIGRATION.md) |
-| Known Issues and Limitations | [PRD/PROJECT_MANAGEMENT/KNOWN_ISSUES.md](PRD/PROJECT_MANAGEMENT/KNOWN_ISSUES.md) |
-| Hydepwns Project Roadmap | [PRD/PROJECT_MANAGEMENT/ROADMAP.md](PRD/PROJECT_MANAGEMENT/ROADMAP.md) |
+### Root Level
+- [README.md](./README.md) - Project overview
+- [STYLE_GUIDE.md](./STYLE_GUIDE.md) - Documentation style guide
+- [MIGRATION_NOTICE.md](./MIGRATION_NOTICE.md) - Recent documentation moves
 
-## Feature-Specific Documentation
+### Development
+- [Component Migration Guide](development/components/migration-guide.md)
+- [Contributing Guide](development/contributing/contributing-guide.md)
+- [Testing Guide](development/testing/testing-guide.md)
 
-Some feature-specific documentation remains in the main docs directory:
+### Guides
+- [Getting Started](guides/getting-started/index.md)
+- [Installation Guide](guides/getting-started/installation.md)
+- [User Guides](guides/user-guides/index.md)
 
-- [Component Documentation Template](COMPONENT_DOCUMENTATION_TEMPLATE.md)
-- [Documentation Map](DOCUMENTATION_MAP.md)
-- [Hydepwns Documentation Framework: Meta-Template](DOCUMENTATION_META_TEMPLATE.md)
-- [Hydepwns Developer Guide](GUIDE.md)
-- [MIT License](LICENSE.md)
-- [Resource-Oriented Architecture for Socket Validation](resource_architecture.md)
-- [Hydepwns Monospace Web: Elixir, Monaspace, & Synthwave Edition Roadmap v1.4.0](roadmaps/roadmap.md)
-- [Screen Reader Testing Guide for Hydepwns](screen_reader_testing.md)
-- [Resource-Oriented Socket Assigns](socket_validation/resource_oriented_sockets.md)
+### Reference
+- [API Overview](reference/api/overview.md)
+- [Architecture Overview](reference/architecture/overview.md)
+- [Data Models](reference/data-models/index.md)
 
-## Development Process
+### Project Management
+- [Documentation Process](project/documentation/process.md)
+- [Project Roadmap](project/roadmap.md)
+- [Migration Plan](project/planning/migration-plan.md)
 
-- [Component Documentation Template](COMPONENT_DOCUMENTATION_TEMPLATE.md)
-- [Testing Strategy](TESTING_STRATEGY.md)
+### Archive
+- [Archive Notice](archive/README.md)
+- [March 2025 Archive](archive/2025-03-14/ARCHIVE_NOTICE.md)
+
+## Recent Changes
+
+The documentation has undergone significant reorganization:
+1. Consolidated PRD structure into a more intuitive organization
+2. Moved planning and process documentation to project/
+3. Consolidated component documentation under development/
+4. Created an archive for deprecated content
+
+## Navigation Tips
+
+1. Use the directory structure above to locate documentation
+2. Check MIGRATION_NOTICE.md for recently moved content
+3. Search functionality is available in the documentation portal
+4. Archived content is in the archive/ directory
+
+## Contributing
+
+See the [Contributing Guide](development/contributing/contributing-guide.md) for:
+- Documentation standards
+- Writing guidelines
+- Review process
+- Templates
+
+## Questions and Support
+
+If you can't find what you're looking for:
+1. Check the search functionality
+2. Review the MIGRATION_NOTICE.md
+3. Check the archive
+4. Raise an issue in the documentation repository

@@ -1,0 +1,105 @@
+---
+title: Code-Of-Conduct
+description: '## Overview'
+topics:
+  - development
+  - contributing
+  - code-of-conduct
+  - overview
+  - prerequisites
+  - main-content
+  - examples
+  - troubleshooting
+  - related-documents
+  - our-pledge
+  - our-standards
+  - enforcement-responsibilities
+  - scope
+  - enforcement
+  - attribution
+  - references
+last_updated: '2025-03-14'
+---
+# Code-Of-Conduct
+
+## Overview
+
+
+## Prerequisites
+
+* No specific prerequisites
+
+
+## Main Content
+
+
+## Examples
+
+Examples will be added here.
+
+
+## Troubleshooting
+
+Common issues and their solutions will be documented here.
+
+
+## Related Documents
+
+* No references yet
+
+This document provides information about Code-Of-Conduct.
+
+
+---
+title: Code of Conduct
+description: Guidelines for participation in the Hydepwns community
+category: development
+subcategory: contributing
+order: 1
+---
+
+# Code of Conduct
+
+## Our Pledge
+
+We as members, contributors, and leaders pledge to make participation in our community a harassment-free experience for everyone, regardless of age, body size, visible or invisible disability, ethnicity, sex characteristics, gender identity and expression, level of experience, education, socio-economic status, nationality, personal appearance, race, religion, or sexual identity and orientation.
+
+We pledge to act and interact in ways that contribute to an open, welcoming, diverse, inclusive, and healthy community.
+
+## Our Standards
+
+Examples of behavior that contributes to creating a positive environment include:
+
+* Using welcoming and inclusive language
+* Being respectful of differing viewpoints and experiences
+* Gracefully accepting constructive criticism
+* Focusing on what is best for the community
+* Showing empathy towards other community members
+
+Examples of unacceptable behavior include:
+
+* The use of sexualized language or imagery and unwelcome sexual attention or advances
+* Trolling, insulting/derogatory comments, and personal or political attacks
+* Public or private harassment
+* Publishing others' private information, such as a physical or electronic address, without explicit permission
+* Other conduct which could reasonably be considered inappropriate in a professional setting
+
+## Enforcement Responsibilities
+
+Project maintainers are responsible for clarifying and enforcing our standards of acceptable behavior and will take appropriate and fair corrective action in response to any behavior that they deem inappropriate, threatening, offensive, or harmful.
+
+## Scope
+
+This Code of Conduct applies both within project spaces and in public spaces when an individual is representing the project or its community.
+
+## Enforcement
+
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the project team. All complaints will be reviewed and investigated promptly and fairly.
+
+## Attribution
+
+This Code of Conduct is adapted from the [Contributor Covenant](https://www.contributor-covenant.org), version 2.0, available at https://www.contributor-covenant.org/version/2/0/code_of_conduct.html. 
+
+## References
+
+- [Project Documentation](../README.md)

@@ -30,10 +30,10 @@
 ### Documentation
 
 - [ ] I have updated the documentation accordingly
-- [ ] I have added/updated feature documentation in the appropriate PRD/FEATURES directory
-- [ ] I have updated any affected documentation in the PRD structure
-- [ ] I have run `node scripts/docs/generate_index.js` to validate documentation links
-- [ ] I have run `node scripts/docs/validate_documentation.js` to check documentation formatting
+- [ ] I have added/updated feature documentation in the appropriate development or reference directory
+- [ ] I have updated any affected documentation in the main documentation structure
+- [ ] I have run `npm run validate:docs` to validate documentation formatting
+- [ ] I have verified that documentation validation passes in CI
 - [ ] Documentation follows the project's standard structure and templates
 - [ ] I have updated DOCUMENTATION_MAP.md if adding new documentation
 - [ ] I have included appropriate cross-references to related documentation
@@ -51,7 +51,7 @@
 ## Documentation Update Process
 
 <!-- If this PR includes significant documentation changes, please describe how you followed the documentation update process -->
-<!-- See docs/PRD/DEVELOPMENT/DOCUMENTATION_PROCESS.md for details -->
+<!-- See docs/project/documentation/process.md for details -->
 
 ## Screenshots
 

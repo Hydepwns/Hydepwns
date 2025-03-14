@@ -1,0 +1,1466 @@
+{
+  "totalDocuments": 229,
+  "totalWords": 338796,
+  "averageWordsPerDoc": 1479,
+  "totalCodeBlocks": 1494,
+  "totalHeadings": 9263,
+  "totalLinks": 12469,
+  "totalImages": 5,
+  "documentsByCategory": {
+    ".": 8,
+    "PRD/ARCHITECTURE": 10,
+    "PRD/DEPLOYMENT": 1,
+    "PRD/DESIGN": 3,
+    "PRD/DEVELOPMENT": 22,
+    "PRD/FEATURES": 16,
+    "PRD/FEATURES/IMPLEMENTATION": 3,
+    "PRD": 5,
+    "PRD/IMPLEMENTATION": 1,
+    "PRD/PERFORMANCE": 1,
+    "PRD/PROJECT_MANAGEMENT": 12,
+    "archive/PRD/ARCHITECTURE": 10,
+    "archive/PRD/DEPLOYMENT": 1,
+    "archive/PRD/DESIGN": 3,
+    "archive/PRD/DEVELOPMENT": 22,
+    "archive/PRD/FEATURES": 16,
+    "archive/PRD/FEATURES/IMPLEMENTATION": 3,
+    "archive/PRD": 5,
+    "archive/PRD/IMPLEMENTATION": 1,
+    "archive/PRD/PERFORMANCE": 1,
+    "archive/PRD/PROJECT_MANAGEMENT": 12,
+    "archive": 2,
+    "components": 3,
+    "design": 3,
+    "design/components": 1,
+    "design/ui-components": 1,
+    "development": 1,
+    "development/components": 10,
+    "development/contributing": 5,
+    "development/integration": 1,
+    "development/performance": 1,
+    "development/testing": 4,
+    "development/tools": 7,
+    "guides": 1,
+    "guides/getting-started": 4,
+    "guides/user-guides": 1,
+    "project": 2,
+    "project/documentation": 3,
+    "project/documentation/templates": 2,
+    "project/planning": 7,
+    "reference": 1,
+    "reference/api": 1,
+    "reference/architecture": 10,
+    "reference/data-models": 1,
+    "test": 1
+  },
+  "qualityIssues": [
+    {
+      "file": "PRD/ARCHITECTURE/API_DOCUMENTATION.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/ARCHITECTURE/ARCHITECTURE.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/ARCHITECTURE/BASELIVE_FLINT_INTEGRATION.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/ARCHITECTURE/COMPONENT_ARCHITECTURE.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/component-architecture.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/component-architecture.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/component-architecture.md"
+      ]
+    },
+    {
+      "file": "PRD/ARCHITECTURE/ENHANCED_ERROR_REPORTING.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/ARCHITECTURE/ERROR_HANDLING.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/ARCHITECTURE/MODULE_ORGANIZATION.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/ARCHITECTURE/RESOURCE_ARCHITECTURE.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/ARCHITECTURE/RESOURCE_EVENT_SYSTEM.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/ARCHITECTURE/SOCKET_VALIDATION.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/DEPLOYMENT/DEPLOYMENT.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../reference/deployment/overview.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../reference/deployment/overview.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../reference/deployment/overview.md",
+        "Broken internal link: ../FEATURES/guides/design/themes.md"
+      ]
+    },
+    {
+      "file": "PRD/DESIGN/DESIGN_PRINCIPLES.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/DESIGN/MOBILE_OPTIMIZATIONS.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/DESIGN/SCREEN_READER_TESTING.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/DEVELOPMENT/CODE_OF_CONDUCT.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/DEVELOPMENT/CODE_QUALITY_IMPROVEMENT_PLAN.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/DEVELOPMENT/COMPONENT_MIGRATION_PLAN.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../assets/js/components/COMPONENT_MIGRATION_GUIDE.md",
+        "Broken internal link: ../../project/COMPONENT_MIGRATION_STATUS.md",
+        "Broken internal link: ../../assets/js/components/COMPONENT_MIGRATION_GUIDE.md"
+      ]
+    },
+    {
+      "file": "PRD/DEVELOPMENT/COMPONENT_SYSTEM_TRAINING.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../DEVELOPMENT/development/components/event-management.md",
+        "Broken internal link: ../DEVELOPMENT/development/components/resource-cleanup.md",
+        "Broken internal link: ../DEVELOPMENT/reference/optimization/performance.md"
+      ]
+    },
+    {
+      "file": "PRD/DEVELOPMENT/COMPONENT_TESTING_FRAMEWORK.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/DEVELOPMENT/COMPONENT_TESTING_GUIDE.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/DEVELOPMENT/CONTRIBUTING.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/DEVELOPMENT/DEVELOPMENT_SETUP.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/DEVELOPMENT/DOCKER_SETUP.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/DEVELOPMENT/DOCUMENTATION_PROCESS.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/DEVELOPMENT/DOCUMENTATION_UPDATES.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/DEVELOPMENT/DOM_TESTING_CAPABILITIES.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/DEVELOPMENT/E2E_TESTING_GUIDE.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/DEVELOPMENT/ES_MODULE_TESTING.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/DEVELOPMENT/IMAGE_OPTIMIZATION.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/DEVELOPMENT/INCREMENTAL_TEST_COVERAGE.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/DEVELOPMENT/MIGRATION_TESTING_PLAN.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/DEVELOPMENT/NAMING_CONVENTIONS.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/DEVELOPMENT/PATH_HELPER.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/DEVELOPMENT/PERFORMANCE_TESTING_GUIDE.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/DEVELOPMENT/TESTING_GUIDE.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/DEVELOPMENT/TESTING_STRATEGY.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/FEATURES/ANIMATIONS.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/FEATURES/ASCII_ART_COMPONENTS.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/FEATURES/CHANGE_TRACKING.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/FEATURES/COMPONENT_INSPECTOR.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/FEATURES/COMPONENT_MIGRATION_SUMMARY.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../js/performance/reports/",
+        "Broken internal link: ../../coverage/lcov-report/index.html"
+      ]
+    },
+    {
+      "file": "PRD/FEATURES/DEVELOPER_EXPERIENCE_ENHANCEMENTS.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/FEATURES/EVENT_BUS.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/FEATURES/IMPLEMENTATION/COMPONENT_REGISTRY.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../README.md"
+      ]
+    },
+    {
+      "file": "PRD/FEATURES/IMPLEMENTATION/EVENT_BUS.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../README.md"
+      ]
+    },
+    {
+      "file": "PRD/FEATURES/IMPLEMENTATION/REACTIVE_STATE.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../README.md"
+      ]
+    },
+    {
+      "file": "PRD/FEATURES/LIVEVIEW.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../reference/features/liveview.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../reference/features/liveview.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../reference/features/liveview.md"
+      ]
+    },
+    {
+      "file": "PRD/FEATURES/LIVEVIEW_COMPONENT_INTEGRATION.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/FEATURES/NESTED_RESOURCE_VALIDATION.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/FEATURES/REACTIVE_STATE_SYSTEM.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/FEATURES/RELATIONSHIP_MANAGEMENT.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/FEATURES/RESOURCE_MANAGEMENT.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/FEATURES/RESOURCE_SYSTEM.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/FEATURES/RESOURCE_TRANSFORMATION.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/FEATURES/TERMINAL_PLUGINS.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/GETTING_STARTED.md",
+      "issues": [
+        "Broken internal link: ../../guides/getting-started/installation.md"
+      ]
+    },
+    {
+      "file": "PRD/IMPLEMENTATION/ENHANCED_COMPONENT_SYSTEM_PLAN.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/PERFORMANCE/RESOURCE_SYSTEM_OPTIMIZATION.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/PROJECT_MANAGEMENT/CHANGELOG.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/PROJECT_MANAGEMENT/CODE_CONSISTENCY.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../FEATURES/guides/design/themes.md"
+      ]
+    },
+    {
+      "file": "PRD/PROJECT_MANAGEMENT/CODE_QUALITY_IMPROVEMENT_PROGRESS.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/PROJECT_MANAGEMENT/COMPONENT_MIGRATION_COMPLETION_REPORT.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/PROJECT_MANAGEMENT/COMPONENT_MIGRATION_STATUS.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../assets/js/components/COMPONENT_MIGRATION_GUIDE.md"
+      ]
+    },
+    {
+      "file": "PRD/PROJECT_MANAGEMENT/DOCUMENTATION_MIGRATION.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../project/planning/documentation-migration.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../project/planning/documentation-migration.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../project/planning/documentation-migration.md"
+      ]
+    },
+    {
+      "file": "PRD/PROJECT_MANAGEMENT/DOCUMENTATION_STYLE_GUIDE.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../project/documentation/style-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../project/documentation/style-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../project/documentation/style-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/PROJECT_MANAGEMENT/KNOWN_ISSUES.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/PROJECT_MANAGEMENT/ROADMAP.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../assets/js/components/COMPONENT_MIGRATION_GUIDE.md"
+      ]
+    },
+    {
+      "file": "PRD/PROJECT_MANAGEMENT/TESTING_BLOCKERS_RESOLUTION.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/PROJECT_MANAGEMENT/TESTING_IMPLEMENTATION_PLAN.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "PRD/PROJECT_MANAGEMENT/TESTING_IMPLEMENTATION_SUMMARY.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "STYLE_GUIDE.md",
+      "issues": [
+        "Broken internal link: ./development/DOCUMENTATION_PROCESS.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/ARCHITECTURE/API_DOCUMENTATION.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/ARCHITECTURE/ARCHITECTURE.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/ARCHITECTURE/BASELIVE_FLINT_INTEGRATION.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/ARCHITECTURE/COMPONENT_ARCHITECTURE.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/component-architecture.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/component-architecture.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/component-architecture.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/ARCHITECTURE/ENHANCED_ERROR_REPORTING.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/ARCHITECTURE/ERROR_HANDLING.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/ARCHITECTURE/MODULE_ORGANIZATION.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../reference/architecture/modules.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/ARCHITECTURE/RESOURCE_ARCHITECTURE.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/ARCHITECTURE/RESOURCE_EVENT_SYSTEM.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/ARCHITECTURE/SOCKET_VALIDATION.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/DEPLOYMENT/DEPLOYMENT.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../reference/deployment/overview.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../reference/deployment/overview.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../reference/deployment/overview.md",
+        "Broken internal link: ../FEATURES/guides/design/themes.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/DESIGN/DESIGN_PRINCIPLES.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/DESIGN/MOBILE_OPTIMIZATIONS.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/DESIGN/SCREEN_READER_TESTING.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/DEVELOPMENT/CODE_OF_CONDUCT.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/DEVELOPMENT/CODE_QUALITY_IMPROVEMENT_PLAN.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/DEVELOPMENT/COMPONENT_MIGRATION_PLAN.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../assets/js/components/COMPONENT_MIGRATION_GUIDE.md",
+        "Broken internal link: ../../project/COMPONENT_MIGRATION_STATUS.md",
+        "Broken internal link: ../../assets/js/components/COMPONENT_MIGRATION_GUIDE.md",
+        "Broken internal link: ../../development/components/patterns.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/DEVELOPMENT/COMPONENT_SYSTEM_TRAINING.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../development/components/patterns.md",
+        "Broken internal link: ../DEVELOPMENT/development/components/event-management.md",
+        "Broken internal link: ../DEVELOPMENT/development/components/resource-cleanup.md",
+        "Broken internal link: ../DEVELOPMENT/reference/optimization/performance.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/DEVELOPMENT/COMPONENT_TESTING_FRAMEWORK.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/DEVELOPMENT/COMPONENT_TESTING_GUIDE.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/DEVELOPMENT/CONTRIBUTING.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/DEVELOPMENT/DEVELOPMENT_SETUP.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/DEVELOPMENT/DOCKER_SETUP.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/DEVELOPMENT/DOCUMENTATION_PROCESS.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../project/documentation/process.md",
+        "Broken internal link: ../../STYLE_GUIDE.md",
+        "Broken internal link: ../../STYLE_GUIDE.md",
+        "Broken internal link: ../../STYLE_GUIDE.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/DEVELOPMENT/DOCUMENTATION_UPDATES.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/DEVELOPMENT/DOM_TESTING_CAPABILITIES.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/DEVELOPMENT/E2E_TESTING_GUIDE.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/DEVELOPMENT/ES_MODULE_TESTING.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/DEVELOPMENT/IMAGE_OPTIMIZATION.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/DEVELOPMENT/INCREMENTAL_TEST_COVERAGE.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/DEVELOPMENT/MIGRATION_TESTING_PLAN.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/DEVELOPMENT/NAMING_CONVENTIONS.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/DEVELOPMENT/PATH_HELPER.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/DEVELOPMENT/PERFORMANCE_TESTING_GUIDE.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/DEVELOPMENT/TESTING_GUIDE.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/DEVELOPMENT/TESTING_STRATEGY.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/FEATURES/ANIMATIONS.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/FEATURES/ASCII_ART_COMPONENTS.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/FEATURES/CHANGE_TRACKING.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/FEATURES/COMPONENT_INSPECTOR.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../development/tools/component-inspector.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/FEATURES/COMPONENT_MIGRATION_SUMMARY.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../js/performance/reports/",
+        "Broken internal link: ../../coverage/lcov-report/index.html"
+      ]
+    },
+    {
+      "file": "archive/PRD/FEATURES/DEVELOPER_EXPERIENCE_ENHANCEMENTS.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../development/tools/developer-experience-enhancements.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/FEATURES/EVENT_BUS.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../reference/architecture/event-bus.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/FEATURES/IMPLEMENTATION/COMPONENT_REGISTRY.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../README.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/FEATURES/IMPLEMENTATION/EVENT_BUS.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../README.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/FEATURES/IMPLEMENTATION/REACTIVE_STATE.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../README.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/FEATURES/LIVEVIEW.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../reference/features/liveview.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../reference/features/liveview.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../reference/features/liveview.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/FEATURES/LIVEVIEW_COMPONENT_INTEGRATION.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../development/integration/liveview-component-integration.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/FEATURES/NESTED_RESOURCE_VALIDATION.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/FEATURES/REACTIVE_STATE_SYSTEM.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../reference/architecture/reactive-state.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/FEATURES/RELATIONSHIP_MANAGEMENT.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/FEATURES/RESOURCE_MANAGEMENT.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/FEATURES/RESOURCE_SYSTEM.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/FEATURES/RESOURCE_TRANSFORMATION.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/FEATURES/TERMINAL_PLUGINS.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../development/tools/terminal-plugins.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/GETTING_STARTED.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../guides/getting-started/index.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../guides/getting-started/index.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../guides/getting-started/index.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/IMPLEMENTATION/ENHANCED_COMPONENT_SYSTEM_PLAN.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/PERFORMANCE/RESOURCE_SYSTEM_OPTIMIZATION.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/PROJECT_MANAGEMENT/CHANGELOG.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/PROJECT_MANAGEMENT/CODE_CONSISTENCY.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../FEATURES/guides/design/themes.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/PROJECT_MANAGEMENT/CODE_QUALITY_IMPROVEMENT_PROGRESS.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/PROJECT_MANAGEMENT/COMPONENT_MIGRATION_COMPLETION_REPORT.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/PROJECT_MANAGEMENT/COMPONENT_MIGRATION_STATUS.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../assets/js/components/COMPONENT_MIGRATION_GUIDE.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/PROJECT_MANAGEMENT/DOCUMENTATION_MIGRATION.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../project/planning/documentation-migration.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../project/planning/documentation-migration.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../project/planning/documentation-migration.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/PROJECT_MANAGEMENT/DOCUMENTATION_STYLE_GUIDE.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../project/documentation/style-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../project/documentation/style-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../project/documentation/style-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/PROJECT_MANAGEMENT/KNOWN_ISSUES.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/PROJECT_MANAGEMENT/ROADMAP.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../project/roadmap.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../project/roadmap.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../project/roadmap.md",
+        "Broken internal link: ../../project/roadmap.md",
+        "Broken internal link: ../../assets/js/components/COMPONENT_MIGRATION_GUIDE.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/PROJECT_MANAGEMENT/TESTING_BLOCKERS_RESOLUTION.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/PROJECT_MANAGEMENT/TESTING_IMPLEMENTATION_PLAN.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/PROJECT_MANAGEMENT/TESTING_IMPLEMENTATION_SUMMARY.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/README.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../guides/getting-started/overview.md",
+        "Broken internal link: ../development/components/component-migration-guide.md",
+        "Broken internal link: ../development/components/guidelines.md",
+        "Broken internal link: ../guides/getting-started/installation.md",
+        "Broken internal link: ../guides/user-guides/theme-system.md",
+        "Broken internal link: ../reference/architecture/transformation-pipeline.md",
+        "Broken internal link: ../reference/architecture/resource-system.md",
+        "Broken internal link: ../development/components/guidelines.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/RESOURCE_SYSTEM_IMPLEMENTATION.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/RESOURCE_TRANSFORMATION_PIPELINE.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md"
+      ]
+    },
+    {
+      "file": "archive/PRD/ROBUST_IMPLEMENTATION.md",
+      "issues": [
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../project/documentation/migration-guide.md",
+        "Broken internal link: ../../assets/js/components/COMPONENT_MIGRATION_GUIDE.md",
+        "Broken internal link: ../../assets/js/components/COMPONENT_MIGRATION_GUIDE.md"
+      ]
+    },
+    {
+      "file": "development/components/component-migration-guide.md",
+      "issues": [
+        "Broken internal link: ../architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/reference/architecture/component-architecture.md"
+      ]
+    },
+    {
+      "file": "development/components/component-system-training.md",
+      "issues": [
+        "Broken internal link: ../../development/components/migration-guide",
+        "Broken internal link: ../../development/resource-cleanup"
+      ]
+    },
+    {
+      "file": "development/contributing/contributing-guide.md",
+      "issues": [
+        "Broken internal link: ../../development/testing/testing-guide"
+      ]
+    },
+    {
+      "file": "development/contributing/development-setup.md",
+      "issues": [
+        "Broken internal link: ../../development/contributing/docker-setup"
+      ]
+    },
+    {
+      "file": "development/tools/performance-optimization-q4-2024.md",
+      "issues": [
+        "Broken internal link: ../../project/deployment/infrastructure-setup.md"
+      ]
+    },
+    {
+      "file": "guides/getting-started/index.md",
+      "issues": [
+        "Broken internal link: ../../reference/features/resource-management.md",
+        "Broken internal link: ../../project/planning/known-issues.md"
+      ]
+    },
+    {
+      "file": "guides/getting-started/installation.md",
+      "issues": [
+        "Broken internal link: ../../development/contributing/getting-started.md"
+      ]
+    },
+    {
+      "file": "guides/getting-started/overview.md",
+      "issues": [
+        "Broken internal link: ../../development/contributing/getting-started.md"
+      ]
+    },
+    {
+      "file": "guides/getting-started/quickstart.md",
+      "issues": [
+        "Broken internal link: ../../development/contributing/getting-started.md"
+      ]
+    },
+    {
+      "file": "guides/user-guides/theme-system.md",
+      "issues": [
+        "Broken internal link: ../user-guides/accessibility.md",
+        "Broken internal link: ../user-guides/user-preferences.md"
+      ]
+    },
+    {
+      "file": "project/documentation/migration-guide.md",
+      "issues": [
+        "Broken internal link: ../DOCUMENTATION_MAP.md"
+      ]
+    },
+    {
+      "file": "project/documentation/templates/document-sections-template.md",
+      "issues": [
+        "Broken internal link: ../README.md"
+      ]
+    },
+    {
+      "file": "project/documentation/templates/documentation-meta-template.md",
+      "issues": [
+        "Broken internal link: ../README.md"
+      ]
+    },
+    {
+      "file": "project/planning/component-migration-plan.md",
+      "issues": [
+        "Broken internal link: ../../development/components/migration-guide",
+        "Broken internal link: ../../project/planning/component-migration-status.md",
+        "Broken internal link: ../../development/components/migration-guide"
+      ]
+    },
+    {
+      "file": "project/planning/prd-cleanup-report.md",
+      "issues": [
+        "Broken internal link: ../guides/getting-started/overview.md",
+        "Broken internal link: ../guides/getting-started/installation.md",
+        "Broken internal link: ../development/components/guidelines.md"
+      ]
+    },
+    {
+      "file": "project/roadmap.md",
+      "issues": [
+        "Broken internal link: ../../development/components/migration-guide",
+        "Broken internal link: ../../project/planning/component-migration-plan",
+        "Broken internal link: ../../development/testing/component-testing-framework",
+        "Broken internal link: ../../reference/performance/resource-system-optimization"
+      ]
+    },
+    {
+      "file": "reference/api/overview.md",
+      "issues": [
+        "Broken internal link: ../../reference/api/authentication.md",
+        "Broken internal link: ../../reference/api/resources.md",
+        "Broken internal link: ../../reference/api/transformations.md",
+        "Broken internal link: ../../reference/api/events.md",
+        "Broken internal link: ../../reference/api/users.md",
+        "Broken internal link: ../../reference/api/settings.md"
+      ]
+    },
+    {
+      "file": "test/sample.md",
+      "issues": [
+        "Broken internal link: ./nonexistent.md",
+        "Broken internal link: ./test-image.png",
+        "Broken internal link: ../guides/documentation.md",
+        "Broken internal link: ../guides/testing.md"
+      ]
+    },
+    {
+      "file": "topics.md",
+      "issues": [
+        "Missing title in frontmatter",
+        "Missing description in frontmatter"
+      ]
+    }
+  ],
+  "timestamp": "2025-03-14T22:37:54.920Z",
+  "documentation_metrics": {
+    "total_files": 148,
+    "total_directories": 12,
+    "directory_counts": {
+      "docs/development": 45,
+      "docs/guides": 15,
+      "docs/reference": 20,
+      "docs/project": 25,
+      "docs/archive/2025-03-14": 69
+    },
+    "file_counts_by_type": {
+      "markdown": 148,
+      "json": 2,
+      "yaml": 1
+    },
+    "average_file_size": 8452,
+    "largest_files": [
+      "docs/DOCUMENTATION_MAP.md",
+      "docs/archive/2025-03-14/README.md",
+      "docs/development/components/patterns.md"
+    ],
+    "most_referenced_files": [
+      "docs/DOCUMENTATION_MAP.md",
+      "docs/development/components/patterns.md",
+      "docs/guides/getting-started/overview.md"
+    ],
+    "last_updated": "2025-03-14"
+  }
+}

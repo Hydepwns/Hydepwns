@@ -1,0 +1,66 @@
+name: Documentation Maintenance
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Run at midnight every Sunday
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  maintenance:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Make scripts executable
+      run: |
+        chmod +x scripts/ci_documentation_validation.sh
+        chmod +x scripts/documentation_maintenance.sh
+    
+    - name: Run maintenance checks
+      run: ./scripts/documentation_maintenance.sh
+    
+    - name: Upload maintenance report
+      uses: actions/upload-artifact@v3
+      with:
+        name: documentation-maintenance-report
+        path: reports/documentation/maintenance-report-*.md
+        retention-days: 30
+    
+    - name: Create issue if problems found
+      if: failure()
+      uses: actions/github-script@v6
+      with:
+        script: |-
+          const fs = require('fs');
+          const path = require('path');
+          
+          const reportsDir = 'reports/documentation';
+          const reports = fs.readdirSync(reportsDir)
+            .filter(f => f.startsWith('maintenance-report-'))
+            .sort()
+            .reverse();
+          
+          if (reports.length > 0) {
+            const latestReport = fs.readFileSync(
+              path.join(reportsDir, reports[0]),
+              'utf8'
+            );
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '📚 Documentation Maintenance Issues Found',
+              body: `The weekly documentation maintenance check has found some issues:\n\n${latestReport}\n\nPlease review and address these issues to maintain documentation quality.`,
+              labels: ['documentation', 'maintenance']
+            });
+          } 

@@ -1,0 +1,18 @@
+{
+  "plugins": [
+    "remark-preset-lint-recommended",
+    ["remark-lint-maximum-line-length", false],
+    ["remark-lint-list-item-indent", "space"],
+    ["remark-lint-no-dead-urls", {
+      "skipOffline": true
+    }],
+    ["remark-lint-heading-increment", true],
+    ["remark-lint-no-missing-blank-lines", {
+      "exceptTightLists": true
+    }],
+    ["remark-lint-code-block-style", "fenced"],
+    ["remark-lint-fenced-code-flag", {
+      "flags": ["markdown", "javascript", "js", "typescript", "ts", "elixir", "json", "css", "html", "shell", "bash"]
+    }]
+  ]
+} 

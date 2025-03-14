@@ -9,11 +9,14 @@
  * - Standardized lifecycle (mount, unmount, update)
  * - Event publication and subscription
  * - Automatic registration with Component Registry
+ * - Reactive state management
  * - Debug and logging utilities
  * - DOM element management
  */
 
 import Registry from './component_registry';
+import EventBus from './event_bus';
+import StateManager from './reactive_state';
 
 /**
  * Generate a unique identifier
@@ -45,6 +48,15 @@ class HydeComponent {
     // DOM references
     this.container = null;
     this.elements = {};
+    
+    // Initialize reactive state management
+    this._stateManager = new StateManager({
+      updateCallback: this._handleStateUpdate.bind(this),
+      historyEnabled: options.enableStateHistory || false,
+      historyLimit: options.stateHistoryLimit || 50
+    });
+    this.state = this._stateManager.defineState(options.initialState || {});
+    this._stateSubscriptions = new Map();
     
     // Events, state, and lifecycle management
     this._eventSubscriptions = [];
@@ -79,6 +91,10 @@ class HydeComponent {
     }
     
     this.container = container;
+    
+    // Add component ID to container for inspector integration
+    container.dataset.componentId = this.id;
+    
     this._triggerLifecycleHooks('mount');
     return this;
   }
@@ -90,17 +106,30 @@ class HydeComponent {
   unmount() {
     // Clean up event subscriptions
     this._eventSubscriptions.forEach(subscription => {
-      // For now, this is a placeholder. We'll implement the EventBus next
-      // EventBus.unsubscribe(subscription);
+      EventBus.unsubscribe(subscription);
       this.debug.log('Cleaning up subscription', subscription);
     });
     this._eventSubscriptions = [];
     
-    // Trigger lifecycle hooks
+    // Unsubscribe all events from EventBus
+    EventBus.unsubscribeComponent(this.id);
+    
+    // Clean up state subscriptions
+    this._stateSubscriptions.forEach(unsubscribe => unsubscribe());
+    this._stateSubscriptions.clear();
+    
+    // Remove component ID from container
+    if (this.container) {
+      delete this.container.dataset.componentId;
+    }
+    
     this._triggerLifecycleHooks('unmount');
     
-    // Unregister from registry
+    // Unregister from Component Registry
     Registry.unregister(this.id);
+    
+    // Cleanup container reference
+    this.container = null;
     
     return this;
   }
@@ -117,70 +146,78 @@ class HydeComponent {
   }
   
   /**
-   * Publish an event
-   * Placeholder - will be implemented with EventBus
+   * Publish an event globally
    * @param {string} eventName - Name of the event
    * @param {*} data - Event data
+   * @returns {number} Number of subscribers notified
    */
   publish(eventName, data) {
     this.debug.log(`Publishing event '${eventName}'`, data);
-    // Will be implemented with EventBus
-    return null;
+    return EventBus.publish(eventName, data, { source: this.id });
   }
   
   /**
-   * Subscribe to an event
-   * Placeholder - will be implemented with EventBus
+   * Subscribe to a global event
    * @param {string} eventName - Name of the event
    * @param {Function} handler - Event handler
+   * @returns {string} Subscription ID
    */
   subscribe(eventName, handler) {
     this.debug.log(`Subscribing to event '${eventName}'`);
-    // Will be implemented with EventBus
-    const subscription = { eventName, handler };
-    this._eventSubscriptions.push(subscription);
-    return subscription;
+    const subscriptionId = EventBus.subscribe(eventName, handler, { componentId: this.id });
+    this._eventSubscriptions.push(subscriptionId);
+    return subscriptionId;
   }
   
   /**
    * Send an event to a specific component
-   * Placeholder - will be implemented with EventBus
    * @param {string} componentId - ID of the target component
    * @param {string} eventName - Name of the event
    * @param {*} data - Event data
+   * @returns {boolean} Whether the message was delivered
    */
   sendTo(componentId, eventName, data) {
     this.debug.log(`Sending event '${eventName}' to '${componentId}'`, data);
-    // Will be implemented with EventBus
-    return null;
+    return EventBus.sendToComponent(componentId, eventName, data, { source: this.id });
   }
   
   /**
    * Publish an event scoped to a specific context
-   * Placeholder - will be implemented with EventBus
    * @param {string} scope - The scope context
    * @param {string} eventName - Name of the event
    * @param {*} data - Event data
+   * @returns {number} Number of subscribers notified
    */
   publishInScope(scope, eventName, data) {
     this.debug.log(`Publishing event '${eventName}' in scope '${scope}'`, data);
-    // Will be implemented with EventBus
-    return null;
+    return EventBus.publishScoped(scope, eventName, data, { source: this.id });
   }
   
   /**
    * Subscribe to an event in a specific scope
-   * Placeholder - will be implemented with EventBus
    * @param {string} scope - The scope context
    * @param {string} eventName - Name of the event
    * @param {Function} handler - Event handler
+   * @returns {string} Subscription ID
    */
   subscribeInScope(scope, eventName, handler) {
     this.debug.log(`Subscribing to event '${eventName}' in scope '${scope}'`);
-    // Will be implemented with EventBus
-    const subscription = { scope, eventName, handler };
-    this._eventSubscriptions.push(subscription);
-    return subscription;
+    const subscriptionId = EventBus.subscribeScoped(scope, eventName, handler, { componentId: this.id });
+    this._eventSubscriptions.push(subscriptionId);
+    return subscriptionId;
+  }
+  
+  /**
+   * Handle a direct message from another component
+   * This method should be overridden by components that want to receive direct messages
+   * @param {Object} message - The message object
+   * @param {string} message.name - Event name
+   * @param {*} message.data - Event data
+   * @param {string} message.source - Source component ID
+   */
+  onMessage(message) {
+    this.debug.log(`Received message '${message.name}' from '${message.source}'`, message);
+    // Default implementation does nothing - components should override this
   }
   
   /**
@@ -248,31 +285,127 @@ class HydeComponent {
       } else if (children instanceof HTMLElement) {
         element.appendChild(children);
       } else {
-        element.textContent = String(children);
+        element.appendChild(document.createTextNode(String(children)));
       }
     }
-    
-    // Store reference for cleanup
-    this.elements[element.id || `element-${generateUniqueId()}`] = element;
     
     return element;
   }
   
   /**
-   * Trigger lifecycle hooks
+   * Trigger lifecycle hook callbacks
+   * @param {string} hookName - Name of the hook to trigger
+   * @param {...any} args - Arguments to pass to the callbacks
    * @private
-   * @param {string} hookName - Name of the lifecycle hook
-   * @param {...any} args - Arguments to pass to the hook
    */
   _triggerLifecycleHooks(hookName, ...args) {
-    const hooks = this._lifecycleHooks[hookName] || [];
-    hooks.forEach(hook => {
-      try {
-        hook.call(this, ...args);
-      } catch (error) {
-        console.error(`Error in ${hookName} hook for ${this.type}:${this.id}`, error);
-      }
-    });
+    if (this._lifecycleHooks[hookName]) {
+      this._lifecycleHooks[hookName].forEach(callback => {
+        try {
+          callback.apply(this, args);
+        } catch (error) {
+          console.error(`Error in ${hookName} hook for ${this.type}:${this.id}`, error);
+        }
+      });
+    }
+  }
+  
+  /**
+   * Define a computed property that automatically updates when dependencies change
+   * @param {String} key - Property name
+   * @param {String[]} dependencies - Array of property paths this computed property depends on
+   * @param {Function} computeFn - Function that computes the property value
+   * @returns {*} - The computed value
+   */
+  compute(key, dependencies, computeFn) {
+    return this._stateManager.compute(key, dependencies, computeFn);
+  }
+  
+  /**
+   * Watch for changes on specific state paths
+   * @param {String|String[]} path - Property path or array of paths to watch
+   * @param {Function} callback - Function to call when value changes
+   * @returns {Function} - Function to remove the watcher
+   */
+  watch(path, callback) {
+    const unsubscribe = this._stateManager.watch(path, callback);
+    
+    // Store for cleanup during unmount
+    const subscriptionId = generateUniqueId();
+    this._stateSubscriptions.set(subscriptionId, unsubscribe);
+    
+    // Return a function to remove this specific watcher
+    return () => {
+      unsubscribe();
+      this._stateSubscriptions.delete(subscriptionId);
+    };
+  }
+  
+  /**
+   * Batch multiple state updates to trigger only one render
+   * @param {Function} callback - Function that makes state changes
+   */
+  batch(callback) {
+    this._stateManager.batch(callback);
+  }
+  
+  /**
+   * Perform a transaction that can be rolled back if needed
+   * @param {Function} callback - Function that returns true for commit, false for rollback
+   * @returns {Boolean} - Whether the transaction was committed
+   */
+  transaction(callback) {
+    return this._stateManager.transaction(callback);
+  }
+  
+  /**
+   * Get state change history
+   * @returns {Array} - History of state changes
+   */
+  getStateHistory() {
+    return this._stateManager.getHistory();
+  }
+  
+  /**
+   * Clear state change history
+   */
+  clearStateHistory() {
+    this._stateManager.clearHistory();
+  }
+  
+  /**
+   * Time travel to a previous state
+   * @param {Number} steps - Number of steps to go back (positive) or forward (negative)
+   * @returns {Boolean} - Whether the time travel was successful
+   */
+  timeTravel(steps) {
+    return this._stateManager.revert(steps);
+  }
+  
+  /**
+   * Handle state updates and trigger renders
+   * @param {String|String[]} paths - Path or array of paths that were updated
+   * @private
+   */
+  _handleStateUpdate(paths) {
+    this.debug.log('State updated', paths);
+    
+    // Call render method if it exists
+    if (typeof this.render === 'function') {
+      this.render();
+    }
+    
+    // Dispatch a custom event for debugging and tools
+    if (this.container) {
+      const event = new CustomEvent('state-change', {
+        bubbles: true,
+        detail: { 
+          componentId: this.id, 
+          paths: Array.isArray(paths) ? paths : [paths] 
+        }
+      });
+      this.container.dispatchEvent(event);
+    }
   }
 }
 

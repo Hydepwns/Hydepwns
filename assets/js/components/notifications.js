@@ -205,10 +205,12 @@ class NotificationsComponent {
    * @private
    */
   _clearAllTimeouts() {
-    this._state.autoDismissTimeouts.forEach((timeoutId) => {
-      clearTimeout(timeoutId);
-    });
-    this._state.autoDismissTimeouts.clear();
+    if (this._state && this._state.autoDismissTimeouts) {
+      this._state.autoDismissTimeouts.forEach((timeoutId) => {
+        clearTimeout(timeoutId);
+      });
+      this._state.autoDismissTimeouts.clear();
+    }
   }
   
   /**

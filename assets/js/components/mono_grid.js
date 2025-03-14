@@ -417,4 +417,34 @@ class MonoGridComponent {
   }
 }
 
+/**
+ * Legacy LiveView hook for backward compatibility
+ */
+const MonoGrid = {
+  mounted() {
+    this.component = new MonoGridComponent({
+      liveViewHook: this,
+      container: this.el,
+      cols: parseInt(this.el.dataset.cols, 10) || 80,
+      cellWidth: this.el.dataset.cellWidth || '1ch',
+      cellHeight: this.el.dataset.cellHeight || '1.5rem',
+      debug: window.DEBUG && window.DEBUG.enabled
+    }).mount();
+  },
+  
+  updated() {
+    if (this.component) {
+      this.component.update();
+    }
+  },
+  
+  destroyed() {
+    if (this.component) {
+      this.component.destroy();
+      this.component = null;
+    }
+  }
+};
+
+export default MonoGrid;
 export { MonoGridComponent }; 

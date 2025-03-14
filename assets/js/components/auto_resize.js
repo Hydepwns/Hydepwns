@@ -5,7 +5,7 @@
  * A component that automatically resizes textareas to fit their content.
  * This ensures that users can see the full text without scrolling.
  * 
- * Uses the robust component system for proper event handling and cleanup.
+ * Migrated to use the robust component system following the component migration guide.
  */
 
 import EventManager from './event_manager';
@@ -154,4 +154,33 @@ class AutoResizeComponent {
   }
 }
 
+/**
+ * Legacy LiveView hook for backward compatibility
+ */
+const AutoResize = {
+  mounted() {
+    this.component = new AutoResizeComponent({
+      liveViewHook: this,
+      container: this.el,
+      paddingBottom: parseInt(this.el.dataset.paddingBottom, 10) || 5,
+      debug: window.DEBUG && window.DEBUG.enabled
+    }).mount();
+  },
+  
+  updated() {
+    if (this.component) {
+      // Resize on update in case content changed
+      this.component.resize();
+    }
+  },
+  
+  destroyed() {
+    if (this.component) {
+      this.component.destroy();
+      this.component = null;
+    }
+  }
+};
+
+export default AutoResize;
 export { AutoResizeComponent }; 

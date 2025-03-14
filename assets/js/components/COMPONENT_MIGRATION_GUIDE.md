@@ -242,7 +242,7 @@ export { YourComponentClass };
 
 Here's an example of a simple counter component before and after migration:
 
-### Before:
+### Before
 
 ```javascript
 const Counter = {
@@ -265,7 +265,7 @@ const Counter = {
 export default Counter;
 ```
 
-### After:
+### After
 
 ```javascript
 import EventManager from './event_manager';
@@ -406,6 +406,15 @@ The following components have been migrated to the robust component system:
 1. `debug_grid.js` - The Debug Grid component
 2. `theme_toggle.js` - The Theme Toggle component
 3. `animations.js` - Character animations and grid fade-in effects
+4. `info_box.js` - The Info Box component
+5. `notifications.js` - The Notifications component
+6. `keyboard_navigation.js` - The Keyboard Navigation component
+7. `terminal_hooks.js` - The Terminal Hooks component
+8. `terminal_theme_sync.js` - The Terminal Theme Sync component
+9. `copyable_code.js` - The Copyable Code component
+10. `viewport_detector.js` - The Viewport Detector component
+11. `ascii_art_generator.js` - The ASCII Art Generator component
+12. `auto_resize.js` - The Auto Resize component for textareas
 
 Refer to these components for real-world examples of the migration process.
 
@@ -482,4 +491,4 @@ If you need assistance migrating a component, refer to:
 
 1. The [COMPONENT_IMPLEMENTATION_PATTERNS.md](../../../docs/COMPONENT_IMPLEMENTATION_PATTERNS.md) document
 2. Examples of migrated components mentioned above
-3. The ROBUST_IMPLEMENTATION.md documentation in the PRD 
+3. The ROBUST_IMPLEMENTATION.md documentation in the PRD

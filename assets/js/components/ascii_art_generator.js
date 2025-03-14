@@ -8,6 +8,8 @@
  * - Dynamic form state updates based on selected art type
  * - Keyboard navigation support for accessibility
  * - Clean event handling and resource management
+ * 
+ * Migrated to use the robust component system following the component migration guide.
  */
 
 import EventManager from './event_manager';
@@ -239,4 +241,31 @@ class AsciiArtGeneratorComponent {
   }
 }
 
+/**
+ * Legacy LiveView hook for backward compatibility
+ */
+const AsciiArtGenerator = {
+  mounted() {
+    this.component = new AsciiArtGeneratorComponent({
+      container: this.el,
+      liveViewHook: this
+    }).mount();
+  },
+  
+  updated() {
+    // Handle updates if component has an update method
+    if (this.component && typeof this.component.update === 'function') {
+      this.component.update();
+    }
+  },
+  
+  destroyed() {
+    if (this.component) {
+      this.component.destroy();
+      this.component = null;
+    }
+  }
+};
+
+export default AsciiArtGenerator;
 export { AsciiArtGeneratorComponent }; 

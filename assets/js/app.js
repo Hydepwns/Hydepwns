@@ -49,6 +49,8 @@ import TerminalThemeSync from "./hooks/terminal_theme_sync"
 import ViewportDetector from "./hooks/viewport_detector" 
 import AccessibilityMenuToggle from "./hooks/accessibility_menu_toggle"
 import NotificationsHandler from "./hooks/notifications"
+import Toast from "./hooks/toast"
+import NavigationMenu from "./hooks/navigation_menu"
 
 // Import accessibility functions
 import "./accessibility/accessibility.js"
@@ -106,6 +108,8 @@ const Hooks = {
   ViewportDetector,
   AccessibilityMenuToggle,
   NotificationsHandler,
+  Toast,
+  NavigationMenu,
   ...TerminalHooks
 }
 

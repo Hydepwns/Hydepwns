@@ -162,4 +162,83 @@ mix test --cover
 
 # Watch for changes and run tests automatically
 mix test.watch
-``` 
+```
+
+## Component Testing Best Practices
+
+Based on our implementation experience, we've established the following best practices for component testing:
+
+### Test Environment Setup
+
+1. **Consistent Module Loading Patterns**
+   - Use CommonJS `require()` in test setup files and Jest configuration
+   - Maintain a consistent approach to importing components and utilities
+   - Configure Babel properly for handling ES modules during testing
+
+2. **DOM Testing Environment**
+   - Use jsdom effectively while understanding its limitations
+   - Create standard patterns for testing DOM manipulation
+   - Mock browser APIs not available in jsdom environment
+
+3. **Dependency Management**
+   - Create reusable mock factories for common dependencies
+   - Maintain clear patterns for mocking EventManager and DOMCleanup
+   - Clearly separate test setup from assertions
+
+### Test Implementation Patterns
+
+1. **Component Lifecycle Testing**
+   - Test component initialization and mounting
+   - Verify proper cleanup on destruction
+   - Check for event listener and DOM cleanup
+
+2. **DOM Interaction Testing**
+   - Use appropriate methods for simulating user events
+   - Verify DOM changes using appropriate assertions
+   - Test accessibility attributes and properties
+
+3. **State Management Testing**
+   - Verify internal state updates correctly
+   - Test state transitions based on events
+   - Ensure proper error handling
+
+### Handling Testing Challenges
+
+1. **Complex DOM Manipulation**
+   - Break tests into smaller, focused test cases
+   - Mock DOM creation but test actual manipulation in the test
+   - Use document fragments for complex DOM structures
+
+2. **Animations and Timing**
+   - Use Jest's timer mocks for testing animations
+   - Test animations by advancing timers and checking state
+   - Separate animation logic from business logic where possible
+
+3. **Event Handling**
+   - Test both direct and delegated events
+   - Verify event bubbling and propagation
+   - Test keyboard, mouse, and touch events separately
+
+### Incremental Coverage Approach
+
+Due to the complexity of testing components, we follow an incremental approach:
+
+1. **Phase 1: Foundation (25% coverage)**
+   - Basic initialization and mounting
+   - Core functionality tests
+   - Simple event handling
+
+2. **Phase 2: Interaction (50% coverage)**
+   - User interaction tests
+   - State management
+   - DOM manipulation
+
+3. **Phase 3: Edge Cases (65% coverage)**
+   - Error handling
+   - Boundary conditions
+   - Accessibility verification
+
+4. **Phase 4: Comprehensive (80%+ coverage)**
+   - Complex interactions
+   - Performance optimization
+   - Complete API coverage 

@@ -95,3 +95,48 @@ While the code now compiles without errors, there are still some warnings that c
    - Implement comprehensive tests to ensure fixed code works as expected
    - Verify proper behavior of the Event System after the recent fixes
    - Create automated test suite to prevent regression of fixed issues
+
+## Component Testing Framework
+
+### Current Limitations
+
+1. **ES Modules Compatibility Issues**
+   - Jest has compatibility issues with ES module imports, requiring careful Babel configuration.
+   - Some external libraries use ES modules in ways that are difficult to mock in the Jest environment.
+   - The setup.js file must carefully use CommonJS require() syntax rather than ES module imports.
+
+2. **DOM Manipulation Testing**
+   - Testing components that manipulate the DOM extensively (like Toast) causes HierarchyRequestError when trying to modify the mocked DOM.
+   - Jest's jsdom environment has limitations for complex DOM manipulations and animations.
+   - Direct DOM manipulation within the jest.mock() factory function is not allowed, requiring more complex mocking strategies.
+
+3. **Test Coverage Challenges**
+   - Current component test coverage is significantly below the target threshold (approximately 3.6% vs. target of 80%).
+   - Some components interact with browser APIs in ways that are difficult to test without more sophisticated mocking.
+   - Event handling, particularly for delegated events, is challenging to test comprehensively.
+
+4. **Component Dependencies**
+   - Components often depend on shared utilities like DOMCleanup and EventManager, requiring careful mocking.
+   - Components that rely on browser-specific APIs (like scrollHeight) need special handling in the test environment.
+
+### Planned Improvements
+
+1. **Enhanced Test Environment Setup**
+   - Create standardized mocking patterns for DOM manipulation and browser APIs.
+   - Develop custom test helpers for common testing scenarios (event simulation, DOM inspection).
+   - Improve documentation for testing complex components with extensive DOM manipulation.
+
+2. **Testing Utility Enhancements**
+   - Extend the component_test_utility.js to provide more robust testing capabilities.
+   - Add utilities for simulating user interactions with proper event bubbling.
+   - Create specialized test fixtures for components with complex DOM structures.
+
+3. **Test Coverage Strategy**
+   - Prioritize component tests based on complexity and usage frequency.
+   - Establish incremental coverage goals to progress toward the 80% threshold.
+   - Create component-specific testing guidelines for components with unique challenges.
+
+4. **CI Integration**
+   - Improve CI pipeline to run component tests efficiently.
+   - Add coverage reports to CI build process.
+   - Implement test failure notifications with actionable feedback.

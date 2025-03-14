@@ -40,3 +40,9 @@ npm-debug.log
 
 # xxx
 /docs/PRINCIPLES.md
+
+# ignore node_modules
+/node_modules/
+
+# ignore coverage
+/coverage/

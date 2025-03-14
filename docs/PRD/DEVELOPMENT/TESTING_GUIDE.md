@@ -13,6 +13,7 @@ This guide provides an overview of the testing infrastructure and best practices
 - [Running Tests](#running-tests)
 - [CI/CD Integration](#cicd-integration)
 - [Testing Checklist](#testing-checklist)
+- [JavaScript Component Testing](#javascript-component-testing)
 
 ## Testing Philosophy
 
@@ -33,6 +34,7 @@ The Hydepwns application uses the following types of tests:
 Unit tests verify the behavior of individual functions or modules in isolation. These tests focus on pure business logic and utility functions.
 
 Example:
+
 ```elixir
 defmodule HydepwnsLiveviewWeb.TOCHelperTest do
   use ExUnit.Case, async: true
@@ -62,6 +64,7 @@ end
 Component tests verify the behavior of LiveView components in isolation. These tests focus on rendering, event handling, and component lifecycle.
 
 Example:
+
 ```elixir
 defmodule HydepwnsLiveviewWeb.Components.TerminalTest do
   use HydepwnsLiveviewWeb.ConnCase, async: true
@@ -90,6 +93,7 @@ end
 LiveView tests verify the behavior of LiveView pages, including rendering, event handling, and navigation.
 
 Example:
+
 ```elixir
 defmodule HydepwnsLiveviewWeb.StyleGuideLiveTest do
   use HydepwnsLiveviewWeb.ConnCase, async: true
@@ -120,6 +124,7 @@ end
 Integration tests verify the behavior of multiple components working together, including user flows and interactions.
 
 Example:
+
 ```elixir
 defmodule HydepwnsLiveviewWeb.UserFlowTest do
   use HydepwnsLiveviewWeb.ConnCase, async: true
@@ -146,6 +151,7 @@ end
 Accessibility tests verify that the application is accessible to users with disabilities, including screen readers, keyboard navigation, and ARIA attributes.
 
 Example:
+
 ```elixir
 defmodule HydepwnsLiveviewWeb.AccessibilityTest do
   use HydepwnsLiveviewWeb.ConnCase, async: true
@@ -309,6 +315,281 @@ Use this checklist when writing and reviewing tests:
 - [ ] Tests cover edge cases and error handling
 - [ ] Tests are isolated and don't depend on global state
 
+## JavaScript Component Testing
+
+The Hydepwns application includes JavaScript components that are tested using Jest. This section provides guidance for testing JavaScript components.
+
+### Setting Up Jest Tests
+
+Jest tests for JavaScript components should be placed in the `test/js` directory, with each test file named after the component it tests with a `_test.js` suffix.
+
+```bash
+# Project structure
+assets/
+  js/
+    components/
+      auto_resize.js
+      toast.js
+      mono_tabs.js
+test/
+  js/
+    components/
+      auto_resize_test.js
+      toast_test.js
+      mono_tabs_test.js
+```
+
+### Basic Component Test Structure
+
+A typical JavaScript component test includes:
+
+```javascript
+// Import the component
+import AutoResizeComponent from '../../../assets/js/components/auto_resize';
+
+// Optional: Mock dependencies
+jest.mock('../../../assets/js/utils/dom_cleanup', () => {
+  return {
+    register: jest.fn().mockReturnValue({
+      registerElement: jest.fn(),
+      registerTimeout: jest.fn(),
+      cleanup: jest.fn()
+    })
+  };
+});
+
+// Test suite
+describe('AutoResize Component', () => {
+  // Setup before each test
+  let container;
+  let textarea;
+  
+  beforeEach(() => {
+    // Create DOM elements
+    container = document.createElement('div');
+    textarea = document.createElement('textarea');
+    container.appendChild(textarea);
+    document.body.appendChild(container);
+  });
+  
+  // Cleanup after each test
+  afterEach(() => {
+    document.body.innerHTML = '';
+    jest.clearAllMocks();
+  });
+  
+  // Individual tests
+  test('initializes with correct properties', () => {
+    const autoResize = new AutoResizeComponent({
+      container: container,
+      textarea: textarea
+    }).mount();
+    
+    expect(autoResize.elements.container).toBe(container);
+    expect(autoResize.elements.textarea).toBe(textarea);
+  });
+  
+  test('adjusts height on input', () => {
+    const autoResize = new AutoResizeComponent({
+      container: container,
+      textarea: textarea
+    }).mount();
+    
+    // Mock scrollHeight
+    Object.defineProperty(textarea, 'scrollHeight', { value: 100 });
+    
+    // Trigger input event
+    const event = new Event('input');
+    textarea.dispatchEvent(event);
+    
+    // Check that height was adjusted
+    expect(textarea.style.height).toBe('100px');
+  });
+});
+```
+
+### Handling ES Modules in Jest
+
+Jest is designed for CommonJS modules, which can cause issues when testing ES modules. Use the following strategies:
+
+1. **Configure Babel properly**:
+
+```javascript
+// babel.config.js
+module.exports = {
+  presets: [
+    ['@babel/preset-env', {
+      targets: {
+        node: 'current',
+      },
+    }],
+  ],
+};
+```
+
+2. **Use dynamic imports in test files**:
+
+```javascript
+// Instead of this (ES Module syntax)
+import ToastComponent from '../../../assets/js/components/toast';
+
+// Use this (CommonJS syntax)
+const ToastComponent = require('../../../assets/js/components/toast');
+```
+
+3. **Avoid ES module imports in Jest setup files**:
+
+```javascript
+// jest.setup.js
+// BAD: import { setupDOM } from './setup_helpers';
+// GOOD:
+const { setupDOM } = require('./setup_helpers');
+```
+
+### Testing DOM Manipulation
+
+Components that manipulate the DOM require special care:
+
+1. **Setup the DOM structure properly**:
+
+```javascript
+beforeEach(() => {
+  // Create required DOM elements
+  container = document.createElement('div');
+  document.body.appendChild(container);
+  
+  // For components that create their own elements,
+  // manually establish parent-child relationships
+  if (componentCreatesChildren) {
+    const child = document.createElement('div');
+    container.appendChild(child);
+  }
+});
+```
+
+2. **Mock DOM creation but test manipulation directly**:
+
+```javascript
+// Mock the createElement method
+const domCleanup = require('../../../assets/js/utils/dom_cleanup');
+domCleanup.createElement.mockImplementation((tag, attrs) => {
+  // Return a real DOM element instead of a mock object
+  const element = document.createElement(tag);
+  if (attrs) {
+    Object.entries(attrs).forEach(([key, value]) => {
+      if (key === 'className') {
+        element.className = value;
+      } else {
+        element.setAttribute(key, value);
+      }
+    });
+  }
+  return element;
+});
+```
+
+3. **Test animation and timing with Jest's timer mocks**:
+
+```javascript
+// Enable fake timers
+jest.useFakeTimers();
+
+test('component fades out after duration', () => {
+  const component = new Component().mount();
+  component.show();
+  
+  // Fast-forward time
+  jest.advanceTimersByTime(1000);
+  
+  // Check that fade-out started
+  expect(component.element.style.opacity).toBe('0');
+  
+  // Fast-forward through animation
+  jest.advanceTimersByTime(300);
+  
+  // Check that element was removed
+  expect(component.element.parentNode).toBeNull();
+});
+```
+
+### Testing Complex Components
+
+For complex components like the Toast component:
+
+1. **Separate creation from manipulation**:
+   - Mock the creation of elements
+   - Test the manipulation directly
+   - Manually establish parent-child relationships
+
+2. **Use spies to verify method calls**:
+
+```javascript
+test('dismisses toast when clicked', () => {
+  const toast = new ToastComponent({
+    container: container
+  }).mount();
+  
+  // Setup the DOM structure
+  container.appendChild(mockToastContainer);
+  mockToastContainer.appendChild(mockToastElement);
+  
+  // Create a spy on the dismiss method
+  const dismissSpy = jest.spyOn(toast, 'dismiss');
+  
+  // Show a toast
+  const toastId = toast.show({ message: 'Test message' });
+  
+  // Click the toast
+  mockToastElement.click();
+  
+  // Verify the dismiss method was called
+  expect(dismissSpy).toHaveBeenCalledWith(toastId);
+});
+```
+
+3. **Test each variant of the component**:
+
+```javascript
+['success', 'error', 'warning', 'info'].forEach(type => {
+  test(`shows a ${type} toast with correct classes`, () => {
+    const toast = new ToastComponent({
+      container: container
+    }).mount();
+    
+    // Set up DOM
+    container.appendChild(mockToastContainer);
+    mockToastContainer.appendChild(mockToastElement);
+    
+    // Show a toast with the specific type
+    toast.show({
+      message: `Test ${type} message`,
+      type: type
+    });
+    
+    // Verify the toast has the correct class
+    expect(mockToastElement.classList.contains(`toast-${type}`)).toBe(true);
+  });
+});
+```
+
+### Running JavaScript Tests
+
+To run JavaScript component tests:
+
+```bash
+# Run all JavaScript tests
+npx jest
+
+# Run tests for a specific component
+npx jest test/js/components/auto_resize_test.js
+
+# Run tests with coverage
+npx jest --coverage
+
+# Run tests in watch mode
+npx jest --watch
+```
+
 ## Troubleshooting Common Test Issues
 
 ### Tests Failing Intermittently
@@ -343,4 +624,4 @@ If tests are failing after refactoring, check for:
 - [ExUnit Documentation](https://hexdocs.pm/ex_unit/ExUnit.html)
 - [Phoenix.LiveViewTest Documentation](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveViewTest.html)
 - [Testing Phoenix Applications](https://hexdocs.pm/phoenix/testing.html)
-- [Accessibility Testing Guide](https://www.w3.org/WAI/test-evaluate/) 
+- [Accessibility Testing Guide](https://www.w3.org/WAI/test-evaluate/)

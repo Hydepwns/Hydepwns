@@ -1,177 +1,263 @@
 /**
  * Lazy Load Component Tests
- * Simple test suite for the LazyLoadComponent
+ * -----------------------
+ * Jest test suite for the LazyLoadComponent class.
  */
 
 import { LazyLoadComponent } from '../components/lazy_load';
+import EventManager from '../components/event_manager';
+import DOMCleanup from '../utils/dom_cleanup';
 
-// Helper function to create a test lazy load container
-function createTestLazyLoad() {
-  const container = document.createElement('div');
-  container.className = 'lazy-load-container';
-  container.style.height = '200px';
-  container.style.position = 'relative';
-  
-  // Create placeholder
-  const placeholder = document.createElement('div');
-  placeholder.setAttribute('data-lazy-placeholder', '');
-  placeholder.textContent = 'Loading...';
-  container.appendChild(placeholder);
-  
-  // Create content (initially hidden)
-  const content = document.createElement('div');
-  content.setAttribute('data-lazy-content', '');
-  content.style.display = 'none';
-  content.textContent = 'This is the lazy loaded content';
-  container.appendChild(content);
-  
-  // Add to document
-  document.body.appendChild(container);
-  
-  return container;
-}
+// Mock dependencies
+jest.mock('../components/event_manager', () => ({
+  registerComponent: jest.fn().mockReturnValue({
+    addEventListener: jest.fn(),
+    addDelegatedEventListener: jest.fn()
+  }),
+  unregisterComponent: jest.fn()
+}));
 
-// Create an intersection observer mock - since we can't easily test real intersection
-class IntersectionObserverMock {
-  constructor(callback) {
-    this.callback = callback;
-    this.elements = new Set();
-  }
+jest.mock('../utils/dom_cleanup', () => ({
+  register: jest.fn().mockReturnValue({
+    cleanup: jest.fn(),
+    registerCleanupFunction: jest.fn()
+  })
+}));
+
+describe('LazyLoadComponent', () => {
+  let component;
+  let container;
+  let mockLiveViewHook;
+  let observerCallback;
   
-  observe(element) {
-    this.elements.add(element);
-  }
-  
-  disconnect() {
-    this.elements.clear();
-  }
-  
-  // Trigger an intersection manually
-  triggerIntersection(isIntersecting = true) {
-    const entries = Array.from(this.elements).map(element => ({
-      isIntersecting,
-      target: element,
-      boundingClientRect: element.getBoundingClientRect()
-    }));
+  // Helper function to create test container
+  const createTestContainer = () => {
+    const container = document.createElement('div');
+    container.id = 'lazy-load-test';
+    container.className = 'lazy-load-container';
     
-    this.callback(entries);
-  }
-}
-
-// Initialize the component for testing
-function testLazyLoad() {
-  console.log('➡️ Testing LazyLoadComponent');
-  
-  // Save original IntersectionObserver
-  const originalIntersectionObserver = window.IntersectionObserver;
-  let observerInstance;
-  
-  // Create our testing IntersectionObserver mock
-  window.IntersectionObserver = function(callback, options) {
-    observerInstance = new IntersectionObserverMock(callback);
-    return observerInstance;
+    // Create placeholder
+    const placeholder = document.createElement('div');
+    placeholder.setAttribute('data-lazy-placeholder', '');
+    placeholder.textContent = 'Loading...';
+    container.appendChild(placeholder);
+    
+    // Create content (initially hidden)
+    const content = document.createElement('div');
+    content.setAttribute('data-lazy-content', '');
+    content.style.display = 'none';
+    content.textContent = 'Lazy loaded content';
+    container.appendChild(content);
+    
+    document.body.appendChild(container);
+    return container;
   };
   
-  // Create test elements
-  const container = createTestLazyLoad();
-  
-  try {
-    // Add an accessibility announcer for testing
+  beforeEach(() => {
+    // Create container
+    container = createTestContainer();
+    
+    // Create mock LiveView hook
+    mockLiveViewHook = {
+      el: container,
+      handleEvent: jest.fn(),
+      pushEvent: jest.fn()
+    };
+    
+    // Mock IntersectionObserver
+    window.IntersectionObserver = jest.fn((callback) => {
+      observerCallback = callback;
+      return {
+        observe: jest.fn(),
+        unobserve: jest.fn(),
+        disconnect: jest.fn()
+      };
+    });
+    
+    // Create accessibility announcer
     const announcer = document.createElement('div');
     announcer.id = 'accessibility-announcer';
     document.body.appendChild(announcer);
-    
-    // Track lazy-content-loaded events
-    let eventFired = false;
-    container.addEventListener('lazy-content-loaded', (e) => {
-      eventFired = true;
-      console.log('  - lazy-content-loaded event captured', e.detail);
-    });
-    
-    // Create the component
-    const component = new LazyLoadComponent({
-      container: container,
-      debug: true
-    }).mount();
-    
-    // Test initial state
-    console.log('  - Testing initial state');
-    console.log(`  - Is loaded: ${component.isLoaded()}`);
-    
-    // Simulate intersection
-    console.log('  - Simulating intersection with viewport');
-    observerInstance.triggerIntersection(true);
-    
-    // Test loaded state
-    console.log('  - Testing loaded state after intersection');
-    console.log(`  - Is loaded: ${component.isLoaded()}`);
-    
-    // Test visibility
-    const content = container.querySelector('[data-lazy-content]');
-    const placeholder = container.querySelector('[data-lazy-placeholder]');
-    console.log(`  - Content visible: ${content.style.display === ''}`);
-    console.log(`  - Placeholder hidden: ${placeholder.style.display === 'none'}`);
-    
-    // Test event firing
-    console.log(`  - Event fired: ${eventFired}`);
-    
-    // Test accessibility announcer
-    console.log(`  - Announcer updated: ${announcer.textContent === 'Content loaded'}`);
-    
-    // Test manually loading another component
-    console.log('  - Testing loadNow() method');
-    
-    // Create another lazy load container
-    const container2 = createTestLazyLoad();
-    
-    // Create another component
-    const component2 = new LazyLoadComponent({
-      container: container2,
-      debug: true
-    }).mount();
-    
-    // Force it to load
-    component2.loadNow();
-    
-    // Test forced loading
-    console.log(`  - Forced loading successful: ${component2.isLoaded()}`);
-    
-    // Clean up
-    component.destroy();
-    component2.destroy();
-    
-    // Clean up the announcer
-    if (announcer.parentNode) {
-      announcer.parentNode.removeChild(announcer);
+  });
+  
+  afterEach(() => {
+    if (component) {
+      component.destroy();
     }
-    
-    console.log('✅ LazyLoadComponent tests passed');
-  } catch (e) {
-    console.error('❌ LazyLoadComponent tests failed', e);
-  } finally {
-    // Restore original IntersectionObserver
-    window.IntersectionObserver = originalIntersectionObserver;
-    
-    // Clean up test elements
     if (container && container.parentNode) {
       container.parentNode.removeChild(container);
     }
-    
-    // Remove any remaining test containers
-    const testContainers = document.querySelectorAll('.lazy-load-container');
-    testContainers.forEach(el => {
-      if (el.parentNode) {
-        el.parentNode.removeChild(el);
-      }
-    });
-  }
-}
-
-// Run tests when this file is loaded directly
-if (typeof window !== 'undefined' && window.runComponentTests) {
-  window.addEventListener('DOMContentLoaded', () => {
-    testLazyLoad();
+    const announcer = document.getElementById('accessibility-announcer');
+    if (announcer && announcer.parentNode) {
+      announcer.parentNode.removeChild(announcer);
+    }
+    container = null;
+    component = null;
+    jest.clearAllMocks();
   });
-}
-
-export { testLazyLoad }; 
+  
+  describe('Initialization', () => {
+    test('should initialize with correct default properties', () => {
+      component = new LazyLoadComponent({
+        container,
+        liveViewHook: mockLiveViewHook,
+        debug: true
+      });
+      
+      expect(component.componentId).toMatch(/^lazy-load-[a-z0-9]{7}$/);
+      expect(component.options.container).toBe(container);
+      expect(component.options.rootMargin).toBe('100px');
+      expect(component.options.threshold).toBe(0.1);
+      expect(component.options.liveViewHook).toBe(mockLiveViewHook);
+      expect(component.options.debug).toBe(true);
+    });
+    
+    test('should mount successfully', () => {
+      component = new LazyLoadComponent({
+        container,
+        liveViewHook: mockLiveViewHook
+      });
+      
+      component.mount();
+      
+      expect(EventManager.registerComponent).toHaveBeenCalledWith(component.componentId);
+      expect(DOMCleanup.register).toHaveBeenCalledWith(component.componentId);
+      expect(component.elements.container).toBe(container);
+      expect(component.elements.placeholder).toBeTruthy();
+      expect(component.elements.content).toBeTruthy();
+      expect(component._state.isLoaded).toBe(false);
+      expect(component._state.isObserving).toBe(true);
+    });
+    
+    test('should handle pre-loaded content', () => {
+      container.dataset.loaded = 'true';
+      
+      component = new LazyLoadComponent({
+        container,
+        liveViewHook: mockLiveViewHook
+      });
+      
+      component.mount();
+      
+      expect(component._state.isLoaded).toBe(true);
+      expect(component.elements.content.style.display).toBe('');
+      expect(component.elements.placeholder.style.display).toBe('none');
+    });
+  });
+  
+  describe('Lazy Loading', () => {
+    beforeEach(() => {
+      component = new LazyLoadComponent({
+        container,
+        liveViewHook: mockLiveViewHook
+      });
+      component.mount();
+    });
+    
+    test('should show content when intersecting', () => {
+      // Simulate intersection
+      observerCallback([{
+        target: container,
+        isIntersecting: true
+      }]);
+      
+      expect(component._state.isLoaded).toBe(true);
+      expect(component.elements.content.style.display).toBe('');
+      expect(component.elements.placeholder.style.display).toBe('none');
+      expect(container.dataset.loaded).toBe('true');
+    });
+    
+    test('should emit event when content is loaded', () => {
+      const eventHandler = jest.fn();
+      container.addEventListener('lazy-content-loaded', eventHandler);
+      
+      // Simulate intersection
+      observerCallback([{
+        target: container,
+        isIntersecting: true
+      }]);
+      
+      expect(eventHandler).toHaveBeenCalled();
+      const event = eventHandler.mock.calls[0][0];
+      expect(event.detail).toEqual({
+        id: container.id,
+        componentId: component.componentId
+      });
+    });
+    
+    test('should announce content loaded for accessibility', () => {
+      // Simulate intersection
+      observerCallback([{
+        target: container,
+        isIntersecting: true
+      }]);
+      
+      const announcer = document.getElementById('accessibility-announcer');
+      expect(announcer.textContent).toBe('Content loaded');
+    });
+    
+    test('should load content immediately when loadNow is called', () => {
+      component.loadNow();
+      
+      expect(component._state.isLoaded).toBe(true);
+      expect(component.elements.content.style.display).toBe('');
+      expect(component.elements.placeholder.style.display).toBe('none');
+      expect(container.dataset.loaded).toBe('true');
+      expect(component._state.isObserving).toBe(false);
+    });
+  });
+  
+  describe('LiveView Integration', () => {
+    test('should integrate with LiveView hooks', () => {
+      const hook = {
+        el: container,
+        handleEvent: jest.fn(),
+        pushEvent: jest.fn()
+      };
+      
+      // Test mounted hook
+      const LazyLoad = require('../components/lazy_load').default;
+      LazyLoad.mounted.call(hook);
+      
+      expect(hook.component).toBeTruthy();
+      expect(hook.component instanceof LazyLoadComponent).toBe(true);
+      
+      // Test destroyed hook
+      LazyLoad.destroyed.call(hook);
+      expect(hook.component).toBeNull();
+    });
+  });
+  
+  describe('Cleanup', () => {
+    beforeEach(() => {
+      component = new LazyLoadComponent({
+        container,
+        liveViewHook: mockLiveViewHook
+      });
+      component.mount();
+    });
+    
+    test('should clean up resources on destroy', () => {
+      const cleanupSpy = jest.spyOn(DOMCleanup.register(), 'cleanup');
+      const unregisterSpy = jest.spyOn(EventManager, 'unregisterComponent');
+      const disconnectSpy = jest.spyOn(component.observer, 'disconnect');
+      
+      component.destroy();
+      
+      expect(cleanupSpy).toHaveBeenCalled();
+      expect(unregisterSpy).toHaveBeenCalledWith(component.componentId);
+      expect(disconnectSpy).toHaveBeenCalled();
+      expect(component.elements).toEqual({});
+      expect(component._state).toEqual({});
+      
+      cleanupSpy.mockRestore();
+      unregisterSpy.mockRestore();
+      disconnectSpy.mockRestore();
+    });
+    
+    test('should handle multiple destroy calls gracefully', () => {
+      component.destroy();
+      expect(() => component.destroy()).not.toThrow();
+    });
+  });
+}); 

@@ -15,6 +15,7 @@ This archive contains documentation that was moved or consolidated as part of th
 The following content has been archived:
 
 ### PRD Directory Structure
+
 - `ARCHITECTURE/` - Moved to `docs/reference/architecture/`
 - `DEPLOYMENT/` - Moved to `docs/development/deployment/`
 - `DESIGN/` - Moved to `docs/development/design/`
@@ -27,6 +28,7 @@ The following content has been archived:
 ## Reason for Archival
 
 This content was archived as part of a documentation consolidation effort to:
+
 1. Reduce fragmentation in the documentation structure
 2. Improve navigation and findability
 3. Consolidate related content into logical groupings
@@ -36,10 +38,11 @@ This content was archived as part of a documentation consolidation effort to:
 ## Finding Current Documentation
 
 For current documentation:
+
 1. Refer to the [Documentation Map](../../DOCUMENTATION_MAP.md)
 2. Check the [Migration Notice](../../MIGRATION_NOTICE.md)
 3. Use the search functionality in the documentation portal
 
 ## Retention Period
 
-This archived content will be retained for reference purposes until September 14, 2025 (6 months from archival date). 
+This archived content will be retained for reference purposes until September 14, 2025 (6 months from archival date).

@@ -1,6 +1,6 @@
 /**
  * Viewport Detector Component Tests
- * --------------------------------
+ * -------------------------------
  * Tests for the ViewportDetectorComponent class.
  */
 
@@ -9,37 +9,19 @@ import EventManager from '../../../../assets/js/components/event_manager';
 import DOMCleanup from '../../../../assets/js/utils/dom_cleanup';
 
 // Mock dependencies
-jest.mock('../../../../assets/js/components/event_manager', () => {
-  // Create a mock function that stores handlers
-  const eventHandlers = new Map();
-  
-  const addEventListener = jest.fn((element, eventName, handler) => {
-    // Store the handler for retrieval in tests
-    const key = `${element.toString()}-${eventName}`;
-    eventHandlers.set(key, handler);
-  });
-  
-  return {
-    registerComponent: jest.fn().mockReturnValue({
-      addEventListener,
-      addDelegatedEventListener: jest.fn()
-    }),
-    unregisterComponent: jest.fn(),
-    // Helper for tests to access the stored handlers
-    __getHandler: (element, eventName) => {
-      const key = `${element.toString()}-${eventName}`;
-      return eventHandlers.get(key);
-    }
-  };
-});
+jest.mock('../../../../assets/js/components/event_manager', () => ({
+  registerComponent: jest.fn().mockReturnValue({
+    addEventListener: jest.fn(),
+    addDelegatedEventListener: jest.fn()
+  }),
+  unregisterComponent: jest.fn()
+}));
 
 jest.mock('../../../../assets/js/utils/dom_cleanup', () => ({
   register: jest.fn().mockReturnValue({
-    cleanup: jest.fn(),
     registerElement: jest.fn(),
-    registerInterval: jest.fn(),
     registerTimeout: jest.fn(),
-    registerCleanupFunction: jest.fn()
+    cleanup: jest.fn()
   })
 }));
 
@@ -48,8 +30,6 @@ describe('ViewportDetectorComponent', () => {
   let mockLiveViewHook;
   let originalInnerWidth;
   let originalInnerHeight;
-  let dispatchEventSpy;
-  let originalClearTimeout;
   
   // Setup for tests
   beforeEach(() => {
@@ -60,356 +40,448 @@ describe('ViewportDetectorComponent', () => {
     originalInnerWidth = window.innerWidth;
     originalInnerHeight = window.innerHeight;
     
-    // Store original clearTimeout
-    originalClearTimeout = window.clearTimeout;
-    window.clearTimeout = jest.fn();
+    // Mock window dimensions
+    Object.defineProperty(window, 'innerWidth', {
+      writable: true,
+      configurable: true,
+      value: 1024
+    });
     
-    // Set initial window dimensions for testing
-    Object.defineProperty(window, 'innerWidth', { value: 1200, configurable: true });
-    Object.defineProperty(window, 'innerHeight', { value: 800, configurable: true });
-    
-    // Mock document functions
-    document.documentElement.style.setProperty = jest.fn();
-    document.body.classList.remove = jest.fn();
-    document.body.classList.add = jest.fn();
-    
-    // Create spy for window.dispatchEvent
-    dispatchEventSpy = jest.spyOn(window, 'dispatchEvent');
+    Object.defineProperty(window, 'innerHeight', {
+      writable: true,
+      configurable: true,
+      value: 768
+    });
     
     // Create mock LiveView hook
     mockLiveViewHook = {
       pushEvent: jest.fn(),
       pushEventTo: jest.fn()
     };
-
+    
     // Create component instance
     component = new ViewportDetectorComponent({
-      throttleTime: 100,
       liveViewHook: mockLiveViewHook,
       debug: false
     });
+    
+    // Mock timers
+    jest.useFakeTimers();
   });
   
   // Cleanup after tests
   afterEach(() => {
-    // Restore clearTimeout before destroying component
-    // to avoid the error in the destroy method
-    window.clearTimeout = originalClearTimeout;
-    
     if (component) {
       component.destroy();
     }
     
-    // Restore original window dimensions
-    Object.defineProperty(window, 'innerWidth', { value: originalInnerWidth, configurable: true });
-    Object.defineProperty(window, 'innerHeight', { value: originalInnerHeight, configurable: true });
-    
-    // Restore window.dispatchEvent
-    dispatchEventSpy.mockRestore();
-    
-    component = null;
-    
-    // Clear any timeouts
-    jest.clearAllTimers();
-  });
-  
-  test('should initialize with correct default properties', () => {
-    expect(component.componentId).toMatch(/^viewport-detector-[a-z0-9]{7}$/);
-    expect(component.options.throttleTime).toBe(100);
-    expect(component.options.liveViewHook).toBe(mockLiveViewHook);
-    expect(component.options.debug).toBe(false);
-    expect(component._state.currentSize).toBeNull();
-    expect(component._state.resizeTimeout).toBeNull();
-  });
-  
-  test('should properly mount the component', () => {
-    // Mount the component
-    component.mount();
-    
-    // Verify EventManager and DOMCleanup were used correctly
-    expect(EventManager.registerComponent).toHaveBeenCalledWith(component.componentId);
-    expect(DOMCleanup.register).toHaveBeenCalledWith(component.componentId);
-    
-    // Verify current size was set to desktop (1200px width)
-    expect(component._state.currentSize).toBe('desktop');
-    
-    // Verify event listener was set up
-    expect(component.events.addEventListener).toHaveBeenCalledWith(
-      window,
-      'resize',
-      expect.any(Function)
-    );
-    
-    // Verify initial size was pushed
-    expect(mockLiveViewHook.pushEvent).toHaveBeenCalledWith(
-      'update_viewport_size',
-      {
-        size: 'desktop',
-        width: 1200,
-        height: 800
-      }
-    );
-    
-    // Verify CSS variables and classes were set
-    expect(document.documentElement.style.setProperty).toHaveBeenCalledWith(
-      '--viewport-size',
-      '"desktop"'
-    );
-    expect(document.body.classList.add).toHaveBeenCalledWith('viewport-desktop');
-    
-    // Verify custom event was dispatched
-    expect(dispatchEventSpy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'viewport-changed',
-        detail: {
-          size: 'desktop',
-          width: 1200,
-          height: 800
-        }
-      })
-    );
-  });
-  
-  test('should properly destroy the component', () => {
-    // Mount first, then destroy
-    component.mount();
-    
-    // Verify component is properly set up
-    expect(component.cleanup).toBeTruthy();
-    expect(component.events).toBeTruthy();
-    
-    // Destroy the component
-    component.destroy();
-    
-    // Verify cleanup was called
-    expect(component.cleanup.cleanup).toHaveBeenCalled();
-    expect(EventManager.unregisterComponent).toHaveBeenCalledWith(component.componentId);
-    
-    // Verify viewport classes were removed
-    expect(document.body.classList.remove).toHaveBeenCalledWith(
-      'viewport-mobile',
-      'viewport-tablet',
-      'viewport-desktop'
-    );
-    
-    // Verify references were cleared
-    expect(component._state).toEqual({});
-  });
-  
-  test('should detect mobile viewport size', () => {
-    // Set mobile viewport size
-    Object.defineProperty(window, 'innerWidth', { value: 480, configurable: true });
-    
-    // Mount component
-    component.mount();
-    
-    // Verify correct size detection
-    expect(component._state.currentSize).toBe('mobile');
-    
-    // Verify CSS and event data
-    expect(document.documentElement.style.setProperty).toHaveBeenCalledWith(
-      '--viewport-size',
-      '"mobile"'
-    );
-    expect(document.body.classList.add).toHaveBeenCalledWith('viewport-mobile');
-    expect(mockLiveViewHook.pushEvent).toHaveBeenCalledWith(
-      'update_viewport_size',
-      {
-        size: 'mobile',
-        width: 480,
-        height: 800
-      }
-    );
-  });
-  
-  test('should detect tablet viewport size', () => {
-    // Set tablet viewport size
-    Object.defineProperty(window, 'innerWidth', { value: 900, configurable: true });
-    
-    // Mount component
-    component.mount();
-    
-    // Verify correct size detection
-    expect(component._state.currentSize).toBe('tablet');
-    
-    // Verify CSS and event data
-    expect(document.documentElement.style.setProperty).toHaveBeenCalledWith(
-      '--viewport-size',
-      '"tablet"'
-    );
-    expect(document.body.classList.add).toHaveBeenCalledWith('viewport-tablet');
-    expect(mockLiveViewHook.pushEvent).toHaveBeenCalledWith(
-      'update_viewport_size',
-      {
-        size: 'tablet',
-        width: 900,
-        height: 800
-      }
-    );
-  });
-  
-  test('should handle resize events with throttling', () => {
-    // Setup
-    jest.useFakeTimers();
-    component.mount();
-    
-    // Clear initial calls
-    jest.clearAllMocks();
-    
-    // Get the resize handler from our custom helper
-    const resizeHandler = EventManager.__getHandler(window, 'resize');
-    
-    // Make sure we found a handler
-    expect(resizeHandler).toBeTruthy();
-    
-    // Trigger resize event
-    resizeHandler();
-    
-    // Verify timeout was set
-    expect(component.cleanup.registerTimeout).toHaveBeenCalled();
-    
-    // Change viewport size
-    Object.defineProperty(window, 'innerWidth', { value: 500, configurable: true });
-    
-    // Fast-forward timers
-    jest.advanceTimersByTime(100);
-    
-    // Verify size update was processed after throttle time
-    expect(component._state.currentSize).toBe('mobile');
-    expect(mockLiveViewHook.pushEvent).toHaveBeenCalledWith(
-      'update_viewport_size',
-      {
-        size: 'mobile',
-        width: 500,
-        height: 800
-      }
-    );
-    
-    jest.useRealTimers();
-  });
-  
-  test('should not update if size category remains the same', () => {
-    // Setup
-    jest.useFakeTimers();
-    component.mount();
-    
-    // Clear initial calls
-    jest.clearAllMocks();
-    
-    // Get the resize handler from our custom helper
-    const resizeHandler = EventManager.__getHandler(window, 'resize');
-    
-    // Make sure we found a handler
-    expect(resizeHandler).toBeTruthy();
-    
-    // Change viewport size but stay in same category (desktop > 1024px)
-    Object.defineProperty(window, 'innerWidth', { value: 1100, configurable: true });
-    
-    // Trigger resize event
-    resizeHandler();
-    
-    // Fast-forward timers
-    jest.advanceTimersByTime(100);
-    
-    // Verify no update was sent since the category is still desktop
-    expect(mockLiveViewHook.pushEvent).not.toHaveBeenCalled();
-    expect(document.documentElement.style.setProperty).not.toHaveBeenCalled();
-    
-    jest.useRealTimers();
-  });
-  
-  test('should handle multiple resize events within throttle time', () => {
-    // Setup
-    jest.useFakeTimers();
-    component.mount();
-    
-    // Clear initial calls
-    jest.clearAllMocks();
-    
-    // Get the resize handler from our custom helper
-    const resizeHandler = EventManager.__getHandler(window, 'resize');
-    
-    // Make sure we found a handler
-    expect(resizeHandler).toBeTruthy();
-    
-    // Trigger first resize event
-    resizeHandler();
-    
-    // Verify a timeout was registered
-    expect(component.cleanup.registerTimeout).toHaveBeenCalledTimes(1);
-    
-    // Trigger second resize event before throttle time completes
-    resizeHandler();
-    
-    // Verify a new timeout was registered
-    expect(component.cleanup.registerTimeout).toHaveBeenCalledTimes(2);
-    
-    jest.useRealTimers();
-  });
-  
-  test('should update component state correctly', () => {
-    // Set new state
-    component._setState({ currentSize: 'mobile', testValue: 'test' });
-    
-    // Verify state was updated correctly
-    expect(component._state.currentSize).toBe('mobile');
-    expect(component._state.testValue).toBe('test');
-  });
-  
-  test('should handle missing LiveView hook gracefully', () => {
-    // Create component without LiveView hook
-    const noHookComponent = new ViewportDetectorComponent({
-      debug: true
+    // Restore window dimensions
+    Object.defineProperty(window, 'innerWidth', {
+      writable: true,
+      configurable: true,
+      value: originalInnerWidth
     });
     
-    // Mount component
-    noHookComponent.mount();
+    Object.defineProperty(window, 'innerHeight', {
+      writable: true,
+      configurable: true,
+      value: originalInnerHeight
+    });
     
-    // Verify no error occurs
-    expect(noHookComponent._state.currentSize).toBe('desktop');
+    // Reset variables
+    component = null;
     
-    // Restore clearTimeout before destroying component
-    window.clearTimeout = originalClearTimeout;
+    // Restore timers
+    jest.useRealTimers();
     
-    // Clean up
-    noHookComponent.destroy();
+    // Clean up body classes
+    document.body.classList.remove('viewport-mobile', 'viewport-tablet', 'viewport-desktop');
+    
+    // Reset CSS custom property
+    document.documentElement.style.removeProperty('--viewport-size');
   });
   
-  test('should dispatch custom event when viewport changes', () => {
-    // Setup
-    jest.useFakeTimers();
-    component.mount();
+  describe('Initialization', () => {
+    test('should initialize with correct default properties', () => {
+      expect(component.componentId).toMatch(/^viewport-detector-[a-z0-9]{7}$/);
+      expect(component.options.throttleTime).toBe(250);
+      expect(component.options.liveViewHook).toBe(mockLiveViewHook);
+      expect(component.options.debug).toBe(false);
+      expect(component._state.currentSize).toBe(null);
+      expect(component._state.resizeTimeout).toBe(null);
+    });
     
-    // Clear initial calls
-    dispatchEventSpy.mockClear();
+    test('should properly mount the component', () => {
+      component.mount();
+      
+      expect(EventManager.registerComponent).toHaveBeenCalledWith(component.componentId);
+      expect(DOMCleanup.register).toHaveBeenCalledWith(component.componentId);
+      expect(component._state.currentSize).toBe('desktop');
+      expect(mockLiveViewHook.pushEvent).toHaveBeenCalledWith(
+        'update_viewport_size',
+        expect.objectContaining({
+          size: 'desktop',
+          width: 1024,
+          height: 768
+        })
+      );
+    });
     
-    // Get the resize handler from our custom helper
-    const resizeHandler = EventManager.__getHandler(window, 'resize');
+    test('should handle custom throttle time', () => {
+      const customThrottleTime = 500;
+      component = new ViewportDetectorComponent({
+        throttleTime: customThrottleTime,
+        liveViewHook: mockLiveViewHook,
+        debug: false
+      });
+      
+      expect(component.options.throttleTime).toBe(customThrottleTime);
+    });
     
-    // Make sure we found a handler
-    expect(resizeHandler).toBeTruthy();
+    test('should handle debug mode', () => {
+      const consoleSpy = jest.spyOn(console, 'log');
+      
+      component = new ViewportDetectorComponent({
+        liveViewHook: mockLiveViewHook,
+        debug: true
+      }).mount();
+      
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('[ViewportDetector:'),
+        'Component mounted - Current size:',
+        'desktop'
+      );
+      
+      consoleSpy.mockRestore();
+    });
+  });
+  
+  describe('Viewport Detection', () => {
+    beforeEach(() => {
+      component.mount();
+    });
     
-    // Change viewport size
-    Object.defineProperty(window, 'innerWidth', { value: 500, configurable: true });
+    test('should detect mobile viewport', () => {
+      // Set mobile viewport size
+      window.innerWidth = 375;
+      
+      // Trigger resize event
+      window.dispatchEvent(new Event('resize'));
+      
+      // Fast-forward throttle timer
+      jest.advanceTimersByTime(250);
+      
+      expect(component._state.currentSize).toBe('mobile');
+      expect(document.body.classList.contains('viewport-mobile')).toBe(true);
+      expect(document.documentElement.style.getPropertyValue('--viewport-size')).toBe('"mobile"');
+    });
     
-    // Trigger resize event
-    resizeHandler();
+    test('should detect tablet viewport', () => {
+      // Set tablet viewport size
+      window.innerWidth = 800;
+      
+      // Trigger resize event
+      window.dispatchEvent(new Event('resize'));
+      
+      // Fast-forward throttle timer
+      jest.advanceTimersByTime(250);
+      
+      expect(component._state.currentSize).toBe('tablet');
+      expect(document.body.classList.contains('viewport-tablet')).toBe(true);
+      expect(document.documentElement.style.getPropertyValue('--viewport-size')).toBe('"tablet"');
+    });
     
-    // Fast-forward timers
-    jest.advanceTimersByTime(100);
+    test('should detect desktop viewport', () => {
+      // Set desktop viewport size
+      window.innerWidth = 1440;
+      
+      // Trigger resize event
+      window.dispatchEvent(new Event('resize'));
+      
+      // Fast-forward throttle timer
+      jest.advanceTimersByTime(250);
+      
+      expect(component._state.currentSize).toBe('desktop');
+      expect(document.body.classList.contains('viewport-desktop')).toBe(true);
+      expect(document.documentElement.style.getPropertyValue('--viewport-size')).toBe('"desktop"');
+    });
     
-    // Verify event was dispatched
-    expect(dispatchEventSpy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'viewport-changed',
-        detail: {
-          size: 'mobile',
-          width: 500,
-          height: 800
+    test('should handle edge case viewport sizes', () => {
+      component.mount();
+      
+      // Test exactly at breakpoint boundaries
+      window.innerWidth = 768; // Mobile/Tablet boundary
+      window.dispatchEvent(new Event('resize'));
+      jest.advanceTimersByTime(250);
+      expect(component._state.currentSize).toBe('tablet');
+      
+      window.innerWidth = 1024; // Tablet/Desktop boundary
+      window.dispatchEvent(new Event('resize'));
+      jest.advanceTimersByTime(250);
+      expect(component._state.currentSize).toBe('desktop');
+      
+      // Test extremely small viewport
+      window.innerWidth = 0;
+      window.dispatchEvent(new Event('resize'));
+      jest.advanceTimersByTime(250);
+      expect(component._state.currentSize).toBe('mobile');
+      
+      // Test extremely large viewport
+      window.innerWidth = 9999;
+      window.dispatchEvent(new Event('resize'));
+      jest.advanceTimersByTime(250);
+      expect(component._state.currentSize).toBe('desktop');
+    });
+    
+    test('should handle rapid viewport size changes across categories', () => {
+      component.mount();
+      
+      // Simulate rapid changes between different viewport categories
+      const viewportSizes = [375, 800, 1440, 600, 1200];
+      const expectedCategories = ['mobile', 'tablet', 'desktop', 'mobile', 'desktop'];
+      
+      viewportSizes.forEach((size, index) => {
+        window.innerWidth = size;
+        window.dispatchEvent(new Event('resize'));
+        
+        if (index < viewportSizes.length - 1) {
+          // Don't advance timer fully to simulate rapid changes
+          jest.advanceTimersByTime(100);
         }
-      })
-    );
+      });
+      
+      // Advance timer to complete the last change
+      jest.advanceTimersByTime(250);
+      
+      // Should only reflect the final state
+      expect(component._state.currentSize).toBe(expectedCategories[expectedCategories.length - 1]);
+      expect(mockLiveViewHook.pushEvent).toHaveBeenLastCalledWith(
+        'update_viewport_size',
+        expect.objectContaining({
+          size: expectedCategories[expectedCategories.length - 1],
+          width: viewportSizes[viewportSizes.length - 1],
+          height: 768
+        })
+      );
+    });
+  });
+  
+  describe('Event Handling', () => {
+    beforeEach(() => {
+      component.mount();
+    });
     
-    jest.useRealTimers();
+    test('should throttle resize events', () => {
+      const customEventSpy = jest.spyOn(window, 'dispatchEvent');
+      
+      // Trigger multiple resize events rapidly
+      for (let i = 0; i < 5; i++) {
+        window.innerWidth = 800 + (i * 100);
+        window.dispatchEvent(new Event('resize'));
+      }
+      
+      // Should not have called pushEvent yet due to throttling
+      expect(mockLiveViewHook.pushEvent).toHaveBeenCalledTimes(1); // Initial mount only
+      expect(customEventSpy).toHaveBeenCalledTimes(1); // Initial mount only
+      
+      // Fast-forward throttle timer
+      jest.advanceTimersByTime(250);
+      
+      // Should have called pushEvent once for the last resize
+      expect(mockLiveViewHook.pushEvent).toHaveBeenCalledTimes(2);
+      expect(customEventSpy).toHaveBeenCalledTimes(2);
+      
+      customEventSpy.mockRestore();
+    });
+    
+    test('should dispatch custom viewport-changed event', () => {
+      const customEventSpy = jest.spyOn(window, 'dispatchEvent');
+      
+      // Change viewport size
+      window.innerWidth = 375;
+      window.dispatchEvent(new Event('resize'));
+      
+      // Fast-forward throttle timer
+      jest.advanceTimersByTime(250);
+      
+      expect(customEventSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'viewport-changed',
+          detail: expect.objectContaining({
+            size: 'mobile',
+            width: 375,
+            height: 768
+          })
+        })
+      );
+      
+      customEventSpy.mockRestore();
+    });
+    
+    test('should not update if viewport category has not changed', () => {
+      const customEventSpy = jest.spyOn(window, 'dispatchEvent');
+      
+      // Change width but stay within desktop category
+      window.innerWidth = 1200;
+      window.dispatchEvent(new Event('resize'));
+      
+      // Fast-forward throttle timer
+      jest.advanceTimersByTime(250);
+      
+      // Should not have triggered updates since category didn't change
+      expect(mockLiveViewHook.pushEvent).toHaveBeenCalledTimes(1); // Initial mount only
+      expect(customEventSpy).toHaveBeenCalledTimes(1); // Initial mount only
+      
+      customEventSpy.mockRestore();
+    });
+    
+    test('should handle window resize event removal', () => {
+      component.mount();
+      
+      const eventListenerSpy = jest.spyOn(window, 'removeEventListener');
+      
+      component.destroy();
+      
+      expect(eventListenerSpy).toHaveBeenCalledWith(
+        'resize',
+        expect.any(Function)
+      );
+      
+      eventListenerSpy.mockRestore();
+    });
+    
+    test('should maintain correct state during rapid mount/destroy cycles', () => {
+      // Simulate rapid mounting and destroying
+      for (let i = 0; i < 5; i++) {
+        component.mount();
+        window.innerWidth = 800;
+        window.dispatchEvent(new Event('resize'));
+        component.destroy();
+      }
+      
+      // Mount one final time
+      component.mount();
+      
+      // Verify state is correct
+      expect(component._state.currentSize).toBe('tablet');
+      expect(document.body.classList.contains('viewport-tablet')).toBe(true);
+    });
+  });
+  
+  describe('Cleanup', () => {
+    test('should properly clean up on destroy', () => {
+      component.mount();
+      
+      // Set up resize timeout
+      window.dispatchEvent(new Event('resize'));
+      
+      component.destroy();
+      
+      expect(EventManager.unregisterComponent).toHaveBeenCalledWith(component.componentId);
+      expect(DOMCleanup.register(component.componentId).cleanup).toHaveBeenCalled();
+      expect(document.body.classList.contains('viewport-desktop')).toBe(false);
+      expect(component.elements).toEqual({});
+      expect(component._state).toEqual({});
+    });
+    
+    test('should clean up resize timeout', () => {
+      component.mount();
+      
+      // Set up resize timeout
+      window.dispatchEvent(new Event('resize'));
+      
+      const clearTimeoutSpy = jest.spyOn(window, 'clearTimeout');
+      
+      component.destroy();
+      
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+      
+      clearTimeoutSpy.mockRestore();
+    });
+  });
+  
+  describe('LiveView Integration', () => {
+    test('should work without LiveView hook', () => {
+      component = new ViewportDetectorComponent().mount();
+      
+      // Change viewport size
+      window.innerWidth = 375;
+      window.dispatchEvent(new Event('resize'));
+      
+      // Fast-forward throttle timer
+      jest.advanceTimersByTime(250);
+      
+      // Should still update classes and CSS variables
+      expect(document.body.classList.contains('viewport-mobile')).toBe(true);
+      expect(document.documentElement.style.getPropertyValue('--viewport-size')).toBe('"mobile"');
+    });
+    
+    test('should send viewport updates to LiveView', () => {
+      component.mount();
+      
+      // Change viewport size
+      window.innerWidth = 375;
+      window.dispatchEvent(new Event('resize'));
+      
+      // Fast-forward throttle timer
+      jest.advanceTimersByTime(250);
+      
+      expect(mockLiveViewHook.pushEvent).toHaveBeenCalledWith(
+        'update_viewport_size',
+        expect.objectContaining({
+          size: 'mobile',
+          width: 375,
+          height: 768
+        })
+      );
+    });
+    
+    test('should handle LiveView hook errors gracefully', () => {
+      const errorHook = {
+        pushEvent: jest.fn().mockImplementation(() => {
+          throw new Error('LiveView error');
+        })
+      };
+      
+      const consoleSpy = jest.spyOn(console, 'error');
+      
+      component = new ViewportDetectorComponent({
+        liveViewHook: errorHook,
+        debug: true
+      }).mount();
+      
+      // Should still update DOM despite LiveView error
+      window.innerWidth = 375;
+      window.dispatchEvent(new Event('resize'));
+      jest.advanceTimersByTime(250);
+      
+      expect(document.body.classList.contains('viewport-mobile')).toBe(true);
+      expect(consoleSpy).toHaveBeenCalled();
+      
+      consoleSpy.mockRestore();
+    });
+  });
+  
+  describe('Performance', () => {
+    test('should minimize DOM updates', () => {
+      component.mount();
+      
+      const classListSpy = jest.spyOn(document.body.classList, 'add');
+      const styleSetSpy = jest.spyOn(document.documentElement.style, 'setProperty');
+      
+      // Change to same category multiple times
+      for (let i = 0; i < 5; i++) {
+        window.innerWidth = 1200 + (i * 100); // Stay in desktop range
+        window.dispatchEvent(new Event('resize'));
+        jest.advanceTimersByTime(250);
+      }
+      
+      // Should only update DOM once on mount
+      expect(classListSpy).toHaveBeenCalledTimes(1);
+      expect(styleSetSpy).toHaveBeenCalledTimes(1);
+      
+      classListSpy.mockRestore();
+      styleSetSpy.mockRestore();
+    });
   });
 }); 

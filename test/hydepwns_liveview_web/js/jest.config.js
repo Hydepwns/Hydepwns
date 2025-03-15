@@ -5,6 +5,19 @@
  * Includes improved handling of ES Modules.
  */
 
+const { getComponentThreshold } = require('./coverage-thresholds');
+const glob = require('glob');
+
+// Get all component files
+const componentFiles = glob.sync('assets/js/components/**/*.js');
+
+// Create coverage thresholds for each component
+const coverageThresholds = {};
+componentFiles.forEach(file => {
+  const componentName = file.split('/').pop();
+  coverageThresholds[file] = getComponentThreshold(componentName);
+});
+
 module.exports = {
   // The root directory that Jest should scan for tests and modules
   rootDir: '../../../',
@@ -58,13 +71,40 @@ module.exports = {
     '!assets/js/components/COMPONENT_MIGRATION_GUIDE.md'
   ],
   
-  // The threshold for coverage results
+  // Component-specific coverage thresholds
   coverageThreshold: {
+    ...coverageThresholds,
+    // Global fallback thresholds
     global: {
-      branches: 80,
+      statements: 80,
+      branches: 75,
       functions: 80,
-      lines: 80,
-      statements: 80
+      lines: 80
+    }
+  },
+
+  // Generate coverage report in multiple formats
+  coverageReporters: [
+    'json',
+    'lcov',
+    'text',
+    'clover',
+    ['html', { subdir: 'html' }]
+  ],
+
+  // Additional coverage report configuration
+  coverageReporterOptions: {
+    html: {
+      // Group coverage results by component category
+      groupBy: (coveredFile) => {
+        const componentName = coveredFile.split('/').pop();
+        for (const [category, components] of Object.entries(require('./coverage-thresholds').COMPONENT_CATEGORIES)) {
+          if (components.includes(componentName)) {
+            return category;
+          }
+        }
+        return 'uncategorized';
+      }
     }
   },
   

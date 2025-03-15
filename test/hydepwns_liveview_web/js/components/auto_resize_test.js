@@ -1,177 +1,278 @@
 /**
- * AutoResize Component - Tests
- * ----------------------------
- * 
- * Tests for the AutoResize component, which automatically 
- * resizes textareas to fit their content.
+ * Auto Resize Component Tests
+ * -------------------------
+ * Tests for the AutoResizeComponent class that manages automatic textarea resizing.
  */
 
-const { AutoResizeComponent } = require('../../../../assets/js/components/auto_resize');
-const { createTestElement, cleanupAllComponents } = require('../component_test_utility');
+import { AutoResizeComponent } from '../../../../assets/js/components/auto_resize';
+import EventManager from '../../../../assets/js/components/event_manager';
+import DOMCleanup from '../../../../assets/js/utils/dom_cleanup';
 
-// Mock DOM methods that aren't in JSDOM
-Object.defineProperty(HTMLElement.prototype, 'scrollHeight', {
-  configurable: true,
-  get: function() {
-    return parseFloat(this.dataset.mockScrollHeight || 100);
-  }
-});
+// Mock dependencies
+jest.mock('../../../../assets/js/components/event_manager', () => ({
+  registerComponent: jest.fn().mockReturnValue({
+    addEventListener: jest.fn(),
+    addDelegatedEventListener: jest.fn()
+  }),
+  unregisterComponent: jest.fn()
+}));
 
-describe('AutoResize Component', () => {
-  // Setup and teardown
+jest.mock('../../../../assets/js/utils/dom_cleanup', () => ({
+  register: jest.fn().mockReturnValue({
+    registerElement: jest.fn(),
+    registerTimeout: jest.fn(),
+    cleanup: jest.fn(),
+    addNode: jest.fn()
+  })
+}));
+
+describe('AutoResizeComponent', () => {
+  let component;
   let container;
-  let textarea;
+  let mockLiveViewHook;
   
+  // Helper to simulate text input
+  const simulateInput = (textarea, text) => {
+    textarea.value = text;
+    textarea.dispatchEvent(new Event('input'));
+  };
+  
+  // Setup for tests
   beforeEach(() => {
-    // Create a container element
-    container = document.createElement('div');
+    // Reset mocks
+    jest.clearAllMocks();
+    
+    // Create textarea container
+    container = document.createElement('textarea');
+    container.style.height = 'auto';
+    container.style.overflow = 'hidden';
     document.body.appendChild(container);
     
-    // Create a textarea element
-    textarea = document.createElement('textarea');
-    textarea.classList.add('auto-resize');
-    textarea.value = 'Initial text';
-    textarea.dataset.mockScrollHeight = '100';
-    container.appendChild(textarea);
+    // Mock scrollHeight property
+    Object.defineProperty(container, 'scrollHeight', {
+      get: function() {
+        // Return a height based on content length
+        return Math.max(50, this.value.split('\n').length * 20);
+      }
+    });
+    
+    // Create mock LiveView hook
+    mockLiveViewHook = {
+      el: container,
+      pushEvent: jest.fn(),
+      pushEventTo: jest.fn()
+    };
+    
+    // Create component instance
+    component = new AutoResizeComponent({
+      container,
+      liveViewHook: mockLiveViewHook,
+      debug: false
+    });
   });
   
+  // Cleanup after tests
   afterEach(() => {
-    // Clean up
+    if (component) {
+      component.destroy();
+    }
+    
+    // Clean up DOM
     if (container && container.parentNode) {
       container.parentNode.removeChild(container);
     }
     
-    // Clean up any registered components
-    cleanupAllComponents();
+    // Reset variables
+    container = null;
+    component = null;
   });
   
-  test('initializes properly with default options', () => {
-    // Create component
-    const component = new AutoResizeComponent({
-      container: textarea
-    }).mount();
+  describe('Initialization', () => {
+    test('should initialize with correct default properties', () => {
+      expect(component.componentId).toMatch(/^auto-resize-[a-z0-9]{7}$/);
+      expect(component.options.container).toBe(container);
+      expect(component.options.liveViewHook).toBe(mockLiveViewHook);
+      expect(component.options.debug).toBe(false);
+      expect(component.options.paddingBottom).toBe(5);
+    });
     
-    // Check that component was created and mounted
-    expect(component).toBeTruthy();
-    expect(component.elements.container).toBe(textarea);
-    
-    // Verify the initial state
-    expect(component._state.lastHeight).not.toBeNull();
-  });
-  
-  test('resizes textarea when content changes', () => {
-    // Mock the scrollHeight
-    textarea.dataset.mockScrollHeight = '150';
-    
-    // Create component
-    const component = new AutoResizeComponent({
-      container: textarea
-    }).mount();
-    
-    // Get initial height
-    const initialHeight = textarea.style.height;
-    
-    // Simulate content change
-    textarea.dataset.mockScrollHeight = '250';
-    
-    // Manually trigger input event since we can't actually change scrollHeight
-    const inputEvent = new Event('input');
-    textarea.dispatchEvent(inputEvent);
-    
-    // Height should be updated
-    expect(textarea.style.height).toBe('255px'); // 250px + 5px padding
-    expect(textarea.style.height).not.toBe(initialHeight);
-  });
-  
-  test('handles window resize events', () => {
-    // Create component
-    const component = new AutoResizeComponent({
-      container: textarea
-    }).mount();
-    
-    // Directly call the resize method instead of relying on the event
-    const resizeSpy = jest.spyOn(component, 'resize');
-    
-    // Manually call the resize method
-    component.resize();
-    
-    // Resize should be called
-    expect(resizeSpy).toHaveBeenCalled();
-    
-    // Clean up spy
-    resizeSpy.mockRestore();
-  });
-  
-  test('cleans up event listeners on destroy', () => {
-    // Create component
-    const component = new AutoResizeComponent({
-      container: textarea
-    }).mount();
-    
-    // Create spies for event listeners
-    const removeEventListenerSpy = jest.spyOn(textarea, 'removeEventListener');
-    
-    // Destroy component
-    component.destroy();
-    
-    // Event listeners should be removed
-    expect(removeEventListenerSpy).toHaveBeenCalled();
-    
-    // Clean up spies
-    removeEventListenerSpy.mockRestore();
-  });
-  
-  test('works with LiveView hook lifecycle', () => {
-    // Create a mock LiveView hook
-    const hook = {
-      el: textarea
-    };
-    
-    // Create the AutoResize hook methods
-    const AutoResize = {
-      mounted() {
-        this.autoResize = new AutoResizeComponent({
-          liveViewHook: this,
-          container: this.el
-        }).mount();
-      },
+    test('should properly mount the component', () => {
+      component.mount();
       
-      destroyed() {
-        if (this.autoResize) {
-          this.autoResize.destroy();
-          this.autoResize = null;
-        }
-      }
-    };
+      expect(EventManager.registerComponent).toHaveBeenCalledWith(component.componentId);
+      expect(DOMCleanup.register).toHaveBeenCalledWith(component.componentId);
+      expect(component.elements.container).toBe(container);
+      expect(component._state.lastHeight).toBe('55px'); // 50px scrollHeight + 5px padding
+    });
     
-    // Call the mounted lifecycle method
-    AutoResize.mounted.call(hook);
+    test('should handle missing container gracefully', () => {
+      const consoleSpy = jest.spyOn(console, 'error');
+      
+      const invalidComponent = new AutoResizeComponent({
+        debug: false
+      }).mount();
+      
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'AutoResize component requires a container element'
+      );
+      
+      consoleSpy.mockRestore();
+    });
     
-    // Should have created component
-    expect(hook.autoResize).toBeDefined();
-    expect(hook.autoResize.elements.container).toBe(textarea);
+    test('should warn when used with non-textarea element', () => {
+      const consoleSpy = jest.spyOn(console, 'warn');
+      
+      const div = document.createElement('div');
+      const invalidComponent = new AutoResizeComponent({
+        container: div,
+        debug: false
+      }).mount();
+      
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'AutoResize component should be used with textarea elements'
+      );
+      
+      consoleSpy.mockRestore();
+    });
     
-    // Call the destroyed lifecycle method
-    AutoResize.destroyed.call(hook);
-    
-    // Should have cleaned up component
-    expect(hook.autoResize).toBeNull();
+    test('should initialize with custom options', () => {
+      component = new AutoResizeComponent({
+        container,
+        paddingBottom: 10,
+        debug: true
+      }).mount();
+      
+      expect(component.options.paddingBottom).toBe(10);
+      expect(component.options.debug).toBe(true);
+      expect(component._state.lastHeight).toBe('60px'); // 50px scrollHeight + 10px padding
+    });
   });
   
-  test('handles initial resize on mount', () => {
-    // Set initial height
-    textarea.style.height = '50px';
+  describe('Resize Behavior', () => {
+    beforeEach(() => {
+      component.mount();
+    });
     
-    // Mock a larger content
-    textarea.dataset.mockScrollHeight = '200';
+    test('should resize textarea on input', () => {
+      simulateInput(container, 'Line 1\nLine 2\nLine 3');
+      
+      expect(container.style.height).toBe('65px'); // 3 lines * 20px + 5px padding
+    });
     
-    // Create component
-    const component = new AutoResizeComponent({
-      container: textarea
-    }).mount();
+    test('should maintain scroll position during resize', () => {
+      // Set initial scroll position
+      container.scrollTop = 50;
+      
+      simulateInput(container, 'Line 1\nLine 2\nLine 3');
+      
+      expect(container.scrollTop).toBe(50);
+    });
     
-    // Height should be updated immediately on mount
-    expect(textarea.style.height).toBe('205px'); // 200px + 5px padding
-    expect(textarea.style.height).not.toBe('50px');
+    test('should only update height when changed', () => {
+      simulateInput(container, 'Line 1\nLine 2');
+      const firstHeight = container.style.height;
+      
+      // Simulate input that doesn't change height
+      simulateInput(container, 'Line A\nLine B');
+      
+      expect(container.style.height).toBe(firstHeight);
+    });
+    
+    test('should handle empty content', () => {
+      simulateInput(container, '');
+      
+      expect(container.style.height).toBe('55px'); // Minimum height (50px) + padding
+    });
+    
+    test('should handle long content', () => {
+      const longText = Array(20).fill('Line').join('\n');
+      simulateInput(container, longText);
+      
+      expect(container.style.height).toBe('405px'); // 20 lines * 20px + 5px padding
+    });
+  });
+  
+  describe('Event Handling', () => {
+    beforeEach(() => {
+      component.mount();
+    });
+    
+    test('should set up input event listener', () => {
+      expect(component.events.addEventListener).toHaveBeenCalledWith(
+        container,
+        'input',
+        expect.any(Function)
+      );
+    });
+    
+    test('should call resize on input event', () => {
+      const resizeSpy = jest.spyOn(component, 'resize');
+      
+      simulateInput(container, 'New text');
+      
+      expect(resizeSpy).toHaveBeenCalled();
+      
+      resizeSpy.mockRestore();
+    });
+  });
+  
+  describe('LiveView Integration', () => {
+    test('should handle LiveView hook mounting', () => {
+      const hook = {
+        el: container,
+        dataset: {
+          paddingBottom: '15'
+        }
+      };
+      
+      const AutoResize = require('../../../../assets/js/components/auto_resize').default;
+      AutoResize.mounted.call(hook);
+      
+      expect(hook.component).toBeTruthy();
+      expect(hook.component.options.paddingBottom).toBe(15);
+      
+      // Cleanup
+      AutoResize.destroyed.call(hook);
+    });
+    
+    test('should handle LiveView hook updates', () => {
+      const hook = {
+        el: container,
+        component: component.mount()
+      };
+      
+      const resizeSpy = jest.spyOn(component, 'resize');
+      
+      const AutoResize = require('../../../../assets/js/components/auto_resize').default;
+      AutoResize.updated.call(hook);
+      
+      expect(resizeSpy).toHaveBeenCalled();
+      
+      resizeSpy.mockRestore();
+    });
+    
+    test('should handle LiveView hook destruction', () => {
+      const hook = {
+        el: container,
+        component: component.mount()
+      };
+      
+      const AutoResize = require('../../../../assets/js/components/auto_resize').default;
+      AutoResize.destroyed.call(hook);
+      
+      expect(hook.component).toBeNull();
+    });
+  });
+  
+  describe('Cleanup', () => {
+    test('should properly clean up on destroy', () => {
+      component.mount();
+      component.destroy();
+      
+      expect(EventManager.unregisterComponent).toHaveBeenCalledWith(component.componentId);
+      expect(DOMCleanup.register(component.componentId).cleanup).toHaveBeenCalled();
+      expect(component.elements).toEqual({});
+      expect(component._state).toEqual({});
+    });
   });
 }); 

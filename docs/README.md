@@ -26,114 +26,95 @@ last_updated: '2025-03-14'
 
 Overview of the project documentation
 
-
 ## Prerequisites
 
 * No specific prerequisites
 
-
 ## Main Content
-
 
 ## Examples
 
 Examples will be added here.
 
-
 ## Troubleshooting
 
 Common issues and their solutions will be documented here.
-
 
 ## Related Documents
 
 * No references yet
 
-# Documentation Overview
+# Hydepwns Documentation
 
-Welcome to the project documentation.
+Welcome to the Hydepwns documentation. This documentation is organized into several main sections to help you find what you need.
 
-## Structure
+## Documentation Structure
 
-The documentation is organized into the following sections:
-- Guides
-- Development
-- Reference
-- Project
-- Archive
+```
+docs/
+├── guides/                    # User-oriented documentation
+│   ├── getting-started/       # Onboarding documentation
+│   ├── user-guides/           # Feature-focused user documentation
+│   └── tutorials/             # Step-by-step instructions
+├── reference/                 # Technical reference material
+│   ├── api/                   # API documentation
+│   ├── architecture/          # System architecture documentation
+│   ├── data-models/          # Data structure documentation
+│   ├── navigation/           # Documentation navigation
+│   └── search/               # Search functionality
+├── development/              # Developer-focused documentation
+│   ├── contributing/         # Contribution guidelines
+│   ├── components/           # Component development documentation
+│   ├── testing/             # Testing documentation
+│   └── tools/               # Development tooling documentation
+├── project/                  # Project management documentation
+│   ├── roadmap.md           # Project roadmap
+│   ├── releases/            # Release notes and versions
+│   ├── planning/            # Planning documents
+│   └── process/             # Development processes
+├── design/                   # Design documentation
+│   ├── principles.md        # Design principles
+│   ├── style-guide.md       # Visual style guide
+│   ├── ui-components/       # UI component design docs
+│   └── accessibility/       # Accessibility guidelines
+└── security/                # Security documentation
+```
+
+## Quick Links
+
+* [Getting Started](guides/getting-started/README.md)
+* [User Guides](guides/user-guides/README.md)
+* [API Documentation](reference/api/README.md)
+* [Contributing Guide](development/contributing/README.md)
+* [Project Roadmap](project/roadmap.md)
+* [Design System](design/principles.md)
+* [Security Policy](security/security-policy.md)
 
 ## Navigation
 
-- [Table of Contents](TABLE_OF_CONTENTS.md)
-- [Documentation Map](DOCUMENTATION_MAP.md)
+* Use the [Table of Contents](reference/navigation/table-of-contents.md) for a complete index
+* Use the search functionality in the [reference/search](reference/search/README.md) directory
+* Check the [Documentation Map](reference/navigation/documentation-map.md) for structure overview
+* Review recent changes in the [Migration Notice](project/migration-notice.md)
 
-# Hydepwns Documentation
+## Contributing
 
-## Overview
+Before contributing to the documentation:
 
-This document provides information about README.
+* Read the [Style Guide](design/style-guide.md)
+* Review the [Contributing Guidelines](development/contributing/README.md)
+* Check the [Documentation Standards](development/tools/documentation-validation.md)
+* Use the provided templates in each directory's README
 
+## Support
 
-Welcome to the Hydepwns documentation. This documentation is organized into several sections to help you find the information you need quickly and efficiently.
+If you need help:
 
-## Documentation Sections
+* Check the relevant guide in the [guides](guides/) directory
+* Search the documentation using the search functionality
+* Review the troubleshooting sections in each guide
+* Raise an issue in the documentation repository
 
-### [📚 Guides](./guides) <!-- TODO: Fix broken link --> <!-- TODO: Fix broken link -->
-User-oriented documentation to help you get started and make the most of Hydepwns.
+## License
 
-- [Getting Started](./guides/getting-started) <!-- TODO: Fix broken link --> <!-- TODO: Fix broken link --> - Installation and setup guides
-- [User Guides](./guides/user-guides) <!-- TODO: Fix broken link --> <!-- TODO: Fix broken link --> - Feature-focused documentation
-- [Tutorials](./guides/tutorials) <!-- TODO: Fix broken link --> <!-- TODO: Fix broken link --> - Step-by-step instructions for common tasks
-
-### [📖 Reference](./reference) <!-- TODO: Fix broken link --> <!-- TODO: Fix broken link -->
-Technical reference material for detailed information about Hydepwns components.
-
-- [API Documentation](./reference/api) <!-- TODO: Fix broken link --> <!-- TODO: Fix broken link --> - Detailed API references
-- [Architecture](./reference/architecture) <!-- TODO: Fix broken link --> <!-- TODO: Fix broken link --> - System architecture documentation
-- [Data Models](./reference/data-models) <!-- TODO: Fix broken link --> <!-- TODO: Fix broken link --> - Data structure documentation
-
-### [💻 Development](./development) <!-- TODO: Fix broken link --> <!-- TODO: Fix broken link -->
-Documentation for developers contributing to or extending Hydepwns.
-
-- [Contributing Guidelines](./development/contributing) <!-- TODO: Fix broken link --> <!-- TODO: Fix broken link --> - How to contribute to the project
-- [Component Development](./development/components) <!-- TODO: Fix broken link --> <!-- TODO: Fix broken link --> - Component development patterns and guidelines
-- [Testing](./development/testing) <!-- TODO: Fix broken link --> <!-- TODO: Fix broken link --> - Testing guidelines and frameworks
-- [Development Tools](./development/tools) <!-- TODO: Fix broken link --> <!-- TODO: Fix broken link --> - Tools for development and debugging
-
-### [📋 Project](./project) <!-- TODO: Fix broken link --> <!-- TODO: Fix broken link -->
-Project management and planning documentation.
-
-- [Roadmap](project/roadmap.md) - Project roadmap and future plans
-- [Releases](./project/releases) <!-- TODO: Fix broken link --> <!-- TODO: Fix broken link --> - Release notes and version history
-- [Planning](./project/planning) <!-- TODO: Fix broken link --> <!-- TODO: Fix broken link --> - Project planning documents
-- [Process](./project/process) <!-- TODO: Fix broken link --> <!-- TODO: Fix broken link --> - Development processes and workflows
-
-### [🎨 Design](./design) <!-- TODO: Fix broken link --> <!-- TODO: Fix broken link -->
-Design guidelines and principles.
-
-- [Design Principles](design/principles.md) - Core design principles
-- [Style Guide](design/style-guide.md) - Visual style guidelines
-- [UI Components](./design/ui-components) <!-- TODO: Fix broken link --> <!-- TODO: Fix broken link --> - UI component design documentation
-- [Accessibility](./design/accessibility) <!-- TODO: Fix broken link --> <!-- TODO: Fix broken link --> - Accessibility guidelines
-
-## Documentation Standards
-
-This documentation follows a structured organization to ensure consistency and ease of navigation:
-
-1. **File naming**: All documentation files use lowercase with hyphens for spaces (kebab-case)
-2. **Directory structure**: Documentation is organized by purpose and audience
-3. **Formatting**: All documentation uses Markdown with consistent heading levels
-4. **Cross-references**: Internal links use relative paths for better portability
-
-## Contributing to Documentation
-
-If you'd like to contribute to this documentation, please see the [Documentation Contribution Guidelines](development/contributing/documentation-guidelines.md) for more information on our documentation standards and processes.
-
-## Documentation Roadmap
-
-Our documentation is continuously improving. Check the [Documentation Roadmap](project/planning/documentation-roadmap.md) for information about planned documentation improvements and additions.
-
-
-## References
-
-- [Project Documentation](../README.md)
+This documentation is licensed under the terms in [LICENSE.md](LICENSE.md).

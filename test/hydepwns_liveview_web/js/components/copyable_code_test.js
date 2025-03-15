@@ -1,6 +1,6 @@
 /**
  * Copyable Code Component Tests
- * -----------------------------
+ * ---------------------------
  * Tests for the CopyableCodeComponent class.
  */
 
@@ -17,67 +17,46 @@ jest.mock('../../../../assets/js/components/event_manager', () => ({
   unregisterComponent: jest.fn()
 }));
 
-// Create a mock createElement function
-const mockCreateElement = (tag, attrs, content) => {
-  const element = document.createElement(tag);
-  if (attrs) {
-    Object.keys(attrs).forEach(key => {
-      if (key === 'className') {
-        element.className = attrs[key];
-      } else if (typeof attrs[key] === 'function') {
-        element[key] = attrs[key];
-      } else {
-        element.setAttribute(key, attrs[key]);
-      }
-    });
-  }
-  if (content) {
-    element.textContent = content;
-  }
-  return element;
-};
-
 jest.mock('../../../../assets/js/utils/dom_cleanup', () => ({
   register: jest.fn().mockReturnValue({
-    cleanup: jest.fn(),
     registerElement: jest.fn(),
-    registerInterval: jest.fn(),
     registerTimeout: jest.fn(),
-    registerCleanupFunction: jest.fn()
+    cleanup: jest.fn()
   }),
-  createElement: jest.fn().mockImplementation((tag, attrs, content) => mockCreateElement(tag, attrs, content))
+  createElement: jest.fn().mockImplementation((tag, attrs, text) => {
+    const element = document.createElement(tag);
+    if (attrs && attrs.className) {
+      element.className = attrs.className;
+    }
+    if (text) {
+      element.textContent = text;
+    }
+    return element;
+  })
 }));
-
-// Mock clipboard API
-const originalClipboard = navigator.clipboard;
-const mockClipboard = {
-  writeText: jest.fn().mockResolvedValue(undefined)
-};
 
 describe('CopyableCodeComponent', () => {
   let component;
   let container;
+  let tooltip;
   let mockLiveViewHook;
-  let originalDocumentCreateElement;
   
   // Setup for tests
   beforeEach(() => {
     // Reset mocks
     jest.clearAllMocks();
     
-    // Save original document.createElement
-    originalDocumentCreateElement = document.createElement;
-    
     // Mock clipboard API
     Object.defineProperty(navigator, 'clipboard', {
-      value: mockClipboard,
+      value: {
+        writeText: jest.fn().mockResolvedValue(undefined)
+      },
       configurable: true
     });
     
     // Create container element (code block)
     container = document.createElement('pre');
-    container.className = 'code-block';
-    container.textContent = 'const example = "test code";';
+    container.innerHTML = '<code>const example = "test code";</code>';
     document.body.appendChild(container);
     
     // Create mock LiveView hook
@@ -85,13 +64,16 @@ describe('CopyableCodeComponent', () => {
       pushEvent: jest.fn(),
       pushEventTo: jest.fn()
     };
-
+    
     // Create component instance
     component = new CopyableCodeComponent({
       container,
       liveViewHook: mockLiveViewHook,
       debug: false
     });
+    
+    // Store reference to tooltip for tests
+    tooltip = null;
   });
   
   // Cleanup after tests
@@ -100,290 +82,202 @@ describe('CopyableCodeComponent', () => {
       component.destroy();
     }
     
+    // Clean up DOM
     if (container && container.parentNode) {
       container.parentNode.removeChild(container);
     }
     
+    // Reset variables
     container = null;
+    tooltip = null;
     component = null;
     
-    // Restore document.createElement
-    document.createElement = originalDocumentCreateElement;
-    
-    // Restore clipboard API
-    Object.defineProperty(navigator, 'clipboard', {
-      value: originalClipboard,
-      configurable: true
-    });
-    
-    // Clear any timeouts
-    jest.clearAllTimers();
-  });
-  
-  test('should initialize with correct default properties', () => {
-    expect(component.componentId).toMatch(/^copyable-code-[a-z0-9]{7}$/);
-    expect(component.options.container).toBe(container);
-    expect(component.options.liveViewHook).toBe(mockLiveViewHook);
-    expect(component.options.successMessage).toBe('Copied!');
-    expect(component.options.initialMessage).toBe('Click to copy');
-    expect(component.options.errorMessage).toBe('Copy failed!');
-    expect(component.options.flashDuration).toBe(300);
-    expect(component.options.tooltipDuration).toBe(2000);
-    expect(component.options.debug).toBe(false);
-    expect(component._state.isCopying).toBe(false);
-  });
-  
-  test('should properly mount the component', () => {
-    // Mount the component
-    component.mount();
-    
-    // Verify EventManager and DOMCleanup were used correctly
-    expect(EventManager.registerComponent).toHaveBeenCalledWith(component.componentId);
-    expect(DOMCleanup.register).toHaveBeenCalledWith(component.componentId);
-    
-    // Verify elements were found and stored
-    expect(component.elements.container).toBe(container);
-    expect(component.elements.tooltip).toBeTruthy();
-    
-    // Verify copyable class was added
-    expect(container.classList.contains('copyable')).toBe(true);
-    
-    // Verify tooltip was created with the correct initial message
-    expect(component.elements.tooltip.textContent).toBe('Click to copy');
-    expect(component.elements.tooltip.className).toBe('copy-tooltip');
-    
-    // Verify event listeners were set up
-    expect(component.events.addEventListener).toHaveBeenCalledTimes(3);
-    expect(component.events.addEventListener).toHaveBeenCalledWith(
-      container,
-      'click',
-      expect.any(Function)
-    );
-    expect(component.events.addEventListener).toHaveBeenCalledWith(
-      container,
-      'mouseenter',
-      expect.any(Function)
-    );
-    expect(component.events.addEventListener).toHaveBeenCalledWith(
-      container,
-      'mouseleave',
-      expect.any(Function)
-    );
-  });
-  
-  test('should properly destroy the component', () => {
-    // Mount first, then destroy
-    component.mount();
-    component.destroy();
-    
-    // Verify copyable class was removed
-    expect(container.classList.contains('copyable')).toBe(false);
-    
-    // Verify cleanup was called
-    expect(component.cleanup.cleanup).toHaveBeenCalled();
-    expect(EventManager.unregisterComponent).toHaveBeenCalledWith(component.componentId);
-    
-    // Verify references were cleared
-    expect(component.elements).toEqual({});
-    expect(component._state).toEqual({});
-  });
-  
-  test('should handle missing container gracefully', () => {
-    // Setup - create component without container
-    const invalidComponent = new CopyableCodeComponent({
-      debug: true
-    });
-    
-    // Mock console.error
-    console.error = jest.fn();
-    
-    // Mount component
-    invalidComponent.mount();
-    
-    // Verify error was logged
-    expect(console.error).toHaveBeenCalledWith('CopyableCode: No container element provided');
-  });
-  
-  test('should show tooltip on mouseenter', () => {
-    // Mount component
-    component.mount();
-    
-    // Get the mouseenter handler
-    const calls = component.events.addEventListener.mock.calls;
-    const mouseenterHandler = calls.find(call => 
-      call[0] === container && call[1] === 'mouseenter'
-    )[2];
-    
-    // Call the handler directly
-    mouseenterHandler();
-    
-    // Verify tooltip visibility class was added
-    expect(component.elements.tooltip.classList.contains('visible')).toBe(true);
-  });
-  
-  test('should hide tooltip on mouseleave', () => {
-    // Mount component
-    component.mount();
-    
-    // Add visible and copied classes first
-    component.elements.tooltip.classList.add('visible', 'copied');
-    
-    // Get the mouseleave handler
-    const calls = component.events.addEventListener.mock.calls;
-    const mouseleaveHandler = calls.find(call => 
-      call[0] === container && call[1] === 'mouseleave'
-    )[2];
-    
-    // Call the handler directly
-    mouseleaveHandler();
-    
-    // Verify tooltip classes were removed and text was reset
-    expect(component.elements.tooltip.classList.contains('visible')).toBe(false);
-    expect(component.elements.tooltip.classList.contains('copied')).toBe(false);
-    expect(component.elements.tooltip.textContent).toBe('Click to copy');
-  });
-  
-  test('should copy content to clipboard on click', async () => {
-    // Setup
-    jest.useFakeTimers();
-    component.mount();
-    
-    // Spy on _showCopySuccess to verify it's called
-    component._showCopySuccess = jest.fn();
-    
-    // Get the click handler
-    const calls = component.events.addEventListener.mock.calls;
-    const clickHandler = calls.find(call => 
-      call[0] === container && call[1] === 'click'
-    )[2];
-    
-    // Call the handler directly
-    await clickHandler();
-    
-    // Verify clipboard API was called with the correct content
-    expect(navigator.clipboard.writeText).toHaveBeenCalledWith('const example = "test code";');
-    
-    // Verify success method was called
-    expect(component._showCopySuccess).toHaveBeenCalled();
-    
-    jest.useRealTimers();
-  });
-  
-  test('should keep tooltip visible if still hovering after tooltip duration', async () => {
-    // Setup
-    jest.useFakeTimers();
-    component.mount();
-    
-    // Mock the _showCopySuccess method instead of calling it directly
-    component._showCopySuccess = jest.fn().mockImplementation(() => {
-      // Simulate what the method does
-      component.elements.tooltip.textContent = component.options.successMessage;
-      component.elements.tooltip.classList.add('copied', 'visible');
-      component.elements.container.classList.add('flash');
-    });
-    
-    // Call the method to set up the state
-    component._showCopySuccess();
-    
-    // Manually mock the hover state
-    Object.defineProperty(container, 'matches', {
-      value: jest.fn().mockReturnValue(true) // Hovering
-    });
-    
-    // Advance timers to tooltip duration
-    jest.advanceTimersByTime(component.options.tooltipDuration);
-    
-    // Verify tooltip is still visible
-    expect(component.elements.tooltip.classList.contains('visible')).toBe(true);
-    
-    jest.useRealTimers();
-  });
-  
-  test('should handle clipboard API failure', () => {
-    // Setup
-    component.mount();
-    
-    // Mock the _showCopyError method
-    component._showCopyError = jest.fn();
-    
-    // Directly call the error handler to simulate a clipboard API failure
-    component._showCopyError();
-    
-    // Verify error handler was called
-    expect(component._showCopyError).toHaveBeenCalled();
-  });
-  
-  test('should handle legacy browsers without Clipboard API', () => {
-    // Setup
-    // Store original properties we need to restore
-    const originalExecCommand = document.execCommand;
-    const originalAppendChild = document.body.appendChild;
-    const originalRemoveChild = document.body.removeChild;
-    
-    // Remove Clipboard API
+    // Reset clipboard mock
     delete navigator.clipboard;
-    
-    // Mock document.execCommand
-    document.execCommand = jest.fn().mockReturnValue(true);
-    
-    // Create a real textarea for testing
-    const mockTextarea = document.createElement('textarea');
-    mockTextarea.select = jest.fn();
-    
-    // Mock document.createElement for textarea only
-    document.createElement = jest.fn().mockImplementation((tag) => {
-      if (tag === 'textarea') {
-        return mockTextarea;
-      }
-      return originalDocumentCreateElement.call(document, tag);
+  });
+  
+  describe('Initialization', () => {
+    test('should initialize with correct default properties', () => {
+      expect(component.componentId).toMatch(/^copyable-code-[a-z0-9]{7}$/);
+      expect(component.options.container).toBe(container);
+      expect(component.options.successMessage).toBe('Copied!');
+      expect(component.options.initialMessage).toBe('Click to copy');
+      expect(component.options.errorMessage).toBe('Copy failed!');
+      expect(component.options.flashDuration).toBe(300);
+      expect(component.options.tooltipDuration).toBe(2000);
+      expect(component.options.liveViewHook).toBe(mockLiveViewHook);
+      expect(component.options.debug).toBe(false);
     });
     
-    // Mock document.body.appendChild and removeChild
-    document.body.appendChild = jest.fn().mockReturnValue(mockTextarea);
-    document.body.removeChild = jest.fn();
+    test('should properly mount the component', () => {
+      component.mount();
+      
+      expect(EventManager.registerComponent).toHaveBeenCalledWith(component.componentId);
+      expect(DOMCleanup.register).toHaveBeenCalledWith(component.componentId);
+      expect(component.elements.container).toBe(container);
+      expect(container.classList.contains('copyable')).toBe(true);
+      expect(DOMCleanup.createElement).toHaveBeenCalledWith(
+        'div',
+        { className: 'copy-tooltip' },
+        'Click to copy',
+        expect.any(Object)
+      );
+    });
     
-    component.mount();
-    
-    // Spy on _showCopySuccess to verify it's called
-    component._showCopySuccess = jest.fn();
-    
-    // Call copy method
-    component._copyToClipboard();
-    
-    // Verify fallback method was used
-    expect(document.createElement).toHaveBeenCalledWith('textarea');
-    expect(document.body.appendChild).toHaveBeenCalledWith(mockTextarea);
-    expect(mockTextarea.select).toHaveBeenCalled();
-    expect(document.execCommand).toHaveBeenCalledWith('copy');
-    expect(document.body.removeChild).toHaveBeenCalled();
-    expect(component._showCopySuccess).toHaveBeenCalled();
-    
-    // Restore mocks
-    document.execCommand = originalExecCommand;
-    document.body.appendChild = originalAppendChild;
-    document.body.removeChild = originalRemoveChild;
+    test('should handle missing container gracefully', () => {
+      const consoleSpy = jest.spyOn(console, 'error');
+      
+      const invalidComponent = new CopyableCodeComponent({
+        debug: false
+      }).mount();
+      
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'CopyableCode: No container element provided'
+      );
+      expect(invalidComponent.elements.container).toBe(null);
+    });
   });
   
-  test('should prevent multiple simultaneous copy operations', async () => {
-    // Setup
-    component.mount();
+  describe('Copy Functionality', () => {
+    beforeEach(() => {
+      component.mount();
+      tooltip = component.elements.tooltip;
+    });
     
-    // Set state to indicate copy in progress
-    component._setState({ isCopying: true });
+    test('should copy text to clipboard when clicked', async () => {
+      container.click();
+      
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+        'const example = "test code";'
+      );
+      
+      // Wait for async clipboard operation
+      await Promise.resolve();
+      
+      expect(tooltip.textContent).toBe('Copied!');
+      expect(tooltip.classList.contains('copied')).toBe(true);
+      expect(tooltip.classList.contains('visible')).toBe(true);
+      expect(container.classList.contains('flash')).toBe(true);
+    });
     
-    // Call copy method
-    await component._copyToClipboard();
+    test('should handle clipboard API failure', async () => {
+      // Mock clipboard failure
+      navigator.clipboard.writeText.mockRejectedValue(new Error('Clipboard error'));
+      
+      container.click();
+      
+      // Wait for async clipboard operation
+      await Promise.resolve();
+      
+      expect(tooltip.textContent).toBe('Copy failed!');
+      expect(tooltip.classList.contains('error')).toBe(true);
+      expect(tooltip.classList.contains('visible')).toBe(true);
+    });
     
-    // Verify clipboard API was not called
-    expect(navigator.clipboard.writeText).not.toHaveBeenCalled();
+    test('should prevent multiple simultaneous copy operations', async () => {
+      // First click
+      container.click();
+      
+      // Second click before first one completes
+      container.click();
+      
+      expect(navigator.clipboard.writeText).toHaveBeenCalledTimes(1);
+    });
+    
+    test('should use fallback copy method when Clipboard API is not available', () => {
+      // Remove Clipboard API
+      delete navigator.clipboard;
+      
+      // Mock document.execCommand
+      document.execCommand = jest.fn().mockReturnValue(true);
+      
+      container.click();
+      
+      expect(document.execCommand).toHaveBeenCalledWith('copy');
+      expect(tooltip.textContent).toBe('Copied!');
+    });
+    
+    test('should handle fallback copy method failure', () => {
+      // Remove Clipboard API
+      delete navigator.clipboard;
+      
+      // Mock document.execCommand failure
+      document.execCommand = jest.fn().mockReturnValue(false);
+      
+      container.click();
+      
+      expect(document.execCommand).toHaveBeenCalledWith('copy');
+      expect(tooltip.textContent).toBe('Copy failed!');
+    });
   });
   
-  test('should update component state correctly', () => {
-    // Set new state
-    component._setState({ isCopying: true, testValue: 'test' });
+  describe('Tooltip Behavior', () => {
+    beforeEach(() => {
+      component.mount();
+      tooltip = component.elements.tooltip;
+    });
     
-    // Verify state was updated correctly
-    expect(component._state.isCopying).toBe(true);
-    expect(component._state.testValue).toBe('test');
+    test('should show tooltip on hover', () => {
+      // Simulate mouseenter
+      container.dispatchEvent(new MouseEvent('mouseenter'));
+      
+      expect(tooltip.classList.contains('visible')).toBe(true);
+      expect(tooltip.textContent).toBe('Click to copy');
+    });
+    
+    test('should hide tooltip on mouse leave', () => {
+      // Show tooltip first
+      container.dispatchEvent(new MouseEvent('mouseenter'));
+      
+      // Simulate mouseleave
+      container.dispatchEvent(new MouseEvent('mouseleave'));
+      
+      expect(tooltip.classList.contains('visible')).toBe(false);
+      expect(tooltip.classList.contains('copied')).toBe(false);
+      expect(tooltip.textContent).toBe('Click to copy');
+    });
+    
+    test('should reset tooltip after copy success', async () => {
+      // Copy text
+      container.click();
+      
+      // Wait for async clipboard operation
+      await Promise.resolve();
+      
+      // Fast-forward timers
+      jest.advanceTimersByTime(2000);
+      
+      // Simulate mouseleave
+      container.dispatchEvent(new MouseEvent('mouseleave'));
+      
+      expect(tooltip.classList.contains('visible')).toBe(false);
+      expect(tooltip.classList.contains('copied')).toBe(false);
+      expect(tooltip.textContent).toBe('Click to copy');
+    });
+  });
+  
+  describe('Cleanup', () => {
+    test('should properly clean up on destroy', () => {
+      component.mount();
+      component.destroy();
+      
+      expect(EventManager.unregisterComponent).toHaveBeenCalledWith(component.componentId);
+      expect(DOMCleanup.register(component.componentId).cleanup).toHaveBeenCalled();
+      expect(container.classList.contains('copyable')).toBe(false);
+      expect(container.classList.contains('flash')).toBe(false);
+      expect(component.elements).toEqual({});
+      expect(component._state).toEqual({});
+    });
+    
+    test('should clean up timeouts', () => {
+      component.mount();
+      
+      // Trigger copy to create timeouts
+      container.click();
+      
+      component.destroy();
+      
+      expect(DOMCleanup.register(component.componentId).cleanup).toHaveBeenCalled();
+    });
   });
 }); 

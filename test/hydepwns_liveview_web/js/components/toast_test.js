@@ -1,253 +1,322 @@
 /**
- * Toast Component - Tests
- * ----------------------
- * 
- * Tests for the Toast component, which displays temporary notifications
- * that appear briefly and then disappear.
+ * Toast Component Tests
+ * -------------------
+ * Tests for the ToastComponent class that manages temporary notifications.
  */
 
-const { ToastComponent } = require('../../../../assets/js/components/toast');
-const { createTestElement, cleanupAllComponents } = require('../component_test_utility');
+import { ToastComponent } from '../../../../assets/js/components/toast';
+import EventManager from '../../../../assets/js/components/event_manager';
+import DOMCleanup from '../../../../assets/js/utils/dom_cleanup';
 
-// Mock the DOMCleanup module
-jest.mock('../../../../assets/js/utils/dom_cleanup', () => {
-  return {
-    register: jest.fn().mockReturnValue({
-      registerElement: jest.fn(),
-      registerTimeout: jest.fn(),
-      cleanup: jest.fn()
-    }),
-    createElement: jest.fn().mockImplementation(() => {
-      // Return a mock element that will be replaced in the test
-      return {};
-    })
-  };
-});
+// Mock dependencies
+jest.mock('../../../../assets/js/components/event_manager', () => ({
+  registerComponent: jest.fn().mockReturnValue({
+    addEventListener: jest.fn(),
+    addDelegatedEventListener: jest.fn()
+  }),
+  unregisterComponent: jest.fn()
+}));
 
-// Mock timers for testing timeouts
-jest.useFakeTimers();
+jest.mock('../../../../assets/js/utils/dom_cleanup', () => ({
+  register: jest.fn().mockReturnValue({
+    registerElement: jest.fn(),
+    registerTimeout: jest.fn(),
+    cleanup: jest.fn(),
+    addNode: jest.fn()
+  })
+}));
 
-describe('Toast Component', () => {
-  // Setup and teardown
+describe('ToastComponent', () => {
+  let component;
   let container;
-  let mockToastContainer;
+  let mockLiveViewHook;
   
+  // Setup for tests
   beforeEach(() => {
-    // Create a container element
+    // Reset mocks
+    jest.clearAllMocks();
+    
+    // Create container
     container = document.createElement('div');
     document.body.appendChild(container);
     
-    // Create a mock toast container
-    mockToastContainer = document.createElement('div');
-    mockToastContainer.className = 'toast-container';
+    // Create mock LiveView hook
+    mockLiveViewHook = {
+      el: container,
+      pushEvent: jest.fn(),
+      pushEventTo: jest.fn()
+    };
     
-    // Override the mock implementation for this test
-    require('../../../../assets/js/utils/dom_cleanup').createElement.mockReturnValue(mockToastContainer);
+    // Create component instance
+    component = new ToastComponent({
+      container,
+      liveViewHook: mockLiveViewHook,
+      debug: false
+    });
+    
+    // Mock timers
+    jest.useFakeTimers();
   });
   
+  // Cleanup after tests
   afterEach(() => {
-    // Clean up
+    if (component) {
+      component.destroy();
+    }
+    
+    // Clean up DOM
     if (container && container.parentNode) {
       container.parentNode.removeChild(container);
     }
     
-    // Clean up any registered components
-    cleanupAllComponents();
+    // Reset variables
+    container = null;
+    component = null;
     
-    // Clear any mocked timers
-    jest.clearAllTimers();
-    
-    // Clear all mocks
-    jest.clearAllMocks();
+    // Restore timers
+    jest.useRealTimers();
   });
   
-  test('initializes properly with default options', () => {
-    // Create component
-    const toast = new ToastComponent({
-      container: container
-    }).mount();
-    
-    // Check that component was created and mounted
-    expect(toast).toBeTruthy();
-    expect(toast.elements.container).toBe(container);
-    
-    // Verify toast container was created
-    expect(toast.elements.toastContainer).toBe(mockToastContainer);
-  });
-  
-  // Note: The following tests are disabled until we can properly mock the DOM manipulation
-  // They were causing HierarchyRequestError: The operation would yield an incorrect node tree
-  
-  /*
-  test('shows a toast with default options', () => {
-    // Create component
-    const toast = new ToastComponent({
-      container: container
-    }).mount();
-    
-    // Show a toast
-    const toastId = toast.show({
-      message: 'Test message'
+  describe('Initialization', () => {
+    test('should initialize with correct default properties', () => {
+      expect(component.componentId).toMatch(/^toast-[a-z0-9]{7}$/);
+      expect(component.options.container).toBe(container);
+      expect(component.options.liveViewHook).toBe(mockLiveViewHook);
+      expect(component.options.debug).toBe(false);
+      expect(component.options.position).toBe('bottom-center');
+      expect(component.options.duration).toBe(3000);
+      expect(component.options.maxToasts).toBe(3);
+      expect(component.options.gap).toBe(8);
+      expect(component.options.zIndex).toBe(9000);
     });
     
-    // Verify toast was created
-    expect(toastId).toBeTruthy();
-    expect(document.querySelector('.toast')).toBeTruthy();
-    expect(document.querySelector('.toast').textContent).toContain('Test message');
-    
-    // Verify toast is of type 'info' by default
-    expect(document.querySelector('.toast').classList.contains('toast-info')).toBeTruthy();
-  });
-  
-  test('shows different types of toasts', () => {
-    // Create component
-    const toast = new ToastComponent({
-      container: container
-    }).mount();
-    
-    // Show different types of toasts
-    toast.success('Success message');
-    toast.error('Error message');
-    toast.info('Info message');
-    toast.warning('Warning message');
-    
-    // Verify toasts were created with correct types
-    const toasts = document.querySelectorAll('.toast');
-    expect(toasts.length).toBe(4);
-    
-    expect(document.querySelector('.toast-success')).toBeTruthy();
-    expect(document.querySelector('.toast-success').textContent).toContain('Success message');
-    
-    expect(document.querySelector('.toast-error')).toBeTruthy();
-    expect(document.querySelector('.toast-error').textContent).toContain('Error message');
-    
-    expect(document.querySelector('.toast-info')).toBeTruthy();
-    expect(document.querySelector('.toast-info').textContent).toContain('Info message');
-    
-    expect(document.querySelector('.toast-warning')).toBeTruthy();
-    expect(document.querySelector('.toast-warning').textContent).toContain('Warning message');
-  });
-  
-  test('automatically hides toasts after duration', () => {
-    // Create component with short duration
-    const toast = new ToastComponent({
-      container: container,
-      duration: 1000
-    }).mount();
-    
-    // Show a toast
-    const toastId = toast.show({
-      message: 'Test message'
+    test('should properly mount the component', () => {
+      component.mount();
+      
+      expect(EventManager.registerComponent).toHaveBeenCalledWith(component.componentId);
+      expect(DOMCleanup.register).toHaveBeenCalledWith(component.componentId);
+      expect(component.elements.container).toBe(container);
+      expect(component.elements.toastContainer).toBeTruthy();
+      expect(component.elements.toastContainer.className).toContain('toast-container');
     });
     
-    // Verify toast was created
-    expect(document.querySelector('.toast')).toBeTruthy();
-    
-    // Fast-forward time
-    jest.advanceTimersByTime(1000);
-    
-    // Toast should start hiding (opacity transition)
-    expect(document.querySelector('.toast').style.opacity).toBe('0');
-    
-    // Fast-forward through animation
-    jest.advanceTimersByTime(300);
-    
-    // Toast should be removed from DOM
-    expect(document.querySelector('.toast')).toBeFalsy();
+    test('should initialize with custom options', () => {
+      component = new ToastComponent({
+        container,
+        position: 'top-right',
+        duration: 5000,
+        maxToasts: 5,
+        gap: 16,
+        zIndex: 10000,
+        debug: true
+      }).mount();
+      
+      expect(component.options.position).toBe('top-right');
+      expect(component.options.duration).toBe(5000);
+      expect(component.options.maxToasts).toBe(5);
+      expect(component.options.gap).toBe(16);
+      expect(component.options.zIndex).toBe(10000);
+      expect(component.options.debug).toBe(true);
+    });
   });
   
-  test('manually hides a toast', () => {
-    // Create component
-    const toast = new ToastComponent({
-      container: container,
-      duration: 5000 // Long duration
-    }).mount();
-    
-    // Show a toast
-    const toastId = toast.show({
-      message: 'Test message'
+  describe('Toast Creation and Management', () => {
+    beforeEach(() => {
+      component.mount();
     });
     
-    // Verify toast was created
-    expect(document.querySelector('.toast')).toBeTruthy();
+    test('should create and show a toast', () => {
+      const toastId = component.show({
+        message: 'Test message',
+        type: 'info'
+      });
+      
+      expect(toastId).toMatch(/^toast-[a-z0-9]{7}$/);
+      expect(component._state.toasts.length).toBe(1);
+      expect(component._state.toastTimeouts.has(toastId)).toBe(true);
+      
+      const toastElement = component.elements.toastContainer.querySelector('.toast');
+      expect(toastElement).toBeTruthy();
+      expect(toastElement.textContent).toContain('Test message');
+      expect(toastElement.className).toContain('toast--info');
+    });
     
-    // Manually hide the toast
-    toast.hide(toastId);
+    test('should respect maximum toasts limit', () => {
+      // Create max + 1 toasts
+      for (let i = 0; i < component.options.maxToasts + 1; i++) {
+        component.show({ message: `Toast ${i}` });
+      }
+      
+      expect(component._state.toasts.length).toBe(component.options.maxToasts);
+      expect(component.elements.toastContainer.children.length).toBe(component.options.maxToasts);
+    });
     
-    // Toast should start hiding (opacity transition)
-    expect(document.querySelector('.toast').style.opacity).toBe('0');
+    test('should auto-dismiss toasts after duration', () => {
+      const toastId = component.show({
+        message: 'Auto-dismiss test',
+        duration: 1000
+      });
+      
+      expect(component._state.toasts.length).toBe(1);
+      
+      // Fast-forward time
+      jest.advanceTimersByTime(1000);
+      
+      // Allow animation to complete
+      jest.advanceTimersByTime(300);
+      
+      expect(component._state.toasts.length).toBe(0);
+      expect(component._state.toastTimeouts.has(toastId)).toBe(false);
+    });
     
-    // Fast-forward through animation
-    jest.advanceTimersByTime(300);
+    test('should manually hide toasts', () => {
+      const toastId = component.show({
+        message: 'Manual hide test'
+      });
+      
+      expect(component._state.toasts.length).toBe(1);
+      
+      component.hide(toastId);
+      
+      // Allow animation to complete
+      jest.advanceTimersByTime(300);
+      
+      expect(component._state.toasts.length).toBe(0);
+      expect(component._state.toastTimeouts.has(toastId)).toBe(false);
+    });
     
-    // Toast should be removed from DOM
-    expect(document.querySelector('.toast')).toBeFalsy();
+    test('should clear all toasts', () => {
+      // Create multiple toasts
+      for (let i = 0; i < 3; i++) {
+        component.show({ message: `Toast ${i}` });
+      }
+      
+      expect(component._state.toasts.length).toBe(3);
+      
+      component.clearAll();
+      
+      // Allow animation to complete
+      jest.advanceTimersByTime(300);
+      
+      expect(component._state.toasts.length).toBe(0);
+      expect(component._state.toastTimeouts.size).toBe(0);
+    });
   });
   
-  test('clears all toasts', () => {
-    // Create component
-    const toast = new ToastComponent({
-      container: container
-    }).mount();
+  describe('Toast Types', () => {
+    beforeEach(() => {
+      component.mount();
+    });
     
-    // Show multiple toasts
-    toast.show({ message: 'Toast 1' });
-    toast.show({ message: 'Toast 2' });
-    toast.show({ message: 'Toast 3' });
+    test('should create success toast', () => {
+      const toastId = component.success('Success message');
+      
+      const toast = component._state.toasts.find(t => t.id === toastId);
+      expect(toast.options.type).toBe('success');
+      expect(toast.element.className).toContain('toast--success');
+    });
     
-    // Verify toasts were created
-    expect(document.querySelectorAll('.toast').length).toBe(3);
+    test('should create error toast', () => {
+      const toastId = component.error('Error message');
+      
+      const toast = component._state.toasts.find(t => t.id === toastId);
+      expect(toast.options.type).toBe('error');
+      expect(toast.element.className).toContain('toast--error');
+    });
     
-    // Clear all toasts
-    toast.clearAll();
+    test('should create info toast', () => {
+      const toastId = component.info('Info message');
+      
+      const toast = component._state.toasts.find(t => t.id === toastId);
+      expect(toast.options.type).toBe('info');
+      expect(toast.element.className).toContain('toast--info');
+    });
     
-    // Fast-forward through animation
-    jest.advanceTimersByTime(300);
-    
-    // All toasts should be removed
-    expect(document.querySelectorAll('.toast').length).toBe(0);
+    test('should create warning toast', () => {
+      const toastId = component.warning('Warning message');
+      
+      const toast = component._state.toasts.find(t => t.id === toastId);
+      expect(toast.options.type).toBe('warning');
+      expect(toast.element.className).toContain('toast--warning');
+    });
   });
   
-  test('respects maximum toast limit', () => {
-    // Create component with max 2 toasts
-    const toast = new ToastComponent({
-      container: container,
-      maxToasts: 2
-    }).mount();
+  describe('Positioning', () => {
+    test('should position toasts correctly', () => {
+      const positions = [
+        'top-right',
+        'top-center',
+        'top-left',
+        'bottom-right',
+        'bottom-center',
+        'bottom-left'
+      ];
+      
+      positions.forEach(position => {
+        component = new ToastComponent({
+          container,
+          position,
+          debug: false
+        }).mount();
+        
+        expect(component.elements.toastContainer.className).toContain(`toast-container--${position}`);
+        
+        component.destroy();
+      });
+    });
     
-    // Show 3 toasts
-    toast.show({ message: 'Toast 1' });
-    toast.show({ message: 'Toast 2' });
-    toast.show({ message: 'Toast 3' });
-    
-    // Only 2 toasts should be visible (the newest ones)
-    expect(document.querySelectorAll('.toast').length).toBe(2);
-    
-    // The visible toasts should be Toast 2 and Toast 3
-    const toastElements = document.querySelectorAll('.toast');
-    expect(toastElements[0].textContent).toContain('Toast 2');
-    expect(toastElements[1].textContent).toContain('Toast 3');
+    test('should apply correct gap between toasts', () => {
+      component = new ToastComponent({
+        container,
+        gap: 16,
+        debug: false
+      }).mount();
+      
+      // Create multiple toasts
+      for (let i = 0; i < 3; i++) {
+        component.show({ message: `Toast ${i}` });
+      }
+      
+      const toasts = component.elements.toastContainer.querySelectorAll('.toast');
+      expect(toasts[1].style.marginTop).toBe('16px');
+      expect(toasts[2].style.marginTop).toBe('16px');
+    });
   });
   
-  test('cleans up on destroy', () => {
-    // Create component
-    const toast = new ToastComponent({
-      container: container
-    }).mount();
+  describe('Cleanup', () => {
+    test('should properly clean up on destroy', () => {
+      component.mount();
+      
+      // Create some toasts
+      for (let i = 0; i < 3; i++) {
+        component.show({ message: `Toast ${i}` });
+      }
+      
+      component.destroy();
+      
+      expect(EventManager.unregisterComponent).toHaveBeenCalledWith(component.componentId);
+      expect(DOMCleanup.register(component.componentId).cleanup).toHaveBeenCalled();
+      expect(component.elements).toEqual({});
+      expect(component._state.toasts).toEqual([]);
+      expect(component._state.toastTimeouts.size).toBe(0);
+    });
     
-    // Show a toast
-    toast.show({ message: 'Test message' });
-    
-    // Verify toast container and toast were created
-    expect(document.querySelector('.toast-container')).toBeTruthy();
-    expect(document.querySelector('.toast')).toBeTruthy();
-    
-    // Destroy component
-    toast.destroy();
-    
-    // Toast container and toast should be removed
-    expect(document.querySelector('.toast-container')).toBeFalsy();
-    expect(document.querySelector('.toast')).toBeFalsy();
+    test('should clean up timeouts', () => {
+      component.mount();
+      
+      // Create a toast with timeout
+      component.show({
+        message: 'Test toast',
+        duration: 1000
+      });
+      
+      const clearTimeoutSpy = jest.spyOn(window, 'clearTimeout');
+      
+      component.destroy();
+      
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+      
+      clearTimeoutSpy.mockRestore();
+    });
   });
-  */
 }); 

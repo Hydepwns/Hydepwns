@@ -1,24 +1,28 @@
 ---
-title: Style Guide
+title: Documentation Style Guide
 description: '## Overview'
 topics:
-  - design
-  - style-guide
+  - documentation-style-guide
   - overview
   - prerequisites
   - main-content
   - examples
   - troubleshooting
   - related-documents
-  - color-palette
-  - typography
-  - spacing
-  - visual-hierarchy
-  - animation-guidelines
+  - general-principles
+  - document-structure
+  - formatting-guidelines
+  - content-guidelines
+  - validation
+  - review-process
+  - additional-resources
   - references
+  - code-examples
+  - testing
+  - development
 last_updated: '2025-03-14'
 ---
-# Style Guide
+# Documentation Style Guide
 
 ## Overview
 
@@ -45,84 +49,110 @@ Common issues and their solutions will be documented here.
 
 * No references yet
 
-This document provides information about the visual style guidelines for Hydepwns, establishing a consistent look and feel across the application.
+This document outlines the standards and best practices for creating and maintaining documentation in the Hydepwns project. Following these guidelines ensures consistency and quality across all documentation.
 
-## Color Palette
+This style guide provides rules and best practices for creating and maintaining documentation in this project. Following these guidelines ensures consistency across all documentation and makes it easier for developers and users to understand our content.
 
-### Primary Colors
+## General Principles
 
-- **Primary Blue**: `#0055FF` - Used for primary actions, links, and key UI elements
-- **Primary Green**: `#00AA55` - Used for success states and positive indicators
-- **Primary Red**: `#FF3300` - Used for error states and destructive actions
+- **Clarity First**: Write for clarity above all. Use simple, direct language.
+- **Consistency**: Maintain consistent terminology, formatting, and structure.
+- **Completeness**: Cover all necessary aspects of the topic without unnecessary details.
+- **Accuracy**: Ensure all information is correct and up-to-date.
 
-### Secondary Colors
+## Document Structure
 
-- **Secondary Gray**: `#5E6470` - Used for secondary text and icons
-- **Secondary Blue**: `#778899` - Used for secondary actions and UI elements
-- **Secondary Green**: `#88DDAA` - Used for subtle success indicators
+### Required Sections
 
-### Neutral Colors
+Every documentation file should include:
 
-- **White**: `#FFFFFF` - Background for light mode
-- **Black**: `#000000` - Text color for light mode
-- **Light Gray**: `#F5F5F5` - Secondary background
-- **Medium Gray**: `#CCCCCC` - Borders and dividers
-- **Dark Gray**: `#333333` - Secondary text
+1. **Title**: Each document must start with a level 1 heading (`# Title`).
+2. **Overview**: A brief introduction explaining the document's purpose.
+3. **Body Content**: The main content organized into logical sections.
+4. **References**: Links to related documentation or external resources (if applicable).
 
-## Typography
+### Heading Structure
 
-### Typefaces
+- Start with a single `# Heading` as the document title
+- Use proper heading hierarchy: H1 → H2 → H3 → H4
+- Never skip heading levels (e.g., H1 → H3)
+- Keep headings concise and descriptive
+- Use sentence case for headings (capitalize first word and proper nouns only)
 
-- **Primary Font**: 'Inter', sans-serif - Used for all UI text
-- **Monospace Font**: 'Fira Code', monospace - Used for code blocks and terminal output
+## Formatting Guidelines
 
-### Type Scale
+### Code Blocks
 
-- **Heading 1**: 32px, Bold
-- **Heading 2**: 24px, Bold
-- **Heading 3**: 20px, Semi-Bold
-- **Heading 4**: 16px, Semi-Bold
-- **Body**: 16px, Regular
-- **Small**: 14px, Regular
-- **Caption**: 12px, Regular
+- Always specify the language for syntax highlighting
+```javascript
+// JavaScript example
+function example() {
+  return true;
+}
+```text
+- For console output, use `console` or `shell`
+```shell
+$ npm run build
+```
 
-## Spacing
+### Links
 
-We use a consistent spacing system based on 8px increments:
+- Use descriptive link text that makes sense out of context
+- For internal links, use relative paths
+- All links must be valid and working
+- Verify links with `npm run validate:docs`
 
-- **xs**: 4px
-- **sm**: 8px
-- **md**: 16px
-- **lg**: 24px
-- **xl**: 32px
-- **xxl**: 48px
-- **xxxl**: 64px
+### Lists
 
-## Visual Hierarchy
+- Use unordered lists (`-`) for items without sequence
+- Use ordered lists (`1.`) for sequential steps
+- Maintain consistent capitalization and punctuation within lists
+- Use parallel structure for list items
 
-Our visual hierarchy helps users understand importance:
+## Content Guidelines
 
-1. **Primary actions**: Blue, prominent placement
-2. **Secondary actions**: Gray, less prominent
-3. **Tertiary actions**: Text-only or icon-only buttons
+### Language
 
-## Animation Guidelines
+- Use present tense ("This command installs the package" not "This command will install")
+- Use active voice when possible
+- Be concise but complete
+- Define abbreviations and acronyms on first use
 
-Animations should be:
+### Code Examples
 
-- **Purposeful**: Enhance understanding and guide attention
-- **Subtle**: Not distracting from content or functionality
-- **Quick**: 150-300ms for most interactions
-- **Consistent**: Similar elements should animate similarly
+- Keep examples simple and focused
+- Include comments for complex parts
+- Ensure all examples are tested and working
+- For longer examples, explain what each part does
 
-### Animation Timing
+## Validation
 
-- **Fast**: 150ms - Micro-interactions (button states, toggles)
-- **Medium**: 300ms - Content transitions, small UI changes
-- **Slow**: 450ms - Larger transitions, emphasis animations
+All documentation should pass validation using:
+
+```shell
+npm run validate:docs
+```
+
+This validation checks for:
+- Missing sections (title, overview, references)
+- Heading structure issues
+- Broken links
+- Code blocks without language specification
+
+## Review Process
+
+Documentation changes require:
+1. Self-review against this style guide
+2. Passing automated validation checks in CI
+3. At least one review from the documentation team
+
+## Additional Resources
+
+- [GitHub Markdown Guide](https://guides.github.com/features/mastering-markdown/)
+- [Documentation Process](./development/DOCUMENTATION_PROCESS.md) <!-- TODO: Fix broken link --> <!-- TODO: Fix broken link -->
 
 ## References
 
-- [Design Documentation](README.md)
-- [Design Principles](principles.md)
 - [Project Documentation](../README.md)
+- [Documentation Map](DOCUMENTATION_MAP.md)
+- [Documentation Process](project/documentation/process.md)

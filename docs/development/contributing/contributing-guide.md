@@ -30,24 +30,19 @@ last_updated: '2025-03-14'
 
 ## Overview
 
-
 ## Prerequisites
 
 * No specific prerequisites
 
-
 ## Main Content
-
 
 ## Examples
 
 Examples will be added here.
 
-
 ## Troubleshooting
 
 Common issues and their solutions will be documented here.
-
 
 ## Related Documents
 
@@ -55,8 +50,8 @@ Common issues and their solutions will be documented here.
 
 This document provides information about Contributing-Guide.
 
-
 ---
+
 title: Contributing Guide
 description: Guidelines for contributing to the Hydepwns project
 category: development
@@ -70,15 +65,15 @@ Thank you for your interest in contributing to the Hydepwns project! This guide 
 
 ## Table of Contents
 
-- [Code of Conduct](#code-of-conduct)
-- [Getting Started](#getting-started)
-- [Development Workflow](#development-workflow)
-- [Code Style](#code-style)
-- [Testing](#testing)
-- [Pull Requests](#pull-requests)
-- [Code Review](#code-review)
-- [Documentation](#documentation)
-- [Release Process](#release-process)
+* [Code of Conduct](#code-of-conduct)
+* [Getting Started](#getting-started)
+* [Development Workflow](#development-workflow)
+* [Code Style](#code-style)
+* [Testing](#testing)
+* [Pull Requests](#pull-requests)
+* [Code Review](#code-review)
+* [Documentation](#documentation)
+* [Release Process](#release-process)
 
 ## Code of Conduct
 
@@ -90,10 +85,10 @@ All contributors are expected to adhere to our [code of conduct](code-of-conduct
 
 Before you begin contributing, make sure you have the following installed:
 
-- Elixir (version specified in the project)
-- Phoenix Framework
-- PostgreSQL
-- Node.js (for asset compilation)
+* Elixir (version specified in the project)
+* Phoenix Framework
+* PostgreSQL
+* Node.js (for asset compilation)
 
 ### Setup
 
@@ -106,6 +101,7 @@ See [Development Setup](development-setup.md) for detailed instructions on setti
 ## Development Workflow
 
 1. Create a new branch for your feature or bugfix:
+
    ```markdown
    git checkout -b feature/your-feature-name
    ```markdown
@@ -117,16 +113,19 @@ See [Development Setup](development-setup.md) for detailed instructions on setti
 2. Make your changes, adding tests as appropriate
 
 3. Ensure all tests pass:
+
    ```markdown
    mix test
    ```markdown
 
 4. Commit your changes with a clear, descriptive message:
+
    ```markdown
    git commit -m "Add feature X" or "Fix issue with Y"
    ```markdown
 
 5. Push your branch to your fork:
+
    ```markdown
    git push origin feature/your-feature-name
    ```markdown
@@ -137,13 +136,14 @@ See [Development Setup](development-setup.md) for detailed instructions on setti
 
 We follow the standard Elixir style guide with a few additional conventions:
 
-- Use 2 spaces for indentation
-- Keep lines under 100 characters when possible
-- Use `snake_case` for variable and function names
-- Use `CamelCase` for module names
-- Document all public functions with `@doc` and `@spec`
+* Use 2 spaces for indentation
+* Keep lines under 100 characters when possible
+* Use `snake_case` for variable and function names
+* Use `CamelCase` for module names
+* Document all public functions with `@doc` and `@spec`
 
 Run the formatter before committing:
+
 ```markdown
 mix format
 ```markdown
@@ -164,6 +164,13 @@ mix test
 ```markdown
 
 See [Testing Guide](../../development/testing/testing-guide) <!-- TODO: Fix broken link --> <!-- TODO: Fix broken link --> for more details
+
+TODO: fix referncing
+
+1. Check [Documentation Validation Guide](docs/DOCUMENTATION_VALIDATION.md) for standards
+2. Run `npm run validate:docs` to check for documentation issues
+3. Run `npm run lint:md:fix` to automatically fix common issues
+
 
 ## Pull Requests
 

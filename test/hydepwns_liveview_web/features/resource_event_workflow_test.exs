@@ -1,0 +1,178 @@
+defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
+  use HydepwnsLiveviewWeb.WallabyCase, async: true
+
+  @moduledoc """
+  End-to-end tests for the Resource Event Processing and Subscription workflow.
+
+  This test suite verifies the complete user experience of:
+  - Event Generation
+  - Event Processing
+  - Event Subscription
+  - Real-time Updates
+  - Event Visualization
+  """
+
+  import Wallaby.Query
+  alias HydepwnsLiveview.TestSupport.ResourceFixtures
+
+  setup %{session: session} do
+    # Create test resources
+    resource =
+      ResourceFixtures.create_test_resource(%{
+        name: "Test Resource",
+        type: "document",
+        content: "Initial content"
+      })
+
+    # Start session and visit the resource dashboard
+    {:ok, session: visit_and_wait(session, "/resources"), resource: resource}
+  end
+
+  describe "resource event processing and subscription" do
+    test "events are generated and processed during resource updates", %{
+      session: session,
+      resource: resource
+    } do
+      # Navigate to resource
+      session
+      |> click(link(resource.name))
+      |> click(link("Edit"))
+
+      # Update resource content
+      session
+      |> fill_in(text_field("resource[content]"), with: "Updated content")
+      |> click(button("Save"))
+
+      # Verify success message
+      assert_has(session, css(".alert-success", text: "Resource updated successfully"))
+
+      # Navigate to events dashboard
+      session
+      |> click(link("View Events"))
+
+      # Verify events were generated and processed
+      assert_has(session, css(".event-row", text: "resource.updated"))
+      assert_has(session, css(".event-row", text: "resource.transformed"))
+      assert_has(session, css(".event-data", text: "Updated content"))
+    end
+
+    test "real-time updates are delivered to subscribers", %{session: session, resource: resource} do
+      # Open two browser windows (simulate with two sessions)
+      dashboard_view = session
+
+      # Subscribe to resource events from backend
+      {:ok, _subscription} =
+        HydepwnsLiveview.Resources.EventManager.subscribe_to_resource(
+          resource.id,
+          self()
+        )
+
+      # Update resource from another session
+      {:ok, _updated} =
+        HydepwnsLiveview.Resources.ResourceManager.update_resource(
+          resource.id,
+          %{content: "Real-time update"}
+        )
+
+      # Verify UI updates automatically
+      Process.sleep(500)
+      assert_has(dashboard_view, css(".resource-content", text: "Real-time update"))
+
+      # Verify event was received
+      assert_has(dashboard_view, css(".event-row", text: "resource.updated"))
+    end
+
+    test "event processing maintains consistency", %{session: session, resource: resource} do
+      # Navigate to resource
+      session
+      |> click(link(resource.name))
+      |> click(link("Edit"))
+
+      # Make multiple rapid updates
+      session
+      |> fill_in(text_field("resource[content]"), with: "Update 1")
+      |> click(button("Save"))
+      |> fill_in(text_field("resource[content]"), with: "Update 2")
+      |> click(button("Save"))
+      |> fill_in(text_field("resource[content]"), with: "Update 3")
+      |> click(button("Save"))
+
+      # Navigate to events dashboard
+      session
+      |> click(link("View Events"))
+
+      # Verify events were processed in order
+      events = find_all(session, css(".event-row"))
+      assert length(events) >= 3
+
+      # Verify final state is consistent
+      assert_has(session, css(".resource-content", text: "Update 3"))
+    end
+
+    test "event visualization shows processing status", %{session: session, resource: resource} do
+      # Navigate to events dashboard
+      session
+      |> click(link(resource.name))
+      |> click(link("View Events"))
+
+      # Verify event processing status indicators
+      assert_has(session, css(".event-status", text: "processed"))
+      assert_has(session, css(".event-timestamp"))
+      assert_has(session, css(".event-type"))
+
+      # Verify event details are shown
+      assert_has(session, css(".event-details"))
+      assert_has(session, css(".event-metadata"))
+    end
+
+    test "event subscription management", %{session: session, resource: resource} do
+      # Navigate to resource
+      session
+      |> click(link(resource.name))
+      |> click(link("Manage Subscriptions"))
+
+      # Subscribe to specific event types
+      session
+      |> check(checkbox("resource.updated"))
+      |> check(checkbox("resource.transformed"))
+      |> click(button("Save Subscriptions"))
+
+      # Verify subscription status
+      assert_has(session, css(".subscription-status", text: "Active"))
+      assert_has(session, css(".subscription-events", text: "resource.updated"))
+      assert_has(session, css(".subscription-events", text: "resource.transformed"))
+
+      # Unsubscribe from events
+      session
+      |> uncheck(checkbox("resource.updated"))
+      |> click(button("Save Subscriptions"))
+
+      # Verify subscription was removed
+      refute_has(session, css(".subscription-events", text: "resource.updated"))
+    end
+
+    test "event processing error handling", %{session: session, resource: resource} do
+      # Navigate to resource
+      session
+      |> click(link(resource.name))
+      |> click(link("Edit"))
+
+      # Attempt invalid update
+      session
+      # Invalid empty content
+      |> fill_in(text_field("resource[content]"), with: "")
+      |> click(button("Save"))
+
+      # Verify error message
+      assert_has(session, css(".error-message", text: "Content can't be blank"))
+
+      # Navigate to events dashboard
+      session
+      |> click(link("View Events"))
+
+      # Verify error event was generated
+      assert_has(session, css(".event-row", text: "resource.validation_error"))
+      assert_has(session, css(".event-data", text: "Content can't be blank"))
+    end
+  end
+end

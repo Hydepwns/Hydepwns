@@ -10,6 +10,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoTabs do
   use Phoenix.Component
   import HydepwnsLiveviewWeb.Components.MonoGrid
   alias Phoenix.LiveView.JS
+  import HydepwnsLiveviewWeb.Components.Common.CoreComponents, only: [icon: 1]
 
   @doc """
   Renders a monospace tabbed interface.
@@ -47,37 +48,35 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoTabs do
   end
 
   def mono_tabs(assigns) do
-    # Determine the active tab (use active_tab if provided, otherwise use the first tab)
-    active_tab =
-      if assigns.active_tab,
-        do: assigns.active_tab,
-        else: get_first_tab_id(assigns.tab)
+    style_class =
+      case assigns.style do
+        :bordered -> "mono-tabs-bordered"
+        :underlined -> "mono-tabs-underlined"
+        :boxed -> "mono-tabs-boxed"
+      end
 
-    assigns = assign(assigns, :active_tab, active_tab)
+    vertical_class = if assigns.vertical, do: "mono-tabs-vertical", else: ""
+
+    assigns = assign(assigns, :style_class, style_class)
+    assigns = assign(assigns, :vertical_class, vertical_class)
 
     ~H"""
-    <div id={@id} class={["mono-tabs", "mono-tabs--#{@style}", @vertical && "mono-tabs--vertical", @class]} {@rest} phx-hook="MonoTabs" data-tabs-id={@id}>
-      <div class="mono-tabs__nav" role="tablist">
-        <%= for tab <- @tab do %>
-          <button type="button" id={"#{@id}-tab-#{tab.id}"} class={["mono-tabs__tab", @active_tab == tab.id && "mono-tabs__tab--active"]} role="tab" aria-selected={@active_tab == tab.id} aria-controls={"#{@id}-panel-#{tab.id}"} phx-click={show_tab(@id, tab.id)}>
-            <%= if Map.get(tab, :icon) do %>
-              <span class="mono-tabs__icon">{tab.icon}</span>
+    <div id={@id} data-test="mono-tabs" data-test-style={@style} class={["mono-tabs", @style_class, @vertical_class, @class]} {@rest}>
+      <div class="mono-tabs-list" role="tablist" data-test="mono-tabs-list">
+        <%= for {tab, index} <- Enum.with_index(@tab) do %>
+          <button type="button" role="tab" id={"#{@id}-tab-#{tab.id}"} data-test={"mono-tab-#{index + 1}"} data-tab-id={tab.id} aria-selected={tab.id == @active_tab} aria-controls={"#{@id}-panel-#{tab.id}"} class={["mono-tab", tab.id == @active_tab && "active"]} phx-click={JS.push("tab_click", value: %{tab: tab.id})}>
+            <%= if tab.icon do %>
+              <.icon name={tab.icon} class="mono-tab-icon" />
             <% end %>
-            <span class="mono-tabs__title">{tab.title}</span>
+            <span class="mono-tab-title">{tab.title}</span>
           </button>
         <% end %>
       </div>
 
-      <div class="mono-tabs__content">
+      <div class="mono-tabs-content" data-test="mono-tabs-content">
         <%= for tab <- @tab do %>
-          <div id={"#{@id}-panel-#{tab.id}"} class={["mono-tabs__panel", @active_tab == tab.id && "mono-tabs__panel--active"]} role="tabpanel" aria-labelledby={"#{@id}-tab-#{tab.id}"} hidden={@active_tab != tab.id}>
-            <.mono_grid cols={78}>
-              <.mono_grid_row>
-                <.mono_grid_cell cols={78}>
-                  {render_slot(tab)}
-                </.mono_grid_cell>
-              </.mono_grid_row>
-            </.mono_grid>
+          <div id={"#{@id}-panel-#{tab.id}"} role="tabpanel" aria-labelledby={"#{@id}-tab-#{tab.id}"} data-test={"mono-tab-panel-#{tab.id}"} class={["mono-tab-panel", tab.id == @active_tab && "active"]} hidden={tab.id != @active_tab}>
+            {render_slot(tab)}
           </div>
         <% end %>
       </div>

@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/gh/Hydepwns/Hydepwns/branch/main/graph/badge.svg)](https://app.codecov.io/gh/Hydepwns/Hydepwns)
+
 # Event System Architecture
 
 ## Overview

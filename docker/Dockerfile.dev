@@ -27,8 +27,8 @@ COPY mix.exs mix.lock ./
 RUN mix deps.get
 
 # Copy assets
-COPY assets ./assets
-RUN cd assets && npm install
+COPY assets ./priv/static/assets
+RUN cd priv/static/assets && npm install
 
 # Copy remaining application code
 COPY . .

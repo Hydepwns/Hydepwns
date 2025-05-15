@@ -359,7 +359,7 @@ defmodule HydepwnsLiveview.Components.TransformationMetricsViewer do
             </tr>
           </thead>
           <tbody>
-            <%= for {{module, report}, index} <- Enum.with_index(calculate_overall_ranking(@performance_report)) do %>
+            <%= for {{_module, report}, index} <- Enum.with_index(calculate_overall_ranking(@performance_report)) do %>
               <tr>
                 <td>{index + 1}</td>
                 <td>{report.transformation_name}</td>
@@ -478,7 +478,7 @@ defmodule HydepwnsLiveview.Components.TransformationMetricsViewer do
     "hsl(#{hash}, 70%, 50%)"
   end
 
-  defp mock_chart_points(data) do
+  defp mock_chart_points(_data) do
     # This is just a mock for visualization purposes
     # In a real implementation, you would calculate this based on actual data
     Enum.map(1..10, fn _ -> :rand.uniform(100) end)

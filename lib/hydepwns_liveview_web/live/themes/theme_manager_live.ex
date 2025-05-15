@@ -173,4 +173,9 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
     themes = Themes.list_themes()
     {:noreply, assign(socket, :themes, themes)}
   end
+
+  @impl true
+  def handle_info(msg, socket) do
+    {:noreply, socket}
+  end
 end

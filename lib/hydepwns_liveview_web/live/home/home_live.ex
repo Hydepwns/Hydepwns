@@ -9,10 +9,7 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
       :current_section,
       :animation_speed_class,
       :current_path,
-      :terminal_id,
-      :show_terminal,
       :viewport_size,
-      :terminal_theme,
       :screen_reader_announcements
     ]
 
@@ -61,7 +58,6 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
     |> PathHelper.assign_specific_path("/")
     |> assign(:page_title, "Home")
     |> assign(:theme_class, "#{theme}-theme")
-    |> assign(:terminal_theme, theme)
     |> assign(:show_toc, true)
     |> assign(:toc_items, [
       {"introduction", "Introduction"},
@@ -76,8 +72,6 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
     |> assign(:current_section, nil)
     |> assign(:animation_speed_class, "normal-speed")
     |> assign(:current_path, "/")
-    |> assign(:terminal_id, "home-terminal")
-    |> assign(:show_terminal, false)
     |> assign(:viewport_size, viewport_size)
     |> assign(:screen_reader_announcements, [])
   end
@@ -123,43 +117,6 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
   @impl true
   def handle_event("set_current_section", %{"section" => section}, socket) do
     {:noreply, assign(socket, :current_section, section)}
-  end
-
-  @impl true
-  def handle_event("toggle_terminal", _, socket) do
-    # Add screen reader announcement
-    status = if socket.assigns.show_terminal, do: "hidden", else: "shown"
-    announcement = "Terminal #{status}"
-    announcements = [announcement | socket.assigns.screen_reader_announcements]
-
-    {:noreply,
-     socket
-     |> assign(:show_terminal, !socket.assigns.show_terminal)
-     |> assign(:screen_reader_announcements, announcements)}
-  end
-
-  @impl true
-  def handle_event("update_terminal_theme", %{"theme" => theme}, socket) do
-    {:noreply, assign(socket, :terminal_theme, theme)}
-  end
-
-  @impl true
-  def handle_event("update_viewport_size", %{"size" => size}, socket) do
-    if socket.assigns.viewport_size != size do
-      # Add announcement for screen readers when viewport size changes
-      announcement = "Viewport size changed to #{size}"
-
-      socket =
-        socket
-        |> assign(:viewport_size, size)
-        |> update(:screen_reader_announcements, fn announcements ->
-          [announcement | announcements] |> Enum.take(5)
-        end)
-
-      {:noreply, socket}
-    else
-      {:noreply, socket}
-    end
   end
 
   @impl true
@@ -227,7 +184,6 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
     socket =
       socket
       |> assign(:theme_class, "#{theme}-theme")
-      |> assign(:terminal_theme, theme)
 
     {:noreply, socket}
   end
@@ -421,52 +377,6 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
                     <span>Examples: Interactive demos and playground environments</span>
                   </div>
                 </div>
-              </div>
-            </section>
-            
-    <!-- Interactive Terminal Section -->
-            <section id="interactive-terminal">
-              <h2>Interactive Terminal</h2>
-              <p>Experience our terminal interface directly from the home page. Try commands like <code>help</code>, <code>about</code>, <code>hello</code>, or <code>info</code>. Use the navigation plugin to explore the site.</p>
-
-              <div class="interactive-terminal-container">
-                <.live_component
-                  module={HydepwnsLiveviewWeb.Components.Interactive.Terminal}
-                  id="home-terminal"
-                  prompt="hydepwns$ "
-                  welcome_message="Welcome to Hydepwns Terminal! Type 'help' for available commands or 'about' for project information."
-                  available_commands={
-                    %{
-                      "hello" => %{
-                        description: "Say hello to the user",
-                        usage: "hello [name]"
-                      },
-                      "about" => %{
-                        description: "Display information about Hydepwns",
-                        usage: "about"
-                      }
-                    }
-                  }
-                  plugins={[Navigation]}
-                  theme={@terminal_theme}
-                  fullscreen={false}
-                  cols={80}
-                  rows={15}
-                />
-              </div>
-
-              <div class="terminal-help-text">
-                <h3>Try These Commands:</h3>
-                <ul class="command-suggestions">
-                  <li><code>help</code> - List all available commands</li>
-                  <li><code>about</code> - Learn about Hydepwns</li>
-                  <li><code>hello [name]</code> - Personalized greeting</li>
-                  <li><code>info</code> - System information</li>
-                  <li><code>theme [name]</code> - Change the terminal theme (try "synthwave")</li>
-                  <li><code>nav</code> - Site navigation help</li>
-                  <li><code>map</code> - Show site structure</li>
-                  <li><code>goto [path]</code> - Navigate to another page</li>
-                </ul>
               </div>
             </section>
             

@@ -152,6 +152,11 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
   end
 
   @impl true
+  def handle_info(msg, socket) do
+    {:noreply, socket}
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
     <div class="event-system-example">

@@ -34,7 +34,6 @@ defmodule HydepwnsLiveviewWeb.Helpers.PathHelper do
   def path_to(:about), do: "/about"
   def path_to(:projects), do: "/projects"
   def path_to(:style_guide), do: "/style-guide"
-  def path_to(:terminal_demo), do: "/playground/terminal"
   def path_to(:screen_reader_test), do: "/screen-reader-test"
   def path_to(:api_docs), do: "/api-docs"
   def path_to(:grid_playground), do: "/grid-playground"

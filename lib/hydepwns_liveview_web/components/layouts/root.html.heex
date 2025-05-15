@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme={assigns[:theme_class] || "light-theme"} class="fonts-loading">
+<html lang="en" data-theme={assigns[:theme_class] || "light-theme"} class="fonts-loading [&_*]:!transition-none">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -8,6 +8,10 @@
     <.live_title suffix=" · Hydepwns">
       {assigns[:page_title] || "Home"}
     </.live_title>
+    <link rel="icon" type="image/x-icon" href={~p"/images/favicon.ico"} />
+    <link rel="apple-touch-icon" sizes="180x180" href={~p"/images/apple-touch-icon.png"} />
+    <link rel="icon" type="image/png" sizes="32x32" href={~p"/images/favicon-32x32.png"} />
+    <link rel="icon" type="image/png" sizes="16x16" href={~p"/images/favicon-16x16.png"} />
     
 <!-- Font optimization tags -->
     <link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin />

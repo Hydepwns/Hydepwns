@@ -216,7 +216,7 @@ defmodule HydepwnsLiveview.Utils.ResourceAssigns do
             )
           end
 
-          def put_unquote(name)(socket, value) do
+          def unquote(:"put_#{name}")(socket, value) do
             Phoenix.Component.assign(socket, unquote(name), value)
           end
         end

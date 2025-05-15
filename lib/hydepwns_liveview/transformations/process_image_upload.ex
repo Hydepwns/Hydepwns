@@ -51,7 +51,7 @@ defmodule HydepwnsLiveview.Transformations.ProcessImageUpload do
   - `{:error, reason}` if there was an error during transformation
   """
   @impl true
-  def transform(resource, context) do
+  def transform(resource, _context) do
     case validate_upload(resource.image_upload) do
       :ok ->
         # Generate a unique filename
@@ -143,7 +143,7 @@ defmodule HydepwnsLiveview.Transformations.ProcessImageUpload do
       {:ok, %{size: size}} when size <= @max_file_size ->
         :ok
 
-      {:ok, %{size: size}} ->
+      {:ok, %{size: _size}} ->
         max_mb = @max_file_size / 1_048_576
         {:error, "File size exceeds the maximum allowed size of #{max_mb} MB"}
 
@@ -163,7 +163,7 @@ defmodule HydepwnsLiveview.Transformations.ProcessImageUpload do
   end
 
   # Extract image metadata
-  defp extract_image_metadata(path) do
+  defp extract_image_metadata(_path) do
     # This is a simplified example. In a real application,
     # you would use a library to extract actual metadata.
     # For demonstration purposes, we're returning dummy metadata.

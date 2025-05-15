@@ -21,7 +21,6 @@ defmodule HydepwnsLiveviewWeb.Live.Docs.ApiDocsLive do
     |> assign(:toc_items, [
       {"intro", "Introduction"},
       {"grid-components", "Grid Components"},
-      {"terminal-component", "Terminal Component"},
       {"ascii-art-components", "ASCII Art Components"},
       {"ui-components", "UI Components"},
       {"theme-components", "Theme Components"}
@@ -64,23 +63,6 @@ defmodule HydepwnsLiveviewWeb.Live.Docs.ApiDocsLive do
               default: "80",
               description: "Number of columns in the grid"
             }
-          ]}
-        />
-      </.api_docs_section>
-
-      <.api_docs_section id="terminal-component" title="Terminal Component">
-        <.api_docs
-          component_name="Terminal"
-          description="An interactive terminal component with command history and customization options."
-          import_statement="alias HydepwnsLiveviewWeb.Components.Terminal"
-          attributes={[
-            %{
-              name: "id",
-              type: "string",
-              required: true,
-              description: "Required unique identifier for this terminal instance"
-            },
-            %{name: "prompt", type: "string", default: "$ ", description: "Terminal prompt string"}
           ]}
         />
       </.api_docs_section>

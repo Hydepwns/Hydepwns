@@ -49,12 +49,6 @@ defmodule HydepwnsLiveviewWeb.ProjectsLive do
         <p>A text editor designed specifically for monospaced fonts and grid-based layouts.</p>
         <a href="#" class="mono-button">VIEW PROJECT →</a>
       </div>
-
-      <div class="project-card">
-        <h4>Terminal Dashboard</h4>
-        <p>A real-time dashboard with a terminal-inspired interface.</p>
-        <a href="#" class="mono-button">VIEW PROJECT →</a>
-      </div>
     </div>
 
     <h3 id="open-source">Open Source</h3>
@@ -69,9 +63,6 @@ defmodule HydepwnsLiveviewWeb.ProjectsLive do
       </li>
       <li>
         <strong>FontMetrics</strong> - A tool for analyzing and comparing monospaced fonts
-      </li>
-      <li>
-        <strong>TerminalUI</strong> - A library for building terminal-inspired web interfaces
       </li>
     </ul>
 

@@ -17,6 +17,7 @@ defmodule HydepwnsLiveviewWeb.Components.TransformationMetricsComponent do
   use HydepwnsLiveviewWeb, :live_component
 
   alias HydepwnsLiveview.Transformations.TransformationMetrics
+  alias Phoenix.LiveView.JS
 
   @impl true
   def render(assigns) do

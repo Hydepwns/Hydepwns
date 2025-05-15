@@ -89,23 +89,9 @@ defmodule HydepwnsLiveview.ThemeSystem do
 
   """
   def create_theme(attrs \\ %{}) do
-    result =
-      %Theme{}
-      |> Theme.changeset(attrs)
-      |> Repo.insert()
-
-    case result do
-      {:ok, theme} ->
-        # If this is a default theme, unset other defaults
-        if theme.__unset_other_defaults__ do
-          unset_other_defaults(theme.id)
-        end
-
-        {:ok, theme}
-
-      error ->
-        error
-    end
+    %Theme{}
+    |> Theme.changeset(attrs)
+    |> Repo.insert()
   end
 
   @doc """

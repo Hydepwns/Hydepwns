@@ -20,7 +20,9 @@ config :hydepwns_liveview, HydepwnsLiveviewWeb.Endpoint,
     layout: false
   ],
   pubsub_server: HydepwnsLiveview.PubSub,
-  live_view: [signing_salt: "xsXgnIZl"]
+  live_view: [signing_salt: "xsXgnIZl"],
+  static_url: [path: "/"],
+  static_paths: ~w(assets fonts images favicon.ico robots.txt)
 
 # Configures the mailer
 #
@@ -37,7 +39,7 @@ config :esbuild,
   hydepwns_liveview: [
     args:
       ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
-    cd: Path.expand("../assets", __DIR__),
+    cd: Path.expand("../priv/static/assets", __DIR__),
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]
 
@@ -46,7 +48,7 @@ config :dart_sass,
   version: "1.61.0",
   default: [
     args: ~w(css/app.scss ../priv/static/assets/app.css),
-    cd: Path.expand("../assets", __DIR__)
+    cd: Path.expand("../priv/static/assets", __DIR__)
   ]
 
 # Configures Elixir's Logger

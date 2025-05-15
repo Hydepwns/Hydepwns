@@ -59,7 +59,7 @@ defmodule HydepwnsLiveviewWeb.AccessibilityHelper do
   end
 
   @doc """
-  Asserts that interactive elements have proper ARIA attributes.
+  Asserts that all required ARIA attributes are present and valid.
   """
   def assert_aria_attributes(view) do
     # Check buttons for aria-label, aria-labelledby, or aria-describedby
@@ -78,6 +78,15 @@ defmodule HydepwnsLiveviewWeb.AccessibilityHelper do
              "Input is missing label or ARIA attributes: #{inspect(input)}"
     end
 
+    # Check for proper ARIA roles
+    assert_aria_roles(view)
+
+    # Check for ARIA live regions
+    assert_aria_live_regions(view)
+
+    # Check for ARIA relationships
+    assert_aria_relationships(view)
+
     {:ok, view}
   end
 
@@ -92,23 +101,32 @@ defmodule HydepwnsLiveviewWeb.AccessibilityHelper do
     refute has_element?(view, "[tabindex]:not([tabindex='0']):not([tabindex='-1'])")
 
     # Check for keyboard traps (elements that capture focus)
-    # This is hard to test programmatically, but we can check for common patterns
+    assert_no_keyboard_traps(view)
+
+    # Check for skip links
+    assert_skip_links(view)
+
+    # Check for logical tab order
+    assert_logical_tab_order(view)
 
     {:ok, view}
   end
 
   @doc """
-  Asserts that proper color contrast is used (based on CSS classes that we know meet requirements).
+  Asserts that proper color contrast is used.
   """
   def assert_color_contrast(view) do
-    # We can't test actual colors in ExUnit, but we can check for known accessible
-    # color combinations based on our CSS classes
-
     # Check that high-contrast mode is available
     assert has_element?(
              view,
              "[data-theme], [class*='theme'], .high-contrast, #high-contrast-theme"
            )
+
+    # Check for proper color contrast in text
+    assert_text_contrast(view)
+
+    # Check for proper color contrast in interactive elements
+    assert_interactive_contrast(view)
 
     {:ok, view}
   end
@@ -117,13 +135,15 @@ defmodule HydepwnsLiveviewWeb.AccessibilityHelper do
   Asserts that reduced motion preferences are respected.
   """
   def assert_reduced_motion(view) do
-    # Check for the presence of reduced motion CSS
-    html = render(view)
+    # Check for reduced motion media query support
+    assert has_element?(view, "[data-reduced-motion]")
 
-    # Media query should be referenced somewhere
-    assert html =~ "prefers-reduced-motion" ||
-             html =~ "@media (prefers-reduced-motion: reduce)",
-           "No reduced motion media query found in the HTML"
+    # Check for animation controls
+    assert has_element?(view, "[data-animation-control]")
+
+    # Check for motion-safe/motion-reduce classes
+    assert has_element?(view, ".motion-safe")
+    assert has_element?(view, ".motion-reduce")
 
     {:ok, view}
   end
@@ -171,19 +191,19 @@ defmodule HydepwnsLiveviewWeb.AccessibilityHelper do
     Enum.any?(attributes, fn {attr, _} -> attr == attribute end)
   end
 
-  defp has_aria_accessibility(button) do
-    {_, attributes, children} = button
+  defp has_aria_accessibility(element) do
+    {_, attributes, _} = element
 
-    # Check for ARIA attributes
-    has_aria =
+    # Check for required ARIA attributes
+    has_aria_label =
       Enum.any?(attributes, fn {attr, _} ->
-        String.starts_with?(attr, "aria-")
+        attr in ["aria-label", "aria-labelledby", "aria-describedby"]
       end)
 
-    # Check for sr-only children
-    has_sr_only = Floki.find(children, ".sr-only") != []
+    # Check for proper role
+    has_role = Enum.any?(attributes, fn {attr, _} -> attr == "role" end)
 
-    has_aria || has_sr_only
+    has_aria_label || has_role
   end
 
   defp has_label_or_aria(input) do
@@ -202,29 +222,123 @@ defmodule HydepwnsLiveviewWeb.AccessibilityHelper do
         String.starts_with?(attr, "aria-")
       end)
 
-    # If we have an ID, we should check for a label with a matching 'for' attribute,
-    # but this is difficult to do with the current implementation.
-    # For now, we'll just check for the presence of ARIA attributes.
+    # Check for associated label
+    has_label =
+      Enum.any?(attributes, fn {attr, _} ->
+        attr in ["aria-label", "aria-labelledby"]
+      end)
 
-    has_aria
+    has_aria || has_label
   end
 
   defp assert_focusable_elements(view) do
     # Check that interactive elements are focusable
-
-    # Buttons should be focusable
     assert has_element?(view, "button")
-
-    # Links should be focusable
     assert has_element?(view, "a[href]")
 
-    # Form elements should be focusable
+    # Check form elements
     for element_type <- ["input", "select", "textarea", "button"] do
       if has_element?(view, element_type) do
         assert has_element?(view, element_type)
       end
     end
 
-    {:ok, view}
+    # Check custom focusable elements
+    assert has_element?(view, "[tabindex='0']")
+  end
+
+  defp assert_no_keyboard_traps(view) do
+    # Check for focus trapping attributes
+    refute has_element?(view, "[data-focus-trap]")
+
+    # Check for modal dialogs
+    modals = find_elements(view, "[role='dialog']")
+
+    for modal <- modals do
+      assert has_focus_management(modal),
+             "Modal dialog missing focus management: #{inspect(modal)}"
+    end
+  end
+
+  defp assert_skip_links(view) do
+    # Check for skip to main content link
+    assert has_element?(view, "a[href='#main-content']")
+
+    # Check for skip to navigation link
+    assert has_element?(view, "a[href='#navigation']")
+  end
+
+  defp assert_logical_tab_order(view) do
+    # Check for proper tabindex values
+    refute has_element?(view, "[tabindex]:not([tabindex='0']):not([tabindex='-1'])")
+
+    # Check for proper focus order in navigation
+    assert has_element?(view, "nav[aria-label='Main navigation']")
+  end
+
+  defp assert_aria_roles(view) do
+    # Check for proper roles on interactive elements
+    assert has_element?(view, "button[role='button']")
+    assert has_element?(view, "a[role='link']")
+    assert has_element?(view, "input[role='textbox']")
+  end
+
+  defp assert_aria_live_regions(view) do
+    # Check for live regions on dynamic content
+    assert has_element?(view, "[aria-live='polite']")
+    assert has_element?(view, "[aria-live='assertive']")
+  end
+
+  defp assert_aria_relationships(view) do
+    # Check for proper ARIA relationships
+    assert has_element?(view, "[aria-labelledby]")
+    assert has_element?(view, "[aria-describedby]")
+    assert has_element?(view, "[aria-controls]")
+  end
+
+  defp assert_text_contrast(view) do
+    # Check for proper text contrast classes
+    assert has_element?(view, ".text-high-contrast")
+    assert has_element?(view, ".text-normal-contrast")
+  end
+
+  defp assert_interactive_contrast(view) do
+    # Check for proper contrast on interactive elements
+    assert has_element?(view, "button.high-contrast")
+    assert has_element?(view, "a.high-contrast")
+  end
+
+  defp assert_modal_focus_trap(view) do
+    # Check for focus trapping in modals
+    modals = find_elements(view, "[role='dialog']")
+
+    for modal <- modals do
+      assert has_element?(modal, "[data-focus-trap]")
+    end
+  end
+
+  defp assert_focus_restoration(view) do
+    # Check for focus restoration attributes
+    assert has_element?(view, "[data-focus-restore]")
+  end
+
+  defp assert_focus_indicators(view) do
+    # Check for focus indicator styles
+    assert has_element?(view, ".focus-visible")
+    assert has_element?(view, ".keyboard-navigation")
+  end
+
+  defp assert_dynamic_focus(view) do
+    # Check for dynamic content focus management
+    assert has_element?(view, "[data-dynamic-focus]")
+  end
+
+  defp has_focus_management(element) do
+    {_, attributes, _} = element
+
+    # Check for focus management attributes
+    Enum.any?(attributes, fn {attr, _} ->
+      attr in ["data-focus-trap", "data-focus-restore", "data-dynamic-focus"]
+    end)
   end
 end

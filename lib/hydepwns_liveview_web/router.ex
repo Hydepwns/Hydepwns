@@ -35,7 +35,7 @@ defmodule HydepwnsLiveviewWeb.Router do
 
     # Playground routes
     scope "/playground", Live.Playground, as: :playground do
-      live "/terminal", TerminalDemoLive, :index
+      # Terminal demo route removed
     end
 
     # Examples routes

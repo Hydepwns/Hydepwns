@@ -21,17 +21,19 @@ defmodule HydepwnsLiveviewWeb.Components.UI.LayoutComponents do
 
   def header(assigns) do
     ~H"""
-    <header class={[@class]}>
+    <header class={[@class]} data-test="header-with-title">
       <div class="flex items-center justify-between gap-6">
         <div>
           <h1 class="text-lg font-semibold leading-8 text-zinc-800">
             {render_slot(@inner_block)}
           </h1>
-          <p :if={@subtitle != []} class="mt-2 text-sm leading-6 text-zinc-600">
+          <p :if={@subtitle != []} class="mt-2 text-sm leading-6 text-zinc-600" data-test="header-with-subtitle">
             {render_slot(@subtitle)}
           </p>
         </div>
-        <div class="flex-none">{render_slot(@actions)}</div>
+        <div :if={@actions != []} class="flex-none" data-test="header-with-actions">
+          {render_slot(@actions)}
+        </div>
       </div>
     </header>
     """
@@ -50,7 +52,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.LayoutComponents do
   def back(assigns) do
     ~H"""
     <div class="mt-16">
-      <.link navigate={@navigate} class="text-sm font-semibold leading-6 text-zinc-900 hover:text-zinc-700">
+      <.link navigate={@navigate} data-test="back-nav" class="text-sm font-semibold leading-6 text-zinc-900 hover:text-zinc-700">
         <.icon name="hero-arrow-left-solid" class="h-3 w-3" />
         {render_slot(@inner_block)}
       </.link>
@@ -124,6 +126,62 @@ defmodule HydepwnsLiveviewWeb.Components.UI.LayoutComponents do
         <% end %>
       <% end %>
     </nav>
+    """
+  end
+
+  @doc """
+  Renders a table header layout.
+  """
+  attr :class, :string, default: nil
+  slot :left, required: true
+  slot :right
+  slot :metadata
+
+  def table_header(assigns) do
+    ~H"""
+    <div class={["table-header", @class]} data-test="table-header">
+      <div class="flex items-center justify-between">
+        <div class="min-w-0 flex-1">
+          {render_slot(@left)}
+        </div>
+        <div :if={@right != []} class="flex flex-none items-center gap-4">
+          {render_slot(@right)}
+        </div>
+      </div>
+      <div :if={@metadata != []} class="mt-2" data-test="table-header-with-metadata">
+        {render_slot(@metadata)}
+      </div>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a layout container.
+  """
+  attr :class, :string, default: nil
+  attr :type, :string, default: "content"
+  slot :inner_block, required: true
+
+  def layout_container(assigns) do
+    ~H"""
+    <div class={[@class]} data-test={"layout-#{@type}"} data-test-content-type={@type}>
+      {render_slot(@inner_block)}
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a grid layout.
+  """
+  attr :class, :string, default: nil
+  attr :type, :string, default: "basic"
+  slot :inner_block, required: true
+
+  def grid_layout(assigns) do
+    ~H"""
+    <div class={["grid-layout", @class]} data-test={"grid-layout-#{@type}"}>
+      {render_slot(@inner_block)}
+    </div>
     """
   end
 end

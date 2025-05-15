@@ -30,7 +30,8 @@ defmodule HydepwnsLiveview.Application do
       # Start a worker by calling: HydepwnsLiveview.Worker.start_link(arg)
       # {HydepwnsLiveview.Worker, arg},
       # Start to serve requests, typically the last entry
-      HydepwnsLiveviewWeb.Endpoint
+      HydepwnsLiveviewWeb.Endpoint,
+      HydepwnsLiveviewWeb.Presence
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

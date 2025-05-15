@@ -1,3 +1,5 @@
+import HydepwnsLiveviewWeb.Components.ChangeHistoryViewer
+
 defmodule HydepwnsLiveviewWeb.Examples.ChangeTrackingExampleLive do
   @moduledoc """
   Example LiveView that demonstrates the Change Tracking system.
@@ -9,9 +11,6 @@ defmodule HydepwnsLiveviewWeb.Examples.ChangeTrackingExampleLive do
   use HydepwnsLiveviewWeb.ResourceLive
   alias HydepwnsLiveview.Utils.LiveViewAPI
   alias HydepwnsLiveview.Resources.UserResource
-  alias HydepwnsLiveviewWeb.Components.ChangeHistoryViewer
-
-  import HydepwnsLiveviewWeb.Components.ChangeHistoryViewer
 
   # Use the assigns DSL
   assigns do
@@ -296,5 +295,10 @@ defmodule HydepwnsLiveviewWeb.Examples.ChangeTrackingExampleLive do
     else
       List.first(history).version
     end
+  end
+
+  @impl true
+  def handle_info(msg, socket) do
+    {:noreply, socket}
   end
 end

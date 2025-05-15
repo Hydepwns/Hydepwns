@@ -15,6 +15,7 @@ defmodule HydepwnsLiveview.ThemeSystem.Models.Theme do
     field :colors, :map, default: %{}
     field :is_default, :boolean, default: false
     field :settings, :map, default: %{}
+    field :__unset_other_defaults__, :boolean, virtual: true
 
     timestamps(type: :utc_datetime)
   end

@@ -15,8 +15,6 @@ defmodule HydepwnsLiveview.Events.Core.NotificationSystem do
   """
 
   require Logger
-  alias HydepwnsLiveview.Accounts.User
-  alias HydepwnsLiveview.Events.Core.Event
   alias HydepwnsLiveviewWeb.Presence
 
   # Default notification settings

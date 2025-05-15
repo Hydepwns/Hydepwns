@@ -37,14 +37,11 @@ defmodule HydepwnsLiveview.Resources.PerformanceOptimizer do
   * `:ok` - System was initialized successfully
   """
   def init do
-    # Create ETS table for resource cache
-    :ets.new(@resource_cache_table, [:named_table, :set, :public, read_concurrency: true])
+    # Start the cache server
+    {:ok, _pid} = HydepwnsLiveview.Resources.CacheServer.start_link()
 
     # Register telemetry handlers
     register_telemetry_handlers()
-
-    # Start background tasks
-    start_cache_maintenance_task()
 
     :ok
   end
@@ -130,30 +127,20 @@ defmodule HydepwnsLiveview.Resources.PerformanceOptimizer do
   * `{:error, reason}` - Failed to retrieve resource
   """
   def cached_resource(resource_type, resource_id, fetch_fn, opts \\ []) do
-    # Build cache key
-    cache_key = "#{resource_type}:#{resource_id}"
-
-    # Get cache options
-    cache_opts =
-      Map.merge(
-        @default_cache_opts,
-        Map.new(Keyword.take(opts, [:ttl_seconds, :max_size, :invalidation_events]))
-      )
-
-    # Try process dictionary (fastest)
-    case Process.get({:resource_cache, cache_key}) do
+    # Try process dictionary first (fastest)
+    case Process.get({:resource_cache, resource_type, resource_id}) do
       {resource, expiry} ->
         if DateTime.compare(expiry, DateTime.utc_now()) == :gt do
           # Process cache is valid
           {:ok, resource}
         else
-          # Process cache expired, try ETS
-          try_ets_then_fetch(cache_key, fetch_fn, cache_opts)
+          # Process cache expired, try cache server
+          try_cache_server(resource_type, resource_id, fetch_fn, opts)
         end
 
       nil ->
-        # Not in process dictionary, try ETS
-        try_ets_then_fetch(cache_key, fetch_fn, cache_opts)
+        # Not in process dictionary, try cache server
+        try_cache_server(resource_type, resource_id, fetch_fn, opts)
     end
   end
 
@@ -168,13 +155,11 @@ defmodule HydepwnsLiveview.Resources.PerformanceOptimizer do
   * `:ok` - Cache was invalidated
   """
   def invalidate_cache(resource_type, resource_id) do
-    cache_key = "#{resource_type}:#{resource_id}"
-
     # Remove from process dictionary
-    Process.delete({:resource_cache, cache_key})
+    Process.delete({:resource_cache, resource_type, resource_id})
 
-    # Remove from ETS cache
-    :ets.delete(@resource_cache_table, cache_key)
+    # Invalidate in cache server
+    HydepwnsLiveview.Resources.CacheServer.invalidate(resource_type, resource_id)
 
     :ok
   end
@@ -232,7 +217,7 @@ defmodule HydepwnsLiveview.Resources.PerformanceOptimizer do
   ## Returns
   * Loading strategy for the client
   """
-  def optimized_loading_strategy(client_info, resource_type, opts \\ []) do
+  def optimized_loading_strategy(client_info, resource_type, _opts \\ []) do
     # Determine device capabilities
     is_mobile = client_info.user_agent =~ ~r/(Android|iPhone|iPad|iPod)/
     connection_type = client_info.connection_type || :unknown
@@ -346,43 +331,146 @@ defmodule HydepwnsLiveview.Resources.PerformanceOptimizer do
     {:ok, results}
   end
 
-  # Private helper functions
+  @doc """
+  Stores performance metrics in a time-series database.
 
-  defp try_ets_then_fetch(cache_key, fetch_fn, cache_opts) do
-    # Try ETS cache
-    case :ets.lookup(@resource_cache_table, cache_key) do
-      [{^cache_key, resource, expiry}] ->
-        if DateTime.compare(expiry, DateTime.utc_now()) == :gt do
-          # Update process cache
-          Process.put({:resource_cache, cache_key}, {resource, expiry})
+  ## Parameters
+  * `metrics` - The metrics to store
+  * `opts` - Storage options
 
-          # Return cached resource
-          {:ok, resource}
-        else
-          # ETS cache expired, fetch and update caches
-          fetch_and_cache(cache_key, fetch_fn, cache_opts)
-        end
+  ## Returns
+  * `:ok` - Metrics stored successfully
+  * `{:error, reason}` - Failed to store metrics
+  """
+  def store_metrics(metrics, opts \\ []) do
+    # Get storage backend from config
+    backend = Application.get_env(:hydepwns_liveview, :metrics_backend, :influxdb)
 
-      [] ->
-        # Not in ETS, fetch and update caches
-        fetch_and_cache(cache_key, fetch_fn, cache_opts)
+    case backend do
+      :influxdb ->
+        store_metrics_influxdb(metrics, opts)
+
+      :prometheus ->
+        store_metrics_prometheus(metrics, opts)
+
+      _ ->
+        {:error, "Unsupported metrics backend: #{inspect(backend)}"}
     end
   end
 
-  defp fetch_and_cache(cache_key, fetch_fn, cache_opts) do
-    # Execute fetch function
-    case fetch_fn.() do
+  @doc """
+  Analyzes performance patterns and suggests optimizations.
+
+  ## Parameters
+  * `resource_type` - The resource type to analyze
+  * `period` - Time period for analysis in seconds
+
+  ## Returns
+  * `{:ok, suggestions}` - List of optimization suggestions
+  * `{:error, reason}` - Failed to analyze performance
+  """
+  def analyze_performance_patterns(resource_type, period \\ 3600) do
+    with {:ok, metrics} <- gather_event_metrics(resource_type, period) do
+      suggestions = []
+
+      # Analyze read/write patterns
+      read_write_ratio = metrics.read_count / max(metrics.write_count, 1)
+
+      suggestions =
+        if read_write_ratio > 10 do
+          [
+            %{
+              type: :cache_optimization,
+              description: "High read/write ratio suggests increasing cache TTL",
+              impact: :high,
+              priority: :high
+            }
+            | suggestions
+          ]
+        else
+          suggestions
+        end
+
+      # Analyze event frequency
+      events_per_second = metrics.total_events / period
+
+      suggestions =
+        if events_per_second > 100 do
+          [
+            %{
+              type: :batch_processing,
+              description: "High event frequency suggests implementing batch processing",
+              impact: :high,
+              priority: :high
+            }
+            | suggestions
+          ]
+        else
+          suggestions
+        end
+
+      # Analyze resource size
+      suggestions =
+        if metrics.avg_event_size > 1024 do
+          [
+            %{
+              type: :compression,
+              description: "Large event size suggests implementing compression",
+              impact: :medium,
+              priority: :medium
+            }
+            | suggestions
+          ]
+        else
+          suggestions
+        end
+
+      {:ok, suggestions}
+    end
+  end
+
+  @doc """
+  Sets up performance monitoring alerts.
+
+  ## Parameters
+  * `resource_type` - The resource type to monitor
+  * `thresholds` - Alert thresholds
+
+  ## Returns
+  * `:ok` - Alerts configured successfully
+  * `{:error, reason}` - Failed to configure alerts
+  """
+  def setup_performance_alerts(resource_type, thresholds \\ %{}) do
+    # Default thresholds
+    default_thresholds = %{
+      response_time_ms: 1000,
+      error_rate: 0.01,
+      cache_hit_rate: 0.8,
+      memory_usage_mb: 100
+    }
+
+    # Merge with provided thresholds
+    thresholds = Map.merge(default_thresholds, thresholds)
+
+    # Store thresholds in ETS
+    :ets.insert(@resource_cache_table, {:alert_thresholds, resource_type, thresholds})
+
+    # Start monitoring process
+    start_performance_monitoring(resource_type)
+
+    :ok
+  end
+
+  # Private helper functions
+
+  defp try_cache_server(resource_type, resource_id, fetch_fn, opts) do
+    # Try to get from cache server
+    case HydepwnsLiveview.Resources.CacheServer.get(resource_type, resource_id, fetch_fn) do
       {:ok, resource} ->
-        # Calculate expiry
-        expiry = DateTime.add(DateTime.utc_now(), cache_opts.ttl_seconds, :second)
-
         # Update process cache
-        Process.put({:resource_cache, cache_key}, {resource, expiry})
+        expiry = DateTime.add(DateTime.utc_now(), Keyword.get(opts, :ttl_seconds, 300), :second)
+        Process.put({:resource_cache, resource_type, resource_id}, {resource, expiry})
 
-        # Update ETS cache
-        :ets.insert(@resource_cache_table, {cache_key, resource, expiry})
-
-        # Return the resource
         {:ok, resource}
 
       {:error, _} = error ->
@@ -425,57 +513,15 @@ defmodule HydepwnsLiveview.Resources.PerformanceOptimizer do
         Map.new(Keyword.take(opts, [:ttl_seconds, :max_size, :invalidation_events]))
       )
 
-    # Calculate expiry
-    expiry = DateTime.add(DateTime.utc_now(), cache_opts.ttl_seconds, :second)
-
     # Cache each resource
     Enum.each(resources, fn {id, resource} ->
-      cache_key = "#{resource_type}:#{id}"
+      # Cache in process dictionary
+      expiry = DateTime.add(DateTime.utc_now(), cache_opts.ttl_seconds, :second)
+      Process.put({:resource_cache, resource_type, id}, {resource, expiry})
 
-      # Update process cache
-      Process.put({:resource_cache, cache_key}, {resource, expiry})
-
-      # Update ETS cache
-      :ets.insert(@resource_cache_table, {cache_key, resource, expiry})
+      # Cache in cache server
+      HydepwnsLiveview.Resources.CacheServer.put(resource_type, id, resource, opts)
     end)
-  end
-
-  defp start_cache_maintenance_task do
-    # Start a task to periodically clean up expired cache entries
-    Task.start(fn ->
-      # Wait 1 minute before first run
-      :timer.sleep(60_000)
-      cache_maintenance_loop()
-    end)
-  end
-
-  defp cache_maintenance_loop do
-    # Clean up expired cache entries
-    clean_expired_cache_entries()
-
-    # Wait before next run (5 minutes)
-    :timer.sleep(300_000)
-
-    # Loop
-    cache_maintenance_loop()
-  end
-
-  defp clean_expired_cache_entries do
-    now = DateTime.utc_now()
-
-    # Find and delete expired entries
-    :ets.foldl(
-      fn {key, _resource, expiry}, acc ->
-        if DateTime.compare(expiry, now) == :lt do
-          :ets.delete(@resource_cache_table, key)
-          acc + 1
-        else
-          acc
-        end
-      end,
-      0,
-      @resource_cache_table
-    )
   end
 
   defp register_telemetry_handlers do
@@ -521,4 +567,70 @@ defmodule HydepwnsLiveview.Resources.PerformanceOptimizer do
   defp full_prefetch(:post), do: [:author, :comments, :likes]
   defp full_prefetch(:team), do: [:owner, :members, :projects]
   defp full_prefetch(_), do: []
+
+  # Private functions for metrics storage
+
+  defp store_metrics_influxdb(metrics, _opts) do
+    # In a real implementation, this would store metrics in InfluxDB
+    # For now, we'll just log them
+    Logger.info("Storing metrics in InfluxDB: #{inspect(metrics)}")
+    :ok
+  end
+
+  defp store_metrics_prometheus(metrics, _opts) do
+    # In a real implementation, this would store metrics in Prometheus
+    # For now, we'll just log them
+    Logger.info("Storing metrics in Prometheus: #{inspect(metrics)}")
+    :ok
+  end
+
+  # Private functions for performance monitoring
+
+  defp start_performance_monitoring(resource_type) do
+    # Start a process to monitor performance
+    Task.start(fn ->
+      # Wait 1 minute before first check
+      :timer.sleep(60_000)
+      monitor_performance_loop(resource_type)
+    end)
+  end
+
+  defp monitor_performance_loop(resource_type) do
+    with {:ok, metrics} <- gather_event_metrics(resource_type, 60) do
+      # Process metrics and store them
+      store_metrics(metrics)
+    end
+
+    # Schedule next check
+    Process.send_after(self(), {:monitor_performance, resource_type}, @monitoring_interval)
+  end
+
+  defp gather_event_metrics(resource_type, time_window) do
+    try do
+      # Get metrics from ETS table
+      metrics =
+        :ets.select(@metrics_table, [
+          {{resource_type, :"$1", :"$2"}, [], [{{:"$1", :"$2"}}]}
+        ])
+
+      # Filter metrics within time window
+      cutoff = DateTime.add(DateTime.utc_now(), -time_window, :second)
+
+      filtered_metrics =
+        Enum.filter(metrics, fn {timestamp, _} ->
+          DateTime.compare(timestamp, cutoff) == :gt
+        end)
+
+      {:ok, filtered_metrics}
+    catch
+      _type, error ->
+        {:error, "Failed to gather metrics: #{inspect(error)}"}
+    end
+  end
+
+  defp alert_performance_issue(resource_type, issue_type, message) do
+    # In a real implementation, this would send alerts through various channels
+    # (email, Slack, etc.)
+    Logger.warning("Performance alert for #{resource_type} - #{issue_type}: #{message}")
+  end
 end

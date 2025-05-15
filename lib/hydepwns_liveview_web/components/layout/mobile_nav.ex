@@ -44,17 +44,6 @@ defmodule HydepwnsLiveviewWeb.Components.Layout.MobileNav do
         <span>Projects</span>
       </a>
 
-      <a href={path_to(:terminal_demo)} class={"mobile-nav-item #{if @current_path == path_to(:terminal_demo), do: "active"}"} aria-current={if @current_path == path_to(:terminal_demo), do: "page", else: "false"}>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
-          <path
-            fill-rule="evenodd"
-            d="M2.25 6a3 3 0 013-3h13.5a3 3 0 013 3v12a3 3 0 01-3 3H5.25a3 3 0 01-3-3V6zm3.97.97a.75.75 0 011.06 0l2.25 2.25a.75.75 0 010 1.06l-2.25 2.25a.75.75 0 01-1.06-1.06l1.72-1.72-1.72-1.72a.75.75 0 010-1.06zm4.28 4.28a.75.75 0 00-.75.75v3a.75.75 0 001.5 0v-3a.75.75 0 00-.75-.75z"
-            clip-rule="evenodd"
-          />
-        </svg>
-        <span>Terminal</span>
-      </a>
-
       <a href={path_to(:style_guide)} class={"mobile-nav-item #{if @current_path == path_to(:style_guide), do: "active"}"} aria-current={if @current_path == path_to(:style_guide), do: "page", else: "false"}>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
           <path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19.513 8.199l-3.712-3.712-12.15 12.15a5.25 5.25 0 00-1.32 2.214l-.8 2.685a.75.75 0 00.933.933l2.685-.8a5.25 5.25 0 002.214-1.32L19.513 8.2z" />

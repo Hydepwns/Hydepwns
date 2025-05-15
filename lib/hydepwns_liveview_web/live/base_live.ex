@@ -48,7 +48,8 @@ defmodule HydepwnsLiveviewWeb.BaseLive do
     enable_debug_grid = Keyword.get(opts, :enable_debug_grid, true)
 
     quote do
-      use Phoenix.LiveView
+      use Phoenix.LiveView, unquote(opts)
+      @behaviour HydepwnsLiveviewWeb.BaseLive.Behaviour
       alias HydepwnsLiveview.Utils.SocketValidator
       alias HydepwnsLiveview.Utils.SocketValidationDebugGrid
       require Logger
@@ -296,4 +297,9 @@ defmodule HydepwnsLiveviewWeb.BaseLive do
       defoverridable mount: 3, do_mount: 3
     end
   end
+end
+
+defmodule HydepwnsLiveviewWeb.BaseLive.Behaviour do
+  @callback do_mount(params :: map(), session :: map(), socket :: Phoenix.LiveView.Socket.t()) ::
+              {:ok, Phoenix.LiveView.Socket.t()} | {:error, term()}
 end

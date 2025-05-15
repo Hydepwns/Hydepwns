@@ -1,9 +1,9 @@
 defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
   use HydepwnsLiveviewWeb.WallabyCase, async: true
-  
+
   @moduledoc """
   End-to-end tests for the Resource Event System workflow.
-  
+
   This test suite verifies the complete user experience of:
   - Resource Creation → Validation → Transformation → Event Generation
   - Event visualization and monitoring
@@ -17,7 +17,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
   setup %{session: session} do
     # Initialize test resources
     resource_fixture = ResourceFixtures.create_test_resource(%{name: "Test Resource"})
-    
+
     # Start session and visit the resource dashboard
     {:ok, session: visit_and_wait(session, "/resources"), resource: resource_fixture}
   end
@@ -27,169 +27,171 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
       # Click on "Create New Resource" button
       session
       |> click(link("Create New Resource"))
-      
+
       # Fill out the form
       session
       |> fill_in(text_field("resource[name]"), with: "New Resource")
       |> fill_in(text_field("resource[description]"), with: "This is a test resource")
       |> fill_in(text_field("resource[status]"), with: "active")
       |> click(button("Create Resource"))
-      
+
       # Verify resource was created
       assert_has(session, css(".alert-success", text: "Resource created successfully"))
-      
+
       # Navigate to events dashboard
       session
       |> click(link("View Events"))
-      
+
       # Verify resource.created event is visible
       assert_has(session, css(".event-row", text: "resource.created"))
       assert_has(session, css(".event-resource-id", text: "New Resource"))
     end
-    
+
     test "resource update generates events", %{session: session, resource: resource} do
       # Navigate to the resource edit page
       session
       |> click(link(resource.name))
       |> click(link("Edit"))
-      
+
       # Update the resource
       session
       |> fill_in(text_field("resource[description]"), with: "Updated description")
       |> click(button("Save"))
-      
+
       # Verify update success
       assert_has(session, css(".alert-success", text: "Resource updated successfully"))
-      
+
       # Navigate to events dashboard
       session
       |> click(link("View Events"))
-      
+
       # Verify resource.updated event is visible
       assert_has(session, css(".event-row", text: "resource.updated"))
       assert_has(session, css(".event-data", text: "Updated description"))
     end
-    
+
     test "resource deletion generates events", %{session: session, resource: resource} do
       # Navigate to the resource view page
       session
       |> click(link(resource.name))
-      
+
       # Delete the resource
       session
       |> click(button("Delete Resource"))
       |> accept_confirm()
-      
+
       # Verify deletion success
       assert_has(session, css(".alert-success", text: "Resource deleted successfully"))
-      
+
       # Navigate to events dashboard
       session
       |> click(link("View Events"))
-      
+
       # Verify resource.deleted event is visible
       assert_has(session, css(".event-row", text: "resource.deleted"))
       assert_has(session, css(".event-resource-id", text: resource.id))
     end
   end
-  
+
   describe "event visualization and monitoring" do
     test "user can view event timeline", %{session: session} do
       # Navigate to event timeline
       session
       |> click(link("Events"))
       |> click(link("Timeline"))
-      
+
       # Verify timeline components are present
       assert_has(session, css(".event-timeline"))
-      assert_has(session, css(".timeline-event", count: at_least: 1))
-      
+      assert_has(session, css(".timeline-event", count: {:at_least, 1}))
+
       # Click on a timeline event
       session
       |> click(css(".timeline-event", at: 0))
-      
+
       # Verify event details are shown
       assert_has(session, css(".event-details"))
       assert_has(session, css(".event-type"))
       assert_has(session, css(".event-timestamp"))
       assert_has(session, css(".event-data"))
     end
-    
+
     test "user can filter events", %{session: session} do
       # Navigate to events dashboard
       session
       |> click(link("Events"))
-      
+
       # Apply a filter for created events
       session
       |> fill_in(text_field("event_filter[type]"), with: "created")
       |> click(button("Apply Filter"))
-      
+
       # Verify only created events are shown
       all_events = find_all(session, css(".event-type"))
+
       for event <- all_events do
         assert text_of(event) =~ "created"
       end
-      
+
       # Clear filters
       session
       |> click(button("Clear Filters"))
-      
+
       # Verify all event types are shown again
       assert_has(session, css(".event-type", text: "created"))
       assert_has(session, css(".event-type", text: "updated"))
     end
   end
-  
+
   describe "event subscription and notifications" do
     test "user can subscribe to event notifications", %{session: session} do
       # Navigate to notification settings
       session
       |> click(link("Account"))
       |> click(link("Notification Settings"))
-      
+
       # Subscribe to resource.created events
       session
       |> check(checkbox("notification_settings[resource.created]"))
       |> click(button("Save Settings"))
-      
+
       # Verify settings saved
       assert_has(session, css(".alert-success", text: "Notification settings updated"))
-      
+
       # Create a new resource to trigger event
       session
       |> click(link("Resources"))
       |> click(link("Create New Resource"))
       |> fill_in(text_field("resource[name]"), with: "Notification Test")
       |> click(button("Create Resource"))
-      
+
       # Verify notification appears
       assert_has(session, css(".notification", text: "Resource created"))
     end
   end
-  
+
   describe "event-driven UI updates" do
     test "UI updates in real-time when events occur", %{session: session} do
       # Open two browser windows (simulate with two sessions)
       # In a real test environment, we'd need to use another method to open a second session
       # For this example, we'll simulate the backend event generation
-      
+
       # Navigate to the resource dashboard
       dashboard_view = session
-      
+
       # Generate an event from the backend
-      {:ok, _event} = HydepwnsLiveview.Events.ResourceEventGenerator.resource_created(
-        HydepwnsLiveview.Resources.TestResource,
-        "live-update-test",
-        %{name: "Live Update Test"}
-      )
-      
+      {:ok, _event} =
+        HydepwnsLiveview.Events.ResourceEventGenerator.resource_created(
+          HydepwnsLiveview.Resources.TestResource,
+          "live-update-test",
+          %{name: "Live Update Test"}
+        )
+
       # Verify the UI updates automatically (with small wait for update)
       Process.sleep(500)
       assert_has(dashboard_view, css(".resource-row", text: "Live Update Test"))
-      
+
       # Verify the event count badge updates
-      assert_has(dashboard_view, css(".event-badge", text: at_least: "1"))
+      assert_has(dashboard_view, css(".event-badge", text: {:at_least, "1"}))
     end
   end
-end 
+end

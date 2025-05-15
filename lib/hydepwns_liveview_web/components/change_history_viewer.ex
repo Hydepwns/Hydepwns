@@ -116,7 +116,7 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
               </thead>
               <tbody>
                 <%= for change <- @change_history do %>
-                  <%= render_list_row(assigns, change) %>
+                  {render_list_row(assigns, change)}
                 <% end %>
               </tbody>
             </table>
@@ -133,7 +133,7 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
             </div>
             <div class="audit-entries space-y-4">
               <%= for change <- @change_history do %>
-                <%= render_audit_row(assigns, change) %>
+                {render_audit_row(assigns, change)}
               <% end %>
             </div>
           </div>
@@ -192,6 +192,7 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
   # Extracted row rendering for list view
   defp render_list_row(assigns, change) do
     assigns = assign(assigns, :change, change)
+
     ~H"""
     <tr class={if @selected_version == @change.version, do: "bg-blue-50", else: ""}>
       <td class="py-2 px-4 border-b border-gray-200">{@change.version}</td>
@@ -222,8 +223,14 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
   # Extracted row rendering for audit view
   defp render_audit_row(assigns, change) do
     assigns = assign(assigns, :change, change)
+
     ~H"""
-    <div class={"audit-entry p-4 border rounded-lg #{if @selected_version == @change.version, do: "border-blue-500 bg-blue-50", else: "border-gray-200"}")}> 
+    <div class={
+      "audit-entry p-4 border rounded-lg " <>
+        if @selected_version == @change.version,
+          do: "border-blue-500 bg-blue-50",
+          else: "border-gray-200"
+    }>
       <div class="flex justify-between mb-2">
         <div class="text-sm font-semibold text-gray-700">Version {@change.version}</div>
         <div class="text-sm text-gray-500">{format_timestamp(@change.metadata.timestamp)}</div>

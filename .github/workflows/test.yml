@@ -7,144 +7,15 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
-    name: Build and test
-    runs-on: ubuntu-latest
-    
-    services:
-      postgres:
-        image: postgres:13
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: hydepwns_liveview_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Set up Elixir
-        uses: erlef/setup-beam@v1
-        with:
-          elixir-version: '1.14.5'
-          otp-version: '25.3'
-      
-      - name: Cache deps
-        uses: actions/cache@v3
-        with:
-          path: deps
-          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
-          restore-keys: ${{ runner.os }}-mix-
-      
-      - name: Cache compiled build
-        uses: actions/cache@v3
-        with:
-          path: _build
-          key: ${{ runner.os }}-build-${{ hashFiles('**/mix.lock') }}
-          restore-keys: ${{ runner.os }}-build-
-      
-      - name: Install dependencies
-        run: mix deps.get
-      
-      - name: Compile
-        run: mix compile --warnings-as-errors
-      
-      - name: Check formatting
-        run: mix format --check-formatted
-      
-      - name: Run Credo
-        run: mix credo --strict
-      
-      - name: Set up Chrome for Wallaby
-        uses: browser-actions/setup-chrome@latest
-      
-      - name: Install ChromeDriver
-        run: |
-          CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | cut -d. -f1)
-          wget -q -O - https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION} > chromedriver_version.txt
-          wget https://chromedriver.storage.googleapis.com/$(cat chromedriver_version.txt)/chromedriver_linux64.zip
-          unzip chromedriver_linux64.zip
-          chmod +x chromedriver
-          sudo mv chromedriver /usr/local/bin/
-      
-      - name: Run unit tests
-        run: mix test --exclude visual_test:true --exclude performance:true
-        env:
-          MIX_ENV: test
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: hydepwns_liveview_test
-      
-      - name: Run visual regression tests
-        run: mix test --only visual_test
-        env:
-          MIX_ENV: test
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: hydepwns_liveview_test
-      
-      - name: Run performance tests
-        run: mix test --only performance
-        env:
-          MIX_ENV: test
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: hydepwns_liveview_test
-      
-      - name: Archive test screenshots
-        uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: test-screenshots
-          path: test/screenshots
-      
-      - name: Archive performance results
-        uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: performance-results
-          path: test/performance_results
-      
-      - name: Report test results
-        if: always()
-        run: |
-          echo "## Test Summary" >> $GITHUB_STEP_SUMMARY
-          echo "| Test Type | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "| --------- | ------ |" >> $GITHUB_STEP_SUMMARY
-          echo "| Unit Tests | ${{ job.steps.unit.outcome == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Visual Tests | ${{ job.steps.visual.outcome == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Performance Tests | ${{ job.steps.performance.outcome == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-
-  validate-docs:
-    name: Validate Documentation
-    runs-on: ubuntu-latest
-    
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: Validate documentation
-        id: validate-docs
-        run: npm run validate:docs
-      
-      - name: Report documentation validation results
-        if: always()
-        run: |
-          echo "## Documentation Validation Results" >> $GITHUB_STEP_SUMMARY
-          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "| ----- | ------ |" >> $GITHUB_STEP_SUMMARY
-          echo "| Documentation Validation | ${{ steps.validate-docs.outcome == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY 
+  unit:
+    uses: ./.github/workflows/elixir-common.yml
+    with:
+      test_flags: "--exclude visual_test:true --exclude performance:true"
+  visual:
+    uses: ./.github/workflows/elixir-common.yml
+    with:
+      test_flags: "--only visual_test"
+  performance:
+    uses: ./.github/workflows/elixir-common.yml
+    with:
+      test_flags: "--only performance"

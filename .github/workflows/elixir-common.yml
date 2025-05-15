@@ -1,0 +1,67 @@
+name: Elixir Common
+
+on:
+  workflow_call:
+    inputs:
+      test_flags:
+        required: false
+        type: string
+      coverage:
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres:13
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: hydepwns_liveview_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: '1.14.5'
+          otp-version: '25.3'
+      - name: Cache deps
+        uses: actions/cache@v3
+        with:
+          path: deps
+          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ runner.os }}-mix-
+      - name: Cache compiled build
+        uses: actions/cache@v3
+        with:
+          path: _build
+          key: ${{ runner.os }}-build-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ runner.os }}-build-
+      - name: Install dependencies
+        run: mix deps.get
+      - name: Compile
+        run: mix compile --warnings-as-errors
+      - name: Check formatting
+        run: mix format --check-formatted
+      - name: Run Credo
+        run: mix credo --strict
+      - name: Run tests
+        run: mix test ${{ inputs.test_flags }}
+      - name: Run coverage
+        if: ${{ inputs.coverage }}
+        run: mix coveralls.html
+      - name: Upload coverage report
+        if: ${{ inputs.coverage }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: cover/ 

@@ -1,5 +1,3 @@
-# .github/workflows/codecov.yml
-
 name: Codecov
 
 on:

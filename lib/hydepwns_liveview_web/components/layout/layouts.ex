@@ -34,7 +34,7 @@ defmodule HydepwnsLiveviewWeb.Layouts do
       </header>
 
       <main id="main-content" class="flex-grow">
-        {render_slot(@inner_block)}
+        <%= if assigns[:inner_block], do: render_slot(assigns[:inner_block]) %>
       </main>
 
       <footer class="main-footer">
@@ -42,7 +42,7 @@ defmodule HydepwnsLiveviewWeb.Layouts do
       </footer>
       
     <!-- Mobile navigation (only appears on mobile devices) -->
-      <MobileNav.mobile_nav current_path={@current_path} />
+      <MobileNav.mobile_nav current_path={assigns[:current_path] || ""} />
       
     <!-- Socket Validation Panel (only visible in development mode) -->
       <%= if Mix.env() == :dev do %>

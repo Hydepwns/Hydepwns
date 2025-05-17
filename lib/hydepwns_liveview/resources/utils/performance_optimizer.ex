@@ -11,12 +11,19 @@ defmodule HydepwnsLiveview.Resources.PerformanceOptimizer do
   """
 
   require Logger
-  alias HydepwnsLiveview.Repo
-  alias HydepwnsLiveview.Events.EventStore
-  alias HydepwnsLiveview.Telemetry
+  alias HydepwnsLiveview.Repo, as: Repo
+  alias HydepwnsLiveview.Events.EventStore, as: EventStore
+  alias HydepwnsLiveview.Telemetry, as: Telemetry
+  alias HydepwnsLiveview.Resources.CacheServer
 
   # ETS table name for resource cache
   @resource_cache_table :resource_cache
+
+  # ETS table name for metrics storage
+  @metrics_table :resource_metrics
+
+  # Monitoring interval in milliseconds (default: 1 minute)
+  @monitoring_interval 60_000
 
   # Default cache options
   @default_cache_opts %{
@@ -28,17 +35,10 @@ defmodule HydepwnsLiveview.Resources.PerformanceOptimizer do
     invalidation_events: []
   }
 
-  @doc """
-  Initializes the resource performance optimization system.
-
-  This should be called during application startup.
-
-  ## Returns
-  * `:ok` - System was initialized successfully
-  """
+  @spec init() :: :ok
   def init do
     # Start the cache server
-    {:ok, _pid} = HydepwnsLiveview.Resources.CacheServer.start_link()
+    {:ok, _pid} = CacheServer.start_link()
 
     # Register telemetry handlers
     register_telemetry_handlers()
@@ -46,17 +46,7 @@ defmodule HydepwnsLiveview.Resources.PerformanceOptimizer do
     :ok
   end
 
-  @doc """
-  Measures performance of resource operations.
-
-  ## Parameters
-  * `operation` - The operation to measure
-  * `args` - Arguments for the operation
-  * `opts` - Measurement options
-
-  ## Returns
-  * `{result, metrics}` - Operation result and performance metrics
-  """
+  @spec measure((... -> any()), list(), keyword()) :: {any(), map()}
   def measure(operation, args, opts \\ []) when is_function(operation, length(args)) do
     # Prepare telemetry context
     context = %{
@@ -108,24 +98,7 @@ defmodule HydepwnsLiveview.Resources.PerformanceOptimizer do
     {result, metrics}
   end
 
-  @doc """
-  Implements a multi-level caching system for resources.
-
-  This function tries to retrieve a resource from a cache hierarchy:
-  1. Process dictionary (fastest, but process-specific)
-  2. ETS cache (fast, shared across processes)
-  3. Original data source (slowest, but always up-to-date)
-
-  ## Parameters
-  * `resource_type` - The type of resource
-  * `resource_id` - The ID of the resource
-  * `fetch_fn` - Function to fetch the resource if not in cache
-  * `opts` - Caching options
-
-  ## Returns
-  * `{:ok, resource}` - Resource retrieved
-  * `{:error, reason}` - Failed to retrieve resource
-  """
+  @spec cached_resource(atom(), any(), (-> any()), keyword()) :: {:ok, any()} | {:error, any()}
   def cached_resource(resource_type, resource_id, fetch_fn, opts \\ []) do
     # Try process dictionary first (fastest)
     case Process.get({:resource_cache, resource_type, resource_id}) do
@@ -144,39 +117,18 @@ defmodule HydepwnsLiveview.Resources.PerformanceOptimizer do
     end
   end
 
-  @doc """
-  Invalidates cache entries for a resource.
-
-  ## Parameters
-  * `resource_type` - The type of resource
-  * `resource_id` - The ID of the resource
-
-  ## Returns
-  * `:ok` - Cache was invalidated
-  """
+  @spec invalidate_cache(atom(), any()) :: :ok
   def invalidate_cache(resource_type, resource_id) do
     # Remove from process dictionary
     Process.delete({:resource_cache, resource_type, resource_id})
 
     # Invalidate in cache server
-    HydepwnsLiveview.Resources.CacheServer.invalidate(resource_type, resource_id)
+    CacheServer.invalidate(resource_type, resource_id)
 
     :ok
   end
 
-  @doc """
-  Bulk loads resources with optimized query patterns.
-
-  ## Parameters
-  * `resource_type` - The type of resource
-  * `resource_ids` - List of resource IDs to load
-  * `loader_fn` - Function to load resources
-  * `opts` - Options for bulk loading
-
-  ## Returns
-  * `{:ok, resources}` - Map of resource_id -> resource
-  * `{:error, reason}` - Failed to load resources
-  """
+  @spec bulk_load_resources(atom(), list(), (list() -> {:ok, map()} | {:error, any()}), keyword()) :: {:ok, map()} | {:error, any()}
   def bulk_load_resources(resource_type, resource_ids, loader_fn, opts \\ []) do
     # Filter out IDs that are already in cache
     {cached, uncached} = split_cached_uncached(resource_type, resource_ids)
@@ -206,17 +158,7 @@ defmodule HydepwnsLiveview.Resources.PerformanceOptimizer do
     {:ok, resources}
   end
 
-  @doc """
-  Creates an optimized loading strategy based on client capabilities.
-
-  ## Parameters
-  * `client_info` - Information about the client
-  * `resource_type` - The type of resource
-  * `opts` - Additional options
-
-  ## Returns
-  * Loading strategy for the client
-  """
+  @spec optimized_loading_strategy(map(), atom(), keyword()) :: map()
   def optimized_loading_strategy(client_info, resource_type, _opts \\ []) do
     # Determine device capabilities
     is_mobile = client_info.user_agent =~ ~r/(Android|iPhone|iPad|iPod)/
@@ -272,18 +214,7 @@ defmodule HydepwnsLiveview.Resources.PerformanceOptimizer do
     end
   end
 
-  @doc """
-  Benchmarks a resource operation with different strategies.
-
-  ## Parameters
-  * `operation_fn` - The operation to benchmark
-  * `strategies` - List of strategies to benchmark
-  * `iterations` - Number of iterations for each strategy
-
-  ## Returns
-  * `{:ok, results}` - Benchmark results
-  * `{:error, reason}` - Failed to benchmark
-  """
+  @spec benchmark((keyword() -> any()), list({atom(), keyword()}), integer()) :: {:ok, map()} | {:error, any()}
   def benchmark(operation_fn, strategies, iterations \\ 10) do
     # Run each strategy and collect metrics
     results =
@@ -331,17 +262,7 @@ defmodule HydepwnsLiveview.Resources.PerformanceOptimizer do
     {:ok, results}
   end
 
-  @doc """
-  Stores performance metrics in a time-series database.
-
-  ## Parameters
-  * `metrics` - The metrics to store
-  * `opts` - Storage options
-
-  ## Returns
-  * `:ok` - Metrics stored successfully
-  * `{:error, reason}` - Failed to store metrics
-  """
+  @spec store_metrics(map(), keyword()) :: :ok | {:error, any()}
   def store_metrics(metrics, opts \\ []) do
     # Get storage backend from config
     backend = Application.get_env(:hydepwns_liveview, :metrics_backend, :influxdb)
@@ -358,17 +279,7 @@ defmodule HydepwnsLiveview.Resources.PerformanceOptimizer do
     end
   end
 
-  @doc """
-  Analyzes performance patterns and suggests optimizations.
-
-  ## Parameters
-  * `resource_type` - The resource type to analyze
-  * `period` - Time period for analysis in seconds
-
-  ## Returns
-  * `{:ok, suggestions}` - List of optimization suggestions
-  * `{:error, reason}` - Failed to analyze performance
-  """
+  @spec analyze_performance_patterns(atom(), integer()) :: {:ok, list(map())} | {:error, any()}
   def analyze_performance_patterns(resource_type, period \\ 3600) do
     with {:ok, metrics} <- gather_event_metrics(resource_type, period) do
       suggestions = []
@@ -429,17 +340,7 @@ defmodule HydepwnsLiveview.Resources.PerformanceOptimizer do
     end
   end
 
-  @doc """
-  Sets up performance monitoring alerts.
-
-  ## Parameters
-  * `resource_type` - The resource type to monitor
-  * `thresholds` - Alert thresholds
-
-  ## Returns
-  * `:ok` - Alerts configured successfully
-  * `{:error, reason}` - Failed to configure alerts
-  """
+  @spec setup_performance_alerts(atom(), map()) :: :ok | {:error, any()}
   def setup_performance_alerts(resource_type, thresholds \\ %{}) do
     # Default thresholds
     default_thresholds = %{
@@ -461,11 +362,47 @@ defmodule HydepwnsLiveview.Resources.PerformanceOptimizer do
     :ok
   end
 
+  @spec get_cached_resource(module(), any()) :: {:ok, any()} | {:error, any()}
+  def get_cached_resource(resource_module, resource_id) do
+    # Use the resource_type as the cache name
+    cache_name = String.to_atom("#{resource_module.resource_type()}_cache")
+
+    # Check if cache exists
+    if :ets.info(cache_name) == :undefined do
+      # No cache, just load the resource directly
+      resource_module.load(resource_id)
+    else
+      # Try to get from cache
+      case :ets.lookup(cache_name, resource_id) do
+        [{^resource_id, resource, inserted_at}] ->
+          # Check if cache entry is still valid
+          case get_cache_config(cache_name) do
+            {:ok, cache_config} ->
+              if cache_entry_valid?(inserted_at, cache_config.ttl) do
+                # Cache hit
+                {:ok, resource}
+              else
+                # Cache entry expired, reload and update cache
+                reload_and_cache(resource_module, resource_id, cache_name)
+              end
+
+            {:error, _reason} ->
+              # Cache config not found, reload and don't cache
+              resource_module.load(resource_id)
+          end
+
+        [] ->
+          # Cache miss, load and cache
+          reload_and_cache(resource_module, resource_id, cache_name)
+      end
+    end
+  end
+
   # Private helper functions
 
   defp try_cache_server(resource_type, resource_id, fetch_fn, opts) do
     # Try to get from cache server
-    case HydepwnsLiveview.Resources.CacheServer.get(resource_type, resource_id, fetch_fn) do
+    case CacheServer.get(resource_type, resource_id, fetch_fn) do
       {:ok, resource} ->
         # Update process cache
         expiry = DateTime.add(DateTime.utc_now(), Keyword.get(opts, :ttl_seconds, 300), :second)
@@ -520,7 +457,7 @@ defmodule HydepwnsLiveview.Resources.PerformanceOptimizer do
       Process.put({:resource_cache, resource_type, id}, {resource, expiry})
 
       # Cache in cache server
-      HydepwnsLiveview.Resources.CacheServer.put(resource_type, id, resource, opts)
+      CacheServer.put(resource_type, id, resource, opts)
     end)
   end
 
@@ -632,5 +569,29 @@ defmodule HydepwnsLiveview.Resources.PerformanceOptimizer do
     # In a real implementation, this would send alerts through various channels
     # (email, Slack, etc.)
     Logger.warning("Performance alert for #{resource_type} - #{issue_type}: #{message}")
+  end
+
+  # Helper to get cache config for a cache_name (ETS table)
+  defp get_cache_config(_cache_name) do
+    # For now, return a default config; in a real system, this might look up per-cache settings
+    {:ok, %{ttl: 300}}
+  end
+
+  # Helper to check if a cache entry is still valid
+  defp cache_entry_valid?(inserted_at, ttl) do
+    expiry = DateTime.add(inserted_at, ttl, :second)
+    DateTime.compare(expiry, DateTime.utc_now()) == :gt
+  end
+
+  # Helper to reload a resource and cache it
+  defp reload_and_cache(resource_module, resource_id, cache_name) do
+    case resource_module.load(resource_id) do
+      {:ok, resource} ->
+        now = DateTime.utc_now()
+        :ets.insert(cache_name, {resource_id, resource, now})
+        {:ok, resource}
+      error ->
+        error
+    end
   end
 end

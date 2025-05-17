@@ -10,8 +10,6 @@ defmodule HydepwnsLiveviewWeb.Examples.ContextValidationTrackingExampleLive do
 
   use HydepwnsLiveviewWeb.ResourceLive
   alias HydepwnsLiveview.Utils.LiveViewAPI
-  alias HydepwnsLiveviewWeb.Components.ChangeHistoryViewer
-
   import HydepwnsLiveviewWeb.Components.ChangeHistoryViewer
 
   # Define a resource module inline for the example

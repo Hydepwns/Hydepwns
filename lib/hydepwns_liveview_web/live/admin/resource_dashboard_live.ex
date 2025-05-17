@@ -12,10 +12,10 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
 
   use HydepwnsLiveviewWeb, :live_view
 
-  alias HydepwnsLiveview.Events.Event
-  alias HydepwnsLiveview.Events.EventStore
-  alias HydepwnsLiveview.Events.EventSourcedResource
-  alias HydepwnsLiveview.Events.EventBus
+  alias HydepwnsLiveview.Events.Event, as: Event
+  alias HydepwnsLiveview.Events.EventStore, as: EventStore
+  alias HydepwnsLiveview.Events.EventSourcedResource, as: EventSourcedResource
+  alias HydepwnsLiveview.Events.EventBus, as: EventBus
 
   @impl true
   def mount(_params, _session, socket) do
@@ -51,7 +51,7 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
 
     # Subscribe to resource events
     if connected?(socket) do
-      EventBus.subscribe("resource:*")
+      EventBus.subscribe(self(), "resource:*")
     end
 
     {:ok, socket}

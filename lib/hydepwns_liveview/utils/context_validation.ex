@@ -103,6 +103,12 @@ defmodule HydepwnsLiveview.Utils.ContextValidation do
     rules: [:team_member_role],
     context: %{allowed_roles: ["admin", "editor"]}
   )
+
+  # Validate with both rules and context
+  {:ok, _} = ContextValidation.validate_with_rules(user, 
+    rules: [:team_member_role, :access_permissions],
+    context: %{allowed_roles: ["admin", "editor"]}
+  )
   ```
 
   ## Returns

@@ -9,7 +9,7 @@
 
 <.table id="themes" rows={@themes} row_click={&JS.navigate(~p"/themes/#{&1}")}>
   <:col :let={theme} label="Name">{theme.name}</:col>
-  <:col :let={theme} label="Settings">{theme.settings}</:col>
+  <:col :let={theme} label="Settings">{inspect(theme.settings)}</:col>
   <:action :let={theme}>
     <div class="sr-only">
       <.link navigate={~p"/themes/#{theme}"}>Show</.link>

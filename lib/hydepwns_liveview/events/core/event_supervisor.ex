@@ -21,6 +21,7 @@ defmodule HydepwnsLiveview.Events.Core.EventSupervisor do
   @doc """
   Starts the event system supervisor.
   """
+  @spec start_link(any()) :: Supervisor.on_start()
   def start_link(init_arg) do
     Supervisor.start_link(__MODULE__, init_arg, name: __MODULE__)
   end
@@ -28,6 +29,9 @@ defmodule HydepwnsLiveview.Events.Core.EventSupervisor do
   @impl true
   def init(_init_arg) do
     children = [
+      # Registries for handler and projection processes
+      {Registry, keys: :unique, name: HydepwnsLiveview.Events.HandlerRegistry},
+      {Registry, keys: :unique, name: HydepwnsLiveview.Events.ProjectionRegistry},
       # Event bus for distributing events
       {EventBus, []},
 
@@ -50,11 +54,12 @@ defmodule HydepwnsLiveview.Events.Core.EventSupervisor do
   This is called after the application has started to ensure all dependencies
   are available.
   """
+  @spec register_standard_projections() :: :ok | :error
   def register_standard_projections do
     if function_exported?(ProjectionSupervisor, :register_standard_projections, 0) do
       ProjectionSupervisor.register_standard_projections()
     else
-      Logger.warn("ProjectionSupervisor does not export register_standard_projections/0")
+      Logger.warning("ProjectionSupervisor does not export register_standard_projections/0")
     end
   end
 
@@ -64,11 +69,12 @@ defmodule HydepwnsLiveview.Events.Core.EventSupervisor do
   This is called after the application has started to ensure all dependencies
   are available.
   """
+  @spec register_standard_handlers() :: :ok | :error
   def register_standard_handlers do
     if function_exported?(StandardHandlers, :register_handlers, 0) do
       StandardHandlers.register_handlers()
     else
-      Logger.warn("StandardHandlers does not export register_handlers/0")
+      Logger.warning("StandardHandlers does not export register_handlers/0")
     end
   end
 end

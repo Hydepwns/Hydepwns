@@ -344,7 +344,7 @@ defmodule HydepwnsLiveview.Integration.IntegrationBridge do
           backoff_ms = calculate_backoff(initial_backoff_ms, retry_count, max_backoff_ms, jitter)
 
           # Log the retry attempt
-          Logger.warn(
+          Logger.warning(
             "Adapter call failed, retrying in #{backoff_ms}ms (attempt #{retry_count + 1}/#{max_retries}): #{inspect(reason)}"
           )
 

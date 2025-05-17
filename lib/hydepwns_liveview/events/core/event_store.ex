@@ -14,6 +14,9 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   require Logger
   alias HydepwnsLiveview.Repo
   alias HydepwnsLiveview.Events.Core.Event
+  alias HydepwnsLiveview.ThemeSystem.Models.Theme
+  alias HydepwnsLiveview.Resources.Resource
+  alias HydepwnsLiveview.Resources.ResourceIntegration.EventSourcedResource
   import Ecto.Query
 
   @doc """
@@ -23,6 +26,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   this function exists mainly to satisfy the supervisor child_spec
   requirements.
   """
+  @spec start_link(Keyword.t()) :: {:ok, pid()}
   def start_link(_opts \\ []) do
     # This is a dummy implementation since EventStore is not a process
     # It's just a module with functions that access the database
@@ -32,6 +36,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   @doc """
   Returns a child specification for starting the EventStore under a supervisor.
   """
+  @spec child_spec(Keyword.t()) :: Supervisor.child_spec()
   def child_spec(opts) do
     %{
       id: __MODULE__,
@@ -58,6 +63,17 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
       timestamps()
     end
 
+    @type t :: %__MODULE__{
+      id: Ecto.UUID.t() | binary(),
+      resource_type: String.t(),
+      resource_id: String.t(),
+      state: map(),
+      metadata: map(),
+      inserted_at: NaiveDateTime.t() | nil,
+      updated_at: NaiveDateTime.t() | nil
+    }
+
+    @spec changeset(t(), map()) :: Ecto.Changeset.t()
     def changeset(snapshot, attrs) do
       snapshot
       |> cast(attrs, [:resource_type, :resource_id, :state, :metadata])
@@ -85,6 +101,21 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
       timestamps()
     end
 
+    @type t :: %__MODULE__{
+      id: Ecto.UUID.t() | binary(),
+      name: String.t(),
+      resource_type: String.t(),
+      resource_id: String.t(),
+      start_event_id: Ecto.UUID.t() | binary() | nil,
+      end_event_id: Ecto.UUID.t() | binary() | nil,
+      status: String.t(),
+      metadata: map(),
+      results: map(),
+      inserted_at: NaiveDateTime.t() | nil,
+      updated_at: NaiveDateTime.t() | nil
+    }
+
+    @spec changeset(t(), map()) :: Ecto.Changeset.t()
     def changeset(session, attrs) do
       session
       |> cast(attrs, [
@@ -102,6 +133,53 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
     end
   end
 
+  # Schema for versioned states
+  defmodule VersionedState do
+    use Ecto.Schema
+    import Ecto.Changeset
+
+    @primary_key {:id, :binary_id, autogenerate: true}
+    @timestamps_opts [type: :utc_datetime_usec, inserted_at: :created_at, updated_at: false]
+    schema "versioned_states" do
+      field :resource_type, :string
+      field :resource_id, :string
+      field :state, :map
+      field :label, :string
+      field :replay_id, :binary_id
+      field :point_in_time, :utc_datetime_usec
+      field :metadata, :map, default: %{}
+      field :created_at, :utc_datetime_usec
+    end
+
+    @type t :: %__MODULE__{
+      id: Ecto.UUID.t() | binary(),
+      resource_type: String.t(),
+      resource_id: String.t(),
+      state: map(),
+      label: String.t(),
+      replay_id: Ecto.UUID.t() | binary() | nil,
+      point_in_time: DateTime.t() | nil,
+      metadata: map(),
+      created_at: NaiveDateTime.t() | nil
+    }
+
+    @spec changeset(t(), map()) :: Ecto.Changeset.t()
+    def changeset(versioned_state, attrs) do
+      versioned_state
+      |> cast(attrs, [
+        :resource_type,
+        :resource_id,
+        :state,
+        :label,
+        :replay_id,
+        :point_in_time,
+        :metadata,
+        :created_at
+      ])
+      |> validate_required([:resource_type, :resource_id, :state, :label, :created_at])
+    end
+  end
+
   @doc """
   Stores an event in the event store.
 
@@ -112,6 +190,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   * `{:ok, persisted_event}` - The event was successfully stored
   * `{:error, reason}` - The event could not be stored
   """
+  @spec store_event(Event.t()) :: {:ok, Event.t()} | {:error, Ecto.Changeset.t()}
   def store_event(%Event{} = event) do
     Repo.insert(event)
   end
@@ -126,6 +205,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   * `{:ok, persisted_events}` - All events were successfully stored
   * `{:error, failed_event, failed_changeset, inserted_events}` - Some events could not be stored
   """
+  @spec store_events([Event.t()]) :: {:ok, [Event.t()]} | {:error, any(), any(), [Event.t()]}
   def store_events(events) when is_list(events) do
     Repo.transaction(fn ->
       Enum.map(events, &Repo.insert!/1)
@@ -152,6 +232,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   * `{:ok, events}` - The events matching the criteria
   * `{:error, reason}` - Error retrieving events
   """
+  @spec get_events(map()) :: {:ok, [Event.t()]} | {:error, any()}
   def get_events(criteria \\ %{}) do
     query = build_event_query(criteria)
 
@@ -175,6 +256,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   * `{:error, :not_found}` - No event with the given ID exists
   * `{:error, reason}` - Error retrieving the event
   """
+  @spec get_event(any()) :: {:ok, Event.t()} | {:error, any()}
   def get_event(id) do
     case Repo.get(Event, id) do
       nil -> {:error, :not_found}
@@ -198,6 +280,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   * `{:ok, event_stream}` - A stream of events matching the criteria
   * `{:error, reason}` - Error creating the stream
   """
+  @spec event_stream(map()) :: Enumerable.t()
   def event_stream(criteria \\ %{}) do
     query = build_event_query(criteria)
 
@@ -221,6 +304,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   * `{:ok, count}` - The number of matching events
   * `{:error, reason}` - Error counting events
   """
+  @spec count_events(map()) :: integer()
   def count_events(criteria \\ %{}) do
     query =
       criteria
@@ -248,6 +332,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   * `{:ok, count}` - The number of events purged
   * `{:error, reason}` - Error purging events
   """
+  @spec purge_events(map()) :: {:ok, integer()} | {:error, any()}
   def purge_events(criteria) when map_size(criteria) > 0 do
     query = build_event_query(criteria)
 
@@ -263,6 +348,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   end
 
   # Refuses to purge all events without explicit criteria
+  @spec purge_events(map()) :: {:ok, integer()} | {:error, any()}
   def purge_events(_criteria) do
     {:error, :no_criteria_specified}
   end
@@ -280,6 +366,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   * `{:ok, snapshot}` - The snapshot was successfully stored
   * `{:error, changeset}` - The snapshot could not be stored
   """
+  @spec save_snapshot(String.t(), String.t(), map(), map()) :: {:ok, any()} | {:error, any()}
   def save_snapshot(resource_type, resource_id, state, metadata \\ %{}) do
     %Snapshot{}
     |> Snapshot.changeset(%{
@@ -302,6 +389,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   * `{:ok, snapshot}` - The latest snapshot for the resource
   * `{:error, :not_found}` - No snapshot exists for the resource
   """
+  @spec get_latest_snapshot(String.t(), String.t()) :: {:ok, any()} | {:error, any()}
   def get_latest_snapshot(resource_type, resource_id) do
     query =
       from s in Snapshot,
@@ -326,6 +414,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   * `{:ok, count}` - The number of events since the last snapshot
   * `{:error, reason}` - Error counting events
   """
+  @spec count_events_since_last_snapshot(String.t(), String.t()) :: integer()
   def count_events_since_last_snapshot(resource_type, resource_id) do
     case get_latest_snapshot(resource_type, resource_id) do
       {:ok, snapshot} ->
@@ -374,6 +463,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   * `{:ok, events}` - The events after the specified event
   * `{:error, reason}` - Error retrieving events
   """
+  @spec get_events_after(String.t(), String.t(), any()) :: [Event.t()]
   def get_events_after(resource_type, resource_id, after_event_id) do
     # First get the event to determine its timestamp
     case get_event(after_event_id) do
@@ -406,6 +496,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   * `{:ok, events}` - All events for the resource
   * `{:error, reason}` - Error retrieving events
   """
+  @spec get_events_for_resource(String.t(), String.t()) :: [Event.t()]
   def get_events_for_resource(resource_type, resource_id) do
     query =
       from e in Event,
@@ -431,6 +522,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   * `{:ok, session}` - The replay session was created
   * `{:error, changeset}` - The session could not be created
   """
+  @spec create_replay_session(String.t(), String.t(), String.t(), Keyword.t()) :: {:ok, any()} | {:error, any()}
   def create_replay_session(name, resource_type, resource_id, opts \\ []) do
     attrs = %{
       name: name,
@@ -457,6 +549,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   * `{:ok, session}` - The session was started
   * `{:error, reason}` - The session could not be started
   """
+  @spec start_replay_session(any()) :: {:ok, any()} | {:error, any()}
   def start_replay_session(session_id) do
     case Repo.get(ReplaySession, session_id) do
       nil ->
@@ -480,6 +573,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   * `{:ok, session}` - The session was completed
   * `{:error, reason}` - The session could not be completed
   """
+  @spec complete_replay_session(any(), map()) :: {:ok, any()} | {:error, any()}
   def complete_replay_session(session_id, results) do
     case Repo.get(ReplaySession, session_id) do
       nil ->
@@ -508,6 +602,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   * `{:ok, session}` - The session was marked as failed
   * `{:error, reason}` - The status could not be updated
   """
+  @spec fail_replay_session(any(), any()) :: {:ok, any()} | {:error, any()}
   def fail_replay_session(session_id, error_details) do
     case Repo.get(ReplaySession, session_id) do
       nil ->
@@ -535,6 +630,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   * `{:ok, events}` - The events for the replay session
   * `{:error, reason}` - Error retrieving events
   """
+  @spec get_replay_session_events(any()) :: [any()]
   def get_replay_session_events(session_id) do
     case Repo.get(ReplaySession, session_id) do
       nil ->
@@ -580,6 +676,60 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
 
         {:ok, Repo.all(query)}
     end
+  end
+
+  @doc """
+  Gets a replay session by ID.
+
+  ## Parameters
+  * `session_id` - The ID of the replay session
+
+  ## Returns
+  * `{:ok, session}` - The session was found
+  * `{:error, :not_found}` - No session with the given ID exists
+  * `{:error, reason}` - Error retrieving the session
+  """
+  @spec get_replay_session(any()) :: {:ok, any()} | {:error, any()}
+  def get_replay_session(session_id) do
+    case Repo.get(ReplaySession, session_id) do
+      nil -> {:error, :not_found}
+      session -> {:ok, session}
+    end
+  rescue
+    e ->
+      Logger.error("Error retrieving replay session #{session_id}: #{inspect(e)}")
+      {:error, e}
+  end
+
+  @doc """
+  Saves a versioned state for a resource.
+
+  ## Parameters
+  * `resource_type` - The type of resource
+  * `resource_id` - The ID of the resource
+  * `state` - The state to save
+  * `opts` - Options (expects :label, :replay_id, :created_at, :point_in_time, :metadata)
+
+  ## Returns
+  * `{:ok, versioned_state}` - The versioned state was created
+  * `{:error, changeset}` - The versioned state could not be created
+  """
+  @spec save_versioned_state(String.t(), String.t(), map(), Keyword.t()) :: {:ok, any()} | {:error, any()}
+  def save_versioned_state(resource_type, resource_id, state, opts \\ []) do
+    attrs = %{
+      resource_type: resource_type,
+      resource_id: resource_id,
+      state: state,
+      label: Keyword.fetch!(opts, :label),
+      replay_id: Keyword.get(opts, :replay_id),
+      created_at: Keyword.get(opts, :created_at, DateTime.utc_now()),
+      point_in_time: Keyword.get(opts, :point_in_time),
+      metadata: Keyword.get(opts, :metadata, %{})
+    }
+
+    %VersionedState{}
+    |> VersionedState.changeset(attrs)
+    |> Repo.insert()
   end
 
   # Private functions

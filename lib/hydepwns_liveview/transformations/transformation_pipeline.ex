@@ -120,11 +120,16 @@ defmodule HydepwnsLiveview.Transformations.TransformationPipeline do
   ## Example
 
   ```elixir
+  # Assuming a User struct with an email field
+  user = %User{email: "user@example.com"}
+  context = TransformationContext.new(User, :update)
+
   {:ok, formatted_user, _context} = TransformationPipeline.apply_transformation(
     user, 
     "format_email", 
     context
   )
+  # formatted_user.email == "user@example.com" (formatted according to the transformation)
   ```
   """
   def apply_transformation(resource, transformation_name, context, opts \\ []) do

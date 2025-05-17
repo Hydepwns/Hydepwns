@@ -16,8 +16,6 @@ defmodule HydepwnsLiveview.Utils.RelationshipResolver do
   - Polymorphic relationship handling
   """
 
-  alias HydepwnsLiveview.Utils.LiveViewResource
-
   @doc """
   Gets all relationships for a resource module.
 
@@ -178,7 +176,7 @@ defmodule HydepwnsLiveview.Utils.RelationshipResolver do
         |> Enum.reject(fn {_, rel_def} -> is_nil(rel_def) end)
 
       # Load each relationship
-      Enum.reduce_while(relationship_defs, {:ok, resource}, fn {rel_name, rel_def},
+      Enum.reduce_while(relationship_defs, {:ok, resource}, fn {rel_name, _rel_def},
                                                                {:ok, acc_resource} ->
         case resolve_relationship(acc_resource, rel_name) do
           {:ok, related} ->
@@ -287,8 +285,8 @@ defmodule HydepwnsLiveview.Utils.RelationshipResolver do
     cache = Keyword.get(opts, :cache, true)
 
     # Get the foreign key value
-    foreign_key = relationship.foreign_key || :"#{relationship.name}_id"
-    foreign_key_value = Map.get(resource, foreign_key)
+    _foreign_key = relationship.foreign_key || :"#{relationship.name}_id"
+    foreign_key_value = Map.get(resource, _foreign_key)
 
     if is_nil(foreign_key_value) do
       # No related entity if foreign key is nil
@@ -334,7 +332,7 @@ defmodule HydepwnsLiveview.Utils.RelationshipResolver do
       {:ok, [], resource}
     else
       # Get inverse foreign key
-      foreign_key =
+      _foreign_key =
         relationship.foreign_key ||
           :"#{resource.__struct__.__name__ |> Module.split() |> List.last() |> Macro.underscore()}_id"
 
@@ -377,7 +375,7 @@ defmodule HydepwnsLiveview.Utils.RelationshipResolver do
       {:ok, nil, resource}
     else
       # Get inverse foreign key
-      foreign_key =
+      _foreign_key =
         relationship.foreign_key ||
           :"#{resource.__struct__.__name__ |> Module.split() |> List.last() |> Macro.underscore()}_id"
 

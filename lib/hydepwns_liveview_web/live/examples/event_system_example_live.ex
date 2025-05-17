@@ -1,4 +1,6 @@
 defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
+  @behaviour Phoenix.LiveView
+
   @moduledoc """
   LiveView for demonstrating the Resource Event System.
 
@@ -14,12 +16,12 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
 
   require Logger
 
-  alias HydepwnsLiveview.Events.Event
-  alias HydepwnsLiveview.Events.EventBus
-  alias HydepwnsLiveview.Events.EventStore
-  alias HydepwnsLiveview.Events.TestEvents
-  alias HydepwnsLiveview.Events.ProjectionSupervisor
-  alias HydepwnsLiveview.Events.HandlerSupervisor
+  alias HydepwnsLiveview.Events.Event, as: Event
+  alias HydepwnsLiveview.Events.EventBus, as: EventBus
+  alias HydepwnsLiveview.Events.EventStore, as: EventStore
+  alias HydepwnsLiveview.Events.TestEvents, as: TestEvents
+  alias HydepwnsLiveview.Events.ProjectionSupervisor, as: ProjectionSupervisor
+  alias HydepwnsLiveview.Events.HandlerSupervisor, as: HandlerSupervisor
 
   @impl true
   def do_mount(_params, _session, socket) do
@@ -45,7 +47,7 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
       |> assign(:selected_projection, nil)
       |> assign(:projection_state, nil)
 
-    {:ok, socket}
+    socket
   end
 
   @impl true

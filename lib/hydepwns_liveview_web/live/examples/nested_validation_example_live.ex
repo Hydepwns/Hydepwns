@@ -9,7 +9,6 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
   """
 
   use HydepwnsLiveviewWeb.ResourceLive
-  alias HydepwnsLiveview.Utils.ValidationErrorReporter
   alias HydepwnsLiveview.Resources.UserResource
   alias HydepwnsLiveview.Resources.TeamResource
   alias HydepwnsLiveview.Resources.PostResource
@@ -33,7 +32,7 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
       |> assign(:validation_status, nil)
       |> assign(:validation_errors, %{})
 
-    {:ok, socket}
+    socket
   end
 
   def handle_event("validate_user", _params, socket) do
@@ -99,7 +98,7 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
 
         # Execute the validation plan
         case UserResource.execute_validation_plan(validation_plan, user) do
-          {:ok, results} ->
+          {:ok, _results} ->
             socket =
               socket
               |> assign(:validation_status, "success")

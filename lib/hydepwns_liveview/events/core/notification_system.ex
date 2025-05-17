@@ -38,6 +38,7 @@ defmodule HydepwnsLiveview.Events.Core.NotificationSystem do
   * `{:ok, sent_notifications}` - The alert was sent
   * `{:error, reason}` - Failed to send alert
   """
+  @spec send_alert(map(), Keyword.t()) :: {:ok, map()} | {:error, any()}
   def send_alert(alert, opts \\ []) do
     channels = Keyword.get(opts, :channels, @default_channels)
     recipients = Keyword.get(opts, :recipients, :admins_only)
@@ -83,6 +84,7 @@ defmodule HydepwnsLiveview.Events.Core.NotificationSystem do
   * `{:ok, subscription}` - Successfully subscribed
   * `{:error, reason}` - Failed to subscribe
   """
+  @spec subscribe(map(), [atom()] | :all, atom()) :: {:ok, map()} | {:error, any()}
   def subscribe(user, event_types \\ :all, level \\ :warning) do
     # Implementation would typically store this in a database
     # For now, we'll just return a success
@@ -100,6 +102,7 @@ defmodule HydepwnsLiveview.Events.Core.NotificationSystem do
   * `:ok` - Successfully unsubscribed
   * `{:error, reason}` - Failed to unsubscribe
   """
+  @spec unsubscribe(any(), [atom()] | :all) :: :ok | {:error, any()}
   def unsubscribe(_user, _event_types \\ :all) do
     # Implementation would typically update a database
     :ok
@@ -115,6 +118,7 @@ defmodule HydepwnsLiveview.Events.Core.NotificationSystem do
   * `:ok` - Successfully set up alerts
   * `{:error, reason}` - Failed to set up alerts
   """
+  @spec setup_system_alerts([atom()]) :: :ok | {:error, any()}
   def setup_system_alerts(_channels \\ [:in_app, :log, :email]) do
     # This would be used to configure system-wide alert settings
     :ok
@@ -130,6 +134,7 @@ defmodule HydepwnsLiveview.Events.Core.NotificationSystem do
   * `{:ok, preferences}` - User preferences
   * `{:error, reason}` - Failed to get preferences
   """
+  @spec get_preferences(any()) :: {:ok, map()} | {:error, any()}
   def get_preferences(_user) do
     # This would typically be loaded from a database
     # For now, we return default preferences
@@ -152,6 +157,7 @@ defmodule HydepwnsLiveview.Events.Core.NotificationSystem do
   * `{:ok, updated_preferences}` - Successfully updated
   * `{:error, reason}` - Failed to update
   """
+  @spec update_preferences(any(), map()) :: {:ok, map()} | {:error, any()}
   def update_preferences(_user, preferences) do
     # This would typically save to a database
     {:ok, preferences}

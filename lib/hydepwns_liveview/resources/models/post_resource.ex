@@ -39,6 +39,7 @@ defmodule HydepwnsLiveview.Resources.PostResource do
   This is a stub implementation for testing purposes.
   In a real application, this would fetch the post from a database.
   """
+  @spec load(String.t()) :: {:ok, map()} | {:error, any()}
   def load(id) do
     # This is a simple stub that always returns a post with the given ID
     # In a real application, this would query the database

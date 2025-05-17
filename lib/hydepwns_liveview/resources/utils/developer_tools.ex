@@ -19,6 +19,7 @@ defmodule HydepwnsLiveview.Resources.DeveloperTools do
   alias HydepwnsLiveview.Events.Core.EventMonitor
   alias HydepwnsLiveview.Repo
 
+  @spec start_debug_session(module(), any(), keyword()) :: {:ok, String.t()} | {:error, any()}
   @doc """
   Starts a debugging session for a resource.
 
@@ -83,6 +84,7 @@ defmodule HydepwnsLiveview.Resources.DeveloperTools do
     {:ok, session_id}
   end
 
+  @spec get_debug_session(String.t()) :: {:ok, map()} | {:error, :session_not_found}
   @doc """
   Gets the current status of a debug session.
 
@@ -100,6 +102,7 @@ defmodule HydepwnsLiveview.Resources.DeveloperTools do
     end
   end
 
+  @spec create_debug_snapshot(String.t(), String.t()) :: {:ok, map()} | {:error, any()}
   @doc """
   Creates a snapshot of resource state during debugging.
 
@@ -141,6 +144,7 @@ defmodule HydepwnsLiveview.Resources.DeveloperTools do
     end
   end
 
+  @spec compare_debug_snapshots(String.t(), integer(), integer()) :: {:ok, map()} | {:error, any()}
   @doc """
   Compares state between snapshots in a debug session.
 
@@ -176,6 +180,7 @@ defmodule HydepwnsLiveview.Resources.DeveloperTools do
     end
   end
 
+  @spec set_breakpoint(String.t(), atom(), (map() -> boolean()) | nil) :: {:ok, String.t()} | {:error, any()}
   @doc """
   Sets a breakpoint for a specific event type.
 
@@ -214,6 +219,7 @@ defmodule HydepwnsLiveview.Resources.DeveloperTools do
     end
   end
 
+  @spec generate_test_events(module(), any(), list({atom(), map()}), keyword()) :: {:ok, list(map())} | {:error, any()}
   @doc """
   Generates test events for a resource.
 
@@ -261,6 +267,7 @@ defmodule HydepwnsLiveview.Resources.DeveloperTools do
     {:ok, events}
   end
 
+  @spec create_resource_sandbox(list(module()), keyword()) :: {:ok, String.t()} | {:error, any()}
   @doc """
   Creates a sandbox for experimenting with resources.
 
@@ -316,6 +323,7 @@ defmodule HydepwnsLiveview.Resources.DeveloperTools do
     {:ok, sandbox_id}
   end
 
+  @spec apply_sandbox_event(String.t(), atom(), String.t(), map()) :: {:ok, any()} | {:error, any()}
   @doc """
   Applies an event in a sandbox environment.
 
@@ -369,6 +377,7 @@ defmodule HydepwnsLiveview.Resources.DeveloperTools do
     end
   end
 
+  @spec run_load_test(module(), (module(), any() -> any()), keyword()) :: {:ok, map()} | {:error, any()}
   @doc """
   Runs a load test on the resource system.
 
@@ -480,6 +489,7 @@ defmodule HydepwnsLiveview.Resources.DeveloperTools do
     {:ok, results}
   end
 
+  @spec visualize_event_flow(module(), any(), keyword()) :: {:ok, map()} | {:error, any()}
   @doc """
   Creates a visualization of event flow for a resource.
 
@@ -545,6 +555,7 @@ defmodule HydepwnsLiveview.Resources.DeveloperTools do
     {:ok, visualization}
   end
 
+  @spec generate_event_documentation(module()) :: {:ok, map()} | {:error, any()}
   @doc """
   Generates documentation for a resource's event schema.
 
@@ -622,14 +633,7 @@ defmodule HydepwnsLiveview.Resources.DeveloperTools do
 
     # Set up subscription
     # In a real implementation, this would use your PubSub system
-    HydepwnsLiveview.Events.EventBus.subscribe(
-      :all,
-      resource_type,
-      resource_id,
-      fn event ->
-        handle_debug_event(event, session_id, pid)
-      end
-    )
+    HydepwnsLiveview.Events.EventBus.subscribe(self(), :all)
 
     :ok
   end

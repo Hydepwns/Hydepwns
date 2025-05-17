@@ -24,6 +24,20 @@ defmodule HydepwnsLiveview.Events.Core.Event do
     timestamps()
   end
 
+  @type t :: %__MODULE__{
+    id: Ecto.UUID.t() | binary(),
+    type: String.t(),
+    resource_id: String.t(),
+    resource_type: String.t(),
+    data: map(),
+    metadata: map(),
+    correlation_id: Ecto.UUID.t() | binary(),
+    causation_id: Ecto.UUID.t() | binary() | nil,
+    timestamp: DateTime.t() | nil,
+    inserted_at: NaiveDateTime.t() | nil,
+    updated_at: NaiveDateTime.t() | nil
+  }
+
   @doc """
   Creates a new event struct.
 
@@ -44,6 +58,7 @@ defmodule HydepwnsLiveview.Events.Core.Event do
   * `{:ok, event}` - The event was created successfully
   * `{:error, changeset}` - The event failed validation
   """
+  @spec create(String.t(), map()) :: {:ok, __MODULE__.t()} | {:error, Ecto.Changeset.t()}
   def create(type, attrs \\ %{}) when is_binary(type) do
     # Pre-process attributes
     attrs = Map.put(attrs, :type, type)
@@ -81,6 +96,7 @@ defmodule HydepwnsLiveview.Events.Core.Event do
 
   * `Ecto.InvalidChangesetError` - If the event is invalid
   """
+  @spec create!(String.t(), map()) :: __MODULE__.t()
   def create!(type, attrs \\ %{}) do
     case create(type, attrs) do
       {:ok, event} ->
@@ -107,6 +123,7 @@ defmodule HydepwnsLiveview.Events.Core.Event do
   * `{:ok, event}` - The event was created successfully
   * `{:error, changeset}` - The event failed validation
   """
+  @spec create_follow_up(__MODULE__.t(), String.t(), map()) :: {:ok, __MODULE__.t()} | {:error, Ecto.Changeset.t()}
   def create_follow_up(original_event, type, attrs \\ %{}) do
     # Maintain the correlation ID but set the causation ID to the original event's ID
     attrs =

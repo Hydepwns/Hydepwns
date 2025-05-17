@@ -28,7 +28,7 @@ defmodule HydepwnsLiveview.Events.Handlers.LiveEventHandler do
   """
   def subscribe(event_types \\ :all, resource_type \\ nil, resource_id \\ nil) do
     filter = build_filter(event_types, resource_type, resource_id)
-    EventBus.subscribe(filter)
+    EventBus.subscribe(self(), filter)
   end
 
   @doc """
@@ -38,8 +38,8 @@ defmodule HydepwnsLiveview.Events.Handlers.LiveEventHandler do
   * `:ok` - The unsubscription was successful
   * `{:error, reason}` - Failed to unsubscribe
   """
-  def unsubscribe do
-    EventBus.unsubscribe()
+  def unsubscribe(event_types \\ :all) do
+    EventBus.unsubscribe(self(), event_types)
   end
 
   @doc """

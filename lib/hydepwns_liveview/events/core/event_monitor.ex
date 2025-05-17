@@ -31,8 +31,6 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
   @default_alert_interval 60_000
   # Default metric collection interval (15 seconds)
   @default_metric_interval 15_000
-  # Max events to process in one batch
-  @max_batch_size 100
 
   ##############################################################################
   # Client API
@@ -41,6 +39,7 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
   @doc """
   Starts the EventMonitor process.
   """
+  @spec start_link(Keyword.t()) :: GenServer.on_start()
   def start_link(opts \\ []) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
@@ -55,6 +54,7 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
   * `{:ok, metrics}` - The current metrics
   * `{:error, reason}` - Failed to get metrics
   """
+  @spec get_metrics(Keyword.t()) :: {:ok, map()} | {:error, any()}
   def get_metrics(opts \\ []) do
     GenServer.call(__MODULE__, {:get_metrics, opts})
   end
@@ -73,6 +73,7 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
   ## Returns
   * Map with backpressure information
   """
+  @spec detect_backpressure(%{any() => integer()}, %{any() => map()}, %{any() => float()}) :: map()
   def detect_backpressure(queue_sizes, processing_metrics, error_rates) do
     # Check if any queue sizes are above threshold
     queue_pressure =
@@ -141,6 +142,7 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
   ## Returns
   * `:ok` - Alerting set up successfully
   """
+  @spec setup_alerting((map() -> any()) | nil, Keyword.t()) :: :ok
   def setup_alerting(notification_function \\ nil, opts \\ [])
       when is_nil(notification_function) or is_function(notification_function, 1) do
     GenServer.cast(__MODULE__, {:setup_alerting, notification_function, opts})
@@ -152,6 +154,7 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
   ## Returns
   * `:ok` - Alerting cleared successfully
   """
+  @spec clear_alerting() :: :ok
   def clear_alerting do
     GenServer.cast(__MODULE__, :clear_alerting)
   end
@@ -170,6 +173,7 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
   ## Returns
   * `:ok` - Metric recorded successfully
   """
+  @spec record_processing_metric(Event.t(), map()) :: :ok
   def record_processing_metric(%Event{} = event, metrics) do
     # Extract required fields with defaults
     duration_ms = Map.get(metrics, :duration_ms, 0)
@@ -197,6 +201,7 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
   @doc """
   Checks for issues and triggers alerts if needed.
   """
+  @spec check_and_alert() :: :ok
   def check_and_alert do
     GenServer.cast(__MODULE__, :check_and_alert)
   end
@@ -211,6 +216,7 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
   ## Returns
   * `:ok` - Queue size recorded
   """
+  @spec record_queue_size(any(), integer()) :: :ok
   def record_queue_size(handler_name, queue_size) do
     # Emit telemetry event for queue size
     Telemetry.execute(

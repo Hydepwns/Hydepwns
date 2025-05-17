@@ -234,4 +234,20 @@ defmodule HydepwnsLiveview.Resources.Examples.UserResource do
         raise "Unknown command: #{command}"
     end
   end
+
+  @doc """
+  Updates a user resource with tracking (for audit/telemetry).
+
+  ## Parameters
+  * `resource` - The user resource to update
+  * `updates` - The update parameters
+  * `metadata` - Additional metadata for the update
+  * `opts` - Optional context/options (unused)
+
+  ## Returns
+  * `{:ok, updated_resource}` or `{:error, reason}`
+  """
+  def update_with_tracking(resource, updates, metadata, _opts \\ %{}) do
+    update(resource, updates, metadata)
+  end
 end

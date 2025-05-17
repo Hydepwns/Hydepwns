@@ -37,16 +37,16 @@
 
   <nav class="site-navigation">
     <ul>
-      <li><a href={~p"/"} class={if @current_path == "/", do: "active"}>Home</a></li>
+      <li><a href={~p"/"} class={if Map.get(assigns, :current_path) == "/", do: "active"}>Home</a></li>
       <li>
-        <a href={~p"/style-guide"} class={if @current_path == "/style-guide", do: "active"}>
+        <a href={~p"/style-guide"} class={if Map.get(assigns, :current_path) == "/style-guide", do: "active"}>
           Style Guide
         </a>
       </li>
       <li>
-        <a href={~p"/projects"} class={if @current_path == "/projects", do: "active"}>Projects</a>
+        <a href={~p"/projects"} class={if Map.get(assigns, :current_path) == "/projects", do: "active"}>Projects</a>
       </li>
-      <li><a href={~p"/about"} class={if @current_path == "/about", do: "active"}>About</a></li>
+      <li><a href={~p"/about"} class={if Map.get(assigns, :current_path) == "/about", do: "active"}>About</a></li>
     </ul>
   </nav>
 

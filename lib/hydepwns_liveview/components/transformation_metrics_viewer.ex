@@ -12,6 +12,10 @@ defmodule HydepwnsLiveview.Components.TransformationMetricsViewer do
   use Phoenix.LiveComponent
   alias HydepwnsLiveview.Utils.TransformationMetrics
 
+  @doc """
+  Initializes the TransformationMetricsViewer LiveComponent with default assigns.
+  """
+  @spec mount(Phoenix.LiveView.Socket.t()) :: {:ok, Phoenix.LiveView.Socket.t()}
   def mount(socket) do
     {
       :ok,
@@ -29,6 +33,10 @@ defmodule HydepwnsLiveview.Components.TransformationMetricsViewer do
     }
   end
 
+  @doc """
+  Updates the component assigns and loads metrics and performance report for the given transformation module.
+  """
+  @spec update(map(), Phoenix.LiveView.Socket.t()) :: {:ok, Phoenix.LiveView.Socket.t()}
   def update(assigns, socket) do
     transformation_module = assigns[:transformation_module]
 
@@ -52,10 +60,15 @@ defmodule HydepwnsLiveview.Components.TransformationMetricsViewer do
     }
   end
 
+  @doc """
+  Handles UI events for changing view, selecting/clearing transformations, and updating filters.
+  """
+  @spec handle_event(String.t(), map(), Phoenix.LiveView.Socket.t()) :: {:noreply, Phoenix.LiveView.Socket.t()}
   def handle_event("change_view", %{"view" => view}, socket) do
     {:noreply, assign(socket, :view_mode, String.to_atom(view))}
   end
 
+  @spec handle_event(String.t(), map(), Phoenix.LiveView.Socket.t()) :: {:noreply, Phoenix.LiveView.Socket.t()}
   def handle_event("select_transformation", %{"module" => module_string}, socket) do
     module =
       try do
@@ -67,10 +80,12 @@ defmodule HydepwnsLiveview.Components.TransformationMetricsViewer do
     {:noreply, assign(socket, :selected_transformation, module)}
   end
 
+  @spec handle_event(String.t(), map(), Phoenix.LiveView.Socket.t()) :: {:noreply, Phoenix.LiveView.Socket.t()}
   def handle_event("clear_selection", _, socket) do
     {:noreply, assign(socket, :selected_transformation, nil)}
   end
 
+  @spec handle_event(String.t(), map(), Phoenix.LiveView.Socket.t()) :: {:noreply, Phoenix.LiveView.Socket.t()}
   def handle_event("update_filter", %{"filter" => filter_params}, socket) do
     filter = %{
       min_time: parse_integer(filter_params["min_time"]),
@@ -82,6 +97,10 @@ defmodule HydepwnsLiveview.Components.TransformationMetricsViewer do
     {:noreply, assign(socket, :filter, filter)}
   end
 
+  @doc """
+  Renders the TransformationMetricsViewer component UI based on the current view mode and assigns.
+  """
+  @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
     ~H"""
     <div class="transformation-metrics-viewer">

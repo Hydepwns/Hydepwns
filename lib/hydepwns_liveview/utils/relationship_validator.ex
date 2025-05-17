@@ -13,7 +13,6 @@ defmodule HydepwnsLiveview.Utils.RelationshipValidator do
   """
 
   alias HydepwnsLiveview.Utils.RelationshipResolver
-  alias HydepwnsLiveview.Utils.LiveViewResource
 
   @doc """
   Validates relationships for a resource.
@@ -297,7 +296,7 @@ defmodule HydepwnsLiveview.Utils.RelationshipValidator do
               end)
             end)
 
-          errors = target_errors ++ errors
+          _errors = target_errors ++ errors
 
         _ ->
           errors
@@ -608,7 +607,7 @@ defmodule HydepwnsLiveview.Utils.RelationshipValidator do
   end
 
   # Find all resources that have a relationship to this resource
-  defp find_reverse_relationships(resource) do
+  defp find_reverse_relationships(_resource) do
     # This is a simplified implementation and would need to be enhanced
     # in a real-world scenario to efficiently find reverse relationships
 

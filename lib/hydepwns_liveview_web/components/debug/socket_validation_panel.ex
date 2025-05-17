@@ -23,6 +23,7 @@ defmodule HydepwnsLiveviewWeb.Components.Debug.SocketValidationPanel do
   use HydepwnsLiveviewWeb, :live_component
 
   alias HydepwnsLiveview.Utils.SocketValidationHelper
+  import HydepwnsLiveviewWeb.Components.Common.DebugHelpers
 
   @default_max_errors 50
 
@@ -431,7 +432,7 @@ defmodule HydepwnsLiveviewWeb.Components.Debug.SocketValidationPanel do
                     <div class="chart-item">
                       <div class="chart-label">{type}</div>
                       <div class="chart-bar-container">
-                        <div class="chart-bar" style={"width: #{percentage(count, length(@errors))}%;"}>
+                        <div class="chart-bar" style={"width: #{calculate_bar_width(count, length(@errors))}%;"}>
                           {count}
                         </div>
                       </div>
@@ -447,7 +448,7 @@ defmodule HydepwnsLiveviewWeb.Components.Debug.SocketValidationPanel do
                     <div class="chart-item">
                       <div class="chart-label">{short_view_name(view)}</div>
                       <div class="chart-bar-container">
-                        <div class="chart-bar" style={"width: #{percentage(count, length(@errors))}%;"}>
+                        <div class="chart-bar" style={"width: #{calculate_bar_width(count, length(@errors))}%;"}>
                           {count}
                         </div>
                       </div>
@@ -691,17 +692,6 @@ defmodule HydepwnsLiveviewWeb.Components.Debug.SocketValidationPanel do
     |> Enum.into(%{})
   end
 
-  # Determine the type of a value
-  defp determine_type(value) when is_binary(value), do: "string"
-  defp determine_type(value) when is_integer(value), do: "integer"
-  defp determine_type(value) when is_boolean(value), do: "boolean"
-  defp determine_type(value) when is_map(value), do: "map"
-  defp determine_type(value) when is_list(value), do: "list"
-  defp determine_type(value) when is_atom(value), do: "atom"
-  defp determine_type(value) when is_function(value), do: "function"
-  defp determine_type(value) when is_float(value), do: "float"
-  defp determine_type(_), do: "unknown"
-
   # Update error metrics with a new error
   defp update_error_metrics(socket, error_data) do
     error_type = String.to_atom(to_string(error_data.type))
@@ -824,71 +814,6 @@ defmodule HydepwnsLiveviewWeb.Components.Debug.SocketValidationPanel do
 
   defp calculate_bar_width(_count, _max_count), do: 0
 
-  # Helper to determine if a value is simple enough to display directly
-  defp is_simple_value(value) do
-    case value do
-      v when is_binary(v) -> String.length(v) < 50
-      v when is_number(v) -> true
-      v when is_atom(v) -> true
-      v when is_boolean(v) -> true
-      nil -> true
-      _ -> false
-    end
-  end
-
-  # Helper to create a summary for complex values
-  defp summarize_value(value) do
-    cond do
-      is_map(value) -> "Map with #{map_size(value)} keys"
-      is_list(value) -> "List with #{length(value)} items"
-      is_tuple(value) -> "Tuple with #{tuple_size(value)} elements"
-      is_function(value) -> "Function"
-      is_pid(value) -> "PID"
-      true -> "Complex value"
-    end
-  end
-
-  # Format a complex value for display
-  defp format_complex_value(value) do
-    inspect(value, pretty: true, width: 60)
-  end
-
-  # Helper to get type of a value
-  defp type_of_value(value) do
-    cond do
-      is_binary(value) -> "String"
-      is_integer(value) -> "Integer"
-      is_float(value) -> "Float"
-      is_boolean(value) -> "Boolean"
-      is_atom(value) -> "Atom"
-      is_map(value) -> "Map"
-      is_list(value) -> "List"
-      is_tuple(value) -> "Tuple"
-      is_function(value) -> "Function"
-      is_pid(value) -> "PID"
-      is_nil(value) -> "nil"
-      true -> "Unknown"
-    end
-  end
-
-  # Filter assigns based on search term
-  defp filter_assigns(assigns, filter) when is_map(assigns) and is_binary(filter) do
-    if filter == "" do
-      assigns
-    else
-      assigns
-      |> Enum.filter(fn {key, _value} ->
-        key
-        |> to_string()
-        |> String.downcase()
-        |> String.contains?(String.downcase(filter))
-      end)
-      |> Enum.into(%{})
-    end
-  end
-
-  defp filter_assigns(assigns, _), do: assigns || %{}
-
   # Helper to get the short name of a view module
   defp short_view_name(nil), do: "Unknown"
 
@@ -941,45 +866,6 @@ defmodule HydepwnsLiveviewWeb.Components.Debug.SocketValidationPanel do
   end
 
   defp filter_assigns(assigns, _), do: assigns || %{}
-
-  # Helper to get the type of a value as a string
-  defp get_type(nil), do: "nil"
-  defp get_type(value) when is_binary(value), do: "string"
-  defp get_type(value) when is_integer(value), do: "integer"
-  defp get_type(value) when is_float(value), do: "float"
-  defp get_type(value) when is_boolean(value), do: "boolean"
-  defp get_type(value) when is_map(value), do: "map"
-  defp get_type(value) when is_list(value), do: "list"
-  defp get_type(value) when is_atom(value), do: "atom"
-  defp get_type(value) when is_function(value), do: "function"
-  defp get_type(_), do: "unknown"
-
-  # Helper to create a preview of a value
-  defp truncate_preview(nil), do: "nil"
-
-  defp truncate_preview(value) when is_binary(value) do
-    if String.length(value) > 30 do
-      String.slice(value, 0, 27) <> "..."
-    else
-      value
-    end
-  end
-
-  defp truncate_preview(value) when is_list(value) do
-    case length(value) do
-      0 -> "[]"
-      n -> "[...] (#{n} items)"
-    end
-  end
-
-  defp truncate_preview(value) when is_map(value) do
-    case map_size(value) do
-      0 -> "{}"
-      n -> "{...} (#{n} keys)"
-    end
-  end
-
-  defp truncate_preview(value), do: inspect(value, limit: 10)
 
   # Helper to render validation status for an assign
   defp render_validation_status(key, value, view_module) do

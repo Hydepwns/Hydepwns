@@ -16,6 +16,7 @@ defmodule HydepwnsLiveview.Events.Projections.ProjectionProcess do
 
   alias HydepwnsLiveview.Events.EventBus
   alias HydepwnsLiveview.Events.EventStore
+  alias HydepwnsLiveview.Events.ProjectionRegistry
 
   # Client API
 
@@ -74,6 +75,10 @@ defmodule HydepwnsLiveview.Events.Projections.ProjectionProcess do
           last_event_id: nil,
           options: opts
         }
+
+        # Register this process in the ProjectionRegistry
+        interested_in = projection_module.interested_in()
+        Registry.register(HydepwnsLiveview.Events.ProjectionRegistry, projection_module, %{interested_in: interested_in})
 
         # Subscribe to events if requested
         if Keyword.get(opts, :subscribe, true) do
@@ -187,7 +192,7 @@ defmodule HydepwnsLiveview.Events.Projections.ProjectionProcess do
                   {updated_state, count + 1, event.id}
 
                 {:error, reason} ->
-                  Logger.warn(
+                  Logger.warning(
                     "Error applying event #{event.id} to projection #{inspect(state.projection_module)}: #{inspect(reason)}"
                   )
 

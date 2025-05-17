@@ -3,7 +3,7 @@ defmodule HydepwnsLiveviewWeb.ThemeManagerLive do
     layout: {HydepwnsLiveviewWeb.Layouts, :app}
 
   alias HydepwnsLiveview.Themes
-  alias HydepwnsLiveview.Themes.Theme
+  alias HydepwnsLiveview.ThemeSystem.Models.Theme
   import HydepwnsLiveviewWeb.Components.UI.ThemeToggle
 
   @impl true
@@ -17,7 +17,7 @@ defmodule HydepwnsLiveviewWeb.ThemeManagerLive do
       |> assign(:themes, themes)
       |> assign(:changeset, changeset)
 
-    {:ok, socket}
+    socket
   end
 
   @impl true

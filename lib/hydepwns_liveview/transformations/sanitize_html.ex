@@ -27,12 +27,6 @@ defmodule HydepwnsLiveview.Transformations.SanitizeHtml do
   # List of fields that may contain HTML content
   @html_fields [:description, :content, :body, :html]
 
-  # List of allowed HTML tags
-  @allowed_tags ~w(a b br code div em h1 h2 h3 h4 h5 h6 hr i li ol p pre span strong ul)
-
-  # List of allowed HTML attributes
-  @allowed_attributes ~w(class href rel src style target title)
-
   @doc """
   Transforms a resource by sanitizing HTML content fields.
 

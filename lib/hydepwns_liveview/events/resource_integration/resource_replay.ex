@@ -10,11 +10,8 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceReplay do
   """
 
   require Logger
-  alias HydepwnsLiveview.Events.Event
   alias HydepwnsLiveview.Events.EventStore
   alias HydepwnsLiveview.Events.EventSourcedResource
-  alias HydepwnsLiveview.Events.EventSourcedResourceEnhancer
-  alias HydepwnsLiveview.Repo
 
   @doc """
   Creates a point-in-time replay for a resource.

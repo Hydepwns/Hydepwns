@@ -11,101 +11,34 @@ defmodule HydepwnsLiveview.ThemeSystem do
   alias HydepwnsLiveview.Repo
   alias HydepwnsLiveview.ThemeSystem.Models.Theme
 
-  @doc """
-  Returns the list of themes.
-
-  ## Examples
-
-      iex> list_themes()
-      [%Theme{}, ...]
-
-  """
+  @spec list_themes() :: [Theme.t()]
   def list_themes do
-    Repo.all(Theme)
+    themes = Repo.all(Theme)
+    IO.inspect(themes, label: "[DEBUG] list_themes returned")
+    themes
   end
 
-  @doc """
-  Gets a single theme.
-
-  Raises `Ecto.NoResultsError` if the Theme does not exist.
-
-  ## Examples
-
-      iex> get_theme!(123)
-      %Theme{}
-
-      iex> get_theme!(456)
-      ** (Ecto.NoResultsError)
-
-  """
+  @spec get_theme!(term()) :: Theme.t()
   def get_theme!(id), do: Repo.get!(Theme, id)
 
-  @doc """
-  Gets a single theme by name.
-
-  Returns nil if the Theme does not exist.
-
-  ## Examples
-
-      iex> get_theme_by_name("dark")
-      %Theme{}
-
-      iex> get_theme_by_name("nonexistent")
-      nil
-
-  """
+  @spec get_theme_by_name(String.t()) :: Theme.t() | nil
   def get_theme_by_name(name) when is_binary(name) do
     Repo.get_by(Theme, name: name)
   end
 
-  @doc """
-  Gets the default theme.
-
-  Returns nil if no default theme is set.
-
-  ## Examples
-
-      iex> get_default_theme()
-      %Theme{}
-
-      iex> get_default_theme()
-      nil
-
-  """
+  @spec get_default_theme() :: Theme.t() | nil
   def get_default_theme do
     Repo.get_by(Theme, is_default: true)
   end
 
-  @doc """
-  Creates a theme.
-
-  ## Examples
-
-      iex> create_theme(%{field: value})
-      {:ok, %Theme{}}
-
-      iex> create_theme(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
+  @spec create_theme(map()) :: {:ok, Theme.t()} | {:error, Ecto.Changeset.t()}
   def create_theme(attrs \\ %{}) do
     %Theme{}
     |> Theme.changeset(attrs)
     |> Repo.insert()
   end
 
-  @doc """
-  Updates a theme.
-
-  ## Examples
-
-      iex> update_theme(theme, %{field: new_value})
-      {:ok, %Theme{}}
-
-      iex> update_theme(theme, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
+  @spec update_theme(Theme.t(), map()) :: {:ok, Theme.t()} | {:error, Ecto.Changeset.t()}
   def update_theme(%Theme{} = theme, attrs) do
     result =
       theme
@@ -126,44 +59,17 @@ defmodule HydepwnsLiveview.ThemeSystem do
     end
   end
 
-  @doc """
-  Deletes a theme.
-
-  ## Examples
-
-      iex> delete_theme(theme)
-      {:ok, %Theme{}}
-
-      iex> delete_theme(theme)
-      {:error, %Ecto.Changeset{}}
-
-  """
+  @spec delete_theme(Theme.t()) :: {:ok, Theme.t()} | {:error, Ecto.Changeset.t()}
   def delete_theme(%Theme{} = theme) do
     Repo.delete(theme)
   end
 
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking theme changes.
-
-  ## Examples
-
-      iex> change_theme(theme)
-      %Ecto.Changeset{data: %Theme{}}
-
-  """
+  @spec change_theme(Theme.t(), map()) :: Ecto.Changeset.t()
   def change_theme(%Theme{} = theme, attrs \\ %{}) do
     Theme.changeset(theme, attrs)
   end
 
-  @doc """
-  Sets a theme as the default, unsetting any existing default.
-
-  ## Examples
-
-      iex> set_default_theme(theme)
-      {:ok, %Theme{}}
-
-  """
+  @spec set_default_theme(Theme.t()) :: {:ok, Theme.t()} | {:error, Ecto.Changeset.t()}
   def set_default_theme(%Theme{} = theme) do
     update_theme(theme, %{is_default: true})
   end

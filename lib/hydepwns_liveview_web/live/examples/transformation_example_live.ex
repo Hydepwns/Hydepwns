@@ -1,4 +1,6 @@
 defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
+  @behaviour Phoenix.LiveView
+
   @moduledoc """
   Example LiveView that demonstrates how to use the transformation system.
 
@@ -18,7 +20,6 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
   alias HydepwnsLiveview.Transformations.TransformationPipeline
   alias HydepwnsLiveview.Transformations.TransformationContext
   alias HydepwnsLiveview.Transformations.StandardTransformers
-  alias HydepwnsLiveviewWeb.Components.TransformationVisualizerComponent
 
   @example_resource %{
     username: "JOHN.DOE",
@@ -100,7 +101,7 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
         "field_to_remove" => ""
       })
 
-    {:ok, socket}
+    socket
   end
 
   def handle_event("execute_transformations", _params, socket) do
@@ -112,22 +113,22 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
       )
 
     case result do
-      {:ok, transformed_resource, context} ->
+      {:ok, transformed_resource, _context} ->
         socket =
           socket
           |> assign(:resource, transformed_resource)
           |> assign(:transformation_result, :success)
-          |> assign(:transformation_context, context)
+          |> assign(:transformation_context, _context)
           |> assign(:execution_error, nil)
 
         {:noreply, socket}
 
-      {:error, resource, context} ->
+      {:error, resource, _context} ->
         socket =
           socket
           |> assign(:resource, resource)
           |> assign(:transformation_result, :error)
-          |> assign(:transformation_context, context)
+          |> assign(:transformation_context, _context)
           |> assign(:execution_error, nil)
 
         {:noreply, socket}
@@ -316,7 +317,7 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
       register_selected_transformations(selected_transformers, form_data)
 
       # Create transformation context
-      context =
+      _context =
         TransformationContext.new(
           Map.keys(resource),
           :update,
@@ -528,13 +529,6 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
   end
 
   # Helper to parse integers safely
-  defp parse_integer(value, default) when is_binary(value) do
-    case Integer.parse(value) do
-      {int, _} -> int
-      :error -> default
-    end
-  end
-
-  defp parse_integer(value, default) when is_integer(value), do: value
+  defp parse_integer(value, _default) when is_integer(value), do: value
   defp parse_integer(_value, default), do: default
 end

@@ -21,6 +21,7 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
   @doc """
   Starts the EventBus process.
   """
+  @spec start_link(Keyword.t()) :: GenServer.on_start()
   def start_link(opts \\ []) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
@@ -39,6 +40,7 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
   * `:ok` - The event was published successfully
   * `{:error, reason}` - The event could not be published
   """
+  @spec publish(Event.t(), Keyword.t()) :: :ok | {:error, any()}
   def publish(%Event{} = event, opts \\ []) do
     store? = Keyword.get(opts, :store, true)
 
@@ -71,6 +73,7 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
 
   * `:ok` - The subscription was successful
   """
+  @spec subscribe(pid() | atom(), [atom()] | :all) :: :ok
   def subscribe(subscriber, event_types \\ :all) do
     GenServer.cast(__MODULE__, {:subscribe, subscriber, event_types})
     :ok
@@ -88,6 +91,7 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
 
   * `:ok` - The unsubscription was successful
   """
+  @spec unsubscribe(pid() | atom(), [atom()] | :all) :: :ok
   def unsubscribe(subscriber, event_types \\ :all) do
     GenServer.cast(__MODULE__, {:unsubscribe, subscriber, event_types})
     :ok
@@ -100,6 +104,7 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
 
   * `{:ok, subscribers}` - Map of event types to lists of subscribers
   """
+  @spec list_subscribers() :: {:ok, %{optional(atom()) => [pid()]}}
   def list_subscribers do
     GenServer.call(__MODULE__, :list_subscribers)
   end

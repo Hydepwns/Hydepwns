@@ -34,6 +34,7 @@ defmodule HydepwnsLiveview.Resources.TeamResource do
   This is a stub implementation for testing purposes.
   In a real application, this would fetch the team from a database.
   """
+  @spec load(String.t()) :: {:ok, map()} | {:error, any()}
   def load(id) do
     # This is a simple stub that always returns a team with the given ID
     # In a real application, this would query the database

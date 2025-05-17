@@ -61,8 +61,10 @@ defmodule HydepwnsLiveview.Utils.ValidationDependencyResolver do
 
   ## Returns
 
-  - `{:ok, validation_plan}` - Successfully created validation plan
-  - `{:error, reason}` - Failed to create validation plan
+  - `{:ok, validation_plan}` - Successfully created validation plan. The validation plan is a map with the following keys:
+    - `:order` - A list of validation IDs (tuples of `{module, rule_name}`) in the order they should be executed.
+    - `:dependencies` - A map where each key is a validation ID and the value is a list of validation IDs that the key depends on.
+  - `{:error, reason}` - Failed to create validation plan. The reason is a string describing the error.
   """
   @spec resolve_dependencies(atom() | map(), keyword()) :: {:ok, map()} | {:error, any()}
   def resolve_dependencies(resource_or_module, opts \\ []) do

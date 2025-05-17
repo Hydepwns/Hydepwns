@@ -35,7 +35,7 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceExampleLive do
       |> assign(:email, "user@example.com")
       |> load_user_from_resource()
 
-    {:ok, socket}
+    socket
   end
 
   def render(assigns) do

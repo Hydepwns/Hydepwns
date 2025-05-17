@@ -1,4 +1,6 @@
 defmodule HydepwnsLiveviewWeb.Examples.EctoResourceExampleLive do
+  @behaviour Phoenix.LiveView
+
   @moduledoc """
   Example LiveView that demonstrates using a resource with the EctoAdapter.
 
@@ -40,7 +42,7 @@ defmodule HydepwnsLiveviewWeb.Examples.EctoResourceExampleLive do
           |> assign(:user, validated_user)
           |> assign(:loading, false)
 
-        {:ok, socket}
+        socket
 
       {:error, message} ->
         socket =
@@ -48,7 +50,7 @@ defmodule HydepwnsLiveviewWeb.Examples.EctoResourceExampleLive do
           |> assign(:error_message, "Failed to validate user: #{message}")
           |> assign(:loading, false)
 
-        {:ok, socket}
+        socket
     end
   end
 
@@ -153,7 +155,7 @@ defmodule HydepwnsLiveviewWeb.Examples.EctoResourceExampleLive do
         # In a real application, we'd save the user to the database here
         # EctoUserResource.save(validated_user)
 
-        {:noreply, socket}
+        socket
 
       {:error, message} ->
         socket =
@@ -161,7 +163,7 @@ defmodule HydepwnsLiveviewWeb.Examples.EctoResourceExampleLive do
           |> assign(:error_message, "Failed to update user: #{message}")
           |> assign(:success_message, nil)
 
-        {:noreply, socket}
+        socket
     end
   end
 
@@ -177,7 +179,7 @@ defmodule HydepwnsLiveviewWeb.Examples.EctoResourceExampleLive do
           |> assign(:success_message, "Email '#{email}' is valid!")
           |> assign(:error_message, nil)
 
-        {:noreply, socket}
+        socket
 
       {:error, message} ->
         socket =
@@ -185,7 +187,7 @@ defmodule HydepwnsLiveviewWeb.Examples.EctoResourceExampleLive do
           |> assign(:error_message, "Email validation failed: #{message}")
           |> assign(:success_message, nil)
 
-        {:noreply, socket}
+        socket
     end
   end
 end

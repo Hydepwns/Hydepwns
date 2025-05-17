@@ -14,6 +14,11 @@ defmodule HydepwnsLiveviewWeb.Components.BaseComponents do
   attr :rest, :global
 
   # Common layout/structure patterns
+  @doc """
+  Renders a container div with optional id, class, and additional attributes.
+  The inner content is rendered via the inner_block slot.
+  """
+  @spec container(map()) :: Phoenix.LiveView.Rendered.t()
   def container(assigns) do
     ~H"""
     <div id={@id} class={[@class]} {@rest}>
@@ -23,6 +28,11 @@ defmodule HydepwnsLiveviewWeb.Components.BaseComponents do
   end
 
   # Common icon/button patterns
+  @doc """
+  Renders an icon span with optional class and additional attributes.
+  The inner content is rendered via the inner_block slot.
+  """
+  @spec icon(map()) :: Phoenix.LiveView.Rendered.t()
   def icon(assigns) do
     assigns = assign_new(assigns, :class, fn -> "" end)
 
@@ -34,6 +44,11 @@ defmodule HydepwnsLiveviewWeb.Components.BaseComponents do
   end
 
   # Common modal-related helpers (extract from both existing components)
+  @doc """
+  Renders a modal container div with fade-out transition on removal.
+  The inner content is rendered via the inner_block slot.
+  """
+  @spec modal_container(map()) :: Phoenix.LiveView.Rendered.t()
   def modal_container(assigns) do
     ~H"""
     <div id={@id} class={["modal-container", @class]} phx-remove={JS.transition("fade-out")} {@rest}>
@@ -43,6 +58,11 @@ defmodule HydepwnsLiveviewWeb.Components.BaseComponents do
   end
 
   # Common utility functions
+  @doc """
+  Hides a modal by id using JS transitions.
+  Returns a JS command.
+  """
+  @spec hide_modal(String.t()) :: JS.t()
   def hide_modal(id) when is_binary(id) do
     %JS{}
     |> JS.hide(to: "##{id}")
@@ -51,6 +71,11 @@ defmodule HydepwnsLiveviewWeb.Components.BaseComponents do
   end
 
   # Overload to support passing in an existing JS command
+  @doc """
+  Hides a modal by id using an existing JS command, chaining transitions.
+  Returns the updated JS command.
+  """
+  @spec hide_modal(JS.t(), String.t()) :: JS.t()
   def hide_modal(js, id) when is_binary(id) do
     js
     |> JS.hide(to: "##{id}")
@@ -62,12 +87,21 @@ defmodule HydepwnsLiveviewWeb.Components.BaseComponents do
   # For example:
 
   # Shared utility functions
+  @doc """
+  Generates a unique DOM id with the given prefix using a UUID.
+  """
+  @spec generate_id(String.t()) :: String.t()
   def generate_id(prefix), do: "#{prefix}-#{Ecto.UUID.generate()}"
 
   # Add other shared component patterns here
 
   # -- COMMON FORM ELEMENTS --
   # Move basic form elements here from both core and form components
+  @doc """
+  Renders a wrapper div for form inputs with optional class.
+  The inner content is rendered via the inner_block slot.
+  """
+  @spec input_wrapper(map()) :: Phoenix.LiveView.Rendered.t()
   def input_wrapper(assigns) do
     ~H"""
     <div class={["input-wrapper", @class]}>

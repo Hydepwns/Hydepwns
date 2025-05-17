@@ -17,6 +17,7 @@ defmodule HydepwnsLiveview.Resources.EctoUserResource do
   # However, we can override or add to them if needed:
 
   # Define validations directly in the function
+  @spec validations() :: [map()]
   def validations do
     [
       %{

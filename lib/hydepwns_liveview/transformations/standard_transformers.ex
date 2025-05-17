@@ -306,6 +306,12 @@ defmodule HydepwnsLiveview.Transformations.StandardTransformers do
     end
   end
 
+  defp convert_value(value, :integer) when is_integer(value), do: {:ok, value}
+  defp convert_value(value, :float) when is_float(value), do: {:ok, value}
+  defp convert_value(value, :boolean) when is_boolean(value), do: {:ok, value}
+  defp convert_value(value, :date) when is_struct(value, Date), do: {:ok, value}
+  defp convert_value(value, :datetime) when is_struct(value, DateTime), do: {:ok, value}
+
   defp convert_value(value, _type) do
     # If conversion is not supported or value is already correct type, return as is
     {:ok, value}

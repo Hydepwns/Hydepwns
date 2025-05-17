@@ -23,6 +23,7 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
   * `{:ok, details}` - The event details
   * `{:error, reason}` - Error retrieving event details
   """
+  @spec inspect_event(any()) :: {:ok, map()} | {:error, any()}
   def inspect_event(event_id) do
     with {:ok, event} <- EventStore.get_event(event_id),
          {:ok, related_events} <- get_related_events(event),
@@ -49,6 +50,7 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
   * `{:ok, diff}` - The differences between the events
   * `{:error, reason}` - Error comparing events
   """
+  @spec compare_events(any(), any()) :: {:ok, map()} | {:error, any()}
   def compare_events(event_id_1, event_id_2) do
     with {:ok, event1} <- EventStore.get_event(event_id_1),
          {:ok, event2} <- EventStore.get_event(event_id_2) do
@@ -93,6 +95,7 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
   * `{:ok, session_id}` - The replay session was created and started
   * `{:error, reason}` - Error creating or starting the session
   """
+  @spec start_replay_for_debugging(String.t(), String.t(), String.t(), Keyword.t()) :: {:ok, any()} | {:error, any()}
   def start_replay_for_debugging(name, resource_type, resource_id, opts \\ []) do
     # Add debugging metadata
     metadata =
@@ -133,6 +136,7 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
   * `{:ok, session}` - The session details
   * `{:error, reason}` - Error retrieving session
   """
+  @spec get_replay_status(any()) :: {:ok, any()} | {:error, any()}
   def get_replay_status(session_id) do
     case Repo.get(EventStore.ReplaySession, session_id) do
       nil -> {:error, :not_found}
@@ -150,6 +154,7 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
   * `{:ok, metrics}` - The event system metrics
   * `{:error, reason}` - Error retrieving metrics
   """
+  @spec get_event_system_metrics(integer()) :: {:ok, map()} | {:error, any()}
   def get_event_system_metrics(time_period \\ 3600) do
     start_time = DateTime.add(DateTime.utc_now(), -time_period, :second)
 
@@ -230,30 +235,36 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
   # Gets handlers that would process this event
   defp get_handlers_for_event(event) do
     handlers =
-      GenRegistry.lookup_all(HydepwnsLiveview.Events.HandlerSupervisor.registry_name())
-      |> Enum.filter(fn {_id, pid} ->
-        handler_info = :sys.get_state(pid).handler_info
-
-        Enum.member?(handler_info.event_types, event.type) ||
-          handler_info.event_types == :all
-      end)
-      |> Enum.map(fn {id, _pid} -> id end)
-
+      Registry.select(HydepwnsLiveview.Events.HandlerRegistry, [
+        {
+          {:'$1', :_, :'$2'},
+          [
+            {:orelse,
+              {:==, {:map_get, :event_types, :'$2'}, :all},
+              {:is_member, event.type, {:map_get, :event_types, :'$2'}}
+            }
+          ],
+          [:'$1']
+        }
+      ])
     {:ok, handlers}
   end
 
   # Gets projections that would process this event
   defp get_projections_for_event(event) do
     projections =
-      GenRegistry.lookup_all(HydepwnsLiveview.Events.ProjectionSupervisor.registry_name())
-      |> Enum.filter(fn {_id, pid} ->
-        projection_info = :sys.get_state(pid).projection_info
-
-        Enum.member?(projection_info.interested_in, event.type) ||
-          projection_info.interested_in == :all
-      end)
-      |> Enum.map(fn {id, _pid} -> id end)
-
+      Registry.select(HydepwnsLiveview.Events.ProjectionRegistry, [
+        {
+          {:'$1', :_, :'$2'},
+          [
+            {:orelse,
+              {:==, {:map_get, :interested_in, :'$2'}, :all},
+              {:is_member, event.type, {:map_get, :interested_in, :'$2'}}
+            }
+          ],
+          [:'$1']
+        }
+      ])
     {:ok, projections}
   end
 

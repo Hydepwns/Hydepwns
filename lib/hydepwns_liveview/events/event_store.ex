@@ -42,6 +42,14 @@ defmodule HydepwnsLiveview.Events.EventStore do
   defdelegate event_stream(criteria \\ %{}), to: CoreEventStore
   defdelegate count_events(criteria \\ %{}), to: CoreEventStore
 
+  defdelegate create_replay_session(name, resource_type, resource_id, opts \\ []),
+    to: CoreEventStore
+
+  defdelegate complete_replay_session(session_id, results), to: CoreEventStore
+  defdelegate fail_replay_session(session_id, error_details), to: CoreEventStore
+  defdelegate get_replay_session(session_id), to: CoreEventStore
+  defdelegate get_replay_session_events(session_id), to: CoreEventStore
+
   # Add documentation about maintenance of this bridge module
   @doc """
   Note: This bridge module is maintained for backward compatibility.

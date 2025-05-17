@@ -2,9 +2,43 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
   @moduledoc """
   Behavior and implementation for event-sourced resources.
 
-  This module provides functionality to create resources that are sourced from events.
-  Instead of directly storing the current state in a database, the state is derived
-  from a sequence of events that have occurred.
+  This module provides macros and helpers to define resources whose state is derived from a sequence of events, rather than direct database storage.
+
+  ## Usage
+
+      defmodule MyApp.MyResource do
+        use HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource
+
+        def initial_state, do: %{}
+        def apply_event(event, state), do: # your logic here
+        def resource_type, do: "my_resource"
+      end
+
+  ## Features
+
+  - State construction from events
+  - Command processing and event generation
+  - Event publishing via EventBus
+  - Snapshot management for efficient state recovery
+  - Event replay and point-in-time queries
+
+  ## Generated API
+
+  - `get/1` — Get resource by ID
+  - `get_at/2` — Get resource at a specific point in time
+  - `create/1` — Create a new resource
+  - `execute/4` — Execute a command on a resource
+  - `update/3` — Update a resource
+  - `delete/2` — Delete a resource (soft delete via event)
+  - `get_history/2` — Get event history for a resource
+
+  ## Required Callbacks
+
+  - `initial_state/0` — Returns the initial state for the resource
+  - `apply_event/2` — Applies an event to the resource state
+  - `resource_type/0` — Returns the resource type as a string
+
+  See also: `EventStore`, `EventBus`
   """
 
   alias HydepwnsLiveview.Events.Core.Event
@@ -16,8 +50,13 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
   @type resource_state :: map()
   @type event_metadata :: map()
 
+  @doc "Returns the initial state for the resource."
   @callback initial_state() :: resource_state()
+
+  @doc "Applies an event to the resource state."
   @callback apply_event(event, resource_state()) :: resource_state()
+
+  @doc "Returns the resource type as a string."
   @callback resource_type() :: String.t()
 
   @doc """
@@ -30,6 +69,18 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
   - Event generation and publishing
   - Snapshot management
   - Event replay
+
+  ## Example
+
+      use HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource
+
+  ## Generated Functions
+
+  - `get/1`, `get_at/2`, `create/1`, `execute/4`, `update/3`, `delete/2`, `get_history/2`
+
+  ## Required Callbacks
+
+  - `initial_state/0`, `apply_event/2`, `resource_type/0`
   """
   defmacro __using__(opts) do
     snapshot_interval = Keyword.get(opts, :snapshot_interval, 100)
@@ -42,9 +93,23 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
       alias HydepwnsLiveview.Events.Core.EventBus
       alias HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource
 
-      # Default snapshot interval (can be overridden)
       def snapshot_interval, do: unquote(snapshot_interval)
 
+      unquote(define_resource_getter())
+      unquote(define_resource_getter_at())
+      unquote(define_resource_creator())
+      unquote(define_resource_executor())
+      unquote(define_resource_updater())
+      unquote(define_resource_deleter())
+      unquote(define_resource_history())
+      unquote(define_event_creators())
+      unquote(define_private_helpers())
+    end
+  end
+
+  # Helper for get/1
+  defp define_resource_getter do
+    quote do
       @doc """
       Gets a resource by ID, reconstructing it from events.
 
@@ -58,46 +123,17 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
       * `{:error, reason}` - The resource could not be retrieved
       """
       def get(id) do
-        # Try to get the latest snapshot first
-        case get_latest_snapshot(id) do
-          {:ok, snapshot} ->
-            # Get events since the snapshot
-            with {:ok, events} <-
-                   EventStore.get_events_since_event_id(
-                     resource_type(),
-                     id,
-                     snapshot.metadata.event_id
-                   ) do
-              # Rebuild state from the snapshot and subsequent events
-              state =
-                EventSourcedResource.rebuild_from_events(events, snapshot.state, &apply_event/2)
-
-              {:ok, Map.put(state, :id, id)}
-            end
-
-          {:error, :snapshot_not_found} ->
-            # No snapshot, rebuild from all events
-            with {:ok, events} <-
-                   EventStore.get_events(resource_type(), id, %{sort: [timestamp: :asc]}) do
-              if Enum.empty?(events) do
-                {:error, :not_found}
-              else
-                state =
-                  EventSourcedResource.rebuild_from_events(
-                    events,
-                    initial_state(),
-                    &apply_event/2
-                  )
-
-                {:ok, Map.put(state, :id, id)}
-              end
-            end
-
-          error ->
-            error
-        end
+        HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource.__get_resource__(
+          id,
+          __MODULE__
+        )
       end
+    end
+  end
 
+  # Helper for get_at/2
+  defp define_resource_getter_at do
+    quote do
       @doc """
       Gets a resource at a specific point in time.
 
@@ -112,46 +148,18 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
       * `{:error, reason}` - The resource could not be retrieved
       """
       def get_at(id, timestamp) do
-        # Find the most recent snapshot before timestamp
-        with {:ok, snapshot} <- EventStore.get_snapshot_before(resource_type(), id, timestamp),
-             # Get events between snapshot and timestamp
-             {:ok, events} <-
-               EventStore.get_events_between(
-                 resource_type(),
-                 id,
-                 snapshot.metadata.timestamp,
-                 timestamp,
-                 %{sort: [timestamp: :asc]}
-               ) do
-          # Rebuild state from the snapshot and subsequent events
-          state = EventSourcedResource.rebuild_from_events(events, snapshot.state, &apply_event/2)
-          {:ok, Map.put(state, :id, id)}
-        else
-          {:error, :snapshot_not_found} ->
-            # No snapshot, get all events up to timestamp
-            with {:ok, events} <-
-                   EventStore.get_events_before(resource_type(), id, timestamp, %{
-                     sort: [timestamp: :asc]
-                   }) do
-              if Enum.empty?(events) do
-                {:error, :not_found}
-              else
-                state =
-                  EventSourcedResource.rebuild_from_events(
-                    events,
-                    initial_state(),
-                    &apply_event/2
-                  )
-
-                {:ok, Map.put(state, :id, id)}
-              end
-            end
-
-          error ->
-            error
-        end
+        HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource.__get_resource_at__(
+          id,
+          timestamp,
+          __MODULE__
+        )
       end
+    end
+  end
 
+  # Helper for create/1
+  defp define_resource_creator do
+    quote do
       @doc """
       Creates a new event-sourced resource.
 
@@ -166,30 +174,17 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
       * `{:error, reason}` - The resource could not be created
       """
       def create(params) do
-        id = params[:id] || params["id"] || Ecto.UUID.generate()
-
-        # Create events for resource creation
-        events = create_events(id, params)
-
-        # Apply the events to the initial state
-        state =
-          EventSourcedResource.rebuild_from_events(events, initial_state(), &apply_event/2)
-          |> Map.put(:id, id)
-
-        # Publish events
-        with :ok <- publish_events(events, %{action: "create"}) do
-          # Check if we should save a snapshot
-          if length(events) >= snapshot_interval() do
-            EventStore.save_snapshot(resource_type(), id, state, %{
-              event_id: List.last(events).id,
-              timestamp: DateTime.utc_now()
-            })
-          end
-
-          {:ok, state}
-        end
+        HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource.__create_resource__(
+          params,
+          __MODULE__
+        )
       end
+    end
+  end
 
+  # Helper for execute/4
+  defp define_resource_executor do
+    quote do
       @doc """
       Executes a command on the resource, generating events.
 
@@ -206,31 +201,20 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
       * `{:error, reason}` - The command could not be executed
       """
       def execute(id, command, params \\ %{}, metadata \\ %{}) do
-        with {:ok, resource} <- get(id) do
-          # Generate events for this command
-          events = execute_command(resource, command, params)
-
-          # Add metadata to events
-          events =
-            Enum.map(events, fn event ->
-              %{event | metadata: Map.merge(event.metadata || %{}, metadata)}
-            end)
-
-          # Apply events to current state
-          updated_state =
-            EventSourcedResource.rebuild_from_events(events, resource, &apply_event/2)
-
-          # Publish events
-          with :ok <- publish_events(events, Map.put(metadata, :command, command)) do
-            # Check if we should save a snapshot
-            last_event = List.last(events)
-            maybe_save_snapshot(id, updated_state, last_event)
-
-            {:ok, updated_state}
-          end
-        end
+        HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource.__execute_resource__(
+          id,
+          command,
+          params,
+          metadata,
+          __MODULE__
+        )
       end
+    end
+  end
 
+  # Helper for update/3
+  defp define_resource_updater do
+    quote do
       @doc """
       Updates a resource by generating and applying events.
 
@@ -246,25 +230,19 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
       * `{:error, reason}` - The resource could not be updated
       """
       def update(resource, params, metadata \\ %{}) do
-        id = resource.id
-
-        # Generate update events
-        events = update_events(resource, params)
-
-        # Apply events to current state
-        updated_state =
-          EventSourcedResource.rebuild_from_events(events, resource, &apply_event/2)
-
-        # Publish events
-        with :ok <- publish_events(events, Map.put(metadata, :action, "update")) do
-          # Check if we should save a snapshot
-          last_event = List.last(events)
-          maybe_save_snapshot(id, updated_state, last_event)
-
-          {:ok, updated_state}
-        end
+        HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource.__update_resource__(
+          resource,
+          params,
+          metadata,
+          __MODULE__
+        )
       end
+    end
+  end
 
+  # Helper for delete/2
+  defp define_resource_deleter do
+    quote do
       @doc """
       Deletes a resource by generating a deletion event.
 
@@ -279,35 +257,18 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
       * `{:error, reason}` - The resource could not be deleted
       """
       def delete(resource, metadata \\ %{}) do
-        id = resource.id
-
-        # Create deletion event
-        deletion_event = %Event{
-          id: Ecto.UUID.generate(),
-          type: "#{resource_type()}.deleted",
-          resource_id: id,
-          resource_type: resource_type(),
-          timestamp: DateTime.utc_now(),
-          data: %{deleted_at: DateTime.utc_now()},
-          metadata: Map.merge(%{action: "delete"}, metadata)
-        }
-
-        # Apply event to current state
-        deleted_state = apply_event(deletion_event, resource)
-
-        # Publish event
-        with :ok <- publish_events([deletion_event], metadata) do
-          # Create a final snapshot of the deleted state
-          EventStore.save_snapshot(resource_type(), id, deleted_state, %{
-            event_id: deletion_event.id,
-            timestamp: DateTime.utc_now(),
-            is_deletion: true
-          })
-
-          {:ok, deleted_state}
-        end
+        HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource.__delete_resource__(
+          resource,
+          metadata,
+          __MODULE__
+        )
       end
+    end
+  end
 
+  # Helper for get_history/2
+  defp define_resource_history do
+    quote do
       @doc """
       Gets the event history for a resource.
 
@@ -322,11 +283,18 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
       * `{:error, reason}` - Could not retrieve events
       """
       def get_history(id, opts \\ %{}) do
-        EventStore.get_events(resource_type(), id, opts)
+        HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource.__get_history__(
+          id,
+          opts,
+          __MODULE__
+        )
       end
+    end
+  end
 
-      # Override these in your resource module
-
+  # Helper for event creators (create_events, execute_command, update_events)
+  defp define_event_creators do
+    quote do
       @doc """
       Creates events for resource creation.
 
@@ -341,19 +309,13 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
 
       * List of events to apply
       """
-      def create_events(id, params) do
-        # Default implementation - a simple created event
-        [
-          %Event{
-            id: Ecto.UUID.generate(),
-            type: "#{resource_type()}.created",
-            resource_id: id,
-            resource_type: resource_type(),
-            timestamp: DateTime.utc_now(),
-            data: params
-          }
-        ]
-      end
+      def create_events(id, params),
+        do:
+          HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource.__create_events__(
+            id,
+            params,
+            __MODULE__
+          )
 
       @doc """
       Generates events for a command.
@@ -370,10 +332,14 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
 
       * List of events to apply
       """
-      def execute_command(resource, command, params) do
-        # This should be overridden in specific resource modules
-        raise "Not implemented: execute_command for #{command}"
-      end
+      def execute_command(resource, command, params),
+        do:
+          HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource.__execute_command__(
+            resource,
+            command,
+            params,
+            __MODULE__
+          )
 
       @doc """
       Generates events for an update.
@@ -389,68 +355,54 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
 
       * List of events to apply
       """
-      def update_events(resource, params) do
-        # Default implementation - a simple updated event
-        [
-          %Event{
-            id: Ecto.UUID.generate(),
-            type: "#{resource_type()}.updated",
-            resource_id: resource.id,
-            resource_type: resource_type(),
-            timestamp: DateTime.utc_now(),
-            data: params
-          }
-        ]
-      end
-
-      defp resource_type_from_module(module) do
-        module
-        |> Atom.to_string()
-        |> String.split(".")
-        |> List.last()
-        |> then(fn name -> String.replace(name, "Resource", "") end)
-        |> String.downcase()
-      end
-
-      defp publish_events(events, metadata) do
-        Enum.reduce_while(events, :ok, fn event ->
-          case EventBus.publish(event) do
-            :ok -> {:cont, :ok}
-            error -> {:halt, error}
-          end
-        end)
-      end
-
-      defp get_latest_snapshot(id) do
-        case EventStore.get_latest_snapshot(resource_type(), id) do
-          {:ok, snapshot} -> {:ok, snapshot}
-          {:error, :not_found} -> {:error, :snapshot_not_found}
-          error -> error
-        end
-      end
-
-      defp maybe_save_snapshot(id, state, last_event) do
-        # Get count of events since last snapshot
-        case EventStore.count_events_since_last_snapshot(resource_type(), id) do
-          {:ok, count} ->
-            # Get the interval
-            interval = snapshot_interval()
-            # Compare outside of guard context
-            if count >= interval do
-              # Save a new snapshot
-              EventStore.save_snapshot(resource_type(), id, state, %{
-                event_id: last_event.id,
-                timestamp: DateTime.utc_now()
-              })
-            else
-              :ok
-            end
-
-          _ ->
-            :ok
-        end
-      end
+      def update_events(resource, params),
+        do:
+          HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource.__update_events__(
+            resource,
+            params,
+            __MODULE__
+          )
     end
+  end
+
+  # Helper for private helpers (publish_events, get_latest_snapshot, maybe_save_snapshot, etc.)
+  defp define_private_helpers do
+    quote do
+      defp publish_events(events, metadata),
+        do:
+          HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource.__publish_events__(
+            events,
+            metadata,
+            __MODULE__
+          )
+
+      defp get_latest_snapshot(id),
+        do:
+          HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource.__get_latest_snapshot__(
+            id,
+            __MODULE__
+          )
+
+      defp maybe_save_snapshot(id, state, last_event),
+        do:
+          HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource.__maybe_save_snapshot__(
+            id,
+            state,
+            last_event,
+            __MODULE__
+          )
+
+      defp resource_type_from_module(module),
+        do:
+          HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource.__resource_type_from_module__(
+            module
+          )
+    end
+  end
+
+  # Helper to rebuild state from events
+  defp rebuild_from_events(events, initial_state, module) do
+    Enum.reduce(events, initial_state, fn event, acc -> module.apply_event(event, acc) end)
   end
 
   @doc """
@@ -460,80 +412,188 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
 
   * `events` - List of events to apply
   * `initial_state` - Starting state to build from
-  * `apply_event_fn` - Function that applies an event to the state
-
-  ## Returns
-
-  The final state after applying all events
   """
-  def rebuild_from_events(events, initial_state, apply_event_fn) when is_list(events) do
-    Enum.reduce(events, initial_state, apply_event_fn)
+  def __get_resource__(id, module) do
+    resource_type = get_resource_type(module)
+
+    with {:ok, events} <- EventStore.get_events_for_resource(resource_type, id) do
+      initial_state = module.initial_state()
+      state = rebuild_from_events(events, initial_state, module)
+      {:ok, state}
+    else
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   @doc """
-  Sets the snapshot interval for the resource.
-
-  ## Parameters
-
-  * `interval` - Number of events between snapshots
-
-  ## Returns
-
-  The snapshot interval
+  Internal: Get a resource at a specific point in time for the event-sourced resource macro.
   """
-  def set_snapshot_interval(_resource_module, interval)
-      when is_integer(interval) and interval > 0 do
-    # This function would normally update some configuration
-    # For now, it just returns the interval
-    interval
+  def __get_resource_at__(id, timestamp, module) do
+    resource_type = get_resource_type(module)
+
+    with {:ok, events} <-
+           EventStore.get_events(%{
+             resource_type: resource_type,
+             resource_id: id,
+             timestamp: %{before: timestamp},
+             sort: [timestamp: :asc]
+           }) do
+      initial_state = module.initial_state()
+      state = rebuild_from_events(events, initial_state, module)
+      {:ok, state}
+    else
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   @doc """
-  Lists all resources of a specific type.
-
-  ## Parameters
-
-  * `resource_module` - The resource module
-
-  ## Returns
-
-  * `{:ok, resource_ids}` - The list of resource IDs
-  * `{:error, reason}` - Failed to list resources
+  Internal: Create a new event-sourced resource for the macro.
   """
-  def list_resources(resource_module) do
-    resource_type = resource_module.resource_type()
-    EventStore.list_resources_by_type(resource_type)
+  def __create_resource__(params, module) do
+    id = Map.get(params, :id) || Map.get(params, "id") || Ecto.UUID.generate()
+    events = module.create_events(id, params)
+    metadata = %{}
+
+    with :ok <- __publish_events__(events, metadata, module) do
+      # Rebuild state from the events
+      initial_state = module.initial_state()
+      state = rebuild_from_events(events, initial_state, module)
+      {:ok, state}
+    else
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   @doc """
-  Creates a new event for a resource.
-
-  ## Parameters
-
-  * `resource_module` - The resource module
-  * `id` - The resource ID
-  * `event_type` - The event type (without resource prefix)
-  * `data` - The event data
-  * `metadata` - Additional metadata for the event
-
-  ## Returns
-
-  * `{:ok, event}` - The event was created
-  * `{:error, reason}` - Failed to create event
+  Internal: Execute a command on a resource for the event-sourced resource macro.
   """
-  def create_event(resource_module, id, event_type, data, metadata \\ %{}) do
-    resource_type = resource_module.resource_type()
+  def __execute_resource__(id, command, params, metadata, module) do
+    with {:ok, resource} <- __get_resource__(id, module),
+         events when is_list(events) <- module.execute_command(resource, command, params),
+         :ok <- __publish_events__(events, metadata, module) do
+      # Apply new events to the resource state
+      updated_state = rebuild_from_events(events, resource, module)
+      {:ok, updated_state}
+    else
+      {:error, reason} -> {:error, reason}
+    end
+  end
 
-    event = %Event{
-      id: Ecto.UUID.generate(),
-      type: "#{resource_type}.#{event_type}",
-      resource_id: id,
-      resource_type: resource_type,
-      timestamp: DateTime.utc_now(),
-      data: data,
-      metadata: metadata
-    }
+  @doc """
+  Internal: Update a resource for the event-sourced resource macro.
+  """
+  def __update_resource__(resource, params, metadata, module) do
+    events = module.update_events(resource, params)
 
-    {:ok, event}
+    with :ok <- __publish_events__(events, metadata, module) do
+      updated_state = rebuild_from_events(events, resource, module)
+      {:ok, updated_state}
+    else
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @doc """
+  Internal: Delete a resource for the event-sourced resource macro.
+  """
+  def __delete_resource__(resource, metadata, module) do
+    # Convention: update_events with a :delete param, or a dedicated delete_events/2 if needed
+    events = module.update_events(resource, %{delete: true})
+
+    with :ok <- __publish_events__(events, metadata, module) do
+      deleted_state = rebuild_from_events(events, resource, module)
+      {:ok, deleted_state}
+    else
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @doc """
+  Internal: Get the event history for a resource for the event-sourced resource macro.
+  """
+  def __get_history__(id, opts, module) do
+    resource_type = get_resource_type(module)
+    criteria = Map.merge(%{resource_type: resource_type, resource_id: id}, opts)
+    EventStore.get_events(criteria)
+  end
+
+  @doc """
+  Internal: Create events for resource creation for the event-sourced resource macro.
+  """
+  def __create_events__(id, params, module) do
+    module.create_events(id, params)
+  end
+
+  @doc """
+  Internal: Generate events for a command for the event-sourced resource macro.
+  """
+  def __execute_command__(resource, command, params, module) do
+    module.execute_command(resource, command, params)
+  end
+
+  @doc """
+  Internal: Generate events for an update for the event-sourced resource macro.
+  """
+  def __update_events__(resource, params, module) do
+    module.update_events(resource, params)
+  end
+
+  @doc """
+  Internal: Publish events for the event-sourced resource macro.
+  """
+  def __publish_events__(events, metadata, module) do
+    Enum.reduce_while(events, :ok, fn event, acc ->
+      case EventBus.publish(event, metadata) do
+        :ok -> {:cont, :ok}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+  end
+
+  @doc """
+  Internal: Get the latest snapshot for the event-sourced resource macro.
+  """
+  def __get_latest_snapshot__(id, module) do
+    resource_type = get_resource_type(module)
+    EventStore.get_latest_snapshot(resource_type, id)
+  end
+
+  @doc """
+  Internal: Maybe save a snapshot for the event-sourced resource macro.
+  """
+  def __maybe_save_snapshot__(id, state, last_event, module) do
+    resource_type = get_resource_type(module)
+    # Count events since last snapshot
+    with {:ok, count} <- EventStore.count_events_since_last_snapshot(resource_type, id) do
+      if count >= module.snapshot_interval() do
+        metadata = %{event_id: last_event.id, created_at: DateTime.utc_now()}
+        EventStore.save_snapshot(resource_type, id, state, metadata)
+      else
+        :no_snapshot_needed
+      end
+    else
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @doc """
+  Internal: Get resource type from module for the event-sourced resource macro.
+  """
+  def __resource_type_from_module__(module) do
+    module
+    |> Atom.to_string()
+    |> String.split(".")
+    |> List.last()
+    |> then(fn name -> String.replace(name, "Resource", "") end)
+    |> String.downcase()
+  end
+
+  # Helper to get resource type from module
+  defp get_resource_type(module) do
+    if function_exported?(module, :resource_type, 0) do
+      module.resource_type()
+    else
+      __resource_type_from_module__(module)
+    end
   end
 end

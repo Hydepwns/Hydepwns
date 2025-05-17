@@ -28,10 +28,10 @@ defmodule HydepwnsLiveviewWeb.Router do
     live "/api-docs", ApiDocsLive, :index
     live "/grid-playground", GridPlaygroundLive, :index
     live "/gallery", GalleryLive, :index
-    live "/theme-manager", Themes.ThemeManagerLive
+    live "/themes", Themes.ThemeManagerLive, :index
 
     # Theme system routes
-    resources "/themes", ThemeController
+    # resources "/themes", ThemeController
 
     # Playground routes
     scope "/playground", Live.Playground, as: :playground do

@@ -14,6 +14,7 @@ defmodule HydepwnsLiveview.Resources.OrderResource do
   @doc """
   Returns the initial state for a new order.
   """
+  @spec initial_state() :: HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource.resource_state()
   @impl true
   def initial_state do
     %{
@@ -37,12 +38,14 @@ defmodule HydepwnsLiveview.Resources.OrderResource do
   @doc """
   Returns the type name for this resource.
   """
+  @spec resource_type() :: String.t()
   @impl true
   def resource_type, do: "order"
 
   @doc """
   Applies an event to the order's state.
   """
+  @spec apply_event(HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource.event(), map()) :: map()
   @impl true
   def apply_event(%Event{type: "order_created"} = event, _state) do
     # Initialize a new order
@@ -209,6 +212,7 @@ defmodule HydepwnsLiveview.Resources.OrderResource do
   @doc """
   Handles a command and generates events based on the command type.
   """
+  @spec handle_command(any(), map(), String.t()) :: {:ok, [HydepwnsLiveview.Events.Core.Event.t()]} | {:error, any()}
   @impl true
   def handle_command(command, _state, id) do
     case command do
@@ -261,6 +265,7 @@ defmodule HydepwnsLiveview.Resources.OrderResource do
   * `{:ok, event}` - Order created successfully
   * `{:error, reason}` - Failed to create order
   """
+  @spec create_order(String.t(), String.t(), map()) :: {:ok, HydepwnsLiveview.Events.Core.Event.t()} | {:error, any()}
   def create_order(resource_id, customer_id, metadata \\ %{}) do
     event = %Event{
       type: "order_created",
@@ -289,6 +294,7 @@ defmodule HydepwnsLiveview.Resources.OrderResource do
   * `{:ok, event}` - Item added successfully
   * `{:error, reason}` - Failed to add item
   """
+  @spec add_item(String.t(), String.t(), integer(), Decimal.t(), map()) :: {:ok, HydepwnsLiveview.Events.Core.Event.t()} | {:error, any()}
   def add_item(resource_id, product_id, quantity, price, metadata \\ %{}) do
     event = %Event{
       type: "item_added",
@@ -320,6 +326,7 @@ defmodule HydepwnsLiveview.Resources.OrderResource do
   * `{:ok, event}` - Item removed successfully
   * `{:error, reason}` - Failed to remove item
   """
+  @spec remove_item(String.t(), String.t(), map()) :: {:ok, HydepwnsLiveview.Events.Core.Event.t()} | {:error, any()}
   def remove_item(resource_id, product_id, metadata \\ %{}) do
     event = %Event{
       type: "item_removed",
@@ -347,6 +354,7 @@ defmodule HydepwnsLiveview.Resources.OrderResource do
   * `{:ok, event}` - Quantity updated successfully
   * `{:error, reason}` - Failed to update quantity
   """
+  @spec update_item_quantity(String.t(), String.t(), integer(), map()) :: {:ok, HydepwnsLiveview.Events.Core.Event.t()} | {:error, any()}
   def update_item_quantity(resource_id, product_id, quantity, metadata \\ %{}) do
     event = %Event{
       type: "item_quantity_updated",
@@ -373,6 +381,7 @@ defmodule HydepwnsLiveview.Resources.OrderResource do
   * `{:ok, event}` - Order submitted successfully
   * `{:error, reason}` - Failed to submit order
   """
+  @spec submit_order(String.t(), map()) :: {:ok, HydepwnsLiveview.Events.Core.Event.t()} | {:error, any()}
   def submit_order(resource_id, metadata \\ %{}) do
     event = %Event{
       type: "order_submitted",

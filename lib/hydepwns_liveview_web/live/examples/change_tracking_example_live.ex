@@ -1,6 +1,8 @@
 import HydepwnsLiveviewWeb.Components.ChangeHistoryViewer
 
 defmodule HydepwnsLiveviewWeb.Examples.ChangeTrackingExampleLive do
+  @behaviour Phoenix.LiveView
+
   @moduledoc """
   Example LiveView that demonstrates the Change Tracking system.
 
@@ -47,7 +49,7 @@ defmodule HydepwnsLiveviewWeb.Examples.ChangeTrackingExampleLive do
       |> assign(:user, initial_user)
       |> assign(:form_data, initial_user)
 
-    {:ok, socket}
+    socket
   end
 
   def render(assigns) do

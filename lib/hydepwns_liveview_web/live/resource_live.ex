@@ -45,6 +45,8 @@ defmodule HydepwnsLiveviewWeb.ResourceLive do
   ```
   """
 
+  @behaviour Phoenix.LiveView
+
   alias HydepwnsLiveview.Utils.LiveViewAPI
   alias HydepwnsLiveview.Utils.SocketValidator
 
@@ -63,7 +65,7 @@ defmodule HydepwnsLiveviewWeb.ResourceLive do
 
       # Define do_mount before making it overridable
       def do_mount(params, session, socket) do
-        {:ok, socket}
+        socket
       end
 
       # Default implementation of do_mount to be overridden
@@ -184,7 +186,7 @@ defmodule HydepwnsLiveviewWeb.ResourceLive do
         if function_exported?(__MODULE__, :do_mount, 3) do
           apply(__MODULE__, :do_mount, [params, session, socket])
         else
-          {:ok, socket}
+          socket
         end
       end
     end

@@ -1,9 +1,11 @@
 defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
+  @behaviour Phoenix.LiveView
+
   use HydepwnsLiveviewWeb.BaseLive,
-    layout: {HydepwnsLiveviewWeb.Layouts, :app}
+    layout: {HydepwnsLiveviewWeb.Components.Layout.Layouts, :app}
 
   alias HydepwnsLiveview.Themes
-  alias HydepwnsLiveview.Themes.Theme
+  alias HydepwnsLiveview.ThemeSystem.Models.Theme
   import HydepwnsLiveviewWeb.Components.UI.ThemeToggle
 
   @impl true
@@ -17,7 +19,12 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
       |> assign(:themes, themes)
       |> assign(:changeset, changeset)
 
-    {:ok, socket}
+    socket
+  end
+
+  @impl true
+  def mount(params, session, socket) do
+    {:ok, do_mount(params, session, socket)}
   end
 
   @impl true
@@ -30,27 +37,30 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
         <h2 class="text-xl font-semibold mb-4">Current Themes</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <%= for theme <- @themes do %>
-            <div class="border rounded-lg p-4 shadow-sm">
+            <div class="border rounded-lg p-4 shadow-sm" data-default={to_string(theme.is_default)} data-mode={theme.mode}>
               <div class="flex justify-between items-center mb-2">
-                <h3 class="text-lg font-medium">{theme.name}</h3>
+                <h3 class="text-lg font-medium"><%= theme.name %></h3>
                 <%= if theme.is_default do %>
                   <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Default</span>
                 <% end %>
               </div>
-              <div class="text-sm mb-2">Mode: {theme.mode}</div>
+              <div class="text-sm mb-2">Mode: <%= theme.mode %></div>
               <div class="flex flex-wrap gap-2 mb-4">
                 <%= for {key, value} <- theme.colors do %>
                   <div class="flex items-center">
                     <div class="w-4 h-4 rounded mr-1" style={"background-color: #{value};"} title={value}></div>
-                    <span class="text-xs">{key}</span>
+                    <span class="text-xs"><%= key %></span>
                   </div>
                 <% end %>
               </div>
               <div class="flex justify-end gap-2">
-                <button phx-click="set-default" phx-value-id={theme.id} class="text-sm px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50" disabled={theme.is_default}>
+                <button phx-click="set-default" phx-value-id={theme.id} data-action="set-default" data-id={theme.id} class="text-sm px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50" disabled={theme.is_default}>
                   Set Default
                 </button>
-                <button phx-click="delete-theme" phx-value-id={theme.id} class="text-sm px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600" disabled={theme.is_default}>
+                <button phx-click="edit-theme" phx-value-id={theme.id} data-action="edit" data-id={theme.id} class="text-sm px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">
+                  Edit
+                </button>
+                <button phx-click="delete-theme" phx-value-id={theme.id} data-action="delete" data-id={theme.id} class="text-sm px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600" disabled={theme.is_default}>
                   Delete
                 </button>
               </div>
@@ -61,11 +71,14 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
 
       <div class="mb-8">
         <h2 class="text-xl font-semibold mb-4">Add New Theme</h2>
-        <.form for={@changeset} phx-submit="save">
+        <.form for={@changeset} phx-submit="save" id="theme-form">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <label class="block text-sm font-medium mb-1">Name</label>
               <input type="text" name="theme[name]" class="w-full px-3 py-2 border rounded" required />
+              <%= if error = @changeset.errors[:name] do %>
+                <span class="text-red-600 text-xs"><%= elem(error, 0) %></span>
+              <% end %>
             </div>
             <div>
               <label class="block text-sm font-medium mb-1">Mode</label>
@@ -121,7 +134,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
       <div class="mt-8">
         <h2 class="text-xl font-semibold mb-4">Theme Preview</h2>
         <div class="border rounded-lg p-4 shadow-sm">
-          <.theme_toggle />
+          <.theme_toggle id="theme-toggle-live" />
         </div>
       </div>
     </div>
@@ -172,6 +185,18 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
     {:ok, _} = Themes.delete_theme(theme)
     themes = Themes.list_themes()
     {:noreply, assign(socket, :themes, themes)}
+  end
+
+  @impl true
+  def handle_event("edit-theme", %{"id" => id}, socket) do
+    theme = Enum.find(socket.assigns.themes, &("#{&1.id}" == id))
+    changeset =
+      if theme do
+        HydepwnsLiveview.Themes.change_theme(theme)
+      else
+        HydepwnsLiveview.Themes.change_theme(%HydepwnsLiveview.ThemeSystem.Models.Theme{})
+      end
+    {:noreply, assign(socket, changeset: changeset, editing_theme: theme)}
   end
 
   @impl true

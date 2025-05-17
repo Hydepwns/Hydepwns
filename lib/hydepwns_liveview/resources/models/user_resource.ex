@@ -59,6 +59,7 @@ defmodule HydepwnsLiveview.Resources.UserResource do
   This is a stub implementation for testing purposes.
   In a real application, this would fetch the user from a database.
   """
+  @spec load(String.t()) :: {:ok, map()} | {:error, any()}
   def load(id) do
     # This is a simple stub that always returns a user with the given ID
     # In a real application, this would query the database
@@ -79,5 +80,27 @@ defmodule HydepwnsLiveview.Resources.UserResource do
     }
 
     {:ok, user}
+  end
+
+  @doc """
+  Updates a user resource with tracking (for audit/telemetry).
+
+  ## Parameters
+  * `resource` - The user resource to update
+  * `updates` - The update parameters
+  * `metadata` - Additional metadata for the update
+  * `opts` - Optional context/options (unused)
+
+  ## Returns
+  * `{:ok, updated_resource}` or `{:error, reason}`
+  """
+  @spec update_with_tracking(map(), map(), map(), map()) :: {:ok, map()} | {:error, any()}
+  def update_with_tracking(resource, updates, metadata, _opts \\ %{}) do
+    # If update/3 is defined, use it; otherwise, return error
+    if function_exported?(__MODULE__, :update, 3) do
+      apply(__MODULE__, :update, [resource, updates, metadata])
+    else
+      {:error, "update/3 not implemented for UserResource"}
+    end
   end
 end

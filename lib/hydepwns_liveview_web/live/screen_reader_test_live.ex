@@ -1,4 +1,6 @@
 defmodule HydepwnsLiveviewWeb.ScreenReaderTestLive do
+  @behaviour Phoenix.LiveView
+
   use HydepwnsLiveviewWeb.BaseLive,
     required_assigns: [
       :page_title,

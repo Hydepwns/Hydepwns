@@ -13,7 +13,7 @@ defmodule HydepwnsLiveview.Events.UserMetricsProjection do
 
   # Implement the Projection behavior by delegating to the core implementation
 
-  @behaviour HydepwnsLiveview.Events.Projection
+  @behaviour HydepwnsLiveview.Events.Projections.Projection
 
   @impl true
   def init do

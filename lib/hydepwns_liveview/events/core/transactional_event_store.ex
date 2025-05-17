@@ -33,6 +33,7 @@ defmodule HydepwnsLiveview.Events.Core.TransactionalEventStore do
   * `{:ok, result, events}` - Transaction was successful
   * `{:error, reason}` - Transaction failed
   """
+  @spec transaction_with_events((() -> {:ok, any(), [map()]} | {:error, any()})) :: {:ok, any(), [map()]} | {:error, any()}
   def transaction_with_events(fun) when is_function(fun, 0) do
     Repo.transaction(fn ->
       case fun.() do
@@ -78,6 +79,7 @@ defmodule HydepwnsLiveview.Events.Core.TransactionalEventStore do
   * `{:ok, resource, events}` - The resource was updated and events stored
   * `{:error, reason}` - The update failed
   """
+  @spec change_resource_with_events(module(), any(), (() -> {:ok, any(), [map()]} | {:error, any()}), Keyword.t()) :: {:ok, any(), [map()]} | {:error, any()}
   def change_resource_with_events(resource_module, id, change_fn, opts \\ []) do
     transaction_with_events(fn ->
       result = change_fn.()
@@ -118,6 +120,7 @@ defmodule HydepwnsLiveview.Events.Core.TransactionalEventStore do
   * `{:ok, compensating_events}` - Compensating events were stored
   * `{:error, reason}` - Failed to store compensating events
   """
+  @spec compensate_for_failure([map()], any(), any()) :: {:ok, any(), [map()]} | {:error, any()}
   def compensate_for_failure(original_events, error_reason, user_id \\ nil) do
     # Create compensating events for each original event
     compensating_events =
@@ -158,6 +161,7 @@ defmodule HydepwnsLiveview.Events.Core.TransactionalEventStore do
   * `{:ok, results, events}` - All resources were updated and events stored
   * `{:error, reason}` - The bulk update failed
   """
+  @spec bulk_change_resources([{module(), any(), (() -> {:ok, any(), [map()]} | {:error, any()})}], Keyword.t()) :: {:ok, [any()], [map()]} | {:error, any()}
   def bulk_change_resources(resource_changes, opts \\ []) do
     # Generate a single correlation ID for the entire bulk operation
     correlation_id = Keyword.get(opts, :correlation_id, Ecto.UUID.generate())
@@ -207,6 +211,7 @@ defmodule HydepwnsLiveview.Events.Core.TransactionalEventStore do
   ## Returns
   * `{:ok, aggregated_events}` - Events were aggregated
   """
+  @spec aggregate_resource_events(%{any() => %{any() => [map()]}}, any()) :: {:ok, [map()]}
   def aggregate_resource_events(resource_events, correlation_id \\ nil) do
     correlation_id = correlation_id || Ecto.UUID.generate()
 

@@ -22,6 +22,7 @@ defmodule HydepwnsLiveview.Events.Core.TestEvents do
 
   Returns {:ok, events} with the list of generated events.
   """
+  @spec generate_test_data(pos_integer()) :: {:ok, [any()]}
   def generate_test_data(user_count \\ 5) do
     Logger.info("Generating test data for #{user_count} users")
 
@@ -42,6 +43,7 @@ defmodule HydepwnsLiveview.Events.Core.TestEvents do
   - :resource_type - Specify the resource type (default: random)
   - :resource_id - Specify the resource ID (default: random)
   """
+  @spec generate_random_event(Keyword.t()) :: {:ok, any()} | {:error, any()}
   def generate_random_event(opts \\ []) do
     # Get or generate event type
     event_type = Keyword.get(opts, :type, random_event_type())

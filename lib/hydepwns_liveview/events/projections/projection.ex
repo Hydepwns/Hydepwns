@@ -31,6 +31,7 @@ defmodule HydepwnsLiveview.Events.Projections.Projection do
       {:ok, %{state | total_users: state.total_users + 1}}
     end
     
+    @impl true
     def apply_event(%{type: :user_login}, state) do
       {:ok, %{state | 
         active_users: state.active_users + 1,
@@ -38,6 +39,7 @@ defmodule HydepwnsLiveview.Events.Projections.Projection do
       }}
     end
     
+    @impl true
     def apply_event(%{type: :user_logout}, state) do
       {:ok, %{state | active_users: state.active_users - 1}}
     end
@@ -128,7 +130,7 @@ defmodule HydepwnsLiveview.Events.Projections.Projection do
         catch
           :exit, _ ->
             # Process not running
-            Logger.warn("Projection #{inspect(__MODULE__)} is not running")
+            Logger.warning("Projection \\#{inspect(__MODULE__)} is not running")
             nil
         end
       end

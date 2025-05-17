@@ -36,6 +36,8 @@ defmodule HydepwnsLiveviewWeb.BaseLive do
   ```
   """
 
+  @behaviour Phoenix.LiveView
+
   alias HydepwnsLiveview.Utils.SocketValidator
   alias HydepwnsLiveview.Utils.SocketValidationDebugGrid
 

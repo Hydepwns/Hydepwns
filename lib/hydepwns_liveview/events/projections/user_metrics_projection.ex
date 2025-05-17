@@ -9,7 +9,7 @@ defmodule HydepwnsLiveview.Events.Projections.UserMetricsProjection do
   - Most active users
   """
 
-  @behaviour HydepwnsLiveview.Events.Projection
+  @behaviour HydepwnsLiveview.Events.Projections.Projection
 
   require Logger
 
@@ -233,4 +233,10 @@ defmodule HydepwnsLiveview.Events.Projections.UserMetricsProjection do
     end)
     |> Enum.map(fn {user_id, _} -> user_id end)
   end
+
+  @doc """
+  Returns the current state of the projection. Not implemented for stateless module.
+  """
+  @impl true
+  def get_state, do: :not_implemented
 end

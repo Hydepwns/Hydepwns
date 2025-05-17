@@ -10,7 +10,6 @@ defmodule HydepwnsLiveview.Events.Handlers.LiveEventUpdater do
   """
 
   alias HydepwnsLiveview.Events.Core.Event
-  alias HydepwnsLiveview.Events.Core.EventBus
   alias HydepwnsLiveview.Events.LiveEventHandler
   import Phoenix.Component
   import Phoenix.LiveView
@@ -173,48 +172,24 @@ defmodule HydepwnsLiveview.Events.Handlers.LiveEventUpdater do
   end
 
   @doc """
-  Updates LiveView assigns based on received events.
-
-  This function is meant to be called from the LiveView's handle_info
-  when an event is received.
+  Handles a resource event in a LiveView with custom handlers.
 
   ## Parameters
   * `socket` - The LiveView socket
-  * `event` - The received event
-  * `opts` - Options for handling the event
+  * `event` - The event to handle
+  * `handlers` - Map of event type patterns to handler functions
+  * `default_handler` - Optional function to handle unmatched events
 
   ## Returns
-  * Updated socket with changes applied from event
+  * Updated socket
   """
-  def handle_event_update(socket, %Event{} = event, opts \\ []) do
-    resource_type = event.resource_type
-    resource_key = opts[:resource_key] || String.to_atom(resource_type)
-
-    # Check if we're tracking this resource
-    if Map.has_key?(socket.assigns, resource_key) do
-      resource = socket.assigns[resource_key]
-
-      # Only update if the event is for this specific resource
-      if resource.id == event.resource_id do
-        # Get the update function - either a provided one or a default
-        update_fn =
-          opts[:update_fn] ||
-            fn resource, event ->
-              # Default implementation merges event data into resource
-              Map.merge(resource, event.data)
-            end
-
-        # Apply the update
-        updated_resource = update_fn.(resource, event)
-
-        # Update socket
-        assign(socket, resource_key, updated_resource)
-      else
-        socket
-      end
-    else
-      socket
-    end
+  def handle_event_update(socket, %Event{} = event, handlers, default_handler) do
+    HydepwnsLiveview.Events.LiveEventHandler.handle_event(
+      event,
+      socket,
+      handlers,
+      default_handler
+    )
   end
 
   @doc """

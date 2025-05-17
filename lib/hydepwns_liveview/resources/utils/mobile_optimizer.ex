@@ -14,18 +14,7 @@ defmodule HydepwnsLiveview.Resources.MobileOptimizer do
   import Phoenix.Component
   import Phoenix.LiveView
 
-  @doc """
-  Creates a progressive loading strategy for resources on mobile.
-
-  ## Parameters
-  * `resource_type` - The type of resource
-  * `resource_id` - The ID of the resource (or nil for collections)
-  * `client_info` - Information about the client
-
-  ## Returns
-  * `{:ok, loading_strategy}` - The progressive loading strategy
-  * `{:error, reason}` - Failed to create strategy
-  """
+  @spec progressive_loading_strategy(atom(), any() | nil, map()) :: {:ok, map()} | {:error, any()}
   def progressive_loading_strategy(resource_type, resource_id, client_info) do
     # Determine device capabilities
     is_mobile = client_info.user_agent =~ ~r/(Android|iPhone|iPad|iPod)/
@@ -87,17 +76,7 @@ defmodule HydepwnsLiveview.Resources.MobileOptimizer do
     {:ok, strategy}
   end
 
-  @doc """
-  Creates a compact mobile representation of a resource.
-
-  ## Parameters
-  * `resource` - The resource to represent
-  * `viewport_width` - The width of the viewport
-  * `opts` - Additional options
-
-  ## Returns
-  * Compact representation of the resource
-  """
+  @spec compact_mobile_representation(map(), integer(), keyword()) :: map()
   def compact_mobile_representation(resource, viewport_width, opts \\ []) do
     resource_type = Map.get(opts, :resource_type, resource.__struct__)
 
@@ -145,17 +124,7 @@ defmodule HydepwnsLiveview.Resources.MobileOptimizer do
     generate_compact_representation(resource, resource_type, display_config)
   end
 
-  @doc """
-  Creates a lazy loading LiveComponent for resource collections on mobile.
-
-  ## Parameters
-  * `socket` - The LiveView socket
-  * `resource_type` - The type of resources to load
-  * `opts` - Additional options
-
-  ## Returns
-  * Updated socket with lazy loading component assigned
-  """
+  @spec assign_lazy_collection(Phoenix.LiveView.Socket.t(), atom(), keyword()) :: Phoenix.LiveView.Socket.t()
   def assign_lazy_collection(socket, resource_type, opts \\ []) do
     client_info = get_client_info(socket)
 

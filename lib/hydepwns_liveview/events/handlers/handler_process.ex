@@ -11,6 +11,7 @@ defmodule HydepwnsLiveview.Events.Handlers.HandlerProcess do
   require Logger
 
   alias HydepwnsLiveview.Events.EventBus
+  alias HydepwnsLiveview.Events.HandlerRegistry
 
   @doc """
   Starts a handler process.
@@ -39,6 +40,9 @@ defmodule HydepwnsLiveview.Events.Handlers.HandlerProcess do
       {:ok, handler_state} ->
         # Get event types the handler is interested in
         event_types = get_handler_event_types(handler_module, opts)
+
+        # Register this process in the HandlerRegistry
+        Registry.register(HydepwnsLiveview.Events.HandlerRegistry, handler_module, %{event_types: event_types})
 
         # Subscribe to events
         EventBus.subscribe(self(), event_types)
@@ -74,7 +78,7 @@ defmodule HydepwnsLiveview.Events.Handlers.HandlerProcess do
         {:noreply, state}
 
       other ->
-        Logger.warn(
+        Logger.warning(
           "Unexpected return from #{inspect(state.handler)}.handle_info/2: #{inspect(other)}"
         )
 
@@ -95,7 +99,7 @@ defmodule HydepwnsLiveview.Events.Handlers.HandlerProcess do
           {:noreply, state}
 
         other ->
-          Logger.warn(
+          Logger.warning(
             "Unexpected return from #{inspect(state.handler)}.handle_info/2: #{inspect(other)}"
           )
 
@@ -130,7 +134,7 @@ defmodule HydepwnsLiveview.Events.Handlers.HandlerProcess do
           {:stop, reason, %{state | handler_state: new_handler_state}}
 
         other ->
-          Logger.warn(
+          Logger.warning(
             "Unexpected return from #{inspect(state.handler)}.handle_call/3: #{inspect(other)}"
           )
 
@@ -154,7 +158,7 @@ defmodule HydepwnsLiveview.Events.Handlers.HandlerProcess do
           {:stop, reason, %{state | handler_state: new_handler_state}}
 
         other ->
-          Logger.warn(
+          Logger.warning(
             "Unexpected return from #{inspect(state.handler)}.handle_cast/2: #{inspect(other)}"
           )
 

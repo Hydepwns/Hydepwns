@@ -78,6 +78,10 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
   attr :line_height, :string, required: true
   slot :item
 
+  @doc """
+  Renders a modal dialog with optional show/hide transitions and cancel handling.
+  """
+  @spec modal(map()) :: Phoenix.LiveView.Rendered.t()
   def modal(assigns) do
     ~H"""
     <div id={@id} phx-mounted={@show && show_modal(@id)} phx-remove={hide_modal(@id)} data-cancel={JS.exec(@on_cancel, "phx-remove")} class="relative z-50 hidden">
@@ -102,6 +106,10 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     """
   end
 
+  @doc """
+  Renders a flash message for info or error notifications.
+  """
+  @spec flash(map()) :: Phoenix.LiveView.Rendered.t()
   def flash(assigns) do
     assigns = assign_new(assigns, :id_flash, fn -> "flash-#{assigns.kind}" end)
     assigns = assign_new(assigns, :inner_block, fn -> nil end)
@@ -132,6 +140,10 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     """
   end
 
+  @doc """
+  Renders a group of flash messages for info and error notifications.
+  """
+  @spec flash_group(map()) :: Phoenix.LiveView.Rendered.t()
   def flash_group(assigns) do
     ~H"""
     <div id={@flash_group_id}>
@@ -150,6 +162,10 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     """
   end
 
+  @doc """
+  Renders a simple form with slots for fields and actions.
+  """
+  @spec simple_form(map()) :: Phoenix.LiveView.Rendered.t()
   def simple_form(assigns) do
     ~H"""
     <.form :let={f} for={@for} as={@as} {@rest}>
@@ -163,6 +179,10 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     """
   end
 
+  @doc """
+  Renders a styled button with slot content.
+  """
+  @spec button(map()) :: Phoenix.LiveView.Rendered.t()
   def button(assigns) do
     ~H"""
     <button
@@ -178,6 +198,10 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     """
   end
 
+  @doc """
+  Renders an input field from a Phoenix.HTML.FormField struct.
+  """
+  @spec input(%{field: Phoenix.HTML.FormField.t()} | map()) :: Phoenix.LiveView.Rendered.t()
   def input(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
     errors = if Phoenix.Component.used_input?(field), do: field.errors, else: []
 
@@ -189,6 +213,10 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     |> input()
   end
 
+  @doc """
+  Renders a checkbox input field.
+  """
+  @spec input(map()) :: Phoenix.LiveView.Rendered.t()
   def input(%{type: "checkbox"} = assigns) do
     assigns =
       assign_new(assigns, :checked, fn ->
@@ -207,6 +235,10 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     """
   end
 
+  @doc """
+  Renders a select input field.
+  """
+  @spec input(map()) :: Phoenix.LiveView.Rendered.t()
   def input(%{type: "select"} = assigns) do
     ~H"""
     <div>
@@ -220,6 +252,10 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     """
   end
 
+  @doc """
+  Renders a textarea input field.
+  """
+  @spec input(map()) :: Phoenix.LiveView.Rendered.t()
   def input(%{type: "textarea"} = assigns) do
     ~H"""
     <div>
@@ -239,6 +275,10 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     """
   end
 
+  @doc """
+  Renders a generic input field.
+  """
+  @spec input(map()) :: Phoenix.LiveView.Rendered.t()
   def input(assigns) do
     ~H"""
     <div>
@@ -260,6 +300,10 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     """
   end
 
+  @doc """
+  Renders a label for a form field.
+  """
+  @spec label(map()) :: Phoenix.LiveView.Rendered.t()
   def label(assigns) do
     ~H"""
     <label for={@for} class="block text-sm font-semibold leading-6 text-zinc-800">
@@ -268,6 +312,10 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     """
   end
 
+  @doc """
+  Renders an error message for a form field.
+  """
+  @spec error(map()) :: Phoenix.LiveView.Rendered.t()
   def error(assigns) do
     ~H"""
     <p class="mt-3 flex gap-3 text-sm leading-6 text-rose-600">
@@ -277,7 +325,14 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     """
   end
 
+  @doc """
+  Renders a header with optional subtitle and actions.
+  """
+  @spec header(map()) :: Phoenix.LiveView.Rendered.t()
   def header(assigns) do
+    assigns = Map.put_new(assigns, :actions_header, [])
+    assigns = Map.put_new(assigns, :class, "")
+    assigns = Map.put_new(assigns, :subtitle, [])
     ~H"""
     <header class={[@actions_header != [] && "flex items-center justify-between gap-6", @class]}>
       <div>
@@ -293,11 +348,19 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     """
   end
 
+  @doc """
+  Renders a table with columns, rows, and optional actions.
+  """
+  @spec table(map()) :: Phoenix.LiveView.Rendered.t()
   def table(assigns) do
     assigns =
       with %{rows: %Phoenix.LiveView.LiveStream{}} <- assigns do
-        assign(assigns, row_id: assigns.row_id || fn {id, _item} -> id end)
+        assign(assigns, :row_id, assigns[:row_id] || fn {id, _item} -> id end)
+      else
+        _ -> assigns
       end
+    assigns = Map.put_new(assigns, :row_id, nil)
+    assigns = Map.put_new(assigns, :row_item, &Function.identity/1)
 
     ~H"""
     <div class="overflow-y-auto px-4 sm:overflow-visible sm:px-0">
@@ -335,6 +398,10 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     """
   end
 
+  @doc """
+  Renders a list of items in a description list format.
+  """
+  @spec list(map()) :: Phoenix.LiveView.Rendered.t()
   def list(assigns) do
     ~H"""
     <div class="mt-14">
@@ -348,6 +415,10 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     """
   end
 
+  @doc """
+  Renders a back navigation link.
+  """
+  @spec back(map()) :: Phoenix.LiveView.Rendered.t()
   def back(assigns) do
     ~H"""
     <div class="mt-16">
@@ -359,18 +430,31 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     """
   end
 
+  @doc """
+  Renders a heroicon or generic icon span.
+  """
+  @spec icon(map()) :: Phoenix.LiveView.Rendered.t()
   def icon(%{name: "hero-" <> _} = assigns) do
     ~H"""
     <span class={[@name, @class]} />
     """
   end
 
+  @doc """
+  Renders a generic icon span.
+  """
+  @spec icon(map()) :: Phoenix.LiveView.Rendered.t()
   def icon(assigns) do
     ~H"""
     <span class={[@name, @class]} />
     """
   end
 
+  @doc """
+  Shows a DOM element with a transition using JS commands.
+  """
+  @spec show(Phoenix.LiveView.JS.t(), String.t()) :: Phoenix.LiveView.JS.t()
+  @spec show(String.t()) :: Phoenix.LiveView.JS.t()
   def show(js \\ %JS{}, selector) do
     JS.show(js,
       to: selector,
@@ -382,6 +466,11 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     )
   end
 
+  @doc """
+  Hides a DOM element with a transition using JS commands.
+  """
+  @spec hide(Phoenix.LiveView.JS.t(), String.t()) :: Phoenix.LiveView.JS.t()
+  @spec hide(String.t()) :: Phoenix.LiveView.JS.t()
   def hide(js \\ %JS{}, selector) do
     JS.hide(js,
       to: selector,
@@ -393,6 +482,11 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     )
   end
 
+  @doc """
+  Shows a modal by id using JS transitions.
+  """
+  @spec show_modal(Phoenix.LiveView.JS.t(), String.t()) :: Phoenix.LiveView.JS.t()
+  @spec show_modal(String.t()) :: Phoenix.LiveView.JS.t()
   def show_modal(js \\ %JS{}, id) when is_binary(id) do
     js
     |> JS.show(to: "##{id}")
@@ -406,6 +500,11 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     |> JS.focus_first(to: "##{id}-content")
   end
 
+  @doc """
+  Hides a modal by id using JS transitions.
+  """
+  @spec hide_modal(Phoenix.LiveView.JS.t(), String.t()) :: Phoenix.LiveView.JS.t()
+  @spec hide_modal(String.t()) :: Phoenix.LiveView.JS.t()
   def hide_modal(js \\ %JS{}, id) do
     js
     |> JS.hide(
@@ -418,6 +517,10 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     |> JS.pop_focus()
   end
 
+  @doc """
+  Translates a single error tuple using Gettext.
+  """
+  @spec translate_error({String.t(), keyword()}) :: String.t()
   def translate_error({msg, opts}) do
     if count = opts[:count] do
       Gettext.dngettext(HydepwnsLiveviewWeb.Gettext, "errors", msg, msg, count, opts)
@@ -426,10 +529,18 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     end
   end
 
+  @doc """
+  Translates all errors for a given field from a list of error tuples.
+  """
+  @spec translate_errors(list(), atom()) :: list(String.t())
   def translate_errors(errors, field) when is_list(errors) do
     for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
   end
 
+  @doc """
+  Renders a theme toggle button group for switching themes.
+  """
+  @spec theme_toggle(map()) :: Phoenix.LiveView.Rendered.t()
   def theme_toggle(assigns) do
     ~H"""
     <div id="theme-toggle" class="theme-toggle" phx-hook="ThemeToggle">
@@ -446,6 +557,10 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     """
   end
 
+  @doc """
+  Renders a navigation bar with links.
+  """
+  @spec nav(map()) :: Phoenix.LiveView.Rendered.t()
   def nav(assigns) do
     ~H"""
     <nav class="site-nav">
@@ -455,6 +570,10 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     """
   end
 
+  @doc """
+  Renders a header with metadata in a table format.
+  """
+  @spec header_table(map()) :: Phoenix.LiveView.Rendered.t()
   def header_table(assigns) do
     ~H"""
     <header class="site-header">

@@ -7,6 +7,7 @@ defmodule HydepwnsLiveviewWeb.Components.Debug.SocketValidationGrid do
   fix validation issues during development.
   """
   use HydepwnsLiveviewWeb, :live_component
+  import HydepwnsLiveviewWeb.Components.Common.DebugHelpers
 
   @doc """
   Renders the socket validation information in the Debug Grid.

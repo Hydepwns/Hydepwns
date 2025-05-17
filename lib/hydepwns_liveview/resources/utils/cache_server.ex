@@ -15,6 +15,7 @@ defmodule HydepwnsLiveview.Resources.CacheServer do
 
   # Client API
 
+  @spec start_link(keyword()) :: {:ok, pid()} | {:error, any()}
   @doc """
   Starts the cache server.
 
@@ -34,6 +35,7 @@ defmodule HydepwnsLiveview.Resources.CacheServer do
     GenServer.start_link(__MODULE__, opts, name: name)
   end
 
+  @spec get(atom(), any(), (-> any())) :: {:ok, any()} | {:error, any()}
   @doc """
   Gets a resource from cache or loads it if not cached.
 
@@ -50,6 +52,7 @@ defmodule HydepwnsLiveview.Resources.CacheServer do
     GenServer.call(__MODULE__, {:get, resource_type, resource_id, fetch_fn})
   end
 
+  @spec put(atom(), any(), any(), keyword()) :: :ok | {:error, any()}
   @doc """
   Puts a resource in the cache.
 
@@ -67,6 +70,7 @@ defmodule HydepwnsLiveview.Resources.CacheServer do
     GenServer.call(__MODULE__, {:put, resource_type, resource_id, resource, opts})
   end
 
+  @spec invalidate(atom(), any()) :: :ok | {:error, any()}
   @doc """
   Invalidates cache entries for a resource.
 
@@ -82,6 +86,7 @@ defmodule HydepwnsLiveview.Resources.CacheServer do
     GenServer.call(__MODULE__, {:invalidate, resource_type, resource_id})
   end
 
+  @spec stats() :: {:ok, map()} | {:error, any()}
   @doc """
   Gets cache statistics.
 

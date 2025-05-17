@@ -12,7 +12,6 @@ defmodule HydepwnsLiveview.Resources.CrossResourceTracker do
 
   require Logger
   alias HydepwnsLiveview.Events.Core.Event
-  alias HydepwnsLiveview.Events.Core.EventStore
   alias HydepwnsLiveview.Events.Core.EventBus
   alias HydepwnsLiveview.Events.Core.TransactionalEventStore
   alias HydepwnsLiveview.Repo
@@ -76,6 +75,7 @@ defmodule HydepwnsLiveview.Resources.CrossResourceTracker do
     end
   end
 
+  @spec track_with_propagation(String.t(), String.t(), map(), String.t(), keyword()) :: {:ok, map()} | {:error, any()}
   @doc """
   Tracks a change and propagates it to related resources.
 
@@ -158,6 +158,7 @@ defmodule HydepwnsLiveview.Resources.CrossResourceTracker do
     end)
   end
 
+  @spec visualize_change_group(String.t()) :: {:ok, map()} | {:error, any()}
   @doc """
   Visualizes changes across related resources.
 

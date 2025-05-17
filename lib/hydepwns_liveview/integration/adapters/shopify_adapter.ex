@@ -9,8 +9,6 @@ defmodule HydepwnsLiveview.Integration.Adapters.ShopifyAdapter do
   @behaviour HydepwnsLiveview.Integration.IntegrationAdapter
 
   require Logger
-  alias HydepwnsLiveview.Resources.OrderResource
-  alias HydepwnsLiveview.Resources.ProductResource
 
   # API endpoints
   @shopify_api_version "2023-10"

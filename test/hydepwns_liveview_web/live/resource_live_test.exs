@@ -9,26 +9,26 @@ defmodule HydepwnsLiveviewWeb.ResourceLiveTest do
   defmodule TestResourceLive do
     use HydepwnsLiveviewWeb.ResourceLive
 
-    assigns_resource do
-      attributes do
-        attribute(:page_title, :string, default: "Test Resource")
+    assigns do
+      attribute(:page_title, :string, default: "Test Resource")
 
-        attribute :user, :map do
-          attribute(:id, :string, required: true)
-          attribute(:name, :string, default: "Test User")
-          attribute(:role, {:one_of, ["admin", "user", "guest"]}, default: "user")
-        end
-
-        attribute :settings, :map do
-          attribute(:theme, {:one_of, ["dark", "light"]}, default: "dark")
-        end
-
-        attribute(:items, {:list, :string}, default: [])
+      attribute :user, :map do
+        attribute(:id, :string, required: true)
+        attribute(:name, :string, default: "Test User")
+        attribute(:role, {:one_of, ["admin", "user", "guest"]}, default: "user")
       end
+
+      attribute :settings, :map do
+        attribute(:theme, {:one_of, ["dark", "light"]}, default: "dark")
+      end
+
+      attribute(:items, {:list, :string}, default: [])
     end
 
     def do_mount(_params, _session, socket) do
-      socket = assign(socket, :user, %{id: "user_123", name: "Test User", role: "user"})
+      socket =
+        Phoenix.Component.assign(socket, :user, %{id: "user_123", name: "Test User", role: "user"})
+
       socket
     end
 
@@ -41,7 +41,7 @@ defmodule HydepwnsLiveviewWeb.ResourceLiveTest do
           {:noreply, updated_socket}
 
         {:error, message, socket} ->
-          {:noreply, put_flash(socket, :error, message)}
+          {:noreply, Phoenix.LiveView.put_flash(socket, :error, message)}
       end
     end
 

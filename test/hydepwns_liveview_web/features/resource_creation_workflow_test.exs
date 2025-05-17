@@ -1,5 +1,5 @@
 defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
-  use HydepwnsLiveviewWeb.WallabyCase, async: true
+  use HydepwnsLiveviewWeb.WallabyCase, async: false
 
   @moduledoc """
   End-to-end tests for the Resource Creation workflow.
@@ -12,6 +12,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
   """
 
   import Wallaby.Query
+  import Wallaby.Browser
   alias HydepwnsLiveview.TestSupport.ResourceFixtures
 
   setup %{session: session} do
@@ -103,7 +104,8 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
       |> click(link("Create New Resource"))
       |> fill_in(text_field("resource[name]"), with: "Child Resource")
       |> fill_in(text_field("resource[type]"), with: "document")
-      |> select(select("resource[parent_id]"), "Parent Resource")
+      |> click(Query.select("resource[parent_id]"))
+      |> click(Query.option("Parent Resource"))
       |> click(button("Create Resource"))
 
       # Verify relationship was created

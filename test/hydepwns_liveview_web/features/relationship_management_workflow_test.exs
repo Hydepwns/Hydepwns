@@ -1,5 +1,8 @@
 defmodule HydepwnsLiveviewWeb.Features.RelationshipManagementWorkflowTest do
-  use HydepwnsLiveviewWeb.WallabyCase, async: true
+  use HydepwnsLiveviewWeb.WallabyCase, async: false
+  import Wallaby.Browser
+  import Wallaby.Query
+  alias HydepwnsLiveview.TestSupport.ResourceFixtures
 
   @moduledoc """
   End-to-end tests for the Resource Relationship Management workflow.
@@ -10,9 +13,6 @@ defmodule HydepwnsLiveviewWeb.Features.RelationshipManagementWorkflowTest do
   - Validating relationships and handling errors
   - Viewing relationships in the UI
   """
-
-  import Wallaby.Query
-  alias HydepwnsLiveview.TestSupport.ResourceFixtures
 
   setup %{session: session} do
     # Set up initial resources with relationships
@@ -85,7 +85,8 @@ defmodule HydepwnsLiveviewWeb.Features.RelationshipManagementWorkflowTest do
       session
       |> fill_in(text_field("user[name]"), with: "New User With Team")
       |> fill_in(text_field("user[email]"), with: "newuser@example.com")
-      |> select(select("user[team_id]"), option: team.name)
+      |> click(Query.select("user[team_id]"))
+      |> click(Query.option(team.name))
       |> click(button("Create User"))
 
       # Verify success message
@@ -119,7 +120,8 @@ defmodule HydepwnsLiveviewWeb.Features.RelationshipManagementWorkflowTest do
       session
       |> click(link("Unassigned Post"))
       |> click(link("Edit"))
-      |> select(select("post[user_id]"), option: user.name)
+      |> click(Query.select("post[user_id]"))
+      |> click(Query.option(user.name))
       |> click(button("Save"))
 
       # Verify relationship is updated
@@ -159,7 +161,8 @@ defmodule HydepwnsLiveviewWeb.Features.RelationshipManagementWorkflowTest do
       |> click(link("Users"))
       |> click(link(user.name))
       |> click(link("Edit"))
-      |> select(select("user[team_id]"), option: "New Team")
+      |> click(Query.select("user[team_id]"))
+      |> click(Query.option("New Team"))
       |> click(button("Save"))
 
       # Verify user's team changed
@@ -198,7 +201,8 @@ defmodule HydepwnsLiveviewWeb.Features.RelationshipManagementWorkflowTest do
       |> click(link("Create New User"))
       |> fill_in(text_field("user[name]"), with: "Another Team Member")
       |> fill_in(text_field("user[email]"), with: "teammember@example.com")
-      |> select(select("user[team_id]"), option: team.name)
+      |> click(Query.select("user[team_id]"))
+      |> click(Query.option(team.name))
       |> click(button("Create User"))
 
       # Create a post from the new user
@@ -207,7 +211,8 @@ defmodule HydepwnsLiveviewWeb.Features.RelationshipManagementWorkflowTest do
       |> click(link("Create New Post"))
       |> fill_in(text_field("post[title]"), with: "Team Member Post")
       |> fill_in(text_field("post[content]"), with: "Posted by a team member")
-      |> select(select("post[user_id]"), option: "Another Team Member")
+      |> click(Query.select("post[user_id]"))
+      |> click(Query.option("Another Team Member"))
       |> click(button("Create Post"))
 
       # Now view the team's posts (through team members)

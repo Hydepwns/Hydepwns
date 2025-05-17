@@ -51,7 +51,7 @@ defmodule HydepwnsLiveview.Events.BridgeConsistencyTest do
 
     {result, _} =
       Macro.prewalk(module_ast, false, fn
-        {:defdelegate, _, [{^name, _, args} | _]} when length(args) == arity -> {nil, true}
+        {:defdelegate, _, [{^name, _, args} | _]}, _acc when length(args) == arity -> {nil, true}
         other, acc -> {other, acc}
       end)
 
@@ -73,7 +73,7 @@ defmodule HydepwnsLiveview.Events.BridgeConsistencyTest do
 
     {aliases, _} =
       Macro.prewalk(module_ast, [], fn
-        {:defdelegate, _, [{^name, _, args} | rest]} when length(args) == arity ->
+        {:defdelegate, _, [{^name, _, args} | rest]}, aliases when length(args) == arity ->
           alias_opts = Keyword.get(rest, :to, [])
           alias_name = Keyword.get(alias_opts, :as, name)
           {nil, [alias_name | aliases]}

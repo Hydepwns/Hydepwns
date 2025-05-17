@@ -254,3 +254,17 @@ defmodule HydepwnsLiveview.ThemeSystemFixtures do
     theme
   end
 end
+
+defmodule HydepwnsLiveview.TestSupport.ThemeFixtures do
+  @moduledoc """
+  Compatibility module for test theme fixtures. Provides create_test_theme/1 for use in tests.
+  """
+  alias HydepwnsLiveview.ThemeSystemFixtures
+
+  @doc """
+  Create a test theme. Accepts optional attrs map.
+  """
+  def create_test_theme(attrs \\ %{}) do
+    ThemeSystemFixtures.theme_fixture(attrs)
+  end
+end

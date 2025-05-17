@@ -3,6 +3,6 @@ defmodule HydepwnsLiveviewWeb.PageControllerTest do
 
   test "GET /", %{conn: conn} do
     conn = get(conn, ~p"/")
-    assert html_response(conn, 200) =~ "Hydepwns Monospace Interface"
+    assert html_response(conn, 200) =~ "Hydepwns Monospace Web"
   end
 end

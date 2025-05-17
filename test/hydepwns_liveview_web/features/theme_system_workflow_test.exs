@@ -1,5 +1,7 @@
 defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
-  use HydepwnsLiveviewWeb.WallabyCase, async: true
+  import Wallaby.Browser
+
+  use HydepwnsLiveviewWeb.WallabyCase, async: false
 
   @moduledoc """
   End-to-end tests for the Theme System workflow.
@@ -34,6 +36,8 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
 
   describe "theme management and application" do
     test "theme can be created and applied", %{session: session, theme: theme} do
+      import Wallaby.Browser
+      import Wallaby.Query
       # Navigate to theme creation
       session
       |> click(link("Create Theme"))
@@ -43,7 +47,8 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       |> fill_in(text_field("theme[name]"), with: "Custom Theme")
       |> fill_in(text_field("theme[primary_color]"), with: "#FF5733")
       |> fill_in(text_field("theme[secondary_color]"), with: "#33FF57")
-      |> select(select("theme[type]"), "dark")
+      |> click(Query.select("theme[type]"))
+      |> click(Query.option("dark"))
       |> click(button("Create Theme"))
 
       # Verify theme creation
@@ -180,14 +185,18 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       end
     end
 
-    test "theme changes persist across sessions", %{session: session, theme: theme} do
+    test "theme changes persist across sessions", %{
+      session: session,
+      theme: theme,
+      metadata: metadata
+    } do
       # Apply theme
       session
       |> click(link(theme.name))
       |> click(button("Apply Theme"))
 
       # Start new session
-      new_session = new_session(session)
+      new_session = new_session(metadata)
 
       new_session
       |> visit("/")
@@ -250,16 +259,25 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
     end
 
     test "theme supports reduced motion", %{session: session, theme: theme} do
+      import Wallaby.Browser
+      import Wallaby.Query
       # Enable reduced motion
       session
       |> click(link(theme.name))
       |> click(button("Accessibility Settings"))
-      |> check(checkbox("reduced_motion"))
+      |> click(Query.checkbox("reduced_motion"))
       |> click(button("Apply"))
 
       # Verify reduced motion
       assert_has(session, css(".motion-reduced"))
       assert_has(session, css(".transition-disabled"))
     end
+  end
+
+  # Helper to create a new Wallaby session with the same metadata as the test context
+  # Usage: new_session = new_session(metadata)
+  defp new_session(metadata) do
+    {:ok, session} = Wallaby.start_session(metadata: metadata)
+    session
   end
 end

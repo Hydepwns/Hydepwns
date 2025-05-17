@@ -1,5 +1,5 @@
 defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
-  use HydepwnsLiveviewWeb.WallabyCase, async: true
+  use HydepwnsLiveviewWeb.WallabyCase, async: false
 
   @moduledoc """
   End-to-end tests for the Resource Event System workflow.
@@ -76,9 +76,9 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
       |> click(link(resource.name))
 
       # Delete the resource
-      session
-      |> click(button("Delete Resource"))
-      |> accept_confirm()
+      accept_confirm(session, fn s ->
+        click(s, button("Delete Resource"))
+      end)
 
       # Verify deletion success
       assert_has(session, css(".alert-success", text: "Resource deleted successfully"))
@@ -126,10 +126,10 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
       |> click(button("Apply Filter"))
 
       # Verify only created events are shown
-      all_events = find_all(session, css(".event-type"))
+      all_events = all(session, css(".event-type"))
 
       for event <- all_events do
-        assert text_of(event) =~ "created"
+        assert Wallaby.Element.text(event) =~ "created"
       end
 
       # Clear filters
@@ -151,7 +151,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
 
       # Subscribe to resource.created events
       session
-      |> check(checkbox("notification_settings[resource.created]"))
+      |> set_value(checkbox("notification_settings[resource.created]"), :selected)
       |> click(button("Save Settings"))
 
       # Verify settings saved

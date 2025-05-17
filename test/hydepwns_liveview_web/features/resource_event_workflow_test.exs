@@ -1,5 +1,5 @@
 defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
-  use HydepwnsLiveviewWeb.WallabyCase, async: true
+  use HydepwnsLiveviewWeb.WallabyCase, async: false
 
   @moduledoc """
   End-to-end tests for the Resource Event Processing and Subscription workflow.
@@ -102,7 +102,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
       |> click(link("View Events"))
 
       # Verify events were processed in order
-      events = find_all(session, css(".event-row"))
+      events = all(session, css(".event-row"))
       assert length(events) >= 3
 
       # Verify final state is consistent
@@ -133,8 +133,8 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
 
       # Subscribe to specific event types
       session
-      |> check(checkbox("resource.updated"))
-      |> check(checkbox("resource.transformed"))
+      |> set_value(checkbox("resource.updated"), :selected)
+      |> set_value(checkbox("resource.transformed"), :selected)
       |> click(button("Save Subscriptions"))
 
       # Verify subscription status
@@ -144,7 +144,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
 
       # Unsubscribe from events
       session
-      |> uncheck(checkbox("resource.updated"))
+      |> set_value(checkbox("resource.updated"), :unselected)
       |> click(button("Save Subscriptions"))
 
       # Verify subscription was removed

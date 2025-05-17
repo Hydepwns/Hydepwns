@@ -1,5 +1,7 @@
 defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
-  use HydepwnsLiveviewWeb.WallabyCase, async: true
+  use HydepwnsLiveviewWeb.WallabyCase, async: false
+  import Wallaby.Browser
+  import Wallaby.Query
 
   @moduledoc """
   End-to-end tests for the Resource Relationship Management workflow.
@@ -11,7 +13,6 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
   - Event generation for relationship changes
   """
 
-  import Wallaby.Query
   alias HydepwnsLiveview.TestSupport.ResourceFixtures
 
   setup %{session: session} do
@@ -36,7 +37,8 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
 
       # Set parent relationship
       session
-      |> select(select("resource[parent_id]"), parent.name)
+      |> click(Query.select("resource[parent_id]"))
+      |> click(Query.option(parent.name))
       |> click(button("Save"))
 
       # Verify relationship was created
@@ -59,7 +61,8 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       |> click(link("Create New Resource"))
       |> fill_in(text_field("resource[name]"), with: "Second Child")
       |> fill_in(text_field("resource[type]"), with: "document")
-      |> select(select("resource[parent_id]"), parent.name)
+      |> click(Query.select("resource[parent_id]"))
+      |> click(Query.option(parent.name))
       |> click(button("Create Resource"))
 
       # Navigate to parent resource
@@ -83,14 +86,16 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       session
       |> click(link(child.name))
       |> click(link("Edit"))
-      |> select(select("resource[parent_id]"), parent.name)
+      |> click(Query.select("resource[parent_id]"))
+      |> click(Query.option(parent.name))
       |> click(button("Save"))
 
       # Try to make parent a child of child (circular)
       session
       |> click(link(parent.name))
       |> click(link("Edit"))
-      |> select(select("resource[parent_id]"), child.name)
+      |> click(Query.select("resource[parent_id]"))
+      |> click(Query.option(child.name))
       |> click(button("Save"))
 
       # Verify error message
@@ -102,14 +107,16 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       session
       |> click(link(child.name))
       |> click(link("Edit"))
-      |> select(select("resource[parent_id]"), parent.name)
+      |> click(Query.select("resource[parent_id]"))
+      |> click(Query.option(parent.name))
       |> click(button("Save"))
 
       # Remove the relationship
       session
       |> click(link(child.name))
       |> click(link("Edit"))
-      |> select(select("resource[parent_id]"), "")
+      |> click(Query.select("resource[parent_id]"))
+      |> click(Query.option(""))
       |> click(button("Save"))
 
       # Verify relationship was removed
@@ -132,7 +139,8 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       |> click(link(child.name))
       |> click(link("Edit"))
       # Self-reference
-      |> select(select("resource[parent_id]"), child.name)
+      |> click(Query.select("resource[parent_id]"))
+      |> click(Query.option(child.name))
       |> click(button("Save"))
 
       # Verify error message
@@ -144,7 +152,8 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       |> fill_in(text_field("resource[name]"), with: "Invalid Child")
       |> fill_in(text_field("resource[type]"), with: "folder")
       # Document can't be parent of folder
-      |> select(select("resource[parent_id]"), child.name)
+      |> click(Query.select("resource[parent_id]"))
+      |> click(Query.option(child.name))
       |> click(button("Create Resource"))
 
       # Verify error message

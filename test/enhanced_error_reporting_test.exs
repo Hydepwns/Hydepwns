@@ -36,30 +36,30 @@ defmodule HydepwnsLiveview.EnhancedErrorReportingTest do
 
     def do_mount(_params, session, socket) do
       socket
-      |> assign(:user_id, Map.get(session, "user_id", ""))
-      |> assign(:count, Map.get(session, "count", 0))
-      |> assign(:status, Map.get(session, "status", "active"))
-      |> assign(:settings, Map.get(session, "settings", %{theme: "dark", notifications: true}))
-      |> assign(:items, Map.get(session, "items", []))
+      |> Phoenix.Component.assign(:user_id, Map.get(session, "user_id", ""))
+      |> Phoenix.Component.assign(:count, Map.get(session, "count", 0))
+      |> Phoenix.Component.assign(:status, Map.get(session, "status", "active"))
+      |> Phoenix.Component.assign(:settings, Map.get(session, "settings", %{theme: "dark", notifications: true}))
+      |> Phoenix.Component.assign(:items, Map.get(session, "items", []))
     end
 
     # Add handler for updating count with wrong type
     def handle_event("update_count", %{"count" => count}, socket) do
       # Deliberately assign string instead of integer to trigger type error
-      {:noreply, assign(socket, :count, count)}
+      {:noreply, Phoenix.Component.assign(socket, :count, count)}
     end
 
     # Add handler for updating status with invalid value
     def handle_event("update_status", %{"status" => status}, socket) do
       # Deliberately assign invalid status to trigger one_of error
-      {:noreply, assign(socket, :status, status)}
+      {:noreply, Phoenix.Component.assign(socket, :status, status)}
     end
 
     # Add handler for updating settings with invalid structure
     def handle_event("update_settings", %{"theme" => theme}, socket) do
       # Deliberately create invalid settings to trigger nested error
       settings = %{theme: theme, notifications: "yes"}
-      {:noreply, assign(socket, :settings, settings)}
+      {:noreply, Phoenix.Component.assign(socket, :settings, settings)}
     end
   end
 

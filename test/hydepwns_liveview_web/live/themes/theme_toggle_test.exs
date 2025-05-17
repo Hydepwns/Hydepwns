@@ -19,6 +19,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeToggleTest do
     end
 
     test "renders theme toggle buttons", %{conn: conn} do
+      conn = Plug.Conn.assign(conn, :current_path, "/themes")
       {:ok, view, _html} = live(conn, "/themes")
       html = render(view)
 
@@ -29,6 +30,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeToggleTest do
     end
 
     test "switches to light theme", %{conn: conn} do
+      conn = Plug.Conn.assign(conn, :current_path, "/themes")
       {:ok, view, _html} = live(conn, "/themes")
 
       html =
@@ -41,6 +43,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeToggleTest do
     end
 
     test "switches to dark theme", %{conn: conn} do
+      conn = Plug.Conn.assign(conn, :current_path, "/themes")
       {:ok, view, _html} = live(conn, "/themes")
 
       html =
@@ -53,6 +56,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeToggleTest do
     end
 
     test "switches to system theme", %{conn: conn} do
+      conn = Plug.Conn.assign(conn, :current_path, "/themes")
       {:ok, view, _html} = live(conn, "/themes")
 
       html =
@@ -65,6 +69,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeToggleTest do
     end
 
     test "switches to dim theme", %{conn: conn} do
+      conn = Plug.Conn.assign(conn, :current_path, "/themes")
       {:ok, view, _html} = live(conn, "/themes")
 
       html =
@@ -77,6 +82,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeToggleTest do
     end
 
     test "persists theme selection", %{conn: conn} do
+      conn = Plug.Conn.assign(conn, :current_path, "/themes")
       {:ok, view, _html} = live(conn, "/themes")
 
       # Switch to dark theme
@@ -92,6 +98,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeToggleTest do
     end
 
     test "respects system preference when system theme is selected", %{conn: conn} do
+      conn = Plug.Conn.assign(conn, :current_path, "/themes")
       {:ok, view, _html} = live(conn, "/themes")
 
       # Switch to system theme
@@ -106,6 +113,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeToggleTest do
     end
 
     test "updates theme when system preference changes", %{conn: conn} do
+      conn = Plug.Conn.assign(conn, :current_path, "/themes")
       {:ok, view, _html} = live(conn, "/themes")
 
       # Switch to system theme

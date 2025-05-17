@@ -2,11 +2,11 @@ import Config
 
 # Configure your database
 config :hydepwns_liveview, HydepwnsLiveview.Repo,
-  username: "droo",
+  username: System.get_env("DEV_DB_USERNAME") || "postgres",
   # If your user doesn't have a password
-  password: "",
-  hostname: "localhost",
-  database: "hydepwns_liveview_dev",
+  password: System.get_env("DEV_DB_PASSWORD") || "",
+  hostname: System.get_env("DEV_DB_HOST") || "localhost",
+  database: System.get_env("DEV_DB_NAME") || "hydepwns_liveview_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
@@ -24,7 +24,7 @@ config :hydepwns_liveview, HydepwnsLiveviewWeb.Endpoint,
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
-  secret_key_base: "uoKquXHfOPbR4oXSuJe2095rrz+G04omJ8wv7PRxKpNxY5pj7wVKqiuS0S7StLBb",
+  secret_key_base: System.get_env("DEV_SECRET_KEY_BASE") || "dev_secret_key_base",
   watchers: [
     esbuild: {Esbuild, :install_and_run, [:hydepwns_liveview, ~w(--sourcemap=inline --watch)]},
     dart_sass:

@@ -9,7 +9,16 @@ defmodule HydepwnsLiveview.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+      test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test,
+        "coveralls.github": :test,
+        dialyzer: :dev
+      ]
     ]
   end
 
@@ -34,8 +43,8 @@ defmodule HydepwnsLiveview.MixProject do
     [
       {:phoenix, "~> 1.7.20"},
       {:phoenix_ecto, "~> 4.5"},
-      {:ecto_sql, "~> 3.10"},
-      {:postgrex, ">= 0.0.0"},
+      {:ecto_sql, "~> 3.11"},
+      {:postgrex, ">= 0.20.0"},
       {:phoenix_html, "~> 4.1"},
       {:phoenix_html_helpers, "~> 1.0"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
@@ -67,17 +76,25 @@ defmodule HydepwnsLiveview.MixProject do
 
       # Testing tools
       {:mox, "~> 1.0", only: :test},
-      {:meck, "~> 0.9.2", only: :test},
-      {:wallaby, "~> 0.30.0", only: :test, runtime: false},
+      {:wallaby, "~> 0.30.3", only: :test, runtime: false},
 
       # Add UUID generation
       {:uuid, "~> 1.1"},
 
       # Add Inflex for pluralization
-      {:inflex, "~> 2.0"}
+      {:inflex, "~> 2.0"},
+
+      # Documentation
+      {:ex_doc, "~> 0.31", only: :dev, runtime: false},
+      {:httpoison, "~> 1.8"},
+
+      # Add test coverage and static analysis
+      {:excoveralls, ">= 0.0.0", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.3", only: [:dev], runtime: false},
 
       # Authentication - Uncomment to add authentication
-      # {:phx_gen_auth, "~> 0.7.1", only: [:dev], runtime: false}
+      # {:phx_gen_auth, "~> 0.7.1", only: [:dev], runtime: false},
+      {:raxol, "~> 0.2.0"}
     ]
   end
 

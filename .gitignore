@@ -46,3 +46,21 @@ npm-debug.log
 
 # ignore coverage
 /coverage/
+
+# Ignore environment variable files
+.env
+.env.*
+
+# Editor config files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+*.bak
+*.tmp
+*.orig
+*.kate-swp
+*.sublime-workspace
+*.sublime-project
+*.code-workspace

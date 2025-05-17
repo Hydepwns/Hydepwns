@@ -56,9 +56,11 @@ jobs:
         run: mix credo --strict
       - name: Run tests
         run: mix test ${{ inputs.test_flags }}
+      - name: Run Dialyzer
+        run: mix dialyzer
       - name: Run coverage
         if: ${{ inputs.coverage }}
-        run: mix coveralls.html
+        run: mix coveralls.github
       - name: Upload coverage report
         if: ${{ inputs.coverage }}
         uses: actions/upload-artifact@v3

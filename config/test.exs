@@ -6,10 +6,12 @@ import Config
 # to provide built-in test partitioning in CI environment.
 # Run `mix help test` for more information.
 config :hydepwns_liveview, HydepwnsLiveview.Repo,
-  username: "droo",
-  password: "",
-  hostname: "localhost",
-  database: "hydepwns_liveview_test#{System.get_env("MIX_TEST_PARTITION")}",
+  username: System.get_env("TEST_DB_USERNAME") || "postgres",
+  password: System.get_env("TEST_DB_PASSWORD") || "",
+  hostname: System.get_env("TEST_DB_HOST") || "localhost",
+  database:
+    System.get_env("TEST_DB_NAME") ||
+      "hydepwns_liveview_test#{System.get_env("MIX_TEST_PARTITION")}",
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
 
@@ -17,7 +19,7 @@ config :hydepwns_liveview, HydepwnsLiveview.Repo,
 # you can enable the server option below.
 config :hydepwns_liveview, HydepwnsLiveviewWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
-  secret_key_base: "Yx+Yd+Yx+Yd+Yx+Yd+Yx+Yd+Yx+Yd+Yx+Yd+Yx+Yd+Yx+Yd+Yx+Yd+Yx+Yd+Yx+Yd+Yx+Yd+",
+  secret_key_base: System.get_env("TEST_SECRET_KEY_BASE") || "test_secret_key_base",
   server: false
 
 # In test we don't send emails
@@ -49,13 +51,18 @@ config :wallaby,
   screenshot_on_failure: true,
   chromedriver: [
     headless: true
-  ]
+  ],
+  base_url: "http://localhost:4001"
 
 # Configure your application to work with Wallaby
 config :hydepwns_liveview, HydepwnsLiveviewWeb.Endpoint,
   server: true,
   http: [port: 4002],
-  debug_errors: true
+  debug_errors: true,
+  secret_key_base: String.duplicate("a", 64)
 
 # Set testing flag for relationship resolver
 config :hydepwns_liveview, :testing, true
+
+# Enable the :sql_sandbox flag for the test environment
+config :hydepwns_liveview, :sql_sandbox, true

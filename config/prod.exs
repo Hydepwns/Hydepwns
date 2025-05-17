@@ -8,6 +8,9 @@ import Config
 config :hydepwns_liveview, HydepwnsLiveviewWeb.Endpoint,
   cache_static_manifest: "priv/static/cache_manifest.json"
 
+# For security, consider enabling force_ssl:
+# force_ssl: [hsts: true]
+
 # Configures Swoosh API Client
 config :swoosh, api_client: Swoosh.ApiClient.Finch, finch_name: HydepwnsLiveview.Finch
 

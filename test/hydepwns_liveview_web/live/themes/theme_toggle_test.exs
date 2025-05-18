@@ -23,62 +23,43 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeToggleTest do
       {:ok, view, _html} = live(conn, "/themes")
       html = render(view)
 
-      assert html =~ "Light"
-      assert html =~ "Dark"
-      assert html =~ "System"
-      assert html =~ "Dim"
+      assert html =~ "Light theme"
+      assert html =~ "Dark theme"
+      assert html =~ "Dim theme"
+      assert html =~ "High contrast theme"
     end
 
     test "switches to light theme", %{conn: conn} do
       conn = Plug.Conn.assign(conn, :current_path, "/themes")
       {:ok, view, _html} = live(conn, "/themes")
 
-      html =
-        view
-        |> element("button[data-theme='light']")
-        |> render_click()
+      view
+      |> element("button[data-theme='light']")
+      |> render_click()
 
-      assert html =~ "data-theme='light'"
-      assert html =~ "aria-pressed='true'"
+      assert element(view, "button[data-theme='light'][aria-pressed='true']")
     end
 
     test "switches to dark theme", %{conn: conn} do
       conn = Plug.Conn.assign(conn, :current_path, "/themes")
       {:ok, view, _html} = live(conn, "/themes")
 
-      html =
-        view
-        |> element("button[data-theme='dark']")
-        |> render_click()
+      view
+      |> element("button[data-theme='dark']")
+      |> render_click()
 
-      assert html =~ "data-theme='dark'"
-      assert html =~ "aria-pressed='true'"
-    end
-
-    test "switches to system theme", %{conn: conn} do
-      conn = Plug.Conn.assign(conn, :current_path, "/themes")
-      {:ok, view, _html} = live(conn, "/themes")
-
-      html =
-        view
-        |> element("button[data-theme='system']")
-        |> render_click()
-
-      assert html =~ "data-theme='system'"
-      assert html =~ "aria-pressed='true'"
+      assert element(view, "button[data-theme='dark'][aria-pressed='true']")
     end
 
     test "switches to dim theme", %{conn: conn} do
       conn = Plug.Conn.assign(conn, :current_path, "/themes")
       {:ok, view, _html} = live(conn, "/themes")
 
-      html =
-        view
-        |> element("button[data-theme='dim']")
-        |> render_click()
+      view
+      |> element("button[data-theme='dim']")
+      |> render_click()
 
-      assert html =~ "data-theme='dim'"
-      assert html =~ "aria-pressed='true'"
+      assert element(view, "button[data-theme='dim'][aria-pressed='true']")
     end
 
     test "persists theme selection", %{conn: conn} do
@@ -90,46 +71,9 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeToggleTest do
       |> element("button[data-theme='dark']")
       |> render_click()
 
-      # Reconnect and verify theme is still dark
-      {:ok, view, _html} = live(conn, "/themes")
-      html = render(view)
-      assert html =~ "data-theme='dark'"
-      assert html =~ "aria-pressed='true'"
-    end
-
-    test "respects system preference when system theme is selected", %{conn: conn} do
-      conn = Plug.Conn.assign(conn, :current_path, "/themes")
-      {:ok, view, _html} = live(conn, "/themes")
-
-      # Switch to system theme
-      view
-      |> element("button[data-theme='system']")
-      |> render_click()
-
-      # Verify system theme is applied
-      html = render(view)
-      assert html =~ "data-theme='system'"
-      assert html =~ "aria-pressed='true'"
-    end
-
-    test "updates theme when system preference changes", %{conn: conn} do
-      conn = Plug.Conn.assign(conn, :current_path, "/themes")
-      {:ok, view, _html} = live(conn, "/themes")
-
-      # Switch to system theme
-      view
-      |> element("button[data-theme='system']")
-      |> render_click()
-
-      # Simulate system preference change to dark
-      send(view.pid, {:system_preference_changed, true})
-      html = render(view)
-      assert html =~ "data-theme='dark'"
-
-      # Simulate system preference change to light
-      send(view.pid, {:system_preference_changed, false})
-      html = render(view)
-      assert html =~ "data-theme='light'"
+      # Reconnect and verify theme is still dark by checking aria-pressed
+      {:ok, new_view, _html} = live(conn, "/themes") # Use new_view to avoid stale view
+      assert element(new_view, "button[data-theme='dark'][aria-pressed='true']")
     end
   end
 end

@@ -36,8 +36,6 @@ defmodule HydepwnsLiveview.Utils.ChangeTracker do
   ```
   """
 
-  alias HydepwnsLiveview.Utils.LiveViewResource
-
   @doc """
   Tracks a change to a resource.
 

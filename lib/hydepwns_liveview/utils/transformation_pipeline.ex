@@ -53,7 +53,6 @@ defmodule HydepwnsLiveview.Utils.TransformationPipeline do
   ```
   """
 
-  alias HydepwnsLiveview.Utils.TransformationRegistry
   alias HydepwnsLiveview.Utils.TransformationMetrics
 
   @doc """
@@ -501,67 +500,30 @@ defmodule HydepwnsLiveview.Utils.TransformationPipeline do
 
   # Visualize the pipeline as GraphViz DOT
   defp visualize_as_dot(pipeline) do
-    # Generate DOT header
-    dot = "digraph TransformationPipeline {\n"
+    nodes = Enum.map_join("\n", pipeline.hooks, fn {hook_name, steps} ->
+      step_nodes = Enum.map_join("\n", steps, fn step ->
+        "  \"#{hook_name}_#{step.name}\" [label=\"#{step.name}\"];"
+      end)
+      "subgraph cluster_#{hook_name} {\n    label = \"#{hook_name}\";\n#{step_nodes}\n  }"
+    end)
 
-    # Add label for the graph
-    dot = dot <> "  label=\"#{pipeline.name || "Transformation Pipeline"}\";\n"
-
-    # Add hook subgraphs
-    hooks_dot =
-      Enum.map_join(pipeline.hooks, "\n", fn {hook_name, steps} ->
-        # Create subgraph for the hook
-        hook_dot = "  subgraph cluster_#{hook_name} {\n"
-        hook_dot = hook_dot <> "    label=\"#{hook_name}\";\n"
-
-        # Add nodes for each step
-        steps_dot =
-          Enum.map_join(steps, "\n", fn step ->
-            condition_label =
-              if step.condition do
-                " (conditional)"
-              else
-                ""
-              end
-
-            "    \"#{step.id}\" [label=\"#{step.name}#{condition_label}\"];"
-          end)
-
-        # Add edges between steps
-        edges_dot =
-          if length(steps) > 1 do
-            Enum.zip(steps, Enum.drop(steps, 1))
-            |> Enum.map_join("\n", fn {from, to} ->
-              "    \"#{from.id}\" -> \"#{to.id}\";"
-            end)
-          else
-            ""
-          end
-
-        hook_dot <> steps_dot <> "\n" <> edges_dot <> "\n  }"
+    edges = Enum.flat_map(pipeline.hooks, fn {hook_name, steps} ->
+      # Create edges between steps within the same hook
+      intra_hook_edges = Enum.zip(steps, tl(steps))
+      |> Enum.map_join("\n", fn {step1, step2} ->
+        "  \"#{hook_name}_#{step1.name}\" -> \"#{hook_name}_#{step2.name}\";"
       end)
 
-    # Add connections between hooks if there are multiple hooks
-    hook_edges_dot =
-      if Enum.count(pipeline.hooks) > 1 do
-        hooks_list = Enum.to_list(pipeline.hooks)
+      # Create edges between the last step of one hook and the first of the next (if applicable)
+      # This requires knowing the order of hooks, which is implicit here (pre_validation then post_validation)
+      # A more robust solution would define explicit hook order.
+      inter_hook_edges = ""
 
-        Enum.zip(hooks_list, Enum.drop(hooks_list, 1))
-        |> Enum.map_join("\n", fn {{hook_name1, steps1}, {hook_name2, steps2}} ->
-          if Enum.any?(steps1) and Enum.any?(steps2) do
-            last_step1 = List.last(steps1)
-            first_step2 = List.first(steps2)
+      [intra_hook_edges, inter_hook_edges]
+    end)
+    |> Enum.reject(&(&1 == ""))
+    |> Enum.join("\n")
 
-            "  \"#{last_step1.id}\" -> \"#{first_step2.id}\" [style=dashed];"
-          else
-            ""
-          end
-        end)
-      else
-        ""
-      end
-
-    # Generate DOT footer
-    dot <> hooks_dot <> "\n" <> hook_edges_dot <> "\n}"
+    "digraph TransformationPipeline {\n  rankdir=LR;\n  node [shape=box];\n#{nodes}\n#{edges}\n}"
   end
 end

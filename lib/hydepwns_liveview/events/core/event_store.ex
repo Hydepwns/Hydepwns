@@ -14,9 +14,6 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   require Logger
   alias HydepwnsLiveview.Repo
   alias HydepwnsLiveview.Events.Core.Event
-  alias HydepwnsLiveview.ThemeSystem.Models.Theme
-  alias HydepwnsLiveview.Resources.Resource
-  alias HydepwnsLiveview.Resources.ResourceIntegration.EventSourcedResource
   import Ecto.Query
 
   @doc """
@@ -730,6 +727,33 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
     %VersionedState{}
     |> VersionedState.changeset(attrs)
     |> Repo.insert()
+  end
+
+  @doc """
+  Updates the status of an existing replay session.
+
+  ## Parameters
+  * `session_id` - The ID of the session to update.
+  * `new_status` - The new status string (e.g., "running", "completed").
+  * `results` - Optional map of results to store with the session.
+
+  ## Returns
+  * `{:ok, session}` - The updated session.
+  * `{:error, reason}` - Error updating the session.
+  """
+  @spec update_replay_session_status(Ecto.UUID.t() | binary(), String.t(), map() | nil) :: {:ok, ReplaySession.t()} | {:error, any()}
+  def update_replay_session_status(session_id, new_status, results \\ nil) do
+    case Repo.get(ReplaySession, session_id) do
+      nil ->
+        {:error, :not_found}
+      session ->
+        attrs = %{status: new_status}
+        attrs = if results, do: Map.put(attrs, :results, results), else: attrs
+
+        session
+        |> ReplaySession.changeset(attrs)
+        |> Repo.update()
+    end
   end
 
   # Private functions

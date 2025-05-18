@@ -55,11 +55,12 @@ defmodule HydepwnsLiveviewWeb do
         layout: {HydepwnsLiveviewWeb.Components.Layout.Layouts, :app}
 
       import HydepwnsLiveviewWeb.Gettext
+      unquote(html_helpers())
 
       # Base event handlers for all LiveViews
       def handle_event("change_theme", %{"theme" => theme}, socket) do
         theme_class = "#{theme}-theme"
-        {:noreply, assign(socket, :theme_class, theme_class)}
+        {:noreply, Phoenix.Component.assign(socket, :theme_class, theme_class)}
       end
 
       unquote(verified_routes())
@@ -94,7 +95,7 @@ defmodule HydepwnsLiveviewWeb do
       # HTML escaping functionality
       import Phoenix.HTML
       # Core UI components and translation
-      import HydepwnsLiveviewWeb.CoreComponents
+      import HydepwnsLiveviewWeb.CoreComponents, except: [theme_toggle: 1]
       import HydepwnsLiveviewWeb.Gettext
 
       # Shortcut for generating JS commands

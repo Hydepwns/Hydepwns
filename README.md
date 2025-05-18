@@ -15,5 +15,5 @@ Pre-crypto I was a professional [sailor](https://en.wikipedia.org/wiki/Inter-Col
 
 ## Hydepwns/Hydepwns: DROO-flavored monospace
 
-Hydepwns, a monospace-focused web experience built with Phoenix LiveView.
-All documentation is in `docs/` [directory](https://github.com/hydepwns/hydepwns/tree/main/docs). It includes [Raxol](https://github.com/hydepwns/raxol), a terminal emulator built in Elixir.
+Hydepwns, a [monospace](https://github.com/owickstrom/the-monospace-web) web experience with [monaspace](https://github.com/githubnext/monaspace) texture healing fonts, built with Phoenix LiveView.
+It includes [Raxol](https://github.com/hydepwns/raxol), my new terminal emulator, built in Elixir.

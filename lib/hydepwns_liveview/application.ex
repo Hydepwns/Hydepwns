@@ -14,6 +14,8 @@ defmodule HydepwnsLiveview.Application do
       HydepwnsLiveviewWeb.Telemetry,
       # Add our Telemetry module
       HydepwnsLiveview.Telemetry,
+      # Start the ResourceSystem Agent (now has child_spec/1)
+      HydepwnsLiveview.ResourceSystem,
       # Start the TransformationRegistry for the resource transformation pipeline
       HydepwnsLiveview.Transformations.TransformationRegistry,
       # Start the TransformationMetrics for tracking transformation performance

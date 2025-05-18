@@ -111,9 +111,9 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
              resource_id,
              Keyword.put(opts, :metadata, metadata)
            ),
-         {:ok, updated_session} <- EventStore.start_replay_session(session.id),
+         {:ok, updated_session} <- EventStore.update_replay_session_status(session.id, "running"),
          # Get the events for the session
-         {:ok, events} <- EventStore.get_replay_session_events(session.id) do
+         {:ok, events} <- EventStore.get_replay_session_events(updated_session.id) do
       # Record the start of replay
       record_replay_start(updated_session, events)
 
@@ -380,9 +380,9 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
 
     # Update session status
     if had_error do
-      EventStore.complete_replay_session(session_id, final_results)
+      EventStore.update_replay_session_status(session_id, "failed", final_results)
     else
-      EventStore.complete_replay_session(session_id, final_results)
+      EventStore.update_replay_session_status(session_id, "completed", final_results)
     end
 
     # Final telemetry event

@@ -94,7 +94,6 @@ defmodule HydepwnsLiveview.MixProject do
 
       # Authentication - Uncomment to add authentication
       # {:phx_gen_auth, "~> 0.7.1", only: [:dev], runtime: false},
-      {:raxol, "~> 0.2.0"}
     ]
   end
 

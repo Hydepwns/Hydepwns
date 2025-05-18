@@ -137,6 +137,37 @@ defmodule HydepwnsLiveview.Resources.TestFramework do
   end
 
   @doc """
+  Verifies specific fields in the resource state match expected values.
+
+  ## Parameters
+  * `context` - Test context
+  * `expected_fields` - Map of field names to expected values
+
+  ## Returns
+  * Updated test context
+  """
+  def then_fields(context, expected_fields) when is_map(expected_fields) do
+    errors = Enum.reduce(expected_fields, [], fn {field, expected_value}, acc_errors ->
+      current_value = Map.get(context.current_state, field)
+      if current_value == expected_value do
+        acc_errors
+      else
+        ["Field '#{field}' mismatch. Expected: #{inspect(expected_value)}, Got: #{inspect(current_value)}" | acc_errors]
+      end
+    end)
+
+    if Enum.empty?(errors) do
+      context
+    else
+      # Add errors in the order they were found (reversed from Enum.reduce accumulator)
+      %{
+        context
+        | errors: Enum.reverse(errors) ++ context.errors
+      }
+    end
+  end
+
+  @doc """
   Verifies that the test context has no errors.
 
   ## Parameters

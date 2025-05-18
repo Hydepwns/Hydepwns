@@ -9,16 +9,23 @@ defmodule HydepwnsLiveviewWeb.Admin.EventDashboardLive do
   - Historical performance trends
   """
 
-  use HydepwnsLiveviewWeb, :live_view
+  use HydepwnsLiveviewWeb.BaseLive,
+    required_assigns: [
+      :page_title,
+      :theme_class,
+      :auto_refresh,
+      :metrics,
+      :error,
+      :notifications
+    ]
+
   alias HydepwnsLiveview.Events.Core.EventMonitor
   alias HydepwnsLiveview.Events.Core.NotificationSystem
-  alias HydepwnsLiveviewWeb.NotificationComponent
 
-  # 5 seconds refresh interval
-  @refresh_interval 5000
+  alias HydepwnsLiveviewWeb.Components.UI.NotificationComponent
 
   @impl true
-  def mount(_params, _session, socket) do
+  def do_mount(_params, _session, socket) do
     if connected?(socket) do
       # Start auto-refresh timer
       Process.send_after(self(), :refresh_metrics, @refresh_interval)

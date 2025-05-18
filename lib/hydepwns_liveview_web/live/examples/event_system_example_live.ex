@@ -1,6 +1,4 @@
 defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
-  @behaviour Phoenix.LiveView
-
   @moduledoc """
   LiveView for demonstrating the Resource Event System.
 
@@ -12,7 +10,25 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
   """
 
   use HydepwnsLiveviewWeb.BaseLive,
-    required_assigns: [:page_title]
+    required_assigns: [
+      :page_title,
+      :theme_class,
+      :show_toc,
+      :toc_items,
+      :images,
+      :events,
+      :projections,
+      :handlers,
+      :active_tab,
+      :user_count,
+      :event_type,
+      :resource_id,
+      :resource_type,
+      :event_data,
+      :event_result,
+      :selected_projection,
+      :projection_state
+    ]
 
   require Logger
 

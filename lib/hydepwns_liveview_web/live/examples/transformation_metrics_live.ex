@@ -6,7 +6,14 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationMetricsLive do
   including execution times, success rates, and resource/operation statistics.
   """
 
-  use HydepwnsLiveviewWeb, :live_view
+  use HydepwnsLiveviewWeb.BaseLive,
+    required_assigns: [
+      :page_title,
+      :theme_class,
+      :show_toc,
+      :toc_items,
+      :images
+    ]
 
   alias HydepwnsLiveview.Transformations.TransformationMetrics
   alias HydepwnsLiveviewWeb.Components.TransformationMetricsComponent
@@ -14,7 +21,8 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationMetricsLive do
   # 5 seconds
   @refresh_interval 5_000
 
-  def mount(_params, _session, socket) do
+  @impl HydepwnsLiveviewWeb.BaseLive.Behaviour
+  def do_mount(_params, _session, socket) do
     if connected?(socket) do
       # Set up automatic refresh for metrics
       :timer.send_interval(@refresh_interval, self(), :refresh_metrics)
@@ -25,6 +33,7 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationMetricsLive do
     {:ok, socket}
   end
 
+  @impl Phoenix.LiveView
   def handle_info(:refresh_metrics, socket) do
     # This will cause the metrics component to refresh
     send_update(TransformationMetricsComponent, id: "transformation_metrics", refresh: true)
@@ -67,16 +76,19 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationMetricsLive do
 
   # Event handlers for generating test data
 
+  @impl Phoenix.LiveView
   def handle_event("generate_successful_transformations", _params, socket) do
     generate_test_metrics(10, :success)
     {:noreply, socket}
   end
 
+  @impl Phoenix.LiveView
   def handle_event("generate_failed_transformations", _params, socket) do
     generate_test_metrics(5, :error)
     {:noreply, socket}
   end
 
+  @impl Phoenix.LiveView
   def handle_event("generate_mixed_transformations", _params, socket) do
     generate_test_metrics(8, :mixed)
     {:noreply, socket}

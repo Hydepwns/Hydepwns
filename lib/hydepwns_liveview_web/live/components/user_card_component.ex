@@ -7,11 +7,10 @@ defmodule HydepwnsLiveviewWeb.LiveComponents.UserCardComponent do
   when user resources change.
   """
 
-  use HydepwnsLiveviewWeb, :live_component
+  use Phoenix.LiveComponent
 
-  alias HydepwnsLiveview.Resources.Examples.UserResource
-  alias HydepwnsLiveview.Events.Core.Event
-  alias HydepwnsLiveview.Events.Handlers.LiveEventUpdater
+  alias HydepwnsLiveview.Resources.UserResource
+  alias HydepwnsLiveview.Schemas.User
 
   @doc """
   Mount hook for the component.

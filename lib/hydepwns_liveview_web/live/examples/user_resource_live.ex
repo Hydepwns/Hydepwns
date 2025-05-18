@@ -3,7 +3,16 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceLive do
   Example LiveView module demonstrating resource-oriented socket assigns.
   """
 
-  use HydepwnsLiveviewWeb.BaseLive, required_assigns: [:page_title, :user]
+  use HydepwnsLiveviewWeb.BaseLive,
+    required_assigns: [
+      :page_title,
+      :theme_class,
+      :show_toc,
+      :toc_items,
+      :images
+    ]
+  alias HydepwnsLiveview.Utils.LiveViewAPI
+  alias HydepwnsLiveview.Resources.UserResource
 
   # Example mount function that assigns user data
   def do_mount(_params, _session, socket) do

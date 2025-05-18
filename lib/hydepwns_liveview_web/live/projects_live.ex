@@ -17,7 +17,7 @@ defmodule HydepwnsLiveviewWeb.ProjectsLive do
     diagram = """
     +--------+    +---------+    +--------+
     |        |    |         |    |        |
-    | Design |--->| Develop |--->| Deploy |
+    | DROO   |--->|  DOT    |--->|  FOO   |
     |        |    |         |    |        |
     +--------+    +---------+    +--------+
     """

@@ -10,7 +10,14 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
   - Relationship management
   """
 
-  use HydepwnsLiveviewWeb, :live_view
+  use HydepwnsLiveviewWeb.BaseLive,
+    required_assigns: [
+      :page_title,
+      :theme_class,
+      :show_toc,
+      :toc_items,
+      :images
+    ]
 
   alias HydepwnsLiveview.Events.Event, as: Event
   alias HydepwnsLiveview.Events.EventStore, as: EventStore
@@ -18,7 +25,7 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
   alias HydepwnsLiveview.Events.EventBus, as: EventBus
 
   @impl true
-  def mount(_params, _session, socket) do
+  def do_mount(_params, _session, socket) do
     # Get the list of available resource types from the application
     resource_modules = get_resource_modules()
 

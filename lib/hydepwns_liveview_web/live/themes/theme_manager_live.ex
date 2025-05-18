@@ -6,7 +6,6 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
 
   alias HydepwnsLiveview.Themes
   alias HydepwnsLiveview.ThemeSystem.Models.Theme
-  import HydepwnsLiveviewWeb.Components.UI.ThemeToggle
 
   @impl true
   def do_mount(_params, _session, socket) do
@@ -200,7 +199,26 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
   end
 
   @impl true
+  def handle_event("change_theme", %{"theme" => _theme_name}, socket) do
+    # TODO: Implement actual theme changing logic
+    # For now, just acknowledge the event to prevent crashing
+    {:noreply, socket}
+  end
+
+  @impl true
   def handle_info(msg, socket) do
     {:noreply, socket}
+  end
+
+  attr :id, :string, default: "theme-toggle-live"
+  attr :theme_class, :string, default: "default-theme"
+  attr :current_theme, :string, default: "system", doc: "The current theme from the cookie or system preference."
+  attr :user_theme_preference, :string, default: nil, doc: "The user's explicit theme choice, if any."
+  def theme_toggle(assigns) do
+    ~H"""
+    <div id={@id} class={"theme-toggle #{@theme_class}"} phx-hook="ThemeToggle" role="group" aria-label="Theme selector">
+      <!-- ... existing code ... -->
+    </div>
+    """
   end
 end

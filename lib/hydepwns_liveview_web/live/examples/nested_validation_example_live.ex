@@ -8,21 +8,19 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
   - Visualize validation errors in a hierarchical structure
   """
 
-  use HydepwnsLiveviewWeb.ResourceLive
+  use HydepwnsLiveviewWeb.BaseLive,
+    required_assigns: [
+      :page_title,
+      :theme_class,
+      :show_toc,
+      :toc_items,
+      :images
+    ]
   alias HydepwnsLiveview.Resources.UserResource
   alias HydepwnsLiveview.Resources.TeamResource
   alias HydepwnsLiveview.Resources.PostResource
 
-  assigns do
-    attribute(:user, :map, required: true)
-    attribute(:validation_errors, :map, default: %{})
-    attribute(:error_view_mode, :string, default: "tree")
-    attribute(:include_resource_ids, :boolean, default: false)
-    attribute(:validation_status, :string, default: nil)
-    attribute(:validation_plan, :map, default: nil)
-  end
-
-  def mount(_params, _session, socket) do
+  def do_mount(_params, _session, socket) do
     # Create a sample user with a team and posts
     user = create_sample_user()
 

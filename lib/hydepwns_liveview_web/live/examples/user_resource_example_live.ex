@@ -7,26 +7,33 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceExampleLive do
   """
 
   use HydepwnsLiveviewWeb.ResourceLive
+
   alias HydepwnsLiveview.Utils.LiveViewAPI
   alias HydepwnsLiveview.Resources.UserResource
 
-  # Use the new assigns DSL
   assigns do
-    attribute(:user_id, :string, required: true)
-    attribute(:username, :string, required: true)
-    attribute(:email, :string)
-    attribute(:role, {:one_of, ["admin", "editor", "viewer"]}, default: "viewer")
+    attribute :page_title, :any, required: true
+    attribute :theme_class, :any, required: true
+    attribute :show_toc, :any, required: true
+    attribute :toc_items, :any, required: true
+    attribute :images, :any, required: true
 
+    # Define attributes for user data that is managed by this LiveView
+    # These were previously implicitly assigned in mount or via UserResource
+    attribute :user_id, :string
+    attribute :username, :string
+    attribute :email, :string
+    attribute :role, :string # Add role as an attribute
+
+    # Define settings as a nested attribute, matching its usage
     attribute :settings, :map do
-      attribute(:theme, {:one_of, ["light", "dark", "system"]}, default: "system")
-      attribute(:notifications, :boolean, default: true)
+      attribute :theme, :any # :string or {:one_of, [...]}, using :any for now
+      attribute :notifications, :boolean
     end
 
-    attribute(:show_admin_panel, :boolean, default: false)
-    attribute(:loading, :boolean, default: false)
+    attribute :show_admin_panel, :boolean # For conditional rendering
   end
 
-  # Called by ResourceLive's do_mount after setting defaults
   def do_mount(_params, _session, socket) do
     socket =
       socket
@@ -35,7 +42,7 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceExampleLive do
       |> assign(:email, "user@example.com")
       |> load_user_from_resource()
 
-    socket
+    {:ok, socket}
   end
 
   def render(assigns) do

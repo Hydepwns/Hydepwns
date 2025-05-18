@@ -30,6 +30,13 @@ defmodule HydepwnsLiveviewWeb.Router do
     live "/gallery", GalleryLive, :index
     live "/themes", Themes.ThemeManagerLive, :index
 
+    # Resource Management
+    live "/resources", ResourceDashboardLive, :index
+    live "/resources/new", ResourceFormLive, :new
+    live "/resources/:id", ResourceShowLive, :show
+    live "/resources/:id/edit", ResourceFormLive, :edit # Reuse form for editing
+    # TODO: Need to handle POST/PUT/DELETE actions, likely via handle_event in these LiveViews or dedicated controllers.
+
     # Theme system routes
     # resources "/themes", ThemeController
 

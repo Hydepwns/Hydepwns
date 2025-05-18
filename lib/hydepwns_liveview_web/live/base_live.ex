@@ -36,21 +36,24 @@ defmodule HydepwnsLiveviewWeb.BaseLive do
   ```
   """
 
-  @behaviour Phoenix.LiveView
-
   alias HydepwnsLiveview.Utils.SocketValidator
   alias HydepwnsLiveview.Utils.SocketValidationDebugGrid
 
   defmacro __using__(opts) do
     required_assigns = Keyword.get(opts, :required_assigns, [])
     type_specs = Keyword.get(opts, :type_specs, %{})
-    # New option to control validation behavior
     validation_behavior = Keyword.get(opts, :validation_behavior, :log)
-    # New option to enable/disable debug grid integration
     enable_debug_grid = Keyword.get(opts, :enable_debug_grid, true)
 
     quote do
-      use Phoenix.LiveView, unquote(opts)
+      # Use the project's standard live_view setup first
+      use HydepwnsLiveviewWeb, :live_view # This should bring in Phoenix.LiveView, verified_routes, html_helpers, Gettext
+      # Apply any specific layout options passed to BaseLive, overriding the default from :live_view if necessary
+      # However, :live_view already sets a layout. If opts contains a different layout, it needs careful handling.
+      # For now, assuming the layout from :live_view is sufficient or opts doesn't override it.
+      # If `opts` contains `:layout`, it might conflict or need merging with the layout from `use HydepwnsLiveviewWeb, :live_view`.
+      # A more robust way would be to extract the layout from opts and pass it to `use Phoenix.LiveView` if overriding is intended.
+      
       @behaviour HydepwnsLiveviewWeb.BaseLive.Behaviour
       alias HydepwnsLiveview.Utils.SocketValidator
       alias HydepwnsLiveview.Utils.SocketValidationDebugGrid
@@ -75,7 +78,7 @@ defmodule HydepwnsLiveviewWeb.BaseLive do
       end
 
       defp mount_with_validation(params, session, socket) do
-        # Call the implementation mount function
+        # Call the implementation mount function from the child module
         socket = do_mount(params, session, socket)
 
         # Validate required assigns
@@ -115,7 +118,7 @@ defmodule HydepwnsLiveviewWeb.BaseLive do
 
           {:error, missing} ->
             # Log the error but continue with defaults
-            error_message = "Missing required assigns: #{inspect(missing)} in #{__MODULE__}"
+            error_message = "Missing required assigns: #{inspect(missing)} in #{socket.assigns.view || __MODULE__}"
             Logger.warning(error_message)
 
             # Add default values for missing assigns
@@ -123,7 +126,7 @@ defmodule HydepwnsLiveviewWeb.BaseLive do
 
             # In development, consider showing a flash message
             socket =
-              if @validation_behavior == :flash && Mix.env() == :dev do
+              if (socket.assigns[:validation_behavior] || :log) == :flash && Mix.env() == :dev do
                 Phoenix.LiveView.put_flash(socket, :error, error_message)
               else
                 socket
@@ -170,7 +173,7 @@ defmodule HydepwnsLiveviewWeb.BaseLive do
 
                   # Development handling - can be configured by validation_behavior
                   if Mix.env() == :dev do
-                    case @validation_behavior do
+                    case (socket.assigns[:validation_behavior] || :log) do
                       :raise ->
                         # Raise an error in development for immediate feedback
                         raise "Type validation error: #{context_message}"
@@ -303,5 +306,5 @@ end
 
 defmodule HydepwnsLiveviewWeb.BaseLive.Behaviour do
   @callback do_mount(params :: map(), session :: map(), socket :: Phoenix.LiveView.Socket.t()) ::
-              {:ok, Phoenix.LiveView.Socket.t()} | {:error, term()}
+              Phoenix.LiveView.Socket.t() # Changed to return socket directly for simplicity
 end

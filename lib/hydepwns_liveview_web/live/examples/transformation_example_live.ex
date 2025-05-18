@@ -1,6 +1,4 @@
 defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
-  @behaviour Phoenix.LiveView
-
   @moduledoc """
   Example LiveView that demonstrates how to use the transformation system.
 

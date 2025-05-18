@@ -45,8 +45,6 @@ defmodule HydepwnsLiveviewWeb.ResourceLive do
   ```
   """
 
-  @behaviour Phoenix.LiveView
-
   alias HydepwnsLiveview.Utils.LiveViewAPI
   alias HydepwnsLiveview.Utils.SocketValidator
 
@@ -180,7 +178,7 @@ defmodule HydepwnsLiveviewWeb.ResourceLive do
           |> Enum.map(fn attr -> {attr.name, attr.default} end)
           |> Map.new()
 
-        socket = assign(socket, defaults)
+        socket = Phoenix.Component.assign(socket, defaults)
 
         # Call user-defined mount if it exists
         if function_exported?(__MODULE__, :do_mount, 3) do

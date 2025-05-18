@@ -1,6 +1,4 @@
 defmodule HydepwnsLiveviewWeb.Examples.EctoResourceExampleLive do
-  @behaviour Phoenix.LiveView
-
   @moduledoc """
   Example LiveView that demonstrates using a resource with the EctoAdapter.
 
@@ -8,20 +6,19 @@ defmodule HydepwnsLiveviewWeb.Examples.EctoResourceExampleLive do
   an Ecto schema through the adapter system.
   """
 
-  use HydepwnsLiveviewWeb.ResourceLive
-  alias HydepwnsLiveview.Utils.LiveViewAPI
+  use HydepwnsLiveviewWeb.BaseLive,
+    required_assigns: [
+      :page_title,
+      :theme_class,
+      :user_id,
+      :user,
+      :loading,
+      :error_message,
+      :success_message
+    ]
+
   alias HydepwnsLiveview.Resources.EctoUserResource
 
-  # Use the assigns DSL
-  assigns do
-    attribute(:user_id, :string)
-    attribute(:user, :map)
-    attribute(:loading, :boolean, default: true)
-    attribute(:error_message, :string)
-    attribute(:success_message, :string)
-  end
-
-  # Called by ResourceLive's do_mount after setting defaults
   def do_mount(_params, _session, socket) do
     # In a real application, we'd load the user from the database
     # but here we'll simulate it with a fake user

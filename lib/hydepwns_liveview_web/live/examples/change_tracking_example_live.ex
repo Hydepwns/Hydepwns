@@ -1,8 +1,6 @@
 import HydepwnsLiveviewWeb.Components.ChangeHistoryViewer
 
 defmodule HydepwnsLiveviewWeb.Examples.ChangeTrackingExampleLive do
-  @behaviour Phoenix.LiveView
-
   @moduledoc """
   Example LiveView that demonstrates the Change Tracking system.
 

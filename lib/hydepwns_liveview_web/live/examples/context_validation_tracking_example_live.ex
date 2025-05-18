@@ -8,7 +8,14 @@ defmodule HydepwnsLiveviewWeb.Examples.ContextValidationTrackingExampleLive do
   - Visualize tracked changes with validation context
   """
 
-  use HydepwnsLiveviewWeb.ResourceLive
+  use HydepwnsLiveviewWeb.ResourceLive,
+    required_assigns: [
+      :page_title,
+      :theme_class,
+      :show_toc,
+      :toc_items,
+      :images
+    ]
   alias HydepwnsLiveview.Utils.LiveViewAPI
   import HydepwnsLiveviewWeb.Components.ChangeHistoryViewer
 

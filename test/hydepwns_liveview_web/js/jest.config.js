@@ -9,7 +9,7 @@ const { getComponentThreshold } = require('./coverage-thresholds');
 const glob = require('glob');
 
 // Get all component files
-const componentFiles = glob.sync('assets/js/components/**/*.js');
+const componentFiles = glob.sync('js/components/**/*.js');
 
 // Create coverage thresholds for each component
 const coverageThresholds = {};
@@ -36,7 +36,7 @@ module.exports = {
   
   // A list of paths to directories that Jest should use to search for files in
   roots: [
-    '<rootDir>/assets/js',
+    '<rootDir>/js',
     '<rootDir>/test/hydepwns_liveview_web/js',
     '<rootDir>/test/js'
   ],
@@ -67,8 +67,8 @@ module.exports = {
   
   // Collect coverage from these directories
   collectCoverageFrom: [
-    'assets/js/components/**/*.js',
-    '!assets/js/components/COMPONENT_MIGRATION_GUIDE.md'
+    'js/components/**/*.js',
+    '!js/components/COMPONENT_MIGRATION_GUIDE.md'
   ],
   
   // Component-specific coverage thresholds
@@ -112,6 +112,6 @@ module.exports = {
   moduleNameMapper: {
     '\\.(css|less|scss|sass)$': '<rootDir>/test/hydepwns_liveview_web/js/__mocks__/styleMock.js',
     '\\.(gif|ttf|eot|svg|png)$': '<rootDir>/test/hydepwns_liveview_web/js/__mocks__/fileMock.js',
-    '^@/(.*)$': '<rootDir>/assets/js/$1'
+    '^@/(.*)$': '<rootDir>/js/$1'
   }
 }; 

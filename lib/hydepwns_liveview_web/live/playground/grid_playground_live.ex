@@ -170,18 +170,16 @@ defmodule HydepwnsLiveviewWeb.GridPlaygroundLive do
           <div class="example-selector">
             <h4>Example Layouts</h4>
             <div class="example-buttons">
-              <%= for {id, name, _} <- @example_layouts do %>
-                <button phx-click="load_example" phx-value-example={id} class="example-button">
-                  {name}
-                </button>
-              <% end %>
+              <button :for={{id, name, _} <- @example_layouts} phx-click="load_example" phx-value-example={id} class="example-button">
+                {name}
+              </button>
               <button phx-click="reset_grid" class="reset-button">Reset</button>
             </div>
           </div>
 
           <div class="content-editor">
             <h4>Grid Content</h4>
-            <textarea class="grid-content-editor" phx-debounce="300" phx-change="update_content" name="grid_content" rows="10" aria-label="Grid content editor"><%= @grid_content %></textarea>
+            <textarea class="grid-content-editor" phx-debounce="300" phx-change="update_content" name="grid_content" rows="10" aria-label="Grid content editor">{@grid_content}</textarea>
           </div>
         </div>
 
@@ -198,12 +196,10 @@ defmodule HydepwnsLiveviewWeb.GridPlaygroundLive do
               {if @show_code, do: "Hide Code", else: "Show Code"}
             </button>
 
-            <%= if @show_code do %>
-              <div class="generated-code">
-                <h4>Generated Code</h4>
-                <pre class="code-preview"><code class="language-elixir"><%= generated_code(@grid_columns, @cell_width, @cell_height, @debug_mode, String.to_atom(@container_type)) %></code></pre>
-              </div>
-            <% end %>
+            <div :if={@show_code} class="generated-code">
+              <h4>Generated Code</h4>
+              <pre class="code-preview"><code class="language-elixir">{generated_code(@grid_columns, @cell_width, @cell_height, @debug_mode, String.to_atom(@container_type))}</code></pre>
+            </div>
           </div>
         </div>
       </div>

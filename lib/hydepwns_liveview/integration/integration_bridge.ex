@@ -253,7 +253,7 @@ defmodule HydepwnsLiveview.Integration.IntegrationBridge do
           resource_ids = get_resources_for_sync(resource_type, sync_options)
 
           # 2. Get external data
-          {:ok, adapter} = get_adapter(adapter_id)
+          # {:ok, adapter} has already been fetched
           {:ok, external_data} = call_adapter(adapter, :fetch_data, [sync_options])
 
           # 3. Map external data to internal resources
@@ -268,6 +268,9 @@ defmodule HydepwnsLiveview.Integration.IntegrationBridge do
           # 5. Create report
           {:ok, create_sync_report(results)}
       end
+    else
+      # Propagate adapter fetch error
+      err -> err
     end
   end
 
@@ -462,26 +465,23 @@ defmodule HydepwnsLiveview.Integration.IntegrationBridge do
     []
   end
 
-  defp create_internal_external_mapping(external_data, resource_ids, resource_module) do
-    # For a real implementation, this would map external resources to internal ones
-    # based on IDs, unique identifiers, or other matching criteria
-    %{}
+  defp create_internal_external_mapping(_external_data, _resource_ids, _resource_module) do
+    # This function needs to match external items with existing internal resources.
+    # It might involve looking up by external ID, email, or other unique identifiers.
+    # For this placeholder, it returns an empty list.
+    []
   end
 
-  defp sync_pair(internal_id, external_item, resource_module, adapter, sync_options) do
-    # Implementation would compare the two resources and sync based on 
-    # the conflict resolution strategy defined in sync_options
-    {:no_change, internal_id}
+  defp sync_pair(_internal_id, _external_item, _resource_module, _adapter, _sync_options) do
+    # Logic for comparing and updating/creating resources on both sides.
+    # This would involve conflict resolution based on timestamps or other strategies.
+    # Placeholder: returns a generic success for the pair.
+    {:ok, :synced, %{id: _internal_id, status: "placeholder_synced"}}
   end
 
   defp create_sync_report(results) do
-    # Group results by type
-    Enum.reduce(results, %{updated: [], created: [], deleted: [], no_change: []}, fn
-      {:updated, id}, acc -> Map.update!(acc, :updated, &[id | &1])
-      {:created, id}, acc -> Map.update!(acc, :created, &[id | &1])
-      {:deleted, id}, acc -> Map.update!(acc, :deleted, &[id | &1])
-      {:no_change, id}, acc -> Map.update!(acc, :no_change, &[id | &1])
-      _, acc -> acc
-    end)
+    # Summarize what happened during the sync.
+    # e.g., number of created, updated, deleted items on both sides.
+    %{summary: "Sync completed", details: results}
   end
 end

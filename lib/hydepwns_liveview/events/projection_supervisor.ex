@@ -17,8 +17,8 @@ defmodule HydepwnsLiveview.Events.ProjectionSupervisor do
 
   # Core projection management functions
   defdelegate register_standard_projections(), to: CoreProjectionSupervisor
-  defdelegate register_projection(projection_module, opts \\ []), to: CoreProjectionSupervisor
-  defdelegate unregister_projection(projection_id), to: CoreProjectionSupervisor
+  defdelegate start_projection(projection_module, opts \\ []), to: CoreProjectionSupervisor
+  defdelegate stop_projection(pid), to: CoreProjectionSupervisor
 
   # Projection inspection and management functions
   defdelegate list_projections(), to: CoreProjectionSupervisor

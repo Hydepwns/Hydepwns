@@ -57,4 +57,66 @@ defmodule HydepwnsLiveview.Resources.PostResource do
 
     {:ok, post}
   end
+
+  @doc """
+  Updates a post resource with tracking (for audit/telemetry).
+
+  ## Parameters
+  * `resource` - The post resource to update
+  * `updates` - The update parameters
+  * `metadata` - Additional metadata for the update
+  * `opts` - Optional context/options (unused)
+
+  ## Returns
+  * `{:ok, updated_resource}` or `{:error, reason}`
+  """
+  @spec update_with_tracking(map(), map(), map(), map()) :: {:ok, map()} | {:error, any()}
+  def update_with_tracking(resource, updates, metadata, _opts \\ %{}) do
+    HydepwnsLiveview.Utils.ChangeTracker.track_change(resource, updates, metadata)
+  end
+
+  defstruct [
+    :id,
+    :title,
+    :content,
+    :published,
+    :created_at,
+    :updated_at,
+    :author_id,
+    :team_id,
+    :__resource_module__
+  ]
+
+  @doc """
+  Returns the initial state for a post resource as a struct.
+  """
+  def initial_state do
+    %__MODULE__{
+      id: nil,
+      title: nil,
+      content: nil,
+      published: false,
+      created_at: nil,
+      updated_at: nil,
+      author_id: nil,
+      team_id: nil,
+      __resource_module__: __MODULE__
+    }
+  end
+
+  @doc """
+  Applies an event to the post resource state, always returning a struct.
+  """
+  def apply_event(event, %__MODULE__{} = state) do
+    case event.type do
+      "post.created" ->
+        struct(state, Map.merge(Map.from_struct(state), event.data))
+      "post.updated" ->
+        struct(state, Map.merge(Map.from_struct(state), event.data))
+      "post.deleted" ->
+        %{state | published: false}
+      _ ->
+        struct(state, Map.merge(Map.from_struct(state), event.data || %{}))
+    end
+  end
 end

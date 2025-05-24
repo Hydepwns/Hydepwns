@@ -61,14 +61,14 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
     end
 
     @type t :: %__MODULE__{
-      id: Ecto.UUID.t() | binary(),
-      resource_type: String.t(),
-      resource_id: String.t(),
-      state: map(),
-      metadata: map(),
-      inserted_at: NaiveDateTime.t() | nil,
-      updated_at: NaiveDateTime.t() | nil
-    }
+            id: Ecto.UUID.t() | binary(),
+            resource_type: String.t(),
+            resource_id: String.t(),
+            state: map(),
+            metadata: map(),
+            inserted_at: NaiveDateTime.t() | nil,
+            updated_at: NaiveDateTime.t() | nil
+          }
 
     @spec changeset(t(), map()) :: Ecto.Changeset.t()
     def changeset(snapshot, attrs) do
@@ -99,18 +99,18 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
     end
 
     @type t :: %__MODULE__{
-      id: Ecto.UUID.t() | binary(),
-      name: String.t(),
-      resource_type: String.t(),
-      resource_id: String.t(),
-      start_event_id: Ecto.UUID.t() | binary() | nil,
-      end_event_id: Ecto.UUID.t() | binary() | nil,
-      status: String.t(),
-      metadata: map(),
-      results: map(),
-      inserted_at: NaiveDateTime.t() | nil,
-      updated_at: NaiveDateTime.t() | nil
-    }
+            id: Ecto.UUID.t() | binary(),
+            name: String.t(),
+            resource_type: String.t(),
+            resource_id: String.t(),
+            start_event_id: Ecto.UUID.t() | binary() | nil,
+            end_event_id: Ecto.UUID.t() | binary() | nil,
+            status: String.t(),
+            metadata: map(),
+            results: map(),
+            inserted_at: NaiveDateTime.t() | nil,
+            updated_at: NaiveDateTime.t() | nil
+          }
 
     @spec changeset(t(), map()) :: Ecto.Changeset.t()
     def changeset(session, attrs) do
@@ -149,16 +149,16 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
     end
 
     @type t :: %__MODULE__{
-      id: Ecto.UUID.t() | binary(),
-      resource_type: String.t(),
-      resource_id: String.t(),
-      state: map(),
-      label: String.t(),
-      replay_id: Ecto.UUID.t() | binary() | nil,
-      point_in_time: DateTime.t() | nil,
-      metadata: map(),
-      created_at: NaiveDateTime.t() | nil
-    }
+            id: Ecto.UUID.t() | binary(),
+            resource_type: String.t(),
+            resource_id: String.t(),
+            state: map(),
+            label: String.t(),
+            replay_id: Ecto.UUID.t() | binary() | nil,
+            point_in_time: DateTime.t() | nil,
+            metadata: map(),
+            created_at: NaiveDateTime.t() | nil
+          }
 
     @spec changeset(t(), map()) :: Ecto.Changeset.t()
     def changeset(versioned_state, attrs) do
@@ -255,7 +255,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   """
   @spec get_event(any()) :: {:ok, Event.t()} | {:error, any()}
   def get_event(id) do
-    case Repo.get(Event, id) do
+    case Repo.get(Event, id, timeout: 5000) do
       nil -> {:error, :not_found}
       event -> {:ok, event}
     end
@@ -519,7 +519,8 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   * `{:ok, session}` - The replay session was created
   * `{:error, changeset}` - The session could not be created
   """
-  @spec create_replay_session(String.t(), String.t(), String.t(), Keyword.t()) :: {:ok, any()} | {:error, any()}
+  @spec create_replay_session(String.t(), String.t(), String.t(), Keyword.t()) ::
+          {:ok, any()} | {:error, any()}
   def create_replay_session(name, resource_type, resource_id, opts \\ []) do
     attrs = %{
       name: name,
@@ -548,7 +549,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   """
   @spec start_replay_session(any()) :: {:ok, any()} | {:error, any()}
   def start_replay_session(session_id) do
-    case Repo.get(ReplaySession, session_id) do
+    case Repo.get(ReplaySession, session_id, timeout: 5000) do
       nil ->
         {:error, :not_found}
 
@@ -572,7 +573,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   """
   @spec complete_replay_session(any(), map()) :: {:ok, any()} | {:error, any()}
   def complete_replay_session(session_id, results) do
-    case Repo.get(ReplaySession, session_id) do
+    case Repo.get(ReplaySession, session_id, timeout: 5000) do
       nil ->
         {:error, :not_found}
 
@@ -601,7 +602,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   """
   @spec fail_replay_session(any(), any()) :: {:ok, any()} | {:error, any()}
   def fail_replay_session(session_id, error_details) do
-    case Repo.get(ReplaySession, session_id) do
+    case Repo.get(ReplaySession, session_id, timeout: 5000) do
       nil ->
         {:error, :not_found}
 
@@ -629,7 +630,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   """
   @spec get_replay_session_events(any()) :: [any()]
   def get_replay_session_events(session_id) do
-    case Repo.get(ReplaySession, session_id) do
+    case Repo.get(ReplaySession, session_id, timeout: 5000) do
       nil ->
         {:error, :not_found}
 
@@ -688,7 +689,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   """
   @spec get_replay_session(any()) :: {:ok, any()} | {:error, any()}
   def get_replay_session(session_id) do
-    case Repo.get(ReplaySession, session_id) do
+    case Repo.get(ReplaySession, session_id, timeout: 5000) do
       nil -> {:error, :not_found}
       session -> {:ok, session}
     end
@@ -711,7 +712,8 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   * `{:ok, versioned_state}` - The versioned state was created
   * `{:error, changeset}` - The versioned state could not be created
   """
-  @spec save_versioned_state(String.t(), String.t(), map(), Keyword.t()) :: {:ok, any()} | {:error, any()}
+  @spec save_versioned_state(String.t(), String.t(), map(), Keyword.t()) ::
+          {:ok, any()} | {:error, any()}
   def save_versioned_state(resource_type, resource_id, state, opts \\ []) do
     attrs = %{
       resource_type: resource_type,
@@ -741,11 +743,13 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   * `{:ok, session}` - The updated session.
   * `{:error, reason}` - Error updating the session.
   """
-  @spec update_replay_session_status(Ecto.UUID.t() | binary(), String.t(), map() | nil) :: {:ok, ReplaySession.t()} | {:error, any()}
+  @spec update_replay_session_status(Ecto.UUID.t() | binary(), String.t(), map() | nil) ::
+          {:ok, ReplaySession.t()} | {:error, any()}
   def update_replay_session_status(session_id, new_status, results \\ nil) do
     case Repo.get(ReplaySession, session_id) do
       nil ->
         {:error, :not_found}
+
       session ->
         attrs = %{status: new_status}
         attrs = if results, do: Map.put(attrs, :results, results), else: attrs
@@ -755,6 +759,46 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
         |> Repo.update()
     end
   end
+
+  @doc """
+  Retrieves all snapshots for a resource.
+
+  ## Parameters
+  * `resource_type` - The type of resource
+  * `resource_id` - The ID of the resource
+
+  ## Returns
+  * `{:ok, [snapshots]}` - All snapshots for the resource, ordered by inserted_at ascending
+  * `{:error, reason}` - Error retrieving snapshots
+  """
+  @spec get_snapshots(String.t(), String.t()) :: {:ok, [any()]} | {:error, any()}
+  def get_snapshots(resource_type, resource_id) do
+    query =
+      from s in Snapshot,
+        where: s.resource_type == ^resource_type and s.resource_id == ^resource_id,
+        order_by: [asc: s.inserted_at]
+
+    try do
+      {:ok, Repo.all(query)}
+    rescue
+      e ->
+        Logger.error("Error retrieving snapshots: #{inspect(e)}")
+        {:error, e}
+    end
+  end
+
+  @doc """
+  Stores an event in the event store.
+
+  ## Parameters
+  * `event` - The event to store
+
+  ## Returns
+  * `{:ok, persisted_event}` - The event was successfully stored
+  * `{:error, reason}` - The event could not be stored
+  """
+  @spec store(Event.t()) :: {:ok, Event.t()} | {:error, Ecto.Changeset.t()}
+  def store(event), do: store_event(event)
 
   # Private functions
 

@@ -10,8 +10,6 @@ defmodule HydepwnsLiveview.Utils.TransformationMetrics do
   - Frequency of transformation application
   """
 
-  alias HydepwnsLiveview.Utils.Transformation
-
   defmodule MetricsRecord do
     @moduledoc """
     Structured data for storing transformation metrics.

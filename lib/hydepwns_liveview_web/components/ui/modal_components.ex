@@ -99,7 +99,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ModalComponents do
 
   ## Examples
 
-      <.flash_group flash={@flash} />
+      <.flash_group flash={@flash} id="flash-group" />
   """
   attr :flash, :map, required: true, doc: "the map of flash messages"
   attr :id, :string, default: "flash-group", doc: "the optional id of flash container"

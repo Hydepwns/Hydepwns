@@ -60,9 +60,9 @@ defmodule HydepwnsLiveviewWeb.Components.Documentation.ApiDocs do
       </div>
 
       <h5>Import</h5>
-      <pre><code class="language-elixir"><%= @import_statement %></code></pre>
+      <pre><code class="language-elixir">{@import_statement}</code></pre>
 
-      <%= if length(@attributes) > 0 do %>
+      <div :if={length(@attributes) > 0}>
         <h5>Attributes</h5>
         <table class="api-table">
           <thead>
@@ -74,25 +74,20 @@ defmodule HydepwnsLiveviewWeb.Components.Documentation.ApiDocs do
             </tr>
           </thead>
           <tbody>
-            <%= for attr <- @attributes do %>
-              <tr>
-                <td><code>{attr.name}</code></td>
-                <td><code>{attr.type}</code></td>
-                <td>
-                  <%= if Map.has_key?(attr, :default) && attr.default != nil do %>
-                    <code>{attr.default}</code>
-                  <% else %>
-                    —
-                  <% end %>
-                </td>
-                <td>{attr.description}</td>
-              </tr>
-            <% end %>
+            <tr :for={attr <- @attributes}>
+              <td><code>{attr.name}</code></td>
+              <td><code>{attr.type}</code></td>
+              <td>
+                <code :if={Map.has_key?(attr, :default) && attr.default != nil}>{attr.default}</code>
+                <span :if={!(Map.has_key?(attr, :default) && attr.default != nil)}>—</span>
+              </td>
+              <td>{attr.description}</td>
+            </tr>
           </tbody>
         </table>
-      <% end %>
+      </div>
 
-      <%= if length(@slots) > 0 do %>
+      <div :if={length(@slots) > 0}>
         <h5>Slots</h5>
         <table class="api-table">
           <thead>
@@ -102,41 +97,32 @@ defmodule HydepwnsLiveviewWeb.Components.Documentation.ApiDocs do
             </tr>
           </thead>
           <tbody>
-            <%= for slot <- @slots do %>
-              <tr>
-                <td>
-                  <%= if slot.name == :inner_block do %>
-                    <code>default</code>
-                  <% else %>
-                    <code>{slot.name}</code>
-                  <% end %>
-                </td>
-                <td>{slot.description}</td>
-              </tr>
-            <% end %>
+            <tr :for={slot <- @slots}>
+              <td>
+                <code :if={slot.name == :inner_block}>default</code>
+                <code :if={slot.name != :inner_block}>{slot.name}</code>
+              </td>
+              <td>{slot.description}</td>
+            </tr>
           </tbody>
         </table>
-      <% end %>
+      </div>
 
-      <%= if length(@examples) > 0 do %>
+      <div :if={length(@examples) > 0}>
         <h5>Examples</h5>
-        <%= for example <- @examples do %>
-          <div class="api-example">
-            <h6>{example.title}</h6>
-            <p>{example.description}</p>
-            <pre><code class="language-heex"><%= example.code %></code></pre>
-          </div>
-        <% end %>
-      <% end %>
+        <div :for={example <- @examples} class="api-example">
+          <h6>{example.title}</h6>
+          <p>{example.description}</p>
+          <pre><code class="language-heex">{example.code}</code></pre>
+        </div>
+      </div>
 
-      <%= if length(@notes) > 0 do %>
+      <div :if={length(@notes) > 0}>
         <h5>Notes</h5>
         <ul class="api-notes">
-          <%= for note <- @notes do %>
-            <li>{note}</li>
-          <% end %>
+          <li :for={note <- @notes}>{note}</li>
         </ul>
-      <% end %>
+      </div>
     </div>
     """
   end

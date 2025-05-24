@@ -30,8 +30,24 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
     on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
 
     metadata = Phoenix.Ecto.SQL.Sandbox.metadata_for(HydepwnsLiveview.Repo, pid)
-
     {:ok, session} = Wallaby.start_session(metadata: metadata)
+
+    # This line allows the test process and any spawned processes (like LiveView) to share the DB connection
+    Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), self())
+
+    # Visit a default page to ensure LiveView is started and expose the PID
+    session = visit_and_wait(session, "/themes")
+
+    # Get the LiveView PID from the browser and allow it in the sandbox
+    case Wallaby.Browser.execute_script(session, "return window.phxLiveViewPids || [];", []) do
+      {:ok, [pid_str | _]} when is_binary(pid_str) and byte_size(pid_str) > 0 ->
+        {:ok, liveview_pid} = pid_str |> String.to_charlist() |> :erlang.list_to_pid()
+        Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), liveview_pid)
+      {:ok, []} ->
+        IO.puts("[WallabyCase] No LiveView PID found in browser JS context.")
+      other ->
+        IO.puts("[WallabyCase] Unexpected result from execute_script: #{inspect(other)}")
+    end
 
     # Create screenshots directory if it doesn't exist
     File.mkdir_p!("test/screenshots")

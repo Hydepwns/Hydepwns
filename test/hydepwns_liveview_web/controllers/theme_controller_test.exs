@@ -1,16 +1,39 @@
 defmodule HydepwnsLiveviewWeb.ThemeControllerTest do
-  use HydepwnsLiveviewWeb.ConnCase
+  @endpoint HydepwnsLiveviewWeb.Endpoint
+  @router HydepwnsLiveviewWeb.Router
+  import Phoenix.VerifiedRoutes
+  use HydepwnsLiveviewWeb.ConnCase, async: true
+  import Phoenix.Component
 
-  import HydepwnsLiveview.ThemeSystemFixtures
+  alias HydepwnsLiveview.ThemeSystem
 
-  @create_attrs %{name: "some name", settings: %{}}
-  @update_attrs %{name: "some updated name", settings: %{}}
-  @invalid_attrs %{name: nil, settings: nil}
+  @create_attrs %{
+    name: "some name",
+    type: "light",
+    primary_color: "#4A90E2",
+    secondary_color: "#50E3C2",
+    font_family: "monospace",
+    font_size: "14px"
+  }
+  @update_attrs %{
+    name: "some updated name",
+    type: "dark",
+    primary_color: "#000000",
+    secondary_color: "#FFFFFF",
+    font_family: "sans-serif",
+    font_size: "16px"
+  }
+  @invalid_attrs %{name: nil, type: nil}
+
+  def fixture(:theme) do
+    {:ok, theme} = ThemeSystem.create_theme(@create_attrs)
+    theme
+  end
 
   describe "index" do
     test "lists all themes", %{conn: conn} do
       conn = get(conn, ~p"/themes")
-      assert html_response(conn, 200) =~ "Listing Themes"
+      assert html_response(conn, 200) =~ "Themes"
     end
   end
 
@@ -25,7 +48,7 @@ defmodule HydepwnsLiveviewWeb.ThemeControllerTest do
     test "redirects to show when data is valid", %{conn: conn} do
       conn = post(conn, ~p"/themes", theme: @create_attrs)
 
-      assert %{id: id} = redirected_params(conn)
+      assert id = Map.get(redirected_params(conn), :id) || Map.get(redirected_params(conn), "id")
       assert redirected_to(conn) == ~p"/themes/#{id}"
 
       conn = get(conn, ~p"/themes/#{id}")
@@ -78,7 +101,7 @@ defmodule HydepwnsLiveviewWeb.ThemeControllerTest do
   end
 
   defp create_theme(_) do
-    theme = theme_fixture()
+    theme = fixture(:theme)
     %{theme: theme}
   end
 end

@@ -9,7 +9,7 @@ defmodule HydepwnsLiveview.Events.EventSupervisor do
   expects the supervisor to be at this module path.
   """
 
-  use Supervisor
+  # use Supervisor # Removed as this module is a delegate, not a supervisor itself.
   require Logger
 
   @doc """

@@ -9,9 +9,10 @@ defmodule HydepwnsLiveviewWeb.Components.Common.ThemeToggleTest do
         render_component(&ThemeToggle.theme_toggle/1, %{})
 
       assert html =~ "theme-toggle"
-      assert html =~ "light-theme"
-      assert html =~ "dim-theme"
-      assert html =~ "dark-theme"
+      assert html =~ ~r/data-theme="light"/
+      assert html =~ ~r/data-theme="dim"/
+      assert html =~ ~r/data-theme="dark"/
+      assert html =~ ~r/data-theme="high-contrast"/
     end
   end
 end

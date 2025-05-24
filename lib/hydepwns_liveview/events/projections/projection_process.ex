@@ -78,7 +78,10 @@ defmodule HydepwnsLiveview.Events.Projections.ProjectionProcess do
 
         # Register this process in the ProjectionRegistry
         interested_in = projection_module.interested_in()
-        Registry.register(HydepwnsLiveview.Events.ProjectionRegistry, projection_module, %{interested_in: interested_in})
+
+        Registry.register(HydepwnsLiveview.Events.ProjectionRegistry, projection_module, %{
+          interested_in: interested_in
+        })
 
         # Subscribe to events if requested
         if Keyword.get(opts, :subscribe, true) do

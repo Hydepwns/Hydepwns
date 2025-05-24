@@ -20,7 +20,6 @@ defmodule HydepwnsLiveview.Events.EventStore do
   def store(event), do: store_event(event)
 
   defdelegate get_events_for_resource(resource_type, resource_id), to: CoreEventStore
-  defdelegate get_events_by_type(event_type), to: CoreEventStore
 
   # Clear function delegations with matching names
   defdelegate get_events(criteria \\ %{}), to: CoreEventStore
@@ -28,13 +27,6 @@ defmodule HydepwnsLiveview.Events.EventStore do
   defdelegate get_latest_snapshot(resource_type, resource_id), to: CoreEventStore
 
   defdelegate save_snapshot(resource_type, resource_id, state, metadata \\ %{}),
-    to: CoreEventStore
-
-  # Explicitly delegate to matching function names
-  defdelegate get_snapshots(resource_type, resource_id), to: CoreEventStore
-  defdelegate get_snapshot_before(resource_type, resource_id, timestamp), to: CoreEventStore
-
-  defdelegate get_events_between(resource_type, resource_id, start_time, end_time, opts \\ %{}),
     to: CoreEventStore
 
   # Additional useful delegations
@@ -49,12 +41,7 @@ defmodule HydepwnsLiveview.Events.EventStore do
   defdelegate fail_replay_session(session_id, error_details), to: CoreEventStore
   defdelegate get_replay_session(session_id), to: CoreEventStore
   defdelegate get_replay_session_events(session_id), to: CoreEventStore
+  defdelegate get_snapshots(resource_type, resource_id), to: CoreEventStore
 
-  # Add documentation about maintenance of this bridge module
-  @doc """
-  Note: This bridge module is maintained for backward compatibility.
-  When adding new event store functionality, ensure:
-  1. The core implementation in HydepwnsLiveview.Events.Core.EventStore is updated
-  2. A corresponding delegation is added to this module
-  """
+  defdelegate save_versioned_state(resource_type, resource_id, state, opts \\ []), to: CoreEventStore
 end

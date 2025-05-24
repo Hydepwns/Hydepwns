@@ -5,7 +5,7 @@
  * Tests functionality, accessibility, and resource management.
  */
 
-const { MonoTabsComponent } = require('../../../../assets/js/components/mono_tabs');
+const { MonoTabsComponent } = require('../../../../js/components/mono_tabs');
 const { createTestElement, cleanupAllComponents, sinon, fireEvent } = require('../component_test_utility');
 // Using Jest's built-in expect instead of Chai
 // const { axe } = require('jest-axe');

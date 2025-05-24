@@ -73,7 +73,8 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
   ## Returns
   * Map with backpressure information
   """
-  @spec detect_backpressure(%{any() => integer()}, %{any() => map()}, %{any() => float()}) :: map()
+  @spec detect_backpressure(%{any() => integer()}, %{any() => map()}, %{any() => float()}) ::
+          map()
   def detect_backpressure(queue_sizes, processing_metrics, error_rates) do
     # Check if any queue sizes are above threshold
     queue_pressure =

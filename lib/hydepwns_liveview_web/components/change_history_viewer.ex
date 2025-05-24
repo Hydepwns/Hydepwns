@@ -19,6 +19,8 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
 
   use Phoenix.Component
 
+  alias HydepwnsLiveview.Utils.ChangeTracker
+
   @doc """
   Renders a change history viewer for a resource.
 
@@ -28,264 +30,316 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
   - `selected_version` - Currently selected version (optional).
   - `on_view_version` - Event name to emit when a version is selected (optional).
   - `on_diff_versions` - Event name to emit when comparing versions (optional).
-  - `show_timeline` - Whether to show a visual timeline (optional, default: true).
-  - `show_audit_log` - Whether to show a detailed audit log (optional, default: false).
   - `view_mode` - The view mode to display: "timeline", "list", or "audit" (optional, default: "timeline").
+  - `diff` - Map of diffs between two versions, if applicable (optional).
+  - `versioned_resource` - The resource state at a specific version (optional).
   - `rest` - Additional HTML attributes to add to the container element.
   """
   attr :resource, :map, required: true
   attr :selected_version, :integer, default: nil
   attr :on_view_version, :string, default: nil
   attr :on_diff_versions, :string, default: nil
-  attr :show_timeline, :boolean, default: true
-  attr :show_audit_log, :boolean, default: false
   attr :view_mode, :string, default: "timeline"
   attr :diff, :map, default: nil
   attr :versioned_resource, :map, default: nil
   attr :rest, :global
 
+  # Added :versions_with_diffs to assigns for clarity during updates
+  # No, this is not how attr works. It's for external attributes.
+  # The mount/update will put :versions_with_diffs into the socket.
+
   def change_history_viewer(assigns) do
+    # Ensure resource and its history are properly structured
+    resource = assigns.resource
+    history = get_history(resource)
+    has_history = Enum.any?(history)
+
     assigns =
       assigns
-      |> assign(:change_history, get_history(assigns.resource))
-      |> assign(:has_history, get_history(assigns.resource) |> Enum.any?())
+      |> assign_new(:versions_with_diffs, fn -> prepare_versions_with_diffs(resource, history) end)
+      |> assign(:change_history, history) # change_history is used by timeline/list views
+      |> assign(:has_history, has_history)
 
     ~H"""
     <div class="change-history-viewer" {@rest}>
       <div class="change-history-header">
         <h3 class="text-xl font-bold mb-3">Change History</h3>
         <div class="view-mode-selector mb-4 flex space-x-2">
-          <button phx-click="set_view_mode" phx-value-mode="timeline" class={"px-3 py-1 rounded #{if @view_mode == "timeline", do: "bg-blue-500 text-white", else: "bg-gray-200 text-gray-700"}"}>
+          <button phx-click="set_view_mode" phx-value-mode="timeline" class={"view-mode-button #{if @view_mode == "timeline", do: "active"}"}>
             Timeline
           </button>
-          <button phx-click="set_view_mode" phx-value-mode="list" class={"px-3 py-1 rounded #{if @view_mode == "list", do: "bg-blue-500 text-white", else: "bg-gray-200 text-gray-700"}"}>
+          <button phx-click="set_view_mode" phx-value-mode="list" class={"view-mode-button #{if @view_mode == "list", do: "active"}"}>
             List
           </button>
-          <button phx-click="set_view_mode" phx-value-mode="audit" class={"px-3 py-1 rounded #{if @view_mode == "audit", do: "bg-blue-500 text-white", else: "bg-gray-200 text-gray-700"}"}>
+          <button phx-click="set_view_mode" phx-value-mode="audit" class={"view-mode-button #{if @view_mode == "audit", do: "active"}"}>
             Audit Log
           </button>
         </div>
       </div>
 
-      <%= unless @has_history do %>
-        <p class="text-gray-500 italic">No changes tracked yet. Update the resource to see change history.</p>
-      <% else %>
-        <%= if @show_timeline && @view_mode == "timeline" do %>
-          <div class="timeline mb-6">
-            <div class="timeline-track flex items-center justify-between w-full h-16 relative">
-              <div class="timeline-line-bg absolute w-full h-1 bg-gray-200"></div>
-              <%= for {change, index} <- Enum.with_index(@change_history) do %>
-                <div
-                  class={"timeline-marker relative z-10 w-4 h-4 rounded-full border-2 cursor-pointer transition-all
-                    #{if @selected_version == change.version, do: "bg-blue-500 border-blue-700 w-6 h-6", else: "bg-white border-gray-300 hover:bg-blue-100"}"}
-                  phx-click={@on_view_version && @on_view_version}
-                  phx-value-version={change.version}
-                  style={"margin-left: #{index * (100 / max(1, length(@change_history) - 1))}%"}
-                >
-                  <div class={"timeline-tooltip absolute bottom-full mb-2 bg-gray-800 text-white text-xs rounded py-1 px-2 left-1/2 transform -translate-x-1/2 w-48
-                    #{if @selected_version == change.version, do: "block", else: "hidden group-hover:block"}"}>
-                    <p><strong>Version {change.version}</strong></p>
-                    <p>{format_timestamp(change.metadata.timestamp)}</p>
-                    <p>{change.metadata.actor || "Unknown"}</p>
-                    <p>{change.metadata.reason || "No reason provided"}</p>
-                  </div>
-                </div>
-              <% end %>
-            </div>
-            <!-- Timeline labels -->
-            <div class="timeline-labels flex justify-between w-full mt-2">
-              <%= for change <- @change_history do %>
-                <div class="text-xs text-gray-500">{format_timestamp_short(change.metadata.timestamp)}</div>
-              <% end %>
-            </div>
-          </div>
-        <% end %>
+      <p :if={!@has_history} class="text-gray-500 italic">No changes tracked yet.</p>
+      <div :if={@has_history}>
+        <div :if={@view_mode == "timeline"}>
+          <.render_timeline_view change_history={@change_history} selected_version={@selected_version} on_view_version={@on_view_version} />
+        </div>
 
-        <%= if @view_mode == "list" do %>
-          <div class="mb-6">
-            <table class="min-w-full bg-white">
-              <thead>
-                <tr>
-                  <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Version</th>
-                  <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Timestamp</th>
-                  <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actor</th>
-                  <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Reason</th>
-                  <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Changes</th>
-                  <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <%= for change <- @change_history do %>
-                  {render_list_row(assigns, change)}
-                <% end %>
-              </tbody>
-            </table>
-          </div>
-        <% end %>
+        <div :if={@view_mode == "list"}>
+          <.render_list_view change_history={@change_history} selected_version={@selected_version} on_view_version={@on_view_version} on_diff_versions={@on_diff_versions} />
+        </div>
 
-        <%= if @view_mode == "audit" do %>
+        <div :if={@view_mode == "audit"}>
           <div class="audit-log mb-6">
             <div class="flex justify-between mb-4">
               <h4 class="text-lg font-semibold">Audit Log</h4>
-              <div class="filters flex space-x-2">
-                <!-- Filter options would go here -->
-              </div>
             </div>
             <div class="audit-entries space-y-4">
-              <%= for change <- @change_history do %>
-                {render_audit_row(assigns, change)}
-              <% end %>
+              <div :for={entry <- @versions_with_diffs}>
+                <.render_audit_row entry={entry} selected_version={@selected_version} on_view_version={@on_view_version} />
+              </div>
             </div>
           </div>
-        <% end %>
-      <% end %>
-
-      <%= if @versioned_resource do %>
-        <div class="version-details mb-6">
-          <h4 class="text-lg font-semibold mb-2">Version {@selected_version}</h4>
-          <pre class="bg-gray-100 p-3 rounded text-sm overflow-auto"><%= inspect(@versioned_resource, pretty: true) %></pre>
         </div>
-      <% end %>
+      </div>
 
-      <%= if @diff do %>
-        <div class="diff-view mb-6">
-          <h4 class="text-lg font-semibold mb-2">Change Diff</h4>
-          <div class="diff-details bg-gray-100 p-3 rounded">
-            <%= for {key, values} <- @diff do %>
-              <div class="diff-item mb-4 border-b pb-2">
-                <div class="diff-key font-bold mb-1">{key}</div>
-                <div class="diff-values grid grid-cols-2 gap-4">
+      <div :if={@versioned_resource} class="version-details mb-6">
+        <h4 class="text-lg font-semibold mb-2">Version {@selected_version}</h4>
+        <pre class="bg-gray-100 p-3 rounded text-sm overflow-auto">{inspect(@versioned_resource, pretty: true)}</pre>
+      </div>
+
+      <div :if={@diff} class="diff-view mb-6">
+        <h4 class="text-lg font-semibold mb-2">Showing diff</h4>
+        <div class="diff-details bg-gray-100 p-3 rounded">
+          <div :for={{key, values} <- @diff.changes} class="diff-item mb-4 border-b pb-2">
+            <div class="diff-key font-bold mb-1">{Atom.to_string(key)}</div>
+            <div class="diff-values grid grid-cols-2 gap-4">
+              <div class="diff-old">
+                <span class="text-red-500">- {inspect(values.before)}</span>
+              </div>
+              <div class="diff-new">
+                <span class="text-green-500">+ {inspect(values.after)}</span>
+              </div>
+            </div>
+            <div :if={values[:nested_diff] && map_size(values.nested_diff) > 0} class="mt-2 pl-4 border-l-2 border-gray-300">
+              <div class="text-sm font-medium mb-1">Nested Changes:</div>
+              <div :for={{nested_key, nested_values} <- values.nested_diff} class="diff-item mb-2">
+                <div class="diff-key font-medium text-sm">{Atom.to_string(nested_key)}</div>
+                <div class="diff-values grid grid-cols-2 gap-4 text-sm">
                   <div class="diff-old">
-                    <span class="text-red-500">- {inspect(values.before)}</span>
+                    <span class="text-red-500">- {inspect(nested_values.before)}</span>
                   </div>
                   <div class="diff-new">
-                    <span class="text-green-500">+ {inspect(values.after)}</span>
+                    <span class="text-green-500">+ {inspect(nested_values.after)}</span>
                   </div>
                 </div>
-                <%= if values[:nested_diff] do %>
-                  <div class="mt-2 pl-4 border-l-2 border-gray-300">
-                    <div class="text-sm font-medium mb-1">Nested Changes:</div>
-                    <%= for {nested_key, nested_values} <- values.nested_diff do %>
-                      <div class="diff-item mb-2">
-                        <div class="diff-key font-medium text-sm">{nested_key}</div>
-                        <div class="diff-values grid grid-cols-2 gap-4 text-sm">
-                          <div class="diff-old">
-                            <span class="text-red-500">- {inspect(nested_values.before)}</span>
-                          </div>
-                          <div class="diff-new">
-                            <span class="text-green-500">+ {inspect(nested_values.after)}</span>
-                          </div>
-                        </div>
-                      </div>
-                    <% end %>
-                  </div>
-                <% end %>
               </div>
-            <% end %>
+            </div>
           </div>
         </div>
-      <% end %>
+      </div>
     </div>
     """
   end
 
-  # Extracted row rendering for list view
-  defp render_list_row(assigns, change) do
-    assigns = assign(assigns, :change, change)
+  defp prepare_versions_with_diffs(resource, history) do
+    Enum.map(Enum.reverse(history), fn version_data ->
+      vsn = version_data.version
+      prev_vsn = vsn - 1
 
+      diff_to_this_version =
+        cond do
+          prev_vsn <= 0 ->
+            changes = version_data.changes
+            formatted_changes =
+              Enum.into(changes, %{}, fn {field, val} -> {field, %{before: nil, after: val}} end)
+            %{changes: formatted_changes, version: vsn}
+
+          true ->
+            case ChangeTracker.diff(resource, version1: prev_vsn, version2: vsn) do
+              {:ok, diff_map} -> diff_map
+              {:error, reason} ->
+                %{changes: %{error: "Diff error: #{inspect(reason)}"}, version: vsn}
+            end
+        end
+
+      %{
+        version: vsn,
+        timestamp: Map.get(version_data, :timestamp, Map.get(version_data.metadata, :timestamp)), # Handle both old and new metadata structures
+        actor: Map.get(version_data, :actor, Map.get(version_data.metadata, :actor)),
+        metadata: version_data.metadata, # Keep full metadata
+        raw_changes: version_data.changes,
+        diff: diff_to_this_version
+      }
+    end)
+  end
+
+  # Helper function to get history, robust to missing :__change_history__
+  defp get_history(resource) do
+    Map.get(resource, :__change_history__, [])
+  end
+
+  attr :change_history, :list, required: true
+  attr :selected_version, :integer, default: nil
+  attr :on_view_version, :string, default: nil
+  def render_timeline_view(assigns) do
     ~H"""
-    <tr class={if @selected_version == @change.version, do: "bg-blue-50", else: ""}>
-      <td class="py-2 px-4 border-b border-gray-200">{@change.version}</td>
-      <td class="py-2 px-4 border-b border-gray-200">{format_timestamp(@change.metadata.timestamp)}</td>
-      <td class="py-2 px-4 border-b border-gray-200">{@change.metadata.actor || "unknown"}</td>
-      <td class="py-2 px-4 border-b border-gray-200">{@change.metadata.reason || "No reason provided"}</td>
-      <td class="py-2 px-4 border-b border-gray-200">
-        <ul class="list-disc pl-5">
-          <%= for {key, _value} <- @change.changes do %>
-            <li>{key}</li>
-          <% end %>
-        </ul>
-      </td>
-      <td class="py-2 px-4 border-b border-gray-200">
-        <button phx-click={@on_view_version && @on_view_version} phx-value-version={@change.version} class="text-blue-500 hover:text-blue-700">
-          View
-        </button>
-        <%= if @selected_version && @selected_version != @change.version do %>
-          <button phx-click={@on_diff_versions && @on_diff_versions} phx-value-version1={@selected_version} phx-value-version2={@change.version} class="ml-2 text-green-500 hover:text-green-700">
-            Diff
-          </button>
-        <% end %>
-      </td>
-    </tr>
+    <div class="timeline mb-6">
+      <div class="timeline-track flex items-center justify-between w-full h-16 relative">
+        <div class="timeline-line-bg absolute w-full h-1 bg-gray-200"></div>
+        <div
+          :for={{change, index} <- Enum.with_index(@change_history)}
+          class={"timeline-marker relative z-10 w-4 h-4 rounded-full border-2 cursor-pointer transition-all
+            #{if @selected_version == change.version, do: "bg-blue-500 border-blue-700 w-6 h-6", else: "bg-white border-gray-300 hover:bg-blue-100"}"}
+          phx-click={@on_view_version}
+          phx-value-version={change.version}
+          # Ensure index is not 0 for division by (length - 1) when length is 1
+          style={if length(@change_history) > 1, do: "margin-left: #{index * (100 / (length(@change_history) - 1))}%;", else: "margin-left: 0%;"}
+          data-tooltip-id={"tooltip-#{change.version}"}
+        >
+          <div id={"tooltip-#{change.version}"} class="timeline-tooltip absolute bottom-full mb-2 bg-gray-800 text-white text-xs rounded py-1 px-2 left-1/2 transform -translate-x-1/2 w-48 hidden group-hover:block" role="tooltip">
+            <p><strong>Version {change.version}</strong></p>
+            <p>{format_timestamp(Map.get(change.metadata, :timestamp))}</p>
+            <p>{Map.get(change.metadata, :actor) || "Unknown"}</p>
+            <p>{Map.get(change.metadata, :reason) || "No reason provided"}</p>
+          </div>
+        </div>
+      </div>
+      <div class="timeline-labels flex justify-between w-full mt-2">
+        <div :for={change <- @change_history} class="text-xs text-gray-500">
+          {format_timestamp_short(Map.get(change.metadata, :timestamp))}
+        </div>
+      </div>
+    </div>
     """
   end
 
-  # Extracted row rendering for audit view
-  defp render_audit_row(assigns, change) do
-    assigns = assign(assigns, :change, change)
+  attr :change_history, :list, required: true
+  attr :selected_version, :integer, default: nil
+  attr :on_view_version, :string, default: nil
+  attr :on_diff_versions, :string, default: nil
+  def render_list_view(assigns) do
+    ~H"""
+    <div class="mb-6">
+      <table class="min-w-full bg-white">
+        <thead>
+          <tr>
+            <th class="table-header">Version</th>
+            <th class="table-header">Timestamp</th>
+            <th class="table-header">Actor</th>
+            <th class="table-header">Reason</th>
+            <th class="table-header">Changed Fields</th>
+            <th class="table-header">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr :for={change_item <- @change_history} class={if @selected_version == change_item.version, do: "bg-blue-50", else: ""}>
+            <td class="table-cell">{change_item.version}</td>
+            <td class="table-cell">{format_timestamp(Map.get(change_item.metadata, :timestamp))}</td>
+            <td class="table-cell">{Map.get(change_item.metadata, :actor) || "unknown"}</td>
+            <td class="table-cell">{Map.get(change_item.metadata, :reason) || "No reason provided"}</td>
+            <td class="table-cell">
+              <ul class="list-disc pl-5">
+                <li :for={{key, _value} <- change_item.changes}>{Atom.to_string(key)}</li>
+              </ul>
+            </td>
+            <td class="table-cell">
+              <button :if={@on_view_version} phx-click={@on_view_version} phx-value-version={change_item.version} class="button-link-sm">
+                View
+              </button>
+              <button :if={@on_diff_versions && @selected_version && @selected_version != change_item.version} phx-click={@on_diff_versions} phx-value-version1={@selected_version} phx-value-version2={change_item.version} class="button-link-sm ml-2">
+                Diff with V{@selected_version}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    """
+  end
+
+  attr :entry, :map, required: true # This is an element from versions_with_diffs
+  attr :selected_version, :integer, default: nil # Passed down for styling active version
+  attr :on_view_version, :string, default: nil    # Passed down for button actions
+
+  # This is the new, isolated audit row component function
+  def render_audit_row(assigns) do
+    # assigns here will contain :entry, :selected_version, :on_view_version from the call site <.render_audit_row ... />
+    # @entry is the specific item from @versions_with_diffs
+    _current_entry = assigns.entry
 
     ~H"""
     <div class={
       "audit-entry p-4 border rounded-lg " <>
-        if @selected_version == @change.version,
+        if @selected_version && @selected_version == @entry.version,
           do: "border-blue-500 bg-blue-50",
           else: "border-gray-200"
     }>
       <div class="flex justify-between mb-2">
-        <div class="text-sm font-semibold text-gray-700">Version {@change.version}</div>
-        <div class="text-sm text-gray-500">{format_timestamp(@change.metadata.timestamp)}</div>
+        <div class="text-sm font-semibold text-gray-700">Version <%= @entry.version %></div>
+        <div class="text-sm text-gray-500"><%= format_timestamp(Map.get(@entry.metadata, :timestamp)) %></div>
       </div>
       <div class="mb-2">
         <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mr-2">
-          Actor: {@change.metadata.actor || "Unknown"}
+          Actor: <%= Map.get(@entry.metadata, :actor) || "Unknown" %>
         </span>
         <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded mr-2">
-          Source: {@change.metadata.source || "Unknown"}
+          Source: <%= Map.get(@entry.metadata, :source) || "Unknown" %>
         </span>
       </div>
       <div class="mb-3 text-sm text-gray-600">
-        <p><strong>Reason:</strong> {@change.metadata.reason || "No reason provided"}</p>
+        <p><strong>Reason:</strong> <%= Map.get(@entry.metadata, :reason) || "No reason provided" %></p>
       </div>
-      <div class="changes-details">
-        <div class="text-sm font-medium mb-1">Changes:</div>
-        <div class="bg-gray-50 p-3 rounded text-sm">
-          <%= for {key, value} <- @change.changes do %>
-            <div class="mb-2">
-              <div class="font-medium text-gray-700">{key}</div>
-              <div class="grid grid-cols-2 gap-2">
-                <div>
-                  <span class="text-red-500">- {inspect(Map.get(@change.before, key))}</span>
-                </div>
-                <div>
-                  <span class="text-green-500">+ {inspect(value)}</span>
-                </div>
-              </div>
-            </div>
-          <% end %>
+      <div class="details">
+        <p>DEBUG: Entry has :diff key? <%= inspect Map.has_key?(@entry, :diff) %></p>
+        <p :if={Map.has_key?(@entry, :diff)}>DEBUG: Entry.diff.changes keys: <%= inspect Map.keys(@entry.diff.changes) %></p>
+
+        <%= for {field, diff_val} <- Map.to_list(@entry.diff.changes) do %>
+          <div class="field-change">
+            <strong><%= field %>:</strong>
+            <%# IO.inspect({field, diff_val}, label: "AUDIT_ROW_DIFF_VAL") %>
+            <%= if is_map(diff_val) && Map.has_key?(diff_val, :before) && Map.has_key?(diff_val, :after) do %>
+              <span class="text-red-500 line-through"><%= inspect(Map.get(diff_val, :before)) %></span> &rarr; <span class="text-green-500"><%= inspect(Map.get(diff_val, :after)) %></span>
+            <% else %>
+              <span>Value: <%= diff_val %></span>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+      <div class="metadata-details mt-2 pt-2 border-t border-gray-200">
+        <div class="text-sm font-medium mb-1">Full Metadata:</div>
+        <div :for={{key, value} <- @entry.metadata} class="text-xs text-gray-500">
+          <span class="font-semibold">{Atom.to_string(key)}:</span> {inspect(value)}
         </div>
       </div>
-      <div class="mt-3 flex justify-end">
-        <button phx-click={@on_view_version && @on_view_version} phx-value-version={@change.version} class="bg-blue-100 hover:bg-blue-200 text-blue-800 text-xs px-3 py-1 rounded mr-2">
-          View
+      <div :if={@on_view_version} class="actions mt-3">
+        <button phx-click={@on_view_version} phx-value-version={@entry.version} class="button-primary-sm">
+          View Full Version
         </button>
-        <%= if @selected_version && @selected_version != @change.version do %>
-          <button phx-click={@on_diff_versions && @on_diff_versions} phx-value-version1={@selected_version} phx-value-version2={@change.version} class="bg-green-100 hover:bg-green-200 text-green-800 text-xs px-3 py-1 rounded">
-            Compare
-          </button>
-        <% end %>
       </div>
     </div>
     """
   end
 
-  # Helper functions
-  defp format_timestamp(nil), do: "Unknown"
-  defp format_timestamp(timestamp), do: Calendar.strftime(timestamp, "%Y-%m-%d %H:%M:%S")
+  # Utility functions for formatting
+  defp format_timestamp(nil), do: "N/A"
+  defp format_timestamp(timestamp) when is_binary(timestamp) do
+    case DateTime.from_iso8601(timestamp) do
+      {:ok, datetime, _} ->
+        Calendar.strftime(datetime, "%Y-%m-%d %H:%M:%S %Z")
+      _ -> timestamp # Fallback to original string if parsing fails
+    end
+  end
+  defp format_timestamp(timestamp) do
+    Calendar.strftime(timestamp, "%Y-%m-%d %H:%M:%S %Z") # Assuming it's already a DateTime
+  end
 
-  defp format_timestamp_short(nil), do: "Unknown"
-  defp format_timestamp_short(timestamp), do: Calendar.strftime(timestamp, "%m/%d %H:%M")
-
-  defp get_history(resource) do
-    Map.get(resource, :__change_history__, [])
+  defp format_timestamp_short(nil), do: "N/A"
+  defp format_timestamp_short(timestamp) when is_binary(timestamp) do
+    case DateTime.from_iso8601(timestamp) do
+      {:ok, datetime, _} -> Calendar.strftime(datetime, "%b %d, %H:%M")
+      _ -> timestamp
+    end
+  end
+  defp format_timestamp_short(timestamp) do # Assuming DateTime
+    Calendar.strftime(timestamp, "%b %d, %H:%M")
   end
 end

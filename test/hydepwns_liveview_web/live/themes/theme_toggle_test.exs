@@ -5,10 +5,10 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeToggleTest do
 
   describe "Theme Toggle Component" do
     setup do
-      light_theme = light_theme_fixture()
-      dark_theme = dark_theme_fixture()
-      system_theme = system_theme_fixture()
-      dim_theme = dim_theme_fixture()
+      {:ok, light_theme} = light_theme_fixture()
+      {:ok, dark_theme} = dark_theme_fixture()
+      {:ok, system_theme} = system_theme_fixture()
+      {:ok, dim_theme} = dim_theme_fixture()
 
       %{
         light_theme: light_theme,
@@ -72,7 +72,8 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeToggleTest do
       |> render_click()
 
       # Reconnect and verify theme is still dark by checking aria-pressed
-      {:ok, new_view, _html} = live(conn, "/themes") # Use new_view to avoid stale view
+      # Use new_view to avoid stale view
+      {:ok, new_view, _html} = live(conn, "/themes")
       assert element(new_view, "button[data-theme='dark'][aria-pressed='true']")
     end
   end

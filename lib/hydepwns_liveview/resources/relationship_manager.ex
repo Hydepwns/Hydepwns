@@ -5,8 +5,14 @@ defmodule HydepwnsLiveview.Resources.RelationshipManager do
   """
 
   def create_relationship(resource1_id, resource2_id, type) do
-    # TODO: Implement actual relationship creation logic
-    IO.inspect({:create_relationship_called, resource1_id, resource2_id, type}, label: "RelationshipManager")
-    {:ok, %{id: System.unique_integer(), resource1_id: resource1_id, resource2_id: resource2_id, type: type}}
+    # This is a placeholder implementation. A real implementation would involve
+    # Ecto schemas, database persistence, and error handling.
+    {:ok,
+     %{
+       id: System.unique_integer(),
+       resource1_id: resource1_id,
+       resource2_id: resource2_id,
+       type: type
+     }}
   end
-end 
+end

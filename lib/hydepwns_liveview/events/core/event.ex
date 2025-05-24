@@ -25,18 +25,18 @@ defmodule HydepwnsLiveview.Events.Core.Event do
   end
 
   @type t :: %__MODULE__{
-    id: Ecto.UUID.t() | binary(),
-    type: String.t(),
-    resource_id: String.t(),
-    resource_type: String.t(),
-    data: map(),
-    metadata: map(),
-    correlation_id: Ecto.UUID.t() | binary(),
-    causation_id: Ecto.UUID.t() | binary() | nil,
-    timestamp: DateTime.t() | nil,
-    inserted_at: NaiveDateTime.t() | nil,
-    updated_at: NaiveDateTime.t() | nil
-  }
+          id: Ecto.UUID.t() | binary(),
+          type: String.t(),
+          resource_id: String.t(),
+          resource_type: String.t(),
+          data: map(),
+          metadata: map(),
+          correlation_id: Ecto.UUID.t() | binary(),
+          causation_id: Ecto.UUID.t() | binary() | nil,
+          timestamp: DateTime.t() | nil,
+          inserted_at: NaiveDateTime.t() | nil,
+          updated_at: NaiveDateTime.t() | nil
+        }
 
   @doc """
   Creates a new event struct.
@@ -123,7 +123,8 @@ defmodule HydepwnsLiveview.Events.Core.Event do
   * `{:ok, event}` - The event was created successfully
   * `{:error, changeset}` - The event failed validation
   """
-  @spec create_follow_up(__MODULE__.t(), String.t(), map()) :: {:ok, __MODULE__.t()} | {:error, Ecto.Changeset.t()}
+  @spec create_follow_up(__MODULE__.t(), String.t(), map()) ::
+          {:ok, __MODULE__.t()} | {:error, Ecto.Changeset.t()}
   def create_follow_up(original_event, type, attrs \\ %{}) do
     # Maintain the correlation ID but set the causation ID to the original event's ID
     attrs =

@@ -13,7 +13,6 @@ defmodule HydepwnsLiveview.Events.LiveEventHandler do
 
   # Delegate all public functions to the core implementation
   defdelegate subscribe(event_types, resource_type, resource_id), to: CoreLiveEventHandler
-  defdelegate unsubscribe(event_types, resource_type, resource_id), to: CoreLiveEventHandler
 
   # Add any other functions that might be called on LiveEventHandler
   # For example:

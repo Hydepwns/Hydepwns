@@ -10,7 +10,7 @@ defmodule HydepwnsLiveviewWeb.ImageHelper do
 
   ## Examples
       
-      <%= optimized_image_tag("/images/logo.png", alt: "Logo", class: "header-logo") %>
+      {optimized_image_tag("/images/logo.png", alt: "Logo", class: "header-logo")}
 
   Will generate:
 

@@ -14,7 +14,6 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.TransactionalResourceChang
   """
 
   alias HydepwnsLiveview.Repo
-  alias HydepwnsLiveview.Events.Core.Event
   alias HydepwnsLiveview.Events.Core.TransactionalEventStore
   alias HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator
 

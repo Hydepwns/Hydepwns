@@ -13,7 +13,6 @@ defmodule HydepwnsLiveview.Resources.PerformanceOptimizer do
   require Logger
   alias HydepwnsLiveview.Repo, as: Repo
   alias HydepwnsLiveview.Events.EventStore, as: EventStore
-  alias HydepwnsLiveview.Telemetry, as: Telemetry
   alias HydepwnsLiveview.Resources.CacheServer
 
   # ETS table name for resource cache
@@ -128,7 +127,8 @@ defmodule HydepwnsLiveview.Resources.PerformanceOptimizer do
     :ok
   end
 
-  @spec bulk_load_resources(atom(), list(), (list() -> {:ok, map()} | {:error, any()}), keyword()) :: {:ok, map()} | {:error, any()}
+  @spec bulk_load_resources(atom(), list(), (list() -> {:ok, map()} | {:error, any()}), keyword()) ::
+          {:ok, map()} | {:error, any()}
   def bulk_load_resources(resource_type, resource_ids, loader_fn, opts \\ []) do
     # Filter out IDs that are already in cache
     {cached, uncached} = split_cached_uncached(resource_type, resource_ids)
@@ -214,7 +214,8 @@ defmodule HydepwnsLiveview.Resources.PerformanceOptimizer do
     end
   end
 
-  @spec benchmark((keyword() -> any()), list({atom(), keyword()}), integer()) :: {:ok, map()} | {:error, any()}
+  @spec benchmark((keyword() -> any()), list({atom(), keyword()}), integer()) ::
+          {:ok, map()} | {:error, any()}
   def benchmark(operation_fn, strategies, iterations \\ 10) do
     # Run each strategy and collect metrics
     results =
@@ -590,6 +591,7 @@ defmodule HydepwnsLiveview.Resources.PerformanceOptimizer do
         now = DateTime.utc_now()
         :ets.insert(cache_name, {resource_id, resource, now})
         {:ok, resource}
+
       error ->
         error
     end

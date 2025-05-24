@@ -31,84 +31,74 @@ defmodule HydepwnsLiveviewWeb.Components.TransformationVisualizerComponent do
             Changes
           </button>
           <button phx-click={JS.push("select_tab", value: %{tab: "errors"}, target: @myself)} class={"transformation-visualizer__tab #{if @selected_tab == "errors", do: "active"}"}>
-            Errors
-            <%= if has_errors?(@context) do %>
-              <span class="transformation-visualizer__error-count">{error_count(@context)}</span>
-            <% end %>
+            Errors <span :if={has_errors?(@context)} class="transformation-visualizer__error-count">{error_count(@context)}</span>
           </button>
         </div>
       </div>
 
       <div class="transformation-visualizer__content">
-        <%= case @selected_tab do %>
-          <% "comparison" -> %>
-            <div class="transformation-visualizer__comparison">
-              <div class="transformation-visualizer__original">
-                <h4>Original Resource</h4>
-                <pre><%= format_resource(@original_resource) %></pre>
-              </div>
-              <div class="transformation-visualizer__transformed">
-                <h4>Transformed Resource</h4>
-                <pre><%= format_resource(@transformed_resource) %></pre>
-              </div>
+        <div :if={@selected_tab == "comparison"}>
+          <div class="transformation-visualizer__comparison">
+            <div class="transformation-visualizer__original">
+              <h4>Original Resource</h4>
+              <pre>{format_resource(@original_resource)}</pre>
             </div>
-          <% "changes" -> %>
-            <div class="transformation-visualizer__changes">
-              <h4>Changes Made by Transformations</h4>
-              <%= if has_changes?(@context) do %>
-                <table class="transformation-visualizer__changes-table">
-                  <thead>
-                    <tr>
-                      <th>Transformation</th>
-                      <th>Field</th>
-                      <th>Before</th>
-                      <th>After</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <%= for {transformation, changes} <- get_changes(@context) do %>
-                      <%= for change <- changes do %>
-                        <tr>
-                          <td>{transformation}</td>
-                          <td>{change.field}</td>
-                          <td><pre><%= format_value(change.before) %></pre></td>
-                          <td><pre><%= format_value(change.after) %></pre></td>
-                        </tr>
-                      <% end %>
-                    <% end %>
-                  </tbody>
-                </table>
-              <% else %>
-                <p>No changes were made by the transformations.</p>
-              <% end %>
+            <div class="transformation-visualizer__transformed">
+              <h4>Transformed Resource</h4>
+              <pre>{format_resource(@transformed_resource)}</pre>
             </div>
-          <% "errors" -> %>
-            <div class="transformation-visualizer__errors">
-              <h4>Transformation Errors</h4>
-              <%= if has_errors?(@context) do %>
-                <table class="transformation-visualizer__errors-table">
-                  <thead>
-                    <tr>
-                      <th>Transformation</th>
-                      <th>Error Message</th>
-                      <th>Details</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <%= for error <- get_errors(@context) do %>
-                      <tr>
-                        <td>{error.transformation}</td>
-                        <td>{error.message}</td>
-                        <td><pre><%= format_error_details(error.details) %></pre></td>
-                      </tr>
-                    <% end %>
-                  </tbody>
-                </table>
-              <% else %>
-                <p>No errors occurred during the transformation process.</p>
-              <% end %>
-            </div>
-        <% end %>
+          </div>
+        </div>
+
+        <div :if={@selected_tab == "changes"}>
+          <div class="transformation-visualizer__changes">
+            <h4>Changes Made by Transformations</h4>
+            <table :if={has_changes?(@context)} class="transformation-visualizer__changes-table">
+              <thead>
+                <tr>
+                  <th>Transformation</th>
+                  <th>Field</th>
+                  <th>Before</th>
+                  <th>After</th>
+                </tr>
+              </thead>
+              <tbody>
+                <fragment :for={{transformation, changes} <- get_changes(@context)}>
+                  <tr :for={change <- changes}>
+                    <td>{transformation}</td>
+                    <td>{change.field}</td>
+                    <td><pre>{format_value(change.before)}</pre></td>
+                    <td><pre>{format_value(change.after)}</pre></td>
+                  </tr>
+                </fragment>
+              </tbody>
+            </table>
+            <p :if={!has_changes?(@context)}>No changes were made by the transformations.</p>
+          </div>
+        </div>
+
+        <div :if={@selected_tab == "errors"}>
+          <div class="transformation-visualizer__errors">
+            <h4>Transformation Errors</h4>
+            <table :if={has_errors?(@context)} class="transformation-visualizer__errors-table">
+              <thead>
+                <tr>
+                  <th>Transformation</th>
+                  <th>Error Message</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr :for={error <- get_errors(@context)}>
+                  <td>{error.transformation}</td>
+                  <td>{error.message}</td>
+                  <td><pre>{format_error_details(error.details)}</pre></td>
+                </tr>
+              </tbody>
+            </table>
+            <p :if={!has_errors?(@context)}>No errors occurred during the transformation process.</p>
+          </div>
+        </div>
       </div>
     </div>
     """

@@ -12,6 +12,19 @@ defmodule HydepwnsLiveview.Resources.EctoUserResource do
   # Use the EctoAdapter with the User schema
   adapter(HydepwnsLiveview.Utils.EctoAdapter, schema: HydepwnsLiveview.Schemas.User)
 
+  @impl HydepwnsLiveview.Utils.LiveViewResource
+  def __resource_schema__ do
+    %{
+      id: :id,
+      name: :string,
+      email: :string,
+      role: :string,
+      active: :boolean,
+      inserted_at: :naive_datetime,
+      updated_at: :naive_datetime
+    }
+  end
+
   # We don't need to define attributes, relationships, or validations here
   # since they are extracted from the User schema by the EctoAdapter.
   # However, we can override or add to them if needed:
@@ -31,5 +44,22 @@ defmodule HydepwnsLiveview.Resources.EctoUserResource do
         end
       }
     ]
+  end
+
+  @doc """
+  Updates an ecto user resource with tracking (for audit/telemetry).
+
+  ## Parameters
+  * `resource` - The ecto user resource to update
+  * `updates` - The update parameters
+  * `metadata` - Additional metadata for the update
+  * `opts` - Optional context/options (unused)
+
+  ## Returns
+  * `{:ok, updated_resource}` or `{:error, reason}`
+  """
+  @spec update_with_tracking(map(), map(), map(), map()) :: {:ok, map()} | {:error, any()}
+  def update_with_tracking(resource, updates, metadata, _opts \\ %{}) do
+    HydepwnsLiveview.Utils.ChangeTracker.track_change(resource, updates, metadata)
   end
 end

@@ -35,10 +35,10 @@ defmodule HydepwnsLiveview.Events.Handlers.LiveEventUpdater do
   # Use the component in a LiveView
   def render(assigns) do
     ~H\"\"\"
-    <.user_card resource_type="user" resource_id={@user.id}>
-      <div class="user-card">
-        <h3><%= @resource.name %></h3>
-        <p><%= @resource.email %></p>
+    <.user_card resource_type=\"user\" resource_id={@user.id}>
+      <div class=\"user-card\">
+        <h3>{@resource.name}</h3>
+        <p>{@resource.email}</p>
       </div>
     </.user_card>
     \"\"\"

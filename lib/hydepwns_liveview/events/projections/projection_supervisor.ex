@@ -93,7 +93,7 @@ defmodule HydepwnsLiveview.Events.Projections.ProjectionSupervisor do
     projections =
       DynamicSupervisor.which_children(__MODULE__.DynamicSupervisor)
       |> Enum.map(fn {_, pid, _, _} ->
-        {:ok, {module, _}} = ProjectionProcess.get_info(pid)
+        {:ok, {module, _}} = HydepwnsLiveview.Events.Projections.ProjectionProcess.get_info(pid)
         {module, pid}
       end)
 
@@ -104,14 +104,14 @@ defmodule HydepwnsLiveview.Events.Projections.ProjectionSupervisor do
   Gets the current state of a projection.
   """
   def get_projection_state(pid) do
-    ProjectionProcess.get_state(pid)
+    HydepwnsLiveview.Events.Projections.ProjectionProcess.get_state(pid)
   end
 
   @doc """
   Rebuilds a projection from scratch.
   """
   def rebuild_projection(pid) do
-    ProjectionProcess.rebuild(pid)
+    HydepwnsLiveview.Events.Projections.ProjectionProcess.rebuild(pid)
   end
 
   @doc """

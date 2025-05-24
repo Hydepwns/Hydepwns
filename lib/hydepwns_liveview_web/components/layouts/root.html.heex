@@ -53,7 +53,7 @@
         const themeClasses = ['light-theme', 'dark-theme', 'dim-theme', 'high-contrast-theme'];
         themeClasses.forEach(cls => {
           document.documentElement.classList.remove(cls);
-          document.body.classList.remove(cls);
+          if (document.body) document.body.classList.remove(cls);
         });
         
         // Apply the appropriate theme
@@ -70,7 +70,7 @@
         // Apply theme to both documentElement and body
         document.documentElement.setAttribute('data-theme', themeToApply);
         document.documentElement.classList.add(themeToApply);
-        document.body.classList.add(themeToApply);
+        if (document.body) document.body.classList.add(themeToApply);
         
         // Store theme in localStorage for persistence
         localStorage.setItem('theme', themeToApply);
@@ -104,6 +104,8 @@
   </head>
   <body class={assigns[:theme_class] || "light-theme"}>
     <a href="#main-content" class="skip-to-content">Skip to content</a>
+    <.theme_toggle id="theme-toggle-root" />
+    <.debug_grid id="debug-grid-toggle-root" />
     {@inner_content}
   </body>
 </html>

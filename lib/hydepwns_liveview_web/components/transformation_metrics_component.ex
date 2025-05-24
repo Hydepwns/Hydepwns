@@ -54,223 +54,190 @@ defmodule HydepwnsLiveviewWeb.Components.TransformationMetricsComponent do
       </div>
 
       <div class="transformation-metrics__content">
-        <%= case @selected_tab do %>
-          <% "summary" -> %>
-            <div class="transformation-metrics__summary">
-              <h4>Performance Summary</h4>
+        <div :if={@selected_tab == "summary"} class="transformation-metrics__summary">
+          <h4>Performance Summary</h4>
 
-              <div class="transformation-metrics__summary-stats">
-                <div class="transformation-metrics__stat">
-                  <div class="transformation-metrics__stat-value">{@metrics.execution_count}</div>
-                  <div class="transformation-metrics__stat-label">Total Executions</div>
-                </div>
+          <div class="transformation-metrics__summary-stats">
+            <div class="transformation-metrics__stat">
+              <div class="transformation-metrics__stat-value">{@metrics.execution_count}</div>
+              <div class="transformation-metrics__stat-label">Total Executions</div>
+            </div>
 
-                <div class="transformation-metrics__stat">
-                  <div class="transformation-metrics__stat-value">
-                    <%= if @metrics.execution_count > 0 do %>
-                      {format_time(@metrics.average_execution_time_ms)}
-                    <% else %>
-                      N/A
-                    <% end %>
-                  </div>
-                  <div class="transformation-metrics__stat-label">Avg Execution Time</div>
-                </div>
-
-                <div class="transformation-metrics__stat">
-                  <div class="transformation-metrics__stat-value">
-                    <%= if @metrics.execution_count > 0 do %>
-                      {format_percentage(@metrics.success_rate)}
-                    <% else %>
-                      N/A
-                    <% end %>
-                  </div>
-                  <div class="transformation-metrics__stat-label">Success Rate</div>
-                </div>
-
-                <div class="transformation-metrics__stat">
-                  <div class="transformation-metrics__stat-value">{@metrics.error_count}</div>
-                  <div class="transformation-metrics__stat-label">Errors</div>
-                </div>
+            <div class="transformation-metrics__stat">
+              <div class="transformation-metrics__stat-value">
+                <span :if={@metrics.execution_count > 0}>{format_time(@metrics.average_execution_time_ms)}</span>
+                <span :if={@metrics.execution_count <= 0}>N/A</span>
               </div>
+              <div class="transformation-metrics__stat-label">Avg Execution Time</div>
+            </div>
 
-              <div class="transformation-metrics__charts">
-                <!-- Success/Error Pie Chart -->
-                <div class="transformation-metrics__chart">
-                  <h5>Success Rate</h5>
-                  <div class="transformation-metrics__pie-chart">
-                    <%= if @metrics.execution_count > 0 do %>
-                      <div class="transformation-metrics__pie" style={"--success-rate: #{@metrics.success_rate * 100}%"}>
-                        <div class="transformation-metrics__pie-slice transformation-metrics__pie-slice--success"></div>
-                        <div class="transformation-metrics__pie-slice transformation-metrics__pie-slice--error"></div>
-                      </div>
-                      <div class="transformation-metrics__pie-legend">
-                        <div class="transformation-metrics__pie-legend-item">
-                          <div class="transformation-metrics__pie-legend-color transformation-metrics__pie-legend-color--success"></div>
-                          <div class="transformation-metrics__pie-legend-label">Success</div>
-                          <div class="transformation-metrics__pie-legend-value">{@metrics.success_count} ({format_percentage(@metrics.success_rate)})</div>
-                        </div>
-                        <div class="transformation-metrics__pie-legend-item">
-                          <div class="transformation-metrics__pie-legend-color transformation-metrics__pie-legend-color--error"></div>
-                          <div class="transformation-metrics__pie-legend-label">Error</div>
-                          <div class="transformation-metrics__pie-legend-value">{@metrics.error_count} ({format_percentage(@metrics.error_rate)})</div>
-                        </div>
-                      </div>
-                    <% else %>
-                      <div class="transformation-metrics__no-data">No data available</div>
-                    <% end %>
+            <div class="transformation-metrics__stat">
+              <div class="transformation-metrics__stat-value">
+                <span :if={@metrics.execution_count > 0}>{format_percentage(@metrics.success_rate)}</span>
+                <span :if={@metrics.execution_count <= 0}>N/A</span>
+              </div>
+              <div class="transformation-metrics__stat-label">Success Rate</div>
+            </div>
+
+            <div class="transformation-metrics__stat">
+              <div class="transformation-metrics__stat-value">{@metrics.error_count}</div>
+              <div class="transformation-metrics__stat-label">Errors</div>
+            </div>
+          </div>
+
+          <div class="transformation-metrics__charts">
+            <!-- Success/Error Pie Chart -->
+            <div class="transformation-metrics__chart">
+              <h5>Success Rate</h5>
+              <div class="transformation-metrics__pie-chart">
+                <div :if={@metrics.execution_count > 0}>
+                  <div class="transformation-metrics__pie" style={"--success-rate: #{@metrics.success_rate * 100}%"}>
+                    <div class="transformation-metrics__pie-slice transformation-metrics__pie-slice--success"></div>
+                    <div class="transformation-metrics__pie-slice transformation-metrics__pie-slice--error"></div>
+                  </div>
+                  <div class="transformation-metrics__pie-legend">
+                    <div class="transformation-metrics__pie-legend-item">
+                      <div class="transformation-metrics__pie-legend-color transformation-metrics__pie-legend-color--success"></div>
+                      <div class="transformation-metrics__pie-legend-label">Success</div>
+                      <div class="transformation-metrics__pie-legend-value">{@metrics.success_count} ({format_percentage(@metrics.success_rate)})</div>
+                    </div>
+                    <div class="transformation-metrics__pie-legend-item">
+                      <div class="transformation-metrics__pie-legend-color transformation-metrics__pie-legend-color--error"></div>
+                      <div class="transformation-metrics__pie-legend-label">Error</div>
+                      <div class="transformation-metrics__pie-legend-value">{@metrics.error_count} ({format_percentage(@metrics.error_rate)})</div>
+                    </div>
                   </div>
                 </div>
+                <div :if={@metrics.execution_count <= 0} class="transformation-metrics__no-data">No data available</div>
               </div>
             </div>
-          <% "transformations" -> %>
-            <div class="transformation-metrics__transformations">
-              <h4>Transformation Performance</h4>
+          </div>
+        </div>
 
-              <%= if map_size(@metrics.transformation_stats) > 0 do %>
-                <table class="transformation-metrics__table">
-                  <thead>
-                    <tr>
-                      <th>Transformation</th>
-                      <th>Count</th>
-                      <th>Avg Time</th>
-                      <th>Success Rate</th>
-                      <th>Errors</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <%= for {name, stats} <- sort_transformation_stats(@metrics.transformation_stats) do %>
-                      <% avg_time = stats.total_execution_time_ms / stats.execution_count %>
-                      <% success_rate = stats.success_count / stats.execution_count %>
+        <div :if={@selected_tab == "transformations"} class="transformation-metrics__transformations">
+          <h4>Transformation Performance</h4>
 
-                      <tr>
-                        <td>{name}</td>
-                        <td>{stats.execution_count}</td>
-                        <td>{format_time(avg_time)}</td>
-                        <td>
-                          <div class="transformation-metrics__progress-bar">
-                            <div class="transformation-metrics__progress-fill" style={"width: #{success_rate * 100}%"}></div>
-                            <span>{format_percentage(success_rate)}</span>
-                          </div>
-                        </td>
-                        <td>{stats.error_count}</td>
-                      </tr>
-                    <% end %>
-                  </tbody>
-                </table>
-              <% else %>
-                <div class="transformation-metrics__no-data">No transformation data available</div>
-              <% end %>
-            </div>
-          <% "resources" -> %>
-            <div class="transformation-metrics__resources">
-              <h4>Resource Type Performance</h4>
+          <table :if={map_size(@metrics.transformation_stats) > 0} class="transformation-metrics__table">
+            <thead>
+              <tr>
+                <th>Transformation</th>
+                <th>Count</th>
+                <th>Avg Time</th>
+                <th>Success Rate</th>
+                <th>Errors</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr :for={{name, stats} <- sort_transformation_stats(@metrics.transformation_stats)}>
+                <% avg_time = stats.total_execution_time_ms / stats.execution_count %>
+                <% success_rate = stats.success_count / stats.execution_count %>
+                <td>{name}</td>
+                <td>{stats.execution_count}</td>
+                <td>{format_time(avg_time)}</td>
+                <td>
+                  <div class="transformation-metrics__progress-bar">
+                    <div class="transformation-metrics__progress-fill" style={"width: #{success_rate * 100}%"}></div>
+                    <span>{format_percentage(success_rate)}</span>
+                  </div>
+                </td>
+                <td>{stats.error_count}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div :if={map_size(@metrics.transformation_stats) <= 0} class="transformation-metrics__no-data">No transformation data available</div>
+        </div>
 
-              <%= if map_size(@metrics.resource_type_stats) > 0 do %>
-                <table class="transformation-metrics__table">
-                  <thead>
-                    <tr>
-                      <th>Resource Type</th>
-                      <th>Count</th>
-                      <th>Avg Time</th>
-                      <th>Success Rate</th>
-                      <th>Errors</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <%= for {type, stats} <- sort_resource_stats(@metrics.resource_type_stats) do %>
-                      <% avg_time = stats.total_execution_time_ms / stats.execution_count %>
-                      <% success_rate = stats.success_count / stats.execution_count %>
+        <div :if={@selected_tab == "resources"} class="transformation-metrics__resources">
+          <h4>Resource Type Performance</h4>
 
-                      <tr>
-                        <td>{format_resource_type(type)}</td>
-                        <td>{stats.execution_count}</td>
-                        <td>{format_time(avg_time)}</td>
-                        <td>
-                          <div class="transformation-metrics__progress-bar">
-                            <div class="transformation-metrics__progress-fill" style={"width: #{success_rate * 100}%"}></div>
-                            <span>{format_percentage(success_rate)}</span>
-                          </div>
-                        </td>
-                        <td>{stats.error_count}</td>
-                      </tr>
-                    <% end %>
-                  </tbody>
-                </table>
-              <% else %>
-                <div class="transformation-metrics__no-data">No resource type data available</div>
-              <% end %>
-            </div>
-          <% "operations" -> %>
-            <div class="transformation-metrics__operations">
-              <h4>Operation Performance</h4>
+          <table :if={map_size(@metrics.resource_type_stats) > 0} class="transformation-metrics__table">
+            <thead>
+              <tr>
+                <th>Resource Type</th>
+                <th>Count</th>
+                <th>Avg Time</th>
+                <th>Success Rate</th>
+                <th>Errors</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr :for={{type, stats} <- sort_resource_stats(@metrics.resource_type_stats)}>
+                <% avg_time = stats.total_execution_time_ms / stats.execution_count %>
+                <% success_rate = stats.success_count / stats.execution_count %>
+                <td>{format_resource_type(type)}</td>
+                <td>{stats.execution_count}</td>
+                <td>{format_time(avg_time)}</td>
+                <td>
+                  <div class="transformation-metrics__progress-bar">
+                    <div class="transformation-metrics__progress-fill" style={"width: #{success_rate * 100}%"}></div>
+                    <span>{format_percentage(success_rate)}</span>
+                  </div>
+                </td>
+                <td>{stats.error_count}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div :if={map_size(@metrics.resource_type_stats) <= 0} class="transformation-metrics__no-data">No resource type data available</div>
+        </div>
 
-              <%= if map_size(@metrics.operation_stats) > 0 do %>
-                <table class="transformation-metrics__table">
-                  <thead>
-                    <tr>
-                      <th>Operation</th>
-                      <th>Count</th>
-                      <th>Avg Time</th>
-                      <th>Success Rate</th>
-                      <th>Errors</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <%= for {operation, stats} <- sort_operation_stats(@metrics.operation_stats) do %>
-                      <% avg_time = stats.total_execution_time_ms / stats.execution_count %>
-                      <% success_rate = stats.success_count / stats.execution_count %>
+        <div :if={@selected_tab == "operations"} class="transformation-metrics__operations">
+          <h4>Operation Performance</h4>
 
-                      <tr>
-                        <td>{format_operation(operation)}</td>
-                        <td>{stats.execution_count}</td>
-                        <td>{format_time(avg_time)}</td>
-                        <td>
-                          <div class="transformation-metrics__progress-bar">
-                            <div class="transformation-metrics__progress-fill" style={"width: #{success_rate * 100}%"}></div>
-                            <span>{format_percentage(success_rate)}</span>
-                          </div>
-                        </td>
-                        <td>{stats.error_count}</td>
-                      </tr>
-                    <% end %>
-                  </tbody>
-                </table>
-              <% else %>
-                <div class="transformation-metrics__no-data">No operation data available</div>
-              <% end %>
-            </div>
-          <% "errors" -> %>
-            <div class="transformation-metrics__errors">
-              <h4>Recent Errors</h4>
+          <table :if={map_size(@metrics.operation_stats) > 0} class="transformation-metrics__table">
+            <thead>
+              <tr>
+                <th>Operation</th>
+                <th>Count</th>
+                <th>Avg Time</th>
+                <th>Success Rate</th>
+                <th>Errors</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr :for={{operation, stats} <- sort_operation_stats(@metrics.operation_stats)}>
+                <% avg_time = stats.total_execution_time_ms / stats.execution_count %>
+                <% success_rate = stats.success_count / stats.execution_count %>
+                <td>{format_operation(operation)}</td>
+                <td>{stats.execution_count}</td>
+                <td>{format_time(avg_time)}</td>
+                <td>
+                  <div class="transformation-metrics__progress-bar">
+                    <div class="transformation-metrics__progress-fill" style={"width: #{success_rate * 100}%"}></div>
+                    <span>{format_percentage(success_rate)}</span>
+                  </div>
+                </td>
+                <td>{stats.error_count}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div :if={map_size(@metrics.operation_stats) <= 0} class="transformation-metrics__no-data">No operation data available</div>
+        </div>
 
-              <%= if @recent_errors && length(@recent_errors) > 0 do %>
-                <table class="transformation-metrics__table">
-                  <thead>
-                    <tr>
-                      <th>Transformation</th>
-                      <th>Resource Type</th>
-                      <th>Operation</th>
-                      <th>Error</th>
-                      <th>Time</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <%= for error <- @recent_errors do %>
-                      <tr>
-                        <td>{error.transformation_name}</td>
-                        <td>{format_resource_type(error.resource_type)}</td>
-                        <td>{format_operation(error.operation)}</td>
-                        <td>{error.error}</td>
-                        <td>{format_timestamp(error.timestamp)}</td>
-                      </tr>
-                    <% end %>
-                  </tbody>
-                </table>
-              <% else %>
-                <div class="transformation-metrics__no-data">No errors recorded</div>
-              <% end %>
-            </div>
-        <% end %>
+        <div :if={@selected_tab == "errors"} class="transformation-metrics__errors">
+          <h4>Recent Errors</h4>
+
+          <table :if={@recent_errors && length(@recent_errors) > 0} class="transformation-metrics__table">
+            <thead>
+              <tr>
+                <th>Transformation</th>
+                <th>Resource Type</th>
+                <th>Operation</th>
+                <th>Error</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr :for={error <- @recent_errors}>
+                <td>{error.transformation_name}</td>
+                <td>{format_resource_type(error.resource_type)}</td>
+                <td>{format_operation(error.operation)}</td>
+                <td>{error.error}</td>
+                <td>{format_timestamp(error.timestamp)}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div :if={!@recent_errors || length(@recent_errors) == 0} class="transformation-metrics__no-data">No errors recorded</div>
+        </div>
       </div>
     </div>
     """
@@ -375,8 +342,8 @@ defmodule HydepwnsLiveviewWeb.Components.TransformationMetricsComponent do
     cond do
       time_ms < 1 -> "#{Float.round(time_ms, 3)} ms"
       time_ms < 1000 -> "#{Float.round(time_ms, 1)} ms"
-      time_ms < 60000 -> "#{Float.round(time_ms / 1000, 2)} s"
-      true -> "#{Float.round(time_ms / 60000, 2)} m"
+      time_ms < 60_000 -> "#{Float.round(time_ms / 1000, 2)} s"
+      true -> "#{Float.round(time_ms / 60_000, 2)} m"
     end
   end
 

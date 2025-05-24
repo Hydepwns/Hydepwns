@@ -123,7 +123,7 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
       role="alert"
       class={[
         "fixed top-2 right-2 mr-2 w-80 sm:w-96 z-50 rounded-lg p-3 ring-1",
-        @kind == :info && "bg-emerald-50 text-emerald-800 ring-emerald-500 fill-cyan-900",
+        @kind == :info && "bg-emerald-50 text-emerald-800 ring-emerald-500 fill-cyan-900 alert-success",
         @kind == :error && "bg-rose-50 text-rose-900 shadow-md ring-rose-500 fill-rose-900"
       ]}
     >
@@ -201,7 +201,6 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
   @doc """
   Renders an input field from a Phoenix.HTML.FormField struct.
   """
-  @spec input(%{field: Phoenix.HTML.FormField.t()} | map()) :: Phoenix.LiveView.Rendered.t()
   def input(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
     errors = if Phoenix.Component.used_input?(field), do: field.errors, else: []
 
@@ -213,10 +212,7 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     |> input()
   end
 
-  @doc """
-  Renders a checkbox input field.
-  """
-  @spec input(map()) :: Phoenix.LiveView.Rendered.t()
+  @doc false
   def input(%{type: "checkbox"} = assigns) do
     assigns =
       assign_new(assigns, :checked, fn ->
@@ -235,10 +231,7 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     """
   end
 
-  @doc """
-  Renders a select input field.
-  """
-  @spec input(map()) :: Phoenix.LiveView.Rendered.t()
+  @doc false
   def input(%{type: "select"} = assigns) do
     ~H"""
     <div>
@@ -252,10 +245,7 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     """
   end
 
-  @doc """
-  Renders a textarea input field.
-  """
-  @spec input(map()) :: Phoenix.LiveView.Rendered.t()
+  @doc false
   def input(%{type: "textarea"} = assigns) do
     ~H"""
     <div>
@@ -278,7 +268,6 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
   @doc """
   Renders a generic input field.
   """
-  @spec input(map()) :: Phoenix.LiveView.Rendered.t()
   def input(assigns) do
     ~H"""
     <div>
@@ -333,6 +322,7 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     assigns = Map.put_new(assigns, :actions_header, [])
     assigns = Map.put_new(assigns, :class, "")
     assigns = Map.put_new(assigns, :subtitle, [])
+
     ~H"""
     <header class={[@actions_header != [] && "flex items-center justify-between gap-6", @class]}>
       <div>
@@ -359,6 +349,7 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
       else
         _ -> assigns
       end
+
     assigns = Map.put_new(assigns, :row_id, nil)
     assigns = Map.put_new(assigns, :row_item, &Function.identity/1)
 
@@ -433,17 +424,13 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
   @doc """
   Renders a heroicon or generic icon span.
   """
-  @spec icon(map()) :: Phoenix.LiveView.Rendered.t()
   def icon(%{name: "hero-" <> _} = assigns) do
     ~H"""
     <span class={[@name, @class]} />
     """
   end
 
-  @doc """
-  Renders a generic icon span.
-  """
-  @spec icon(map()) :: Phoenix.LiveView.Rendered.t()
+  @doc false
   def icon(assigns) do
     ~H"""
     <span class={[@name, @class]} />

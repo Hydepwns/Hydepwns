@@ -401,8 +401,8 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
   end
 
   # Helper to rebuild state from events
-  defp rebuild_from_events(events, initial_state, module) do
-    Enum.reduce(events, initial_state, fn event, acc -> module.apply_event(event, acc) end)
+  def rebuild_from_events(events, initial_state, apply_event_fn) do
+    Enum.reduce(events, initial_state, fn event, acc -> apply_event_fn.(event, acc) end)
   end
 
   @doc """
@@ -418,7 +418,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
 
     with {:ok, events} <- EventStore.get_events_for_resource(resource_type, id) do
       initial_state = module.initial_state()
-      state = rebuild_from_events(events, initial_state, module)
+      state = rebuild_from_events(events, initial_state, module.apply_event)
       {:ok, state}
     else
       {:error, reason} -> {:error, reason}
@@ -439,7 +439,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
              sort: [timestamp: :asc]
            }) do
       initial_state = module.initial_state()
-      state = rebuild_from_events(events, initial_state, module)
+      state = rebuild_from_events(events, initial_state, module.apply_event)
       {:ok, state}
     else
       {:error, reason} -> {:error, reason}
@@ -457,7 +457,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
     with :ok <- __publish_events__(events, metadata, module) do
       # Rebuild state from the events
       initial_state = module.initial_state()
-      state = rebuild_from_events(events, initial_state, module)
+      state = rebuild_from_events(events, initial_state, module.apply_event)
       {:ok, state}
     else
       {:error, reason} -> {:error, reason}
@@ -472,7 +472,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
          events when is_list(events) <- module.execute_command(resource, command, params),
          :ok <- __publish_events__(events, metadata, module) do
       # Apply new events to the resource state
-      updated_state = rebuild_from_events(events, resource, module)
+      updated_state = rebuild_from_events(events, resource, module.apply_event)
       {:ok, updated_state}
     else
       {:error, reason} -> {:error, reason}
@@ -486,7 +486,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
     events = module.update_events(resource, params)
 
     with :ok <- __publish_events__(events, metadata, module) do
-      updated_state = rebuild_from_events(events, resource, module)
+      updated_state = rebuild_from_events(events, resource, module.apply_event)
       {:ok, updated_state}
     else
       {:error, reason} -> {:error, reason}
@@ -501,7 +501,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
     events = module.update_events(resource, %{delete: true})
 
     with :ok <- __publish_events__(events, metadata, module) do
-      deleted_state = rebuild_from_events(events, resource, module)
+      deleted_state = rebuild_from_events(events, resource, module.apply_event)
       {:ok, deleted_state}
     else
       {:error, reason} -> {:error, reason}
@@ -594,6 +594,28 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
       module.resource_type()
     else
       __resource_type_from_module__(module)
+    end
+  end
+
+  @doc """
+  Gets the current state of a resource by reconstructing it from events.
+
+  ## Parameters
+  * `resource_module` - The resource module implementing initial_state/0 and apply_event/2
+  * `id` - The ID of the resource
+
+  ## Returns
+  * `{:ok, state}` - The reconstructed state
+  * `{:error, reason}` - If the resource could not be reconstructed
+  """
+  def get_current_state(resource_module, id) do
+    with {:ok, events} <- HydepwnsLiveview.Events.Core.EventStore.get_events_for_resource(resource_module.resource_type(), id) do
+      state = Enum.reduce(events, resource_module.initial_state(), fn event, acc ->
+        resource_module.apply_event(event, acc)
+      end)
+      {:ok, state}
+    else
+      error -> error
     end
   end
 end

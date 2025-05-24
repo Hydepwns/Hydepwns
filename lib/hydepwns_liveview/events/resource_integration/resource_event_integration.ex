@@ -14,9 +14,6 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventIntegration d
   - Resource history and versioning
   """
 
-  import Phoenix.LiveView, only: [connected?: 1]
-
-  alias HydepwnsLiveview.Events.Core.EventStore
   alias HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator
   alias HydepwnsLiveview.Events.ResourceIntegration.TransactionalResourceChanges
   alias HydepwnsLiveview.Events.ResourceIntegration.ResourceReplay

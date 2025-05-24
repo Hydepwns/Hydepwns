@@ -22,12 +22,15 @@ defmodule HydepwnsLiveview.TypeValidationTest do
         id_or_name: {:union, [:integer, :string]}
       }
 
-    def do_mount(_params, session, socket) do
-      socket
-      |> Phoenix.Component.assign(:string_value, Map.get(session, "string_value", "default"))
-      |> Phoenix.Component.assign(:integer_value, Map.get(session, "integer_value", 42))
-      |> Phoenix.Component.assign(:theme, Map.get(session, "theme", "dark"))
-      |> assign_optional_values(session)
+    def mount(_params, session, socket) do
+      socket =
+        socket
+        |> Phoenix.Component.assign(:string_value, Map.get(session, "string_value", "default"))
+        |> Phoenix.Component.assign(:integer_value, Map.get(session, "integer_value", 42))
+        |> Phoenix.Component.assign(:theme, Map.get(session, "theme", "dark"))
+        |> assign_optional_values(session)
+
+      {:ok, socket}
     end
 
     def render(assigns) do

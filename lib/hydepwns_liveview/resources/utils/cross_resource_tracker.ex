@@ -75,7 +75,8 @@ defmodule HydepwnsLiveview.Resources.CrossResourceTracker do
     end
   end
 
-  @spec track_with_propagation(String.t(), String.t(), map(), String.t(), keyword()) :: {:ok, map()} | {:error, any()}
+  @spec track_with_propagation(String.t(), String.t(), map(), String.t(), keyword()) ::
+          {:ok, map()} | {:error, any()}
   @doc """
   Tracks a change and propagates it to related resources.
 

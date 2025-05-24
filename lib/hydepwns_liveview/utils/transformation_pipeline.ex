@@ -500,29 +500,34 @@ defmodule HydepwnsLiveview.Utils.TransformationPipeline do
 
   # Visualize the pipeline as GraphViz DOT
   defp visualize_as_dot(pipeline) do
-    nodes = Enum.map_join("\n", pipeline.hooks, fn {hook_name, steps} ->
-      step_nodes = Enum.map_join("\n", steps, fn step ->
-        "  \"#{hook_name}_#{step.name}\" [label=\"#{step.name}\"];"
-      end)
-      "subgraph cluster_#{hook_name} {\n    label = \"#{hook_name}\";\n#{step_nodes}\n  }"
-    end)
+    nodes =
+      Enum.map_join("\n", pipeline.hooks, fn {hook_name, steps} ->
+        step_nodes =
+          Enum.map_join("\n", steps, fn step ->
+            "  \"#{hook_name}_#{step.name}\" [label=\"#{step.name}\"];"
+          end)
 
-    edges = Enum.flat_map(pipeline.hooks, fn {hook_name, steps} ->
-      # Create edges between steps within the same hook
-      intra_hook_edges = Enum.zip(steps, tl(steps))
-      |> Enum.map_join("\n", fn {step1, step2} ->
-        "  \"#{hook_name}_#{step1.name}\" -> \"#{hook_name}_#{step2.name}\";"
+        "subgraph cluster_#{hook_name} {\n    label = \"#{hook_name}\";\n#{step_nodes}\n  }"
       end)
 
-      # Create edges between the last step of one hook and the first of the next (if applicable)
-      # This requires knowing the order of hooks, which is implicit here (pre_validation then post_validation)
-      # A more robust solution would define explicit hook order.
-      inter_hook_edges = ""
+    edges =
+      Enum.flat_map(pipeline.hooks, fn {hook_name, steps} ->
+        # Create edges between steps within the same hook
+        intra_hook_edges =
+          Enum.zip(steps, tl(steps))
+          |> Enum.map_join("\n", fn {step1, step2} ->
+            "  \"#{hook_name}_#{step1.name}\" -> \"#{hook_name}_#{step2.name}\";"
+          end)
 
-      [intra_hook_edges, inter_hook_edges]
-    end)
-    |> Enum.reject(&(&1 == ""))
-    |> Enum.join("\n")
+        # Create edges between the last step of one hook and the first of the next (if applicable)
+        # This requires knowing the order of hooks, which is implicit here (pre_validation then post_validation)
+        # A more robust solution would define explicit hook order.
+        inter_hook_edges = ""
+
+        [intra_hook_edges, inter_hook_edges]
+      end)
+      |> Enum.reject(&(&1 == ""))
+      |> Enum.join("\n")
 
     "digraph TransformationPipeline {\n  rankdir=LR;\n  node [shape=box];\n#{nodes}\n#{edges}\n}"
   end

@@ -5,7 +5,7 @@
  * This file demonstrates how to use the ResourceCard component in different scenarios.
  */
 
-import { ResourceCardComponent } from '../../assets/js/components/resource_card';
+import { ResourceCardComponent } from '../../js/components/resource_card';
 
 // Example 1: Basic Usage
 // ---------------------

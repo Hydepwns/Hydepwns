@@ -29,7 +29,7 @@
       </div>
     </div>
     <div class="theme-selector">
-      <.theme_toggle />
+      <.theme_toggle id="theme-toggle-app" />
     </div>
   </header>
 
@@ -52,7 +52,7 @@
 
   <hr class="nav-separator" />
 
-  <main id="main-content" tabindex="-1">
+  <main tabindex="-1">
     <.flash_group flash={@flash} flash_group_id="flash-group" />
 
     <div :if={Map.get(assigns, :show_toc, false)} class="table-of-contents">
@@ -89,7 +89,7 @@
 </div>
 
 <%!-- Debug grid (only visible when debug query param is present) --%>
-<.debug_grid />
+<.debug_grid id="debug-grid-toggle-app" />
 
 <%!-- Socket Validation Panel (only visible in development mode) --%>
 <%= if Mix.env() == :dev do %>

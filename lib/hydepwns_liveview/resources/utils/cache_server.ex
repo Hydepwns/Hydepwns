@@ -358,9 +358,9 @@ defmodule HydepwnsLiveview.Resources.CacheServer do
     # In a real implementation, this would look up the appropriate
     # warmup function for each resource type
     case resource_type do
-      :user -> {:ok, &HydepwnsLiveview.Resources.User.load/1}
-      :post -> {:ok, &HydepwnsLiveview.Resources.Post.load/1}
-      :team -> {:ok, &HydepwnsLiveview.Resources.Team.load/1}
+      :user -> {:ok, &HydepwnsLiveview.Resources.UserResource.load/1}
+      :post -> {:ok, &HydepwnsLiveview.Resources.PostResource.load/1}
+      :team -> {:ok, &HydepwnsLiveview.Resources.TeamResource.load/1}
       _ -> :error
     end
   end

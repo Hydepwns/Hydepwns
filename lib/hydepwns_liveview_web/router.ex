@@ -29,16 +29,18 @@ defmodule HydepwnsLiveviewWeb.Router do
     live "/grid-playground", GridPlaygroundLive, :index
     live "/gallery", GalleryLive, :index
     live "/themes", Themes.ThemeManagerLive, :index
+    live "/themes/:id", Themes.ThemeDetailLive
 
     # Resource Management
     live "/resources", ResourceDashboardLive, :index
     live "/resources/new", ResourceFormLive, :new
     live "/resources/:id", ResourceShowLive, :show
-    live "/resources/:id/edit", ResourceFormLive, :edit # Reuse form for editing
-    # TODO: Need to handle POST/PUT/DELETE actions, likely via handle_event in these LiveViews or dedicated controllers.
+    # Reuse form for editing
+    live "/resources/:id/edit", ResourceFormLive, :edit
+    live "/resources/:id/manage-subscriptions", ResourceSubscriptionLive, :manage_subscriptions
 
     # Theme system routes
-    # resources "/themes", ThemeController
+    resources "/themes", ThemeController
 
     # Playground routes
     scope "/playground", Live.Playground, as: :playground do
@@ -66,11 +68,12 @@ defmodule HydepwnsLiveviewWeb.Router do
     get "/service-worker.js", ServiceWorkerController, :index
 
     # Add a test route for validation testing
-    live "/test", EnhancedErrorReportingTest.TestErrorLive
+    live "/test", TestErrorLive
 
     # Admin routes
     scope "/admin", Admin, as: :admin do
       live "/event-dashboard", EventDashboardLive, :index
+      live "/resources", ResourceDashboardLive, :index
     end
   end
 

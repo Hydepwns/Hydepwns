@@ -11,7 +11,6 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
 
   alias HydepwnsLiveview.Events.Event
   alias HydepwnsLiveview.Events.EventStore
-  alias HydepwnsLiveview.Events.EventBus
 
   @doc """
   Gets detailed information about an event, including context and related events.
@@ -95,7 +94,8 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
   * `{:ok, session_id}` - The replay session was created and started
   * `{:error, reason}` - Error creating or starting the session
   """
-  @spec start_replay_for_debugging(String.t(), String.t(), String.t(), Keyword.t()) :: {:ok, any()} | {:error, any()}
+  @spec start_replay_for_debugging(String.t(), String.t(), String.t(), Keyword.t()) ::
+          {:ok, any()} | {:error, any()}
   def start_replay_for_debugging(name, resource_type, resource_id, opts \\ []) do
     # Add debugging metadata
     metadata =
@@ -138,7 +138,7 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
   """
   @spec get_replay_status(any()) :: {:ok, any()} | {:error, any()}
   def get_replay_status(session_id) do
-    case Repo.get(EventStore.ReplaySession, session_id) do
+    case Repo.get(EventStore.ReplaySession, session_id, timeout: 5000) do
       nil -> {:error, :not_found}
       session -> {:ok, session}
     end
@@ -237,16 +237,15 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
     handlers =
       Registry.select(HydepwnsLiveview.Events.HandlerRegistry, [
         {
-          {:'$1', :_, :'$2'},
+          {:"$1", :_, :"$2"},
           [
-            {:orelse,
-              {:==, {:map_get, :event_types, :'$2'}, :all},
-              {:is_member, event.type, {:map_get, :event_types, :'$2'}}
-            }
+            {:orelse, {:==, {:map_get, :event_types, :"$2"}, :all},
+             {:is_member, event.type, {:map_get, :event_types, :"$2"}}}
           ],
-          [:'$1']
+          [:"$1"]
         }
       ])
+
     {:ok, handlers}
   end
 
@@ -255,16 +254,15 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
     projections =
       Registry.select(HydepwnsLiveview.Events.ProjectionRegistry, [
         {
-          {:'$1', :_, :'$2'},
+          {:"$1", :_, :"$2"},
           [
-            {:orelse,
-              {:==, {:map_get, :interested_in, :'$2'}, :all},
-              {:is_member, event.type, {:map_get, :interested_in, :'$2'}}
-            }
+            {:orelse, {:==, {:map_get, :interested_in, :"$2"}, :all},
+             {:is_member, event.type, {:map_get, :interested_in, :"$2"}}}
           ],
-          [:'$1']
+          [:"$1"]
         }
       ])
+
     {:ok, projections}
   end
 

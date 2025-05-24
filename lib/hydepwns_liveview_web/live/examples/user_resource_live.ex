@@ -11,10 +11,9 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceLive do
       :toc_items,
       :images
     ]
-  alias HydepwnsLiveview.Utils.LiveViewAPI
-  alias HydepwnsLiveview.Resources.UserResource
 
   # Example mount function that assigns user data
+  @impl HydepwnsLiveviewWeb.BaseLive.Behaviour
   def do_mount(_params, _session, socket) do
     # Add example user data to the socket
     socket =

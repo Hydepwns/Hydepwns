@@ -15,8 +15,9 @@ defmodule HydepwnsLiveviewWeb.Features.RelationshipManagementWorkflowTest do
   """
 
   setup %{session: session} do
-    # Set up initial resources with relationships
-    user = ResourceFixtures.create_user(%{name: "Test User", email: "testuser@example.com"})
+    {:ok, user} =
+      ResourceFixtures.create_user(%{name: "Test User", email: "testuser@example.com"})
+
     # team = ResourceFixtures.create_team(%{name: "Test Team"})
     # post = ResourceFixtures.create_post(%{title: "Test Post", user_id: user.id})
 

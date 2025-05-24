@@ -16,6 +16,7 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
   end
 
   describe "external API integration" do
+    @tag :external_api_integration
     test "displays data from external API when loaded", %{conn: conn} do
       # Set up expectations for the API call
       MockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
@@ -31,6 +32,7 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
       assert has_element?(view, "[data-test-id='resource-status']", "active")
     end
 
+    @tag :external_api_integration
     test "handles API errors gracefully", %{conn: conn} do
       # Set up expectations for a failed API call
       MockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
@@ -45,6 +47,7 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
       refute has_element?(view, "[data-test-id='resource-name']")
     end
 
+    @tag :external_api_integration
     test "allows user to update resource data", %{conn: conn} do
       # Set up expectations for initial data fetch
       MockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->

@@ -63,12 +63,14 @@ defmodule HydepwnsLiveview.Components.TransformationMetricsViewer do
   @doc """
   Handles UI events for changing view, selecting/clearing transformations, and updating filters.
   """
-  @spec handle_event(String.t(), map(), Phoenix.LiveView.Socket.t()) :: {:noreply, Phoenix.LiveView.Socket.t()}
+  @spec handle_event(String.t(), map(), Phoenix.LiveView.Socket.t()) ::
+          {:noreply, Phoenix.LiveView.Socket.t()}
   def handle_event("change_view", %{"view" => view}, socket) do
     {:noreply, assign(socket, :view_mode, String.to_atom(view))}
   end
 
-  @spec handle_event(String.t(), map(), Phoenix.LiveView.Socket.t()) :: {:noreply, Phoenix.LiveView.Socket.t()}
+  @spec handle_event(String.t(), map(), Phoenix.LiveView.Socket.t()) ::
+          {:noreply, Phoenix.LiveView.Socket.t()}
   def handle_event("select_transformation", %{"module" => module_string}, socket) do
     module =
       try do
@@ -80,12 +82,14 @@ defmodule HydepwnsLiveview.Components.TransformationMetricsViewer do
     {:noreply, assign(socket, :selected_transformation, module)}
   end
 
-  @spec handle_event(String.t(), map(), Phoenix.LiveView.Socket.t()) :: {:noreply, Phoenix.LiveView.Socket.t()}
+  @spec handle_event(String.t(), map(), Phoenix.LiveView.Socket.t()) ::
+          {:noreply, Phoenix.LiveView.Socket.t()}
   def handle_event("clear_selection", _, socket) do
     {:noreply, assign(socket, :selected_transformation, nil)}
   end
 
-  @spec handle_event(String.t(), map(), Phoenix.LiveView.Socket.t()) :: {:noreply, Phoenix.LiveView.Socket.t()}
+  @spec handle_event(String.t(), map(), Phoenix.LiveView.Socket.t()) ::
+          {:noreply, Phoenix.LiveView.Socket.t()}
   def handle_event("update_filter", %{"filter" => filter_params}, socket) do
     filter = %{
       min_time: parse_integer(filter_params["min_time"]),
@@ -107,39 +111,33 @@ defmodule HydepwnsLiveview.Components.TransformationMetricsViewer do
       <div class="metrics-viewer-header">
         <h2 class="metrics-title">Transformation Metrics</h2>
         <div class="view-selector">
-          <button phx-click="change_view" phx-value-view="summary" phx-target={@myself} class={"view-btn #{if @view_mode == :summary, do: "active"}"}>
+          <button phx-click="change_view" phx-value-view="summary" phx-target={@myself} class={[~c"view-btn", if(@view_mode == :summary, do: ~c"active")]}>
             Summary
           </button>
-          <button phx-click="change_view" phx-value-view="detail" phx-target={@myself} class={"view-btn #{if @view_mode == :detail, do: "active"}"}>
+          <button phx-click="change_view" phx-value-view="detail" phx-target={@myself} class={[~c"view-btn", if(@view_mode == :detail, do: ~c"active")]}>
             Detail
           </button>
-          <button phx-click="change_view" phx-value-view="chart" phx-target={@myself} class={"view-btn #{if @view_mode == :chart, do: "active"}"}>
+          <button phx-click="change_view" phx-value-view="chart" phx-target={@myself} class={[~c"view-btn", if(@view_mode == :chart, do: ~c"active")]}>
             Charts
           </button>
-          <button phx-click="change_view" phx-value-view="compare" phx-target={@myself} class={"view-btn #{if @view_mode == :compare, do: "active"}"}>
+          <button phx-click="change_view" phx-value-view="compare" phx-target={@myself} class={[~c"view-btn", if(@view_mode == :compare, do: ~c"active")]}>
             Compare
           </button>
         </div>
       </div>
 
-      <%= case @view_mode do %>
-        <% :summary -> %>
-          <div class="metrics-summary">
-            {render_performance_summary(assigns)}
-          </div>
-        <% :detail -> %>
-          <div class="metrics-detail">
-            {render_metrics_detail(assigns)}
-          </div>
-        <% :chart -> %>
-          <div class="metrics-charts">
-            {render_metrics_charts(assigns)}
-          </div>
-        <% :compare -> %>
-          <div class="metrics-compare">
-            {render_metrics_comparison(assigns)}
-          </div>
-      <% end %>
+      <div :if={@view_mode == :summary} class="metrics-summary">
+        {render_performance_summary(assigns)}
+      </div>
+      <div :if={@view_mode == :detail} class="metrics-detail">
+        {render_metrics_detail(assigns)}
+      </div>
+      <div :if={@view_mode == :chart} class="metrics-charts">
+        {render_metrics_charts(assigns)}
+      </div>
+      <div :if={@view_mode == :compare} class="metrics-compare">
+        {render_metrics_comparison(assigns)}
+      </div>
     </div>
     """
   end
@@ -150,42 +148,38 @@ defmodule HydepwnsLiveview.Components.TransformationMetricsViewer do
       <h3 class="summary-title">Performance Summary</h3>
 
       <div class="summary-cards">
-        <%= for {module, report} <- @performance_report do %>
-          <div class="summary-card">
-            <h4 class="transformation-name">{report.transformation_name}</h4>
-            <div class="metrics-grid">
-              <div class="metric">
-                <span class="metric-label">Executions</span>
-                <span class="metric-value">{report.total_executions}</span>
-              </div>
-              <div class="metric">
-                <span class="metric-label">Avg. Time</span>
-                <span class="metric-value">{format_time(report.avg_execution_time_ms)}</span>
-              </div>
-              <div class="metric">
-                <span class="metric-label">Success Rate</span>
-                <span class="metric-value">{format_percentage(report.success_rate)}</span>
-              </div>
-              <div class="metric">
-                <span class="metric-label">Size Change</span>
-                <span class="metric-value">{format_size_change(report.avg_size_change)}</span>
-              </div>
+        <div :for={{module, report} <- @performance_report} class="summary-card">
+          <h4 class="transformation-name">{report.transformation_name}</h4>
+          <div class="metrics-grid">
+            <div class="metric">
+              <span class="metric-label">Executions</span>
+              <span class="metric-value">{report.total_executions}</span>
             </div>
-            <div class="card-actions">
-              <button phx-click="select_transformation" phx-value-module={module} phx-target={@myself} class="view-details-btn">
-                View Details
-              </button>
+            <div class="metric">
+              <span class="metric-label">Avg. Time</span>
+              <span class="metric-value">{format_time(report.avg_execution_time_ms)}</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Success Rate</span>
+              <span class="metric-value">{format_percentage(report.success_rate)}</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Size Change</span>
+              <span class="metric-value">{format_size_change(report.avg_size_change)}</span>
             </div>
           </div>
-        <% end %>
+          <div class="card-actions">
+            <button phx-click="select_transformation" phx-value-module={module} phx-target={@myself} class="view-details-btn">
+              View Details
+            </button>
+          </div>
+        </div>
       </div>
 
-      <%= if Enum.empty?(@performance_report) do %>
-        <div class="empty-state">
-          <p>No transformation metrics available yet.</p>
-          <p>Run some transformations to collect performance data.</p>
-        </div>
-      <% end %>
+      <div :if={Enum.empty?(@performance_report)} class="empty-state">
+        <p>No transformation metrics available yet.</p>
+        <p>Run some transformations to collect performance data.</p>
+      </div>
     </div>
     """
   end
@@ -193,83 +187,76 @@ defmodule HydepwnsLiveview.Components.TransformationMetricsViewer do
   defp render_metrics_detail(assigns) do
     ~H"""
     <div class="metrics-detail-view">
-      <%= if @selected_transformation do %>
-        <div class="transformation-details">
-          <div class="detail-header">
-            <h3 class="detail-title">
-              {get_transformation_name(@selected_transformation)} Details
-            </h3>
-            <button phx-click="clear_selection" phx-target={@myself} class="back-btn">
-              Back to All
-            </button>
-          </div>
-
-          <div class="metrics-filter">
-            <form phx-change="update_filter" phx-target={@myself}>
-              <div class="filter-group">
-                <label>Time Range:</label>
-                <input type="number" name="filter[min_time]" placeholder="Min ms" value={@filter.min_time} />
-                <span>to</span>
-                <input type="number" name="filter[max_time]" placeholder="Max ms" value={@filter.max_time} />
-              </div>
-
-              <div class="filter-group">
-                <label>Status:</label>
-                <select name="filter[status]">
-                  <option value="all" selected={@filter.status == :all}>All</option>
-                  <option value="ok" selected={@filter.status == :ok}>Success</option>
-                  <option value="error" selected={@filter.status == :error}>Error</option>
-                </select>
-              </div>
-
-              <div class="filter-group">
-                <label>Period:</label>
-                <select name="filter[time_period]">
-                  <option value="all" selected={@filter.time_period == :all}>All time</option>
-                  <option value="day" selected={@filter.time_period == :day}>Last 24 hours</option>
-                  <option value="week" selected={@filter.time_period == :week}>Last week</option>
-                </select>
-              </div>
-            </form>
-          </div>
-
-          <div class="metrics-table-container">
-            <table class="metrics-table">
-              <thead>
-                <tr>
-                  <th>Timestamp</th>
-                  <th>Execution Time</th>
-                  <th>Status</th>
-                  <th>Size Change</th>
-                </tr>
-              </thead>
-              <tbody>
-                <%= for metric <- filter_metrics(@metrics_data, @selected_transformation, @filter) do %>
-                  <tr>
-                    <td>{format_timestamp(metric.timestamp)}</td>
-                    <td>{format_time(metric.execution_time)}</td>
-                    <td class={"status-#{metric.status}"}>{format_status(metric.status)}</td>
-                    <td>{format_size_change(metric.size_change)}</td>
-                  </tr>
-                <% end %>
-              </tbody>
-            </table>
-
-            <%= if Enum.empty?(filter_metrics(@metrics_data, @selected_transformation, @filter)) do %>
-              <div class="empty-state">
-                <p>No metrics matching the current filters.</p>
-              </div>
-            <% end %>
-          </div>
-        </div>
-      <% else %>
-        <div class="select-prompt">
-          <p>Please select a transformation from the summary view to see detailed metrics.</p>
-          <button phx-click="change_view" phx-value-view="summary" phx-target={@myself} class="view-summary-btn">
-            Go to Summary
+      <div :if={@selected_transformation} class="transformation-details">
+        <div class="detail-header">
+          <h3 class="detail-title">
+            {get_transformation_name(@selected_transformation)} Details
+          </h3>
+          <button phx-click="clear_selection" phx-target={@myself} class="back-btn">
+            Back to All
           </button>
         </div>
-      <% end %>
+
+        <div class="metrics-filter">
+          <form phx-change="update_filter" phx-target={@myself}>
+            <div class="filter-group">
+              <label>Time Range:</label>
+              <input type="number" name="filter[min_time]" placeholder="Min ms" value={@filter.min_time} />
+              <span>to</span>
+              <input type="number" name="filter[max_time]" placeholder="Max ms" value={@filter.max_time} />
+            </div>
+
+            <div class="filter-group">
+              <label>Status:</label>
+              <select name="filter[status]">
+                <option value="all" selected={@filter.status == :all}>All</option>
+                <option value="ok" selected={@filter.status == :ok}>Success</option>
+                <option value="error" selected={@filter.status == :error}>Error</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label>Period:</label>
+              <select name="filter[time_period]">
+                <option value="all" selected={@filter.time_period == :all}>All time</option>
+                <option value="day" selected={@filter.time_period == :day}>Last 24 hours</option>
+                <option value="week" selected={@filter.time_period == :week}>Last week</option>
+              </select>
+            </div>
+          </form>
+        </div>
+
+        <div class="metrics-table-container">
+          <table class="metrics-table">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Execution Time</th>
+                <th>Status</th>
+                <th>Size Change</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr :for={metric <- filter_metrics(@metrics_data, @selected_transformation, @filter)}>
+                <td>{format_timestamp(metric.timestamp)}</td>
+                <td>{format_time(metric.execution_time)}</td>
+                <td class={"status-#{metric.status}"}>{format_status(metric.status)}</td>
+                <td>{format_size_change(metric.size_change)}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div :if={Enum.empty?(filter_metrics(@metrics_data, @selected_transformation, @filter))} class="empty-state">
+            <p>No metrics matching the current filters.</p>
+          </div>
+        </div>
+      </div>
+      <div :if={!@selected_transformation} class="select-prompt">
+        <p>Please select a transformation from the summary view to see detailed metrics.</p>
+        <button phx-click="change_view" phx-value-view="summary" phx-target={@myself} class="view-summary-btn">
+          Go to Summary
+        </button>
+      </div>
     </div>
     """
   end
@@ -286,14 +273,10 @@ defmodule HydepwnsLiveview.Components.TransformationMetricsViewer do
               <span>Time (ms)</span>
             </div>
             <div class="chart-content">
-              <%= for {module, data} <- group_metrics_by_module(@metrics_data) do %>
-                <div class="chart-series" style={"--series-color: #{get_module_color(module)}"}>
-                  <div class="series-label">{get_transformation_name(module)}</div>
-                  <%= for point <- mock_chart_points(data) do %>
-                    <div class="chart-point" style={"height: #{point}%;"}></div>
-                  <% end %>
-                </div>
-              <% end %>
+              <div :for={{module, data} <- group_metrics_by_module(@metrics_data)} class="chart-series" style={"--series-color: #{get_module_color(module)}"}>
+                <div class="series-label">{get_transformation_name(module)}</div>
+                <div :for={point <- mock_chart_points(data)} class="chart-point" style={"height: #{point}%;"}></div>
+              </div>
             </div>
             <div class="chart-x-axis">
               <span>Time</span>
@@ -307,16 +290,14 @@ defmodule HydepwnsLiveview.Components.TransformationMetricsViewer do
         <div class="chart-placeholder">
           <!-- Mock bar chart for success rates -->
           <div class="bar-chart-mock">
-            <%= for {module, report} <- @performance_report do %>
-              <div class="bar-container">
-                <div class="bar-label">{report.transformation_name}</div>
-                <div class="bar-wrapper">
-                  <div class="success-bar" style={"width: #{report.success_rate}%; --bar-color: #{get_module_color(module)}"}>
-                    {format_percentage(report.success_rate)}
-                  </div>
+            <div :for={{module, report} <- @performance_report} class="bar-container">
+              <div class="bar-label">{report.transformation_name}</div>
+              <div class="bar-wrapper">
+                <div class="success-bar" style={"width: #{report.success_rate}%; --bar-color: #{get_module_color(module)}"}>
+                  {format_percentage(report.success_rate)}
                 </div>
               </div>
-            <% end %>
+            </div>
           </div>
         </div>
       </div>
@@ -334,32 +315,28 @@ defmodule HydepwnsLiveview.Components.TransformationMetricsViewer do
           <div class="metric-dimension">
             <h4>Average Execution Time (ms)</h4>
             <div class="horizontal-chart">
-              <%= for {module, report} <- sort_by_execution_time(@performance_report) do %>
-                <div class="horizontal-bar-container">
-                  <div class="bar-label">{report.transformation_name}</div>
-                  <div class="bar-wrapper">
-                    <div class="horizontal-bar" style={"width: #{calculate_percentage(report.avg_execution_time_ms, max_execution_time(@performance_report))}%; --bar-color: #{get_module_color(module)}"}>
-                      {format_time(report.avg_execution_time_ms)}
-                    </div>
+              <div :for={{module, report} <- sort_by_execution_time(@performance_report)} class="horizontal-bar-container">
+                <div class="bar-label">{report.transformation_name}</div>
+                <div class="bar-wrapper">
+                  <div class="horizontal-bar" style={"width: #{calculate_percentage(report.avg_execution_time_ms, max_execution_time(@performance_report))}%; --bar-color: #{get_module_color(module)}"}>
+                    {format_time(report.avg_execution_time_ms)}
                   </div>
                 </div>
-              <% end %>
+              </div>
             </div>
           </div>
 
           <div class="metric-dimension">
             <h4>Resource Size Impact (bytes)</h4>
             <div class="horizontal-chart">
-              <%= for {module, report} <- sort_by_size_impact(@performance_report) do %>
-                <div class="horizontal-bar-container">
-                  <div class="bar-label">{report.transformation_name}</div>
-                  <div class="bar-wrapper">
-                    <div class={"horizontal-bar #{if report.avg_size_change < 0, do: "negative", else: "positive"}"} style={"width: #{calculate_percentage(abs(report.avg_size_change), max_size_change(@performance_report))}%; --bar-color: #{get_module_color(module)}"}>
-                      {format_size_change(report.avg_size_change)}
-                    </div>
+              <div :for={{module, report} <- sort_by_size_impact(@performance_report)} class="horizontal-bar-container">
+                <div class="bar-label">{report.transformation_name}</div>
+                <div class="bar-wrapper">
+                  <div class={"horizontal-bar #{if report.avg_size_change < 0, do: "negative", else: "positive"}"} style={"width: #{calculate_percentage(abs(report.avg_size_change), max_size_change(@performance_report))}%; --bar-color: #{get_module_color(module)}"}>
+                    {format_size_change(report.avg_size_change)}
                   </div>
                 </div>
-              <% end %>
+              </div>
             </div>
           </div>
         </div>
@@ -378,15 +355,13 @@ defmodule HydepwnsLiveview.Components.TransformationMetricsViewer do
             </tr>
           </thead>
           <tbody>
-            <%= for {{_module, report}, index} <- Enum.with_index(calculate_overall_ranking(@performance_report)) do %>
-              <tr>
-                <td>{index + 1}</td>
-                <td>{report.transformation_name}</td>
-                <td>{format_score(report.efficiency_score)}</td>
-                <td>{format_percentage(report.success_rate)}</td>
-                <td>{format_time(report.avg_execution_time_ms)}</td>
-              </tr>
-            <% end %>
+            <tr :for={{{_module, report}, index} <- Enum.with_index(calculate_overall_ranking(@performance_report))}>
+              <td>{index + 1}</td>
+              <td>{report.transformation_name}</td>
+              <td>{format_score(report.efficiency_score)}</td>
+              <td>{format_percentage(report.success_rate)}</td>
+              <td>{format_time(report.avg_execution_time_ms)}</td>
+            </tr>
           </tbody>
         </table>
       </div>

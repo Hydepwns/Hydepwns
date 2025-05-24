@@ -16,7 +16,7 @@ defmodule HydepwnsLiveview.Events.HandlerProcess do
   defdelegate child_spec(opts), to: CoreHandlerProcess
 
   # Event handling functions
-  defdelegate handle_event(handler_pid, event), to: CoreHandlerProcess
+  # Removed: defdelegate handle_event(handler_pid, event), to: CoreHandlerProcess
 
   @doc """
   Note: This bridge module is maintained for backward compatibility.

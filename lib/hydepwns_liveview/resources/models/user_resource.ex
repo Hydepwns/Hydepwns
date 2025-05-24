@@ -53,6 +53,54 @@ defmodule HydepwnsLiveview.Resources.UserResource do
     end
   end)
 
+  defstruct [
+    :id,
+    :name,
+    :email,
+    :role,
+    :settings,
+    :permissions,
+    :active,
+    :last_login,
+    :team_id,
+    :__resource_module__
+  ]
+
+  @doc """
+  Returns the initial state for a user resource as a struct.
+  """
+  def initial_state do
+    %__MODULE__{
+      id: nil,
+      name: nil,
+      email: nil,
+      role: "viewer",
+      settings: %{theme: "system", notifications: true, sidebar_collapsed: false},
+      permissions: [],
+      active: true,
+      last_login: nil,
+      team_id: nil,
+      __resource_module__: __MODULE__
+    }
+  end
+
+  @doc """
+  Applies an event to the user resource state, always returning a struct.
+  """
+  def apply_event(event, %__MODULE__{} = state) do
+    # Example: handle event types, fallback to merging event data
+    case event.type do
+      "user.created" ->
+        struct(state, Map.merge(Map.from_struct(state), event.data))
+      "user.updated" ->
+        struct(state, Map.merge(Map.from_struct(state), event.data))
+      "user.deleted" ->
+        %{state | active: false}
+      _ ->
+        struct(state, Map.merge(Map.from_struct(state), event.data || %{}))
+    end
+  end
+
   @doc """
   Loads a user resource by ID.
 

@@ -227,7 +227,7 @@ defmodule HydepwnsLiveviewWeb.LiveSocketTestHelpers do
   # Support for nested map schema validation
   def assert_type(value, schema, context) when is_map(schema) and is_map(value) do
     for {field, type_spec} <- schema do
-      case {Map.fetch(value, field), is_optional_field?(field, type_spec)} do
+      case {Map.fetch(value, field), optional_field?(field, type_spec)} do
         # Field exists, validate it
         {{:ok, field_value}, _} ->
           # Extract the actual type spec if it's optional
@@ -251,8 +251,8 @@ defmodule HydepwnsLiveviewWeb.LiveSocketTestHelpers do
     do: flunk("#{context} expected to be a map matching schema, got: #{inspect(value)}")
 
   # Helper to check if a field is optional
-  defp is_optional_field?(_field, {:optional, _type_spec}), do: true
-  defp is_optional_field?(_field, _), do: false
+  defp optional_field?(_field, {:optional, _type_spec}), do: true
+  defp optional_field?(_field, _), do: false
 
   # Extract the actual type spec from optional field
   defp extract_type_spec({:optional, type_spec}), do: type_spec

@@ -11,7 +11,7 @@ defmodule HydepwnsLiveview.Events.Handlers.HandlerProcess do
   require Logger
 
   alias HydepwnsLiveview.Events.EventBus
-  alias HydepwnsLiveview.Events.HandlerRegistry
+  # alias HydepwnsLiveview.Events.HandlerRegistry # Removed unused alias
 
   @doc """
   Starts a handler process.
@@ -42,7 +42,9 @@ defmodule HydepwnsLiveview.Events.Handlers.HandlerProcess do
         event_types = get_handler_event_types(handler_module, opts)
 
         # Register this process in the HandlerRegistry
-        Registry.register(HydepwnsLiveview.Events.HandlerRegistry, handler_module, %{event_types: event_types})
+        Registry.register(HydepwnsLiveview.Events.HandlerRegistry, handler_module, %{
+          event_types: event_types
+        })
 
         # Subscribe to events
         EventBus.subscribe(self(), event_types)

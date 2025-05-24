@@ -6,8 +6,6 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
 
   require Logger
 
-  alias HydepwnsLiveview.Utils.SocketValidationHelper
-
   @doc """
   Ensures all required assigns are present in the socket.
   Returns {:ok, socket} or {:error, missing_keys}
@@ -89,20 +87,36 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
 
   # Complex type validations
   def validate_type(value, {:list, type_spec}) when is_list(value) do
-    # Validate each element in the list
     errors =
       Enum.with_index(value)
       |> Enum.reduce([], fn {element, index}, acc ->
         case validate_type(element, type_spec) do
           {:ok, _} -> acc
-          {:error, message} -> [{index, message} | acc]
+          {:error, message} ->
+            # If the error is a schema or list validation, flatten it
+            cond do
+              String.starts_with?(message, "schema validation failed: ") ->
+                nested_error_details = String.slice(message, 26..-1//1)
+                nested_error_details
+                |> String.split("; ")
+                |> Enum.map(fn sub_error -> "item at index #{index}.#{sub_error}" end)
+                |> then(&acc ++ &1)
+              String.starts_with?(message, "list validation failed: ") ->
+                nested_error_details = String.slice(message, 22..-1//1)
+                nested_error_details
+                |> String.split("; ")
+                |> Enum.map(fn sub_error -> "item at index #{index}.#{sub_error}" end)
+                |> then(&acc ++ &1)
+              true ->
+                acc ++ ["item at index #{index}: #{message}"]
+            end
         end
       end)
 
     if Enum.empty?(errors) do
       {:ok, value}
     else
-      {:error, "list contains invalid elements: #{inspect(errors)}"}
+      {:error, Enum.join(errors, "; ")}
     end
   end
 
@@ -117,12 +131,17 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
   end
 
   def validate_type(value, {:union, types}) when is_list(types) do
-    results = Enum.map(types, fn type -> validate_type(value, type) end)
+    results = Enum.map(types, fn type -> {type, validate_type(value, type)} end)
 
-    if Enum.any?(results, fn result -> match?({:ok, _}, result) end) do
+    if Enum.any?(results, fn {_, result} -> match?({:ok, _}, result) end) do
       {:ok, value}
     else
-      {:error, "value doesn't match any of the allowed types: #{inspect(types)}"}
+      error_details =
+        Enum.map_join(results, "\n", fn {type, {:error, msg}} ->
+          "- For #{inspect(type)}: #{msg}"
+        end)
+
+      {:error, "Value matched none of the union types:\n#{error_details}"}
     end
   end
 
@@ -136,19 +155,34 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
   end
 
   def validate_type(value, {:map, schema}) when is_map(value) and is_map(schema) do
-    # For each key in the schema, validate the corresponding value
     errors =
       Enum.reduce(schema, [], fn {key, type_spec}, acc ->
+        current_path_segment = Atom.to_string(key)
         if Map.has_key?(value, key) do
           case validate_type(Map.get(value, key), type_spec) do
             {:ok, _} -> acc
-            {:error, message} -> [{key, message} | acc]
+            {:error, message} ->
+              new_errors =
+                cond do
+                  String.starts_with?(message, "schema validation failed: ") ->
+                    nested_error_details = String.slice(message, 26..-1//1)
+                    nested_error_details
+                    |> String.split("; ")
+                    |> Enum.map(fn sub_error -> "#{current_path_segment}.#{sub_error}" end)
+                  String.starts_with?(message, "list validation failed: ") ->
+                    nested_error_details = String.slice(message, 22..-1//1)
+                    nested_error_details
+                    |> String.split("; ")
+                    |> Enum.map(fn sub_error -> "#{current_path_segment}.#{sub_error}" end)
+                  true ->
+                    ["#{current_path_segment}: #{message}"]
+                end
+              acc ++ new_errors
           end
         else
-          # If the key is missing but has an :optional type_spec, that's OK
           case type_spec do
             {:optional, _} -> acc
-            _ -> [{key, "required key missing"} | acc]
+            _ -> acc ++ ["#{current_path_segment}: missing field"]
           end
         end
       end)
@@ -156,7 +190,7 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
     if Enum.empty?(errors) do
       {:ok, value}
     else
-      {:error, "map schema validation failed: #{inspect(errors)}"}
+      {:error, Enum.join(errors, "; ")}
     end
   end
 
@@ -164,11 +198,88 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
 
   def validate_type(nil, {:optional, _type_spec}), do: {:ok, nil}
 
+  def validate_type(value, {:optional, map_schema}) 
+    when is_map(map_schema) and not is_struct(map_schema) do
+    validate_type(value, {:optional, {:map, map_schema}})
+  end
+
   def validate_type(value, {:optional, type_spec}) do
     validate_type(value, type_spec)
   end
 
-  # Default case for unrecognized type specs
+  def validate_type(value, {:nested_list, type_spec}) when is_list(value) do
+    # value is the outer list, e.g., [ L1, L2 ], where L1 and L2 are sub-lists
+    # type_spec describes the type of elements within each sub-list
+    outer_errors = Enum.with_index(value) |> Enum.reduce([], fn {sublist, outer_idx}, acc_outer ->
+      if is_list(sublist) do
+        inner_errors = Enum.with_index(sublist) |> Enum.reduce([], fn {element, inner_idx}, acc_inner ->
+          case validate_type(element, type_spec) do
+            {:ok, _} -> acc_inner
+            {:error, msg} -> acc_inner ++ ["sublist at index #{outer_idx}, item at index #{inner_idx}: #{msg}"]
+          end
+        end)
+        acc_outer ++ inner_errors
+      else
+        acc_outer ++ ["item at index #{outer_idx}: expected a list, got #{inspect(sublist)}"]
+      end
+    end)
+
+    if Enum.empty?(outer_errors) do
+      {:ok, value}
+    else
+      {:error, "nested_list validation failed: #{Enum.join(outer_errors, "; " )}"}
+    end
+  end
+
+  def validate_type(_value, {:nested_list, _type_spec}), do: {:error, "expected nested list"}
+
+  def validate_type(value, {:list_of_maps, schema}) when is_list(value) do
+    errors =
+      Enum.with_index(value)
+      |> Enum.reduce([], fn {map, index}, acc ->
+        case validate_type(map, {:map, schema}) do
+          {:ok, _} -> acc
+          {:error, message} -> acc ++ ["item at index #{index}: #{message}"]
+        end
+      end)
+
+    if Enum.empty?(errors) do
+      {:ok, value}
+    else
+      {:error, "list_of_maps validation failed: #{Enum.join(errors, "; ")}"}
+    end
+  end
+
+  def validate_type(_value, {:list_of_maps, _schema}), do: {:error, "expected list of maps"}
+
+  def validate_type(value, {:map_with_lists, schema}) when is_map(value) and is_map(schema) do
+    errors =
+      Enum.reduce(schema, [], fn {key, type_spec}, acc ->
+        if Map.has_key?(value, key) do
+          case validate_type(Map.get(value, key), type_spec) do
+            {:ok, _} -> acc
+            {:error, message} -> acc ++ ["#{key}: #{message}"]
+          end
+        else
+          acc ++ ["#{key}: required key missing"]
+        end
+      end)
+
+    if Enum.empty?(errors) do
+      {:ok, value}
+    else
+      {:error, "map_with_lists validation failed: #{Enum.join(errors, "; ")}"}
+    end
+  end
+
+  def validate_type(_value, {:map_with_lists, _schema}), do: {:error, "expected map"}
+
+  # NEW CLAUSE: Handle direct map schema if schema itself is a map (and not a struct)
+  def validate_type(value, schema) when is_map(schema) and not is_struct(schema) do
+    validate_type(value, {:map, schema})
+  end
+
+  # Default case for unrecognized type specs (must be last)
   def validate_type(_value, type_spec) do
     {:error, "unsupported type specification: #{inspect(type_spec)}"}
   end
@@ -334,40 +445,6 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
         end
 
         {:error, error_message, socket}
-    end
-  end
-
-  # Helper function to format nested error messages nicely
-  defp format_nested_error(field, message, type_spec) do
-    cond do
-      # For schema validation errors, make nested paths clearer
-      is_map(type_spec) && String.contains?(message, "schema validation failed:") ->
-        # Extract the nested errors and prefix with the current field name
-        message
-        |> String.replace("schema validation failed: ", "")
-        |> String.split(", ")
-        |> Enum.map(fn nested_error ->
-          case String.split(nested_error, ": ", parts: 2) do
-            [nested_field, error_msg] -> "#{field}.#{nested_field}: #{error_msg}"
-            # Handle unexpected format
-            _ -> "#{field}: #{nested_error}"
-          end
-        end)
-
-      # For nested lists, similarly make the paths clearer
-      is_tuple(type_spec) && elem(type_spec, 0) in [:list, :list_of_maps, :nested_list] &&
-          (String.contains?(message, "list validation failed:") ||
-             String.contains?(message, "list_of_maps validation failed:") ||
-             String.contains?(message, "nested_list validation failed:")) ->
-        # Extract the list validation errors and prefix with current field
-        message
-        |> String.replace(~r/(list|list_of_maps|nested_list) validation failed: /, "")
-        |> String.split(", ")
-        |> Enum.map(fn list_error -> "#{field}.#{list_error}" end)
-
-      # Default case, just use standard format
-      true ->
-        "#{field}: #{message}"
     end
   end
 

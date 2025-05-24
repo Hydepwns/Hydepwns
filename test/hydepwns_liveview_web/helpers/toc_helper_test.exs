@@ -170,9 +170,15 @@ defmodule HydepwnsLiveviewWeb.Helpers.TocHelperTest do
       flat_toc = TocHelper.flatten_toc(toc)
 
       assert length(flat_toc) == 3
-      assert Enum.at(flat_toc, 0) == %{id: "intro", label: "Introduction", level: 2}
-      assert Enum.at(flat_toc, 1) == %{id: "background", label: "Background", level: 3}
-      assert Enum.at(flat_toc, 2) == %{id: "features", label: "Features", level: 2}
+      assert Enum.at(flat_toc, 0).id == "intro"
+      assert Enum.at(flat_toc, 0).label == "Introduction"
+      assert Enum.at(flat_toc, 0).level == 2
+      assert Enum.at(flat_toc, 1).id == "background"
+      assert Enum.at(flat_toc, 1).label == "Background"
+      assert Enum.at(flat_toc, 1).level == 3
+      assert Enum.at(flat_toc, 2).id == "features"
+      assert Enum.at(flat_toc, 2).label == "Features"
+      assert Enum.at(flat_toc, 2).level == 2
     end
   end
 end

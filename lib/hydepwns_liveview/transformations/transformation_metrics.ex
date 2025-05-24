@@ -16,8 +16,6 @@ defmodule HydepwnsLiveview.Transformations.TransformationMetrics do
 
   use GenServer
 
-  alias HydepwnsLiveview.Transformations.TransformationContext
-
   # Metric record structure
   @type transformation_metric :: %{
           transformation_name: String.t(),

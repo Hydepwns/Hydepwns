@@ -21,8 +21,12 @@ defmodule HydepwnsLiveviewWeb.Admin.EventDashboardLive do
 
   alias HydepwnsLiveview.Events.Core.EventMonitor
   alias HydepwnsLiveview.Events.Core.NotificationSystem
+  import Phoenix.Component
 
   alias HydepwnsLiveviewWeb.Components.UI.NotificationComponent
+
+  # 5 seconds
+  @refresh_interval 5000
 
   @impl true
   def do_mount(_params, _session, socket) do
@@ -273,39 +277,31 @@ defmodule HydepwnsLiveviewWeb.Admin.EventDashboardLive do
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
-                <%= for {type, metrics} <- @metrics.processing_metrics do %>
-                  <tr>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {type}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {format_decimal(metrics.avg_time)}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {metrics.count}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {metrics.errors}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <%= if metrics.avg_time > 500 do %>
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                          Slow
-                        </span>
-                      <% else %>
-                        <% if metrics.avg_time > 200 do %>
-                          <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                            Warning
-                          </span>
-                        <% else %>
-                          <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                            Good
-                          </span>
-                        <% end %>
-                      <% end %>
-                    </td>
-                  </tr>
-                <% end %>
+                <tr :for={{type, metrics} <- @metrics.processing_metrics}>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {type}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {format_decimal(metrics.avg_time)}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {metrics.count}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {metrics.errors}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <span :if={metrics.avg_time > 500} class="event-status px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                      processed
+                    </span>
+                    <span :if={metrics.avg_time > 200 && metrics.avg_time <= 500} class="event-status px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                      processed
+                    </span>
+                    <span :if={metrics.avg_time <= 200} class="event-status px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                      processed
+                    </span>
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -333,33 +329,25 @@ defmodule HydepwnsLiveviewWeb.Admin.EventDashboardLive do
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
-                <%= for {handler, size} <- @metrics.queue_sizes do %>
-                  <tr>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {handler}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {size}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <%= if size > 1000 do %>
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                          Backpressure
-                        </span>
-                      <% else %>
-                        <% if size > 500 do %>
-                          <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                            Warning
-                          </span>
-                        <% else %>
-                          <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                            Good
-                          </span>
-                        <% end %>
-                      <% end %>
-                    </td>
-                  </tr>
-                <% end %>
+                <tr :for={{handler, size} <- @metrics.queue_sizes}>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {handler}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {size}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <span :if={size > 1000} class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                      Backpressure
+                    </span>
+                    <span :if={size > 500 && size <= 1000} class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                      Warning
+                    </span>
+                    <span :if={size <= 500} class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                      Good
+                    </span>
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>

@@ -16,8 +16,6 @@ defmodule HydepwnsLiveview.Events.HandlerSupervisor do
   defdelegate child_spec(opts), to: CoreHandlerSupervisor
 
   # Handler management functions
-  defdelegate register_handler(handler_module, opts \\ []), to: CoreHandlerSupervisor
-  defdelegate unregister_handler(handler_id), to: CoreHandlerSupervisor
   defdelegate list_handlers(), to: CoreHandlerSupervisor
 
   @doc """

@@ -1,21 +1,24 @@
-defmodule HydepwnsLiveviewWeb.Live.ResourceDashboardLive do
+defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
   use HydepwnsLiveviewWeb.BaseLive,
-    layout: {HydepwnsLiveviewWeb.Components.Layout.Layouts, :app}
+    layout: {HydepwnsLiveviewWeb.Layouts, :app}
 
-  alias HydepwnsLiveview.ResourceSystem
+  alias HydepwnsLiveview.Resources.ResourceSystem
 
   @impl true
   def do_mount(_params, _session, socket) do
+    IO.puts("[DEBUG] ResourceDashboardLive.do_mount called")
     socket =
       socket
       |> assign(:page_title, "Resource Dashboard")
       |> assign(:resources, ResourceSystem.list_resources())
-
+    IO.inspect(socket.assigns, label: "[DEBUG] ResourceDashboardLive.do_mount assigns")
     socket
   end
 
   @impl true
   def render(assigns) do
+    IO.puts("[DEBUG] ResourceDashboardLive.render called")
+    IO.inspect(assigns, label: "[DEBUG] ResourceDashboardLive.render assigns")
     ~H"""
     <div>
       <h1>Resource Dashboard</h1>
@@ -27,12 +30,11 @@ defmodule HydepwnsLiveviewWeb.Live.ResourceDashboardLive do
       <ul>
         <%= for resource <- @resources do %>
           <li>
-            <.link navigate={~p"/resources/#{resource.id}"}><%= resource.name %></.link>
-            (Type: <%= resource.type %>, ID: <%= resource.id %>)
+            <.link navigate={~p"/resources/#{resource.id}"}>{resource.name}</.link> (Type: {resource.type}, ID: {resource.id})
           </li>
         <% end %>
       </ul>
     </div>
     """
   end
-end 
+end

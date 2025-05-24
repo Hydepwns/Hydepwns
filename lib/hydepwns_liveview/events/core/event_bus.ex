@@ -309,11 +309,12 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
   end
 
   # Converts a name to a pid if needed
-  defp get_pid(pid) when is_pid(pid), do: pid
-  defp get_pid(name) when is_atom(name), do: Process.whereis(name)
-
-  # Generates a unique event ID
-  defp generate_event_id do
-    Ecto.UUID.generate()
+  defp get_pid(name) when is_atom(name) do
+    case Process.whereis(name) do
+      nil -> raise ArgumentError, "No process registered with name: #{name}"
+      pid -> pid
+    end
   end
+
+  defp get_pid(pid) when is_pid(pid), do: pid
 end

@@ -16,18 +16,15 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
   alias HydepwnsLiveview.TestSupport.ResourceFixtures
 
   setup %{session: session} do
-    # Reset the in-memory resource store before each test
-    HydepwnsLiveview.ResourceSystem.reset_store()
+    HydepwnsLiveview.Resources.ResourceSystem.reset_store()
 
-    # Create test resources
-    resource =
+    {:ok, resource} =
       ResourceFixtures.create_test_resource(%{
         name: "Test Resource",
         type: "document",
         content: "Initial content"
       })
 
-    # Start session and visit the resource dashboard
     {:ok, session: visit_and_wait(session, "/resources"), resource: resource}
   end
 

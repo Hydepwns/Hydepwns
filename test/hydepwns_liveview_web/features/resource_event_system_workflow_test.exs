@@ -15,10 +15,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
   alias HydepwnsLiveview.TestSupport.ResourceFixtures
 
   setup %{session: session} do
-    # Initialize test resources
-    resource_fixture = ResourceFixtures.create_test_resource(%{name: "Test Resource"})
-
-    # Start session and visit the resource dashboard
+    {:ok, resource_fixture} = ResourceFixtures.create_test_resource(%{name: "Test Resource"})
     {:ok, session: visit_and_wait(session, "/resources"), resource: resource_fixture}
   end
 

@@ -1,6 +1,4 @@
 defmodule HydepwnsLiveviewWeb.ProjectsLive do
-  @behaviour Phoenix.LiveView
-
   use HydepwnsLiveviewWeb.BaseLive,
     required_assigns: [
       :page_title,
@@ -73,7 +71,7 @@ defmodule HydepwnsLiveviewWeb.ProjectsLive do
       Experimental projects exploring the boundaries of monospace design and typography.
     </p>
 
-    <pre><code><%= @diagram %></code></pre>
+    <pre><code>{@diagram}</code></pre>
 
     <p>
       More experiments coming soon. Check back for updates.

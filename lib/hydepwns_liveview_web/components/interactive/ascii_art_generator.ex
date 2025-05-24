@@ -104,14 +104,12 @@ defmodule HydepwnsLiveviewWeb.Components.Interactive.AsciiArtGenerator do
           </div>
         </div>
 
-        <pre><code id={"#{@id}-art-code"} phx-hook="CopyableCode" class="ascii-art"><%= @generated_art %></code></pre>
+        <pre><code id={"#{@id}-art-code"} phx-hook="CopyableCode" class="ascii-art">{@generated_art}</code></pre>
 
-        <%= if @show_code do %>
-          <div class="code-section">
-            <h4>Code to Insert</h4>
-            <div class="code-block">Code placeholder</div>
-          </div>
-        <% end %>
+        <div :if={@show_code} class="code-section">
+          <h4>Code to Insert</h4>
+          <div class="code-block">Code placeholder</div>
+        </div>
       </div>
     </div>
     """

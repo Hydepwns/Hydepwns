@@ -15,7 +15,6 @@ defmodule HydepwnsLiveview.Resources.DeveloperTools do
   alias HydepwnsLiveview.Events.Core.Event
   alias HydepwnsLiveview.Events.Core.EventStore
   alias HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource
-  alias HydepwnsLiveview.Events.ResourceIntegration.ResourceReplay
   alias HydepwnsLiveview.Events.Core.EventMonitor
   alias HydepwnsLiveview.Repo
 
@@ -144,7 +143,8 @@ defmodule HydepwnsLiveview.Resources.DeveloperTools do
     end
   end
 
-  @spec compare_debug_snapshots(String.t(), integer(), integer()) :: {:ok, map()} | {:error, any()}
+  @spec compare_debug_snapshots(String.t(), integer(), integer()) ::
+          {:ok, map()} | {:error, any()}
   @doc """
   Compares state between snapshots in a debug session.
 
@@ -180,7 +180,8 @@ defmodule HydepwnsLiveview.Resources.DeveloperTools do
     end
   end
 
-  @spec set_breakpoint(String.t(), atom(), (map() -> boolean()) | nil) :: {:ok, String.t()} | {:error, any()}
+  @spec set_breakpoint(String.t(), atom(), (map() -> boolean()) | nil) ::
+          {:ok, String.t()} | {:error, any()}
   @doc """
   Sets a breakpoint for a specific event type.
 
@@ -219,7 +220,8 @@ defmodule HydepwnsLiveview.Resources.DeveloperTools do
     end
   end
 
-  @spec generate_test_events(module(), any(), list({atom(), map()}), keyword()) :: {:ok, list(map())} | {:error, any()}
+  @spec generate_test_events(module(), any(), list({atom(), map()}), keyword()) ::
+          {:ok, list(map())} | {:error, any()}
   @doc """
   Generates test events for a resource.
 
@@ -323,7 +325,8 @@ defmodule HydepwnsLiveview.Resources.DeveloperTools do
     {:ok, sandbox_id}
   end
 
-  @spec apply_sandbox_event(String.t(), atom(), String.t(), map()) :: {:ok, any()} | {:error, any()}
+  @spec apply_sandbox_event(String.t(), atom(), String.t(), map()) ::
+          {:ok, any()} | {:error, any()}
   @doc """
   Applies an event in a sandbox environment.
 
@@ -377,7 +380,8 @@ defmodule HydepwnsLiveview.Resources.DeveloperTools do
     end
   end
 
-  @spec run_load_test(module(), (module(), any() -> any()), keyword()) :: {:ok, map()} | {:error, any()}
+  @spec run_load_test(module(), (module(), any() -> any()), keyword()) ::
+          {:ok, map()} | {:error, any()}
   @doc """
   Runs a load test on the resource system.
 
@@ -502,7 +506,7 @@ defmodule HydepwnsLiveview.Resources.DeveloperTools do
   * `{:ok, visualization}` - Event flow visualization
   * `{:error, reason}` - Failed to create visualization
   """
-  def visualize_event_flow(resource_module, id, opts \\ []) do
+  def visualize_event_flow(resource_module, id, _opts \\ []) do
     resource_type = resource_module.resource_type()
 
     # Get events for this resource
@@ -626,10 +630,10 @@ defmodule HydepwnsLiveview.Resources.DeveloperTools do
 
   # Private helper functions
 
-  defp subscribe_to_resource_events(resource_type, resource_id, session_id) do
+  defp subscribe_to_resource_events(_resource_type, _resource_id, _session_id) do
     # Subscribe to events for the resource
     # This is a simplified implementation
-    pid = self()
+    _pid = self()
 
     # Set up subscription
     # In a real implementation, this would use your PubSub system
@@ -688,7 +692,7 @@ defmodule HydepwnsLiveview.Resources.DeveloperTools do
     end)
   end
 
-  defp get_resource_module(resource_type) do
+  defp get_resource_module(_resource_type) do
     # This would look up the module based on resource type
     # In a real implementation, you would have a registry of modules
     {:error, :not_implemented}

@@ -16,11 +16,12 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
   alias HydepwnsLiveview.TestSupport.ResourceFixtures
 
   setup %{session: session} do
-    # Create test resources
-    parent = ResourceFixtures.create_test_resource(%{name: "Parent Resource", type: "folder"})
-    child = ResourceFixtures.create_test_resource(%{name: "Child Resource", type: "document"})
+    {:ok, parent} =
+      ResourceFixtures.create_test_resource(%{name: "Parent Resource", type: "folder"})
 
-    # Start session and visit the resource dashboard
+    {:ok, child} =
+      ResourceFixtures.create_test_resource(%{name: "Child Resource", type: "document"})
+
     {:ok, session: visit_and_wait(session, "/resources"), parent: parent, child: child}
   end
 

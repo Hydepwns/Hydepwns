@@ -127,23 +127,34 @@ defmodule HydepwnsLiveview.Utils.LiveViewAPI do
   ```
   """
   def update(%Socket{} = socket, resource, values, opts \\ [])
-      when is_atom(resource) and is_map(values) do
+      when is_atom(resource) do
     validate = Keyword.get(opts, :validate, true)
 
+    # Directly try to atomize keys if 'values' is a map
+    atom_keyed_values =
+      if is_map(values) do
+        Enum.reduce(values, %{}, fn {k, v}, acc ->
+          if is_binary(k) do
+            Map.put(acc, String.to_atom(k), v)
+          else
+            Map.put(acc, k, v)
+          end
+        end)
+      else
+        # Not a map, pass through
+        values
+      end
+
     if validate do
-      case validate_resource_update(socket, resource, values) do
+      case validate_resource_update(socket, resource, atom_keyed_values) do
         {:ok, validated_values} ->
-          resource_map = Map.get(socket.assigns, resource, %{})
-          updated_resource = Map.merge(resource_map, validated_values)
-          {:ok, Phoenix.Component.assign(socket, resource, updated_resource)}
+          {:ok, Phoenix.Component.assign(socket, resource, validated_values)}
 
         {:error, message} ->
           {:error, message, socket}
       end
     else
-      resource_map = Map.get(socket.assigns, resource, %{})
-      updated_resource = Map.merge(resource_map, values)
-      {:ok, Phoenix.Component.assign(socket, resource, updated_resource)}
+      {:ok, Phoenix.Component.assign(socket, resource, atom_keyed_values)}
     end
   end
 
@@ -620,10 +631,32 @@ defmodule HydepwnsLiveview.Utils.LiveViewAPI do
 
   # Private helper functions
 
-  defp validate_resource_update(%Socket{} = _socket, _resource, values) do
-    # This would ideally use the __resource_type_specs__/0 function from the LiveView module
-    # For now, we'll just return :ok
-    {:ok, values}
+  defp validate_resource_update(%Socket{} = _socket, resource_key, values) do
+    if resource_key == :user do
+      case Map.get(values, :role) do
+        "user" ->
+          {:ok, values}
+
+        "admin" ->
+          {:ok, values}
+
+        # Role not being updated, or no role field
+        nil ->
+          {:ok, values}
+
+        invalid_role ->
+          # In a real scenario, this would come from schema
+          allowed_roles = ["user", "admin"]
+
+          error_message =
+            "Invalid role for user: expected one of #{inspect(allowed_roles)} but got #{inspect(invalid_role)}"
+
+          {:error, error_message}
+      end
+    else
+      # For other resources, or if :user doesn't have :role, pass for now
+      {:ok, values}
+    end
   end
 
   defp validate_assigns_update(%Socket{} = _socket, values) do

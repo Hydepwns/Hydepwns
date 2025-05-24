@@ -49,4 +49,60 @@ defmodule HydepwnsLiveview.Resources.TeamResource do
 
     {:ok, team}
   end
+
+  @doc """
+  Updates a team resource with tracking (for audit/telemetry).
+
+  ## Parameters
+  * `resource` - The team resource to update
+  * `updates` - The update parameters
+  * `metadata` - Additional metadata for the update
+  * `opts` - Optional context/options (unused)
+
+  ## Returns
+  * `{:ok, updated_resource}` or `{:error, reason}`
+  """
+  @spec update_with_tracking(map(), map(), map(), map()) :: {:ok, map()} | {:error, any()}
+  def update_with_tracking(resource, updates, metadata, _opts \\ %{}) do
+    HydepwnsLiveview.Utils.ChangeTracker.track_change(resource, updates, metadata)
+  end
+
+  defstruct [
+    :id,
+    :name,
+    :description,
+    :created_at,
+    :active,
+    :__resource_module__
+  ]
+
+  @doc """
+  Returns the initial state for a team resource as a struct.
+  """
+  def initial_state do
+    %__MODULE__{
+      id: nil,
+      name: nil,
+      description: nil,
+      created_at: nil,
+      active: true,
+      __resource_module__: __MODULE__
+    }
+  end
+
+  @doc """
+  Applies an event to the team resource state, always returning a struct.
+  """
+  def apply_event(event, %__MODULE__{} = state) do
+    case event.type do
+      "team.created" ->
+        struct(state, Map.merge(Map.from_struct(state), event.data))
+      "team.updated" ->
+        struct(state, Map.merge(Map.from_struct(state), event.data))
+      "team.deleted" ->
+        %{state | active: false}
+      _ ->
+        struct(state, Map.merge(Map.from_struct(state), event.data || %{}))
+    end
+  end
 end

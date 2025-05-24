@@ -4,12 +4,12 @@
  * Tests for the CopyableCodeComponent class.
  */
 
-import { CopyableCodeComponent } from '../../../../assets/js/components/copyable_code';
-import EventManager from '../../../../assets/js/components/event_manager';
-import DOMCleanup from '../../../../assets/js/utils/dom_cleanup';
+import { CopyableCodeComponent } from '../../../../js/components/copyable_code';
+import EventManager from '../../../../js/components/event_manager';
+import DOMCleanup from '../../../../js/utils/dom_cleanup';
 
 // Mock dependencies
-jest.mock('../../../../assets/js/components/event_manager', () => ({
+jest.mock('../../../../js/components/event_manager', () => ({
   registerComponent: jest.fn().mockReturnValue({
     addEventListener: jest.fn(),
     addDelegatedEventListener: jest.fn()
@@ -17,7 +17,7 @@ jest.mock('../../../../assets/js/components/event_manager', () => ({
   unregisterComponent: jest.fn()
 }));
 
-jest.mock('../../../../assets/js/utils/dom_cleanup', () => ({
+jest.mock('../../../../js/utils/dom_cleanup', () => ({
   register: jest.fn().mockReturnValue({
     registerElement: jest.fn(),
     registerTimeout: jest.fn(),

@@ -33,10 +33,10 @@ defmodule HydepwnsLiveviewWeb.ResponsiveImageHelper do
   ## Examples
 
   ```heex
-  <%= responsive_image_tag("/images/hero.png", 
+  {responsive_image_tag("/images/hero.png", 
        alt: "Hero image", 
        class: "hero-image",
-       sizes: "(max-width: 768px) 100vw, 50vw") %>
+       sizes: "(max-width: 768px) 100vw, 50vw")}
   ```
 
   This will generate a responsive image tag with WebP sources and fallbacks,

@@ -21,7 +21,7 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
                SocketValidator.type_validation(
                  socket,
                  :nested_strings,
-                 {:nested_list, {:list, :string}}
+                 {:nested_list, :string}
                )
 
       # Validate nested list with mixed types (should fail)
@@ -29,13 +29,13 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
                SocketValidator.type_validation(
                  socket,
                  :nested_mixed,
-                 {:nested_list, {:list, :string}}
+                 {:nested_list, :string}
                )
 
       assert message =~ "nested_list validation failed"
 
       assert message =~
-               "item at index 0: list validation failed: item at index 1: expected string"
+               "sublist at index 0, item at index 1: expected string"
 
       # Validate nested list of maps with schema
       user_schema = %{name: :string}
@@ -44,7 +44,7 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
                SocketValidator.type_validation(
                  socket,
                  :nested_complex,
-                 {:nested_list, {:list_of_maps, user_schema}}
+                 {:nested_list, {:map, user_schema}}
                )
     end
 
@@ -99,9 +99,9 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
                SocketValidator.type_validation(socket, :invalid_data, {:map_with_lists, schema})
 
       assert message =~ "map_with_lists validation failed"
-      assert message =~ "tags: list validation failed"
+      assert message =~ "tags: item at index 1: expected string"
       assert message =~ "friends: list_of_maps validation failed"
-      assert message =~ "scores: list validation failed"
+      assert message =~ "scores: item at index 1: expected integer"
     end
 
     test "validates deeply nested structures" do
@@ -185,7 +185,7 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
                  organization_schema
                )
 
-      assert message =~ "schema validation failed"
+      assert message =~ "Invalid type for"
       assert message =~ "departments"
       assert message =~ "teams"
       assert message =~ "members"
@@ -364,8 +364,8 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
       assert {:error, message, _} =
                SocketValidator.type_validation(invalid_complex, :invalid_data, complex_schema)
 
-      assert message =~ "schema validation failed"
-      assert message =~ "details.value: expected integer"
+      assert message =~ "Invalid type for"
+      assert message =~ "details: value: expected integer"
     end
   end
 
@@ -452,10 +452,68 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
                )
 
       # The error message should contain path information
-      assert error_message =~ "schema validation failed"
-      assert error_message =~ "profile.user.settings.preferences.theme"
-      assert error_message =~ "profile.user.settings.preferences.notifications"
-      assert error_message =~ "profile.user.settings.preferences.display.font_size"
+      assert error_message =~ "Invalid type for"
+      assert error_message =~ "theme: expected one of [\"dark\", \"light\"], got: \"invalid-theme\""
+      assert error_message =~ "notifications: expected boolean"
+      assert error_message =~ "display: font_size: expected integer"
+    end
+
+    test "validates deeply nested maps with detailed error message format" do
+      # Create a socket with an invalid deeply nested data structure
+      invalid_socket =
+        %Phoenix.LiveView.Socket{}
+        |> Phoenix.Component.assign(
+          deeply_nested_data: %{
+            profile: %{
+              user: %{
+                name: "Test User",
+                settings: %{
+                  preferences: %{
+                    theme: "invalid-theme",
+                    notifications: "yes",
+                    display: %{
+                      color_scheme: "blue",
+                      font_size: "14"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        )
+
+      # Define a complex schema with multiple levels of nesting
+      complex_schema = %{
+        profile: %{
+          user: %{
+            name: :string,
+            settings: %{
+              preferences: %{
+                theme: {:one_of, ["dark", "light"]},
+                notifications: :boolean,
+                display: %{
+                  color_scheme: :string,
+                  font_size: :integer
+                }
+              }
+            }
+          }
+        }
+      }
+
+      # Invalid nested data should return a detailed error message with the expected format
+      assert {:error, error_message, _} =
+               SocketValidator.type_validation(
+                 invalid_socket,
+                 :deeply_nested_data,
+                 complex_schema
+               )
+
+      # The error message should be formatted as "schema validation failed: profile: user: settings: preferences: theme: expected one of [\"dark\", \"light\"]; profile: user: settings: preferences: notifications: expected boolean; profile: user: settings: preferences: display: font_size: expected integer"
+      assert error_message =~ "Invalid type for"
+      assert error_message =~ "theme: expected one of [\"dark\", \"light\"], got: \"invalid-theme\""
+      assert error_message =~ "notifications: expected boolean"
+      assert error_message =~ "display: font_size: expected integer"
     end
 
     test "validates nested lists with complex schemas" do
@@ -544,8 +602,8 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
       assert error_message =~ "list_of_maps validation failed"
       assert error_message =~ "item at index 1"
       assert error_message =~ "id: expected integer"
-      assert error_message =~ "roles.item at index 1: expected string"
-      assert error_message =~ "settings.theme: expected one of"
+      assert error_message =~ "roles: item at index 1: expected string"
+      assert error_message =~ "settings: theme: expected one of"
     end
   end
 
@@ -687,8 +745,8 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
 
       assert error_message =~ "age: expected integer"
       assert error_message =~ "email: expected string"
-      assert error_message =~ "settings.theme: expected one of"
-      assert error_message =~ "settings.notifications: expected boolean"
+      assert error_message =~ "settings: theme: expected one of"
+      assert error_message =~ "notifications: expected boolean"
     end
   end
 end

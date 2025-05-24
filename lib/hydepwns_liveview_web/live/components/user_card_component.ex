@@ -9,8 +9,8 @@ defmodule HydepwnsLiveviewWeb.LiveComponents.UserCardComponent do
 
   use Phoenix.LiveComponent
 
-  alias HydepwnsLiveview.Resources.UserResource
-  alias HydepwnsLiveview.Schemas.User
+  alias HydepwnsLiveview.Resources.Examples.UserResource
+  # alias HydepwnsLiveview.Schemas.User # Removed unused alias
 
   @doc """
   Mount hook for the component.
@@ -24,7 +24,7 @@ defmodule HydepwnsLiveviewWeb.LiveComponents.UserCardComponent do
       if Map.has_key?(assigns, :resource) do
         assigns.resource
       else
-        {:ok, user} = UserResource.get(assigns.resource_id)
+        {:ok, user} = UserResource.load(assigns.resource_id)
         user
       end
 
@@ -79,14 +79,17 @@ defmodule HydepwnsLiveviewWeb.LiveComponents.UserCardComponent do
   end
 
   @doc """
-  Handle the activate user action.
+  Handle user actions like activate, deactivate, edit.
   """
   def handle_event("user-activate", _params, socket) do
-    resource_id = socket.assigns.resource_id
+    _resource_id = socket.assigns.resource_id
+    current_resource = socket.assigns.resource
 
     # Execute the activate command on the user resource
-    case UserResource.execute(resource_id, "activate", %{"reason" => "Activated from UI"}) do
-      {:ok, updated_user} ->
+    case UserResource.execute_command(current_resource, "activate", %{
+           "reason" => "Activated from UI"
+         }) do
+      {:ok, _events, updated_user} ->
         # Optimistically update the UI
         {:noreply, assign(socket, :resource, updated_user)}
 
@@ -96,15 +99,15 @@ defmodule HydepwnsLiveviewWeb.LiveComponents.UserCardComponent do
     end
   end
 
-  @doc """
-  Handle the deactivate user action.
-  """
   def handle_event("user-deactivate", _params, socket) do
-    resource_id = socket.assigns.resource_id
+    _resource_id = socket.assigns.resource_id
+    current_resource = socket.assigns.resource
 
     # Execute the deactivate command on the user resource
-    case UserResource.execute(resource_id, "deactivate", %{"reason" => "Deactivated from UI"}) do
-      {:ok, updated_user} ->
+    case UserResource.execute_command(current_resource, "deactivate", %{
+           "reason" => "Deactivated from UI"
+         }) do
+      {:ok, _events, updated_user} ->
         # Optimistically update the UI
         {:noreply, assign(socket, :resource, updated_user)}
 
@@ -114,9 +117,6 @@ defmodule HydepwnsLiveviewWeb.LiveComponents.UserCardComponent do
     end
   end
 
-  @doc """
-  Handle the edit user action.
-  """
   def handle_event("user-edit", _params, socket) do
     # Send a message to the parent LiveView to show the edit form
     send(self(), {:show_edit_user_form, socket.assigns.resource_id})

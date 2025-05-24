@@ -83,21 +83,28 @@ defmodule HydepwnsLiveview.Utils.ChangeTrackerTest do
 
   describe "diff/2" do
     test "creates a diff between simple resources" do
-      resource_v1 = %{
+      initial_resource_state = %{
         id: "123",
         name: "Original Name",
-        email: "original@example.com",
-        __change_history__: [%{version: 1}]
+        email: "original@example.com"
       }
 
-      resource_v2 = %{
-        id: "123",
-        name: "New Name",
-        email: "original@example.com",
-        __change_history__: [%{version: 2}, %{version: 1}]
-      }
+      # State at version 1 (same as initial for this test setup)
+      resource_v1_data = initial_resource_state
 
-      {:ok, diff} = ChangeTracker.diff(resource_v2, version1: 1, version2: 2)
+      changes_to_v2 = %{name: "New Name"}
+
+      # State at version 2
+      resource_v2_data = Map.merge(resource_v1_data, changes_to_v2)
+
+      # Construct a resource as if it's currently at version 2
+      resource_at_v2 = resource_v2_data
+      |> Map.put(:__change_history__, [
+        %{version: 2, before: resource_v1_data, changes: changes_to_v2, metadata: %{}},
+        %{version: 1, before: %{}, changes: resource_v1_data, metadata: %{}} # Simplified initial version
+      ])
+
+      {:ok, diff} = ChangeTracker.diff(resource_at_v2, version1: 1, version2: 2)
 
       assert Map.has_key?(diff, :name)
       assert diff.name.before == "Original Name"
@@ -107,7 +114,7 @@ defmodule HydepwnsLiveview.Utils.ChangeTrackerTest do
     end
 
     test "creates a deep diff for nested structures" do
-      resource_v1 = %{
+      resource_v1_data = %{
         id: "123",
         settings: %{
           theme: "light",
@@ -116,36 +123,46 @@ defmodule HydepwnsLiveview.Utils.ChangeTrackerTest do
             language: "en"
           }
         },
-        tags: ["tag1", "tag2"],
-        __change_history__: [%{version: 1}]
+        tags: ["tag1", "tag2"]
       }
 
-      resource_v2 = %{
-        id: "123",
+      changes_to_v2 = %{
         settings: %{
-          theme: "dark",
-          notifications: true,
+          theme: "dark", # changed
+          notifications: true, # same
           preferences: %{
-            language: "fr"
+            language: "fr" # changed
           }
         },
-        tags: ["tag1", "tag3"],
-        __change_history__: [%{version: 2}, %{version: 1}]
+        tags: ["tag1", "tag3"] # changed
       }
+      resource_v2_data = Map.merge(resource_v1_data, changes_to_v2)
 
-      # Track change to simulate history
-      {:ok, tracked_resource} =
-        ChangeTracker.track_change(resource_v1, %{
-          settings: resource_v2.settings,
-          tags: resource_v2.tags
-        })
+      # Simulate tracking this change to build a resource with history
+      # This will be our resource_at_v2
+      {:ok, tracked_resource_to_v2} =
+        ChangeTracker.track_change(resource_v1_data, changes_to_v2, %{actor: "test"})
 
-      # Create diff
-      {:ok, diff} = ChangeTracker.diff(tracked_resource)
+      # To make the test more direct for diffing v1 and v2 from tracked_resource_to_v2,
+      # its history should be set up as if it already had a v1.
+      # The track_change above creates a history entry for the transition from v1_data to v2_data.
+      # Its history will look like: [%{version: 1, before: resource_v1_data, changes: changes_to_v2, ...}]
+      # This is good for testing diff(tracked_resource_to_v2) which implies diff from version 0 to 1 (in this case)
+
+      # For diffing version 1 and 2 explicitly, we need a resource that has both versions in its history correctly.
+      # Let's assume an initial empty state for version 0.
+      initial_empty_resource = %{id: "123"}
+      {:ok, resource_after_v1_changes} = ChangeTracker.track_change(initial_empty_resource, resource_v1_data)
+      {:ok, resource_after_v2_changes} = ChangeTracker.track_change(resource_after_v1_changes, changes_to_v2)
+
+      # Now resource_after_v2_changes has a history like:
+      # [ {v:2, before: v1_state, changes: to_v2}, {v:1, before: empty, changes: to_v1_state} ]
+
+      {:ok, diff} = ChangeTracker.diff(resource_after_v2_changes, version1: 1, version2: 2)
 
       # Check settings diff
-      assert diff.settings.before == resource_v1.settings
-      assert diff.settings.after == resource_v2.settings
+      assert diff.settings.before == resource_v1_data.settings
+      assert diff.settings.after == resource_v2_data.settings
 
       # Check nested diff
       nested_diff = diff.settings.nested_diff

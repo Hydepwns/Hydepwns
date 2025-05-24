@@ -4,19 +4,19 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
   import HydepwnsLiveview.ThemeSystemFixtures
 
   setup %{conn: conn} do
-    light_theme = light_theme_fixture()
-    dark_theme = dark_theme_fixture()
-    system_theme = system_theme_fixture()
-    dim_theme = dim_theme_fixture()
+    {:ok, light_theme} = light_theme_fixture()
+    {:ok, dark_theme} = dark_theme_fixture()
+    {:ok, system_theme} = system_theme_fixture()
+    {:ok, dim_theme} = dim_theme_fixture()
     themes = HydepwnsLiveview.ThemeSystem.list_themes()
     IO.inspect(themes, label: "[DEBUG] themes in DB after fixtures")
+
     {:ok,
-      conn: conn,
-      light_theme: light_theme,
-      dark_theme: dark_theme,
-      system_theme: system_theme,
-      dim_theme: dim_theme
-    }
+     conn: conn,
+     light_theme: light_theme,
+     dark_theme: dark_theme,
+     system_theme: system_theme,
+     dim_theme: dim_theme}
   end
 
   describe "Theme Manager Live View" do
@@ -112,7 +112,8 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
       attrs = %{
         "theme" => %{
           "name" => "",
-          "mode" => "light" # valid mode, but name is blank
+          # valid mode, but name is blank
+          "mode" => "light"
         }
       }
 
@@ -165,7 +166,8 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
         "theme" => %{
           "name" => light_theme.name,
           "mode" => "dark",
-          "colors" => Map.take(light_theme.colors, ["primary", "secondary", "accent", "background", "text"])
+          "colors" =>
+            Map.take(light_theme.colors, ["primary", "secondary", "accent", "background", "text"])
         }
       }
 

@@ -104,7 +104,7 @@ defmodule HydepwnsLiveviewWeb.AboutLive do
         Interested in contributing to Hydepwns? We welcome contributions of all kinds:
       </p>
 
-      <pre><code><%= @code_example %></code></pre>
+      <pre><code>{@code_example}</code></pre>
 
       <p>
         Visit the GitHub repository for more information on how to contribute to the project.

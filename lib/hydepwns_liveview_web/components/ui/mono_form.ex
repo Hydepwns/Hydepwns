@@ -114,29 +114,21 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoForm do
 
     ~H"""
     <div class={["mono-input-container", @class]}>
-      <%= if @label do %>
-        <div class="mono-label-container">
-          <label for={@id} class="mono-label">
-            {@label}
-            <%= if @required do %>
-              <span class="mono-required">*</span>
-            <% end %>
-          </label>
-        </div>
-      <% end %>
+      <div :if={@label} class="mono-label-container">
+        <label for={@id} class="mono-label">
+          {@label}
+          <span :if={@required} class="mono-required">*</span>
+        </label>
+      </div>
       <div class="mono-field-container">
         {render_input(assigns)}
       </div>
-      <%= if @helper_text do %>
-        <div class="mono-helper-text">
-          {@helper_text}
-        </div>
-      <% end %>
-      <%= for error <- @errors do %>
-        <div class="mono-error-text">
-          {humanize(error)}
-        </div>
-      <% end %>
+      <div :if={@helper_text} class="mono-helper-text">
+        {@helper_text}
+      </div>
+      <div :for={error <- @errors} class="mono-error-text">
+        {humanize(error)}
+      </div>
     </div>
     """
   end
@@ -144,16 +136,14 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoForm do
   # Helper function to render a text input
   defp render_input(%{type: "textarea"} = assigns) do
     ~H"""
-    <textarea id={@id} name={@field.name} class={["mono-textarea", @input_class]} placeholder={@placeholder} autocomplete={@autocomplete} rows={@rows} cols={@cols} required={@required} aria-invalid={@errors != [] && "true"} aria-describedby={@errors != [] && "#{@id}_feedback"} {@rest}><%= normalize_value("textarea", @field.value) %></textarea>
+    <textarea id={@id} name={@field.name} class={["mono-textarea", @input_class]} placeholder={@placeholder} autocomplete={@autocomplete} rows={@rows} cols={@cols} required={@required} aria-invalid={@errors != [] && "true"} aria-describedby={@errors != [] && "#{@id}_feedback"} {@rest}>{normalize_value("textarea", @field.value)}</textarea>
     """
   end
 
   defp render_input(%{type: "select"} = assigns) do
     ~H"""
     <select id={@id} name={@field.name} class={["mono-select", @input_class]} required={@required} aria-invalid={@errors != [] && "true"} aria-describedby={@errors != [] && "#{@id}_feedback"} {@rest}>
-      <%= for {option_key, option_value} <- @options do %>
-        <option value={option_key} selected={@field.value == option_key}>{option_value}</option>
-      <% end %>
+      <option :for={{option_key, option_value} <- @options} value={option_key} selected={@field.value == option_key}>{option_value}</option>
     </select>
     """
   end
@@ -207,7 +197,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoForm do
 
       <.mono_submit>Submit</.mono_submit>
       <.mono_submit disabled={@submitting}>
-        <%= if @submitting, do: "Submitting...", else: "Submit" %>
+        {if @submitting, do: "Submitting...", else: "Submit"}
       </.mono_submit>
 
   ## Attributes
@@ -240,7 +230,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoForm do
 
       <.mono_button>Click Me</.mono_button>
       <.mono_button phx-click="perform_action" disabled={@loading}>
-        <%= if @loading, do: "Processing...", else: "Perform Action" %>
+        {if @loading, do: "Processing...", else: "Perform Action"}
       </.mono_button>
 
   ## Attributes

@@ -4,12 +4,12 @@
  * Tests for the KeyboardNavigationComponent class.
  */
 
-import { KeyboardNavigationComponent } from '../../../../assets/js/components/keyboard_navigation';
-import EventManager from '../../../../assets/js/components/event_manager';
-import DOMCleanup from '../../../../assets/js/utils/dom_cleanup';
+import { KeyboardNavigationComponent } from '../../../../js/components/keyboard_navigation';
+import EventManager from '../../../../js/components/event_manager';
+import DOMCleanup from '../../../../js/utils/dom_cleanup';
 
 // Mock dependencies
-jest.mock('../../../../assets/js/components/event_manager', () => ({
+jest.mock('../../../../js/components/event_manager', () => ({
   registerComponent: jest.fn().mockReturnValue({
     addEventListener: jest.fn(),
     addDelegatedEventListener: jest.fn()
@@ -37,7 +37,7 @@ const mockCreateElement = (tag, attrs, content) => {
   return element;
 };
 
-jest.mock('../../../../assets/js/utils/dom_cleanup', () => ({
+jest.mock('../../../../js/utils/dom_cleanup', () => ({
   register: jest.fn().mockReturnValue({
     cleanup: jest.fn(),
     registerElement: jest.fn(),

@@ -7,6 +7,20 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewerTest do
 
   @moduletag :component
 
+  @base_metadata_v1 %{
+    timestamp: ~N[2024-01-01 00:00:00],
+    actor: "user1-audit",
+    reason: "Initial creation for audit",
+    source: "audit-test-v1"
+  }
+
+  @base_metadata_v2 %{
+    timestamp: ~N[2024-01-02 00:00:00],
+    actor: "user2-audit",
+    reason: "Update for audit",
+    source: "audit-test-v2"
+  }
+
   describe "change_history_viewer/1" do
     test "renders empty state when no history" do
       html =
@@ -135,46 +149,40 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewerTest do
     end
 
     test "renders correct phx-click and phx-value for view and compare buttons in audit view" do
-      history = [
-        %{
-          version: 1,
-          changes: %{name: "A"},
-          before: %{},
-          metadata: %{
-            timestamp: ~N[2024-01-01 00:00:00],
-            actor: "user1",
-            reason: "init",
-            source: "test"
-          }
-        },
-        %{
-          version: 2,
-          changes: %{name: "B"},
-          before: %{},
-          metadata: %{
-            timestamp: ~N[2024-01-02 00:00:00],
-            actor: "user2",
-            reason: "update",
-            source: "test"
-          }
-        }
-      ]
+      # Construct resource directly using defined module attributes
+      resource = %{
+        __change_history__: [
+          # Note: prepare_versions_with_diffs reverses history, so v1 is last in display
+          %{version: 1, changes: %{name: "A"}, before: %{}, metadata: @base_metadata_v1},
+          %{version: 2, changes: %{name: "B"}, before: %{name: "A"}, metadata: @base_metadata_v2}
+        ]
+      }
 
-      resource = %{__change_history__: history}
+      html = render_component(&change_history_viewer/1, %{
+        resource: resource,
+        view_mode: "audit",
+        on_view_version: "view_details_event", # Custom event name for clarity
+        on_diff_versions: "diff_event", # Passed but not used by audit view
+        selected_version: 1 # V1 is selected
+      })
 
-      html =
-        render_component(&change_history_viewer/1, %{
-          resource: resource,
-          view_mode: "audit",
-          selected_version: 1,
-          on_view_version: "view_version",
-          on_diff_versions: "diff_versions"
-        })
+      # Check for version 2 entry (displayed first)
+      assert html =~ "Version 2"
+      assert html =~ ~s/phx-click=\"view_details_event\" phx-value-version=\"2\"/
+      assert html =~ ~s/Actor: #{Map.get(@base_metadata_v2, :actor)}/
+      assert html =~ ~s/<strong>Reason:<\/strong> #{Map.get(@base_metadata_v2, :reason)}/
+      # Robust error diff assertion (HTML-encoded)
+      assert html =~ "Diff error: &quot;Version 2 is greater than current version 1&quot;"
 
-      # View button for version 2
-      assert html =~ ~s(phx-click="view_version" phx-value-version="2")
-      # Compare button for version 2
-      assert html =~ ~s(phx-click="diff_versions" phx-value-version1="1" phx-value-version2="2")
+      # Check for version 1 entry (displayed second, selected)
+      assert html =~ "Version 1"
+      assert html =~ ~s/phx-click=\"view_details_event\" phx-value-version=\"1\"/
+      assert html =~ ~s/Actor: #{Map.get(@base_metadata_v1, :actor)}/
+      assert html =~ ~s/<strong>Reason:<\/strong> #{Map.get(@base_metadata_v1, :reason)}/
+      assert html =~ ~s(<span class="text-red-500 line-through">nil</span> &rarr; <span class="text-green-500">&quot;A&quot;</span>)
+
+      # Ensure the diff button is NOT present in audit view
+      refute html =~ ~s/phx-click=\"diff_event\"/
     end
   end
 

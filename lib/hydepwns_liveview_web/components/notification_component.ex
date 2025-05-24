@@ -20,9 +20,9 @@ defmodule HydepwnsLiveviewWeb.NotificationComponent do
     ~H"""
     <div class="notifications-container">
       <div id={"#{@id}-container"} class="fixed right-0 top-0 z-50 p-4 space-y-3 max-w-md w-full max-h-screen overflow-y-auto" phx-hook="NotificationsHandler" data-auto-dismiss={@auto_dismiss_ms}>
-        <%= for notification <- @notifications do %>
+        <div :for={notification <- @notifications}>
           {render_notification(notification, @id)}
-        <% end %>
+        </div>
       </div>
     </div>
     """
@@ -57,22 +57,19 @@ defmodule HydepwnsLiveviewWeb.NotificationComponent do
           <p class="mt-1 text-sm text-gray-600 whitespace-pre-wrap break-words">
             {@notification.message}
           </p>
-          <%= if @notification.actions && length(@notification.actions) > 0 do %>
-            <div class="mt-3 flex space-x-3">
-              <%= for action <- @notification.actions do %>
-                <button
-                  type="button"
-                  class={"inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm #{action_button_color(action.style)} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"}
-                  phx-click={action.event}
-                  phx-value-id={@notification.id}
-                  phx-target={@myself}
-                >
-                  {action.label}
-                </button>
-              <% end %>
-            </div>
-          <% end %>
-          <%= if @notification.progress do %>
+          <div :if={@notification.actions && length(@notification.actions) > 0} class="mt-3 flex space-x-3">
+            <button
+              :for={action <- @notification.actions}
+              type="button"
+              class={"inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm #{action_button_color(action.style)} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"}
+              phx-click={action.event}
+              phx-value-id={@notification.id}
+              phx-target={@myself}
+            >
+              {action.label}
+            </button>
+          </div>
+          <div :if={@notification.progress} class="mt-2">
             <div class="mt-2">
               <div class="bg-gray-200 rounded-full overflow-hidden">
                 <div class={"h-2 rounded-full #{progress_color(@notification.level)}"} style={"width: #{@notification.progress}%"}></div>
@@ -81,7 +78,7 @@ defmodule HydepwnsLiveviewWeb.NotificationComponent do
                 {@notification.progress}%
               </p>
             </div>
-          <% end %>
+          </div>
         </div>
       </div>
     </div>
@@ -201,28 +198,21 @@ defmodule HydepwnsLiveviewWeb.NotificationComponent do
     assigns = %{level: level}
 
     ~H"""
-    <%= case @level do %>
-      <% :critical -> %>
-        <svg class="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-        </svg>
-      <% :warning -> %>
-        <svg class="h-5 w-5 text-yellow-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-        </svg>
-      <% :info -> %>
-        <svg class="h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-        </svg>
-      <% :success -> %>
-        <svg class="h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-        </svg>
-      <% _ -> %>
-        <svg class="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-        </svg>
-    <% end %>
+    <svg :if={@level == :critical} class="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+    </svg>
+    <svg :if={@level == :warning} class="h-5 w-5 text-yellow-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+    </svg>
+    <svg :if={@level == :info} class="h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+    </svg>
+    <svg :if={@level == :success} class="h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+    </svg>
+    <svg :if={!Enum.member?([:critical, :warning, :info, :success], @level)} class="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+    </svg>
     """
   end
 

@@ -297,9 +297,9 @@ defmodule HydepwnsLiveviewWeb.Components.Visualization.DiagramEditor do
         # Handle case where content is not valid
         {:noreply, assign(socket, :error, "Invalid content type received")}
 
-      String.length(content) > 10000 ->
+      String.length(content) > 10_000 ->
         # Display error if content is too long
-        truncated = String.slice(content, 0, 10000)
+        truncated = String.slice(content, 0, 10_000)
 
         {:noreply,
          socket

@@ -87,26 +87,26 @@ defmodule HydepwnsLiveviewWeb.Helpers.TocHelper do
     # 1. Matches <h2> to <h6> tags with optional attributes
     # 2. Captures the heading level, id attribute, and content text
     heading_pattern =
-      ~r/<h([#{min_level}-#{max_level}])(?:\s+[^>]*?id=["']([^"']*)["'][^>]*?|[^>]*?)>(.*?)<\/h\1>/si
+      ~r/<h([#{min_level}-#{max_level}])(?:\s+[^>]*?id=["\']([^"\']*)["\']|[^>]*?)>(.*?)<\/h\1>/si
 
     # Find all matches in the HTML content
     Regex.scan(heading_pattern, html_content, capture: :all_but_first)
     |> Enum.map(fn match ->
       case match do
-        [level, id, content] ->
+        [level, id, content] when id != nil and id != "" ->
           %{
             level: String.to_integer(level),
             id: id,
             label: sanitize_heading_text(content)
           }
 
-        [level, "", content] ->
+        [level, _id, content] -> # Handles cases where id is nil or empty string
           # If no ID is provided, generate a slug from the content
-          id = generate_id_from_text(content)
+          generated_id = generate_id_from_text(content)
 
           %{
             level: String.to_integer(level),
-            id: id,
+            id: generated_id,
             label: sanitize_heading_text(content)
           }
       end
@@ -119,55 +119,52 @@ defmodule HydepwnsLiveviewWeb.Helpers.TocHelper do
   Creates proper parent-child relationships based on heading levels.
   """
   def build_toc_hierarchy(headings, id_prefix) do
-    # Apply ID prefix if provided
-    headings_with_prefix =
-      Enum.map(headings, fn heading ->
-        Map.update!(heading, :id, fn id -> id_prefix <> id end)
-      end)
-
-    # Build the hierarchy
-    build_hierarchy(headings_with_prefix)
-  end
-
-  # Private helper function to build the hierarchy recursively
-  defp build_hierarchy(headings, current_level \\ nil) do
-    # If no more headings or current level is nil, return empty list
-    if headings == [] or current_level == nil do
-      {[], []}
+    if Enum.empty?(headings) do
+      []
     else
-      # Get the current heading level to process
-      process_level = if current_level == nil, do: List.first(headings).level, else: current_level
+      headings_with_prefix =
+        Enum.map(headings, fn heading ->
+          Map.update!(heading, :id, fn id -> id_prefix <> id end)
+        end)
 
-      # Process headings at the current level
-      process_hierarchy(headings, [], [], process_level)
+      # Determine the shallowest level among the provided headings
+      # The parent_level for the root call should be one less than this.
+      min_level_present = Enum.min_by(headings_with_prefix, & &1.level).level
+      initial_parent_level = min_level_present - 1
+
+      {children, _remaining_headings} = do_build_hierarchy(headings_with_prefix, initial_parent_level)
+      children
     end
-    |> elem(0)
   end
 
-  # Process each heading and build hierarchy
-  defp process_hierarchy([], processed, result, _level), do: {result, processed}
+  # Recursive helper to build the hierarchy.
+  # `parent_level` is the level of the parent under which we are looking for children.
+  defp do_build_hierarchy([], _parent_level) do
+    {[], []} # Base case: no headings left, return empty children and empty remaining
+  end
 
-  defp process_hierarchy([h | t], processed, result, level) do
-    cond do
-      # Current heading is at our target level - add to results
-      h.level == level ->
-        # Process remaining headings at current level
-        {children, remaining} = build_hierarchy(t, h.level + 1)
-        # Create TOC item with children
-        current_item = Map.put(h, :children, children)
-        # Continue processing the rest
-        process_hierarchy(remaining, [], result ++ [current_item], level)
+  defp do_build_hierarchy([current_heading | rest_headings], parent_level) do
+    # If the current heading is a direct child of the parent_level
+    if current_heading.level == parent_level + 1 do
+      # Recursively find children for the current_heading (its level is current_heading.level)
+      {children_of_current, remaining_after_children} =
+        do_build_hierarchy(rest_headings, current_heading.level)
 
-      # Heading is at a deeper level - process in a child context
-      h.level > level ->
-        # Put this heading back to be processed in a child context
-        {_remaining, processed_new} = process_hierarchy(t, [h | processed], [], level)
-        {result, processed_new}
+      # Add the current heading (with its children) to the list of siblings
+      node_with_children = Map.put(current_heading, :children, children_of_current)
 
-      # Heading is at a higher level - return to parent context
-      h.level < level ->
-        # Return to parent with this heading as part of processed
-        {result, [h | t] ++ processed}
+      # Continue processing for more siblings at the same parent_level
+      {other_siblings, remaining_after_siblings} =
+        do_build_hierarchy(remaining_after_children, parent_level)
+
+      {[node_with_children | other_siblings], remaining_after_siblings}
+    else
+      # If the current heading is not a direct child (either deeper or shallower),
+      # it means we are done finding children for the *current* parent_level.
+      # Return an empty list of children for this level, and pass back the
+      # current_heading and rest_headings to be processed by the caller
+      # (which might be looking for headings at a different level).
+      {[], [current_heading | rest_headings]}
     end
   end
 

@@ -8,13 +8,13 @@ defmodule HydepwnsLiveview.ThemeSystem.FixturesTest do
 
   describe "theme fixtures" do
     test "theme_fixture/1 creates a basic theme with default values" do
-      theme = theme_fixture()
+      {:ok, theme} = theme_fixture()
 
-      assert theme.name =~ ~r/test-theme-\d+/
+      assert theme.name =~ ~r/test-theme--\d+/
       assert theme.mode == "light"
       assert theme.is_default == false
-      assert theme.colors.primary == "#3b82f6"
-      assert theme.settings.font_size == "medium"
+      assert theme.colors[:primary] == "#3b82f6"
+      assert theme.settings[:font_size] == "medium"
     end
 
     test "theme_fixture/1 allows overriding default values" do
@@ -25,90 +25,89 @@ defmodule HydepwnsLiveview.ThemeSystem.FixturesTest do
         settings: %{font_size: "large"}
       }
 
-      theme = theme_fixture(attrs)
+      {:ok, theme} = theme_fixture(attrs)
 
       assert theme.name == "custom-name"
       assert theme.mode == "dark"
-      assert theme.colors.primary == "#ff0000"
-      assert theme.settings.font_size == "large"
+      assert theme.colors[:primary] == "#ff0000"
+      assert theme.settings[:font_size] == "large"
     end
 
     test "light_theme_fixture/1 creates a light theme with correct defaults" do
-      theme = light_theme_fixture()
+      {:ok, theme} = light_theme_fixture()
 
-      assert theme.name =~ ~r/light-\d+/
+      assert theme.name =~ ~r/light--\d+/
       assert theme.mode == "light"
       assert theme.is_default == true
-      assert theme.colors.background == "#ffffff"
-      assert theme.colors.text == "#1f2937"
+      assert theme.colors[:background] == "#ffffff"
+      assert theme.colors[:text] == "#1f2937"
     end
 
     test "dark_theme_fixture/1 creates a dark theme with correct defaults" do
-      theme = dark_theme_fixture()
+      {:ok, theme} = dark_theme_fixture()
 
-      assert theme.name =~ ~r/dark-\d+/
+      assert theme.name =~ ~r/dark--\d+/
       assert theme.mode == "dark"
       assert theme.is_default == false
-      assert theme.colors.background == "#111827"
-      assert theme.colors.text == "#f9fafb"
-      assert theme.settings.contrast == "high"
+      assert theme.colors[:background] == "#111827"
+      assert theme.colors[:text] == "#f9fafb"
+      assert theme.settings[:contrast] == "high"
     end
 
     test "system_theme_fixture/1 creates a system theme with system values" do
-      theme = system_theme_fixture()
+      {:ok, theme} = system_theme_fixture()
 
-      assert theme.name =~ ~r/system-\d+/
+      assert theme.name =~ ~r/system--\d+/
       assert theme.mode == "system"
-      assert theme.colors.background == "system"
-      assert theme.colors.text == "system"
-      assert theme.colors.border == "system"
+      assert theme.colors[:background] == "system"
+      assert theme.colors[:text] == "system"
+      assert theme.colors[:border] == "system"
     end
 
     test "dim_theme_fixture/1 creates a dim theme with correct defaults" do
-      theme = dim_theme_fixture()
+      {:ok, theme} = dim_theme_fixture()
 
-      assert theme.name =~ ~r/dim-\d+/
+      assert theme.name =~ ~r/dim--\d+/
       assert theme.mode == "dim"
-      assert theme.colors.background == "#1f2937"
-      assert theme.colors.text == "#e5e7eb"
-      assert theme.settings.contrast == "medium"
+      assert theme.colors[:background] == "#1f2937"
+      assert theme.colors[:text] == "#e5e7eb"
+      assert theme.settings[:contrast] == "medium"
     end
 
     test "high_contrast_theme_fixture/1 creates an accessible theme" do
-      theme = high_contrast_theme_fixture()
+      {:ok, theme} = high_contrast_theme_fixture()
 
-      assert theme.name =~ ~r/high-contrast-\d+/
+      assert theme.name =~ ~r/high-contrast--\d+/
       assert theme.mode == "dark"
-      assert theme.colors.background == "#000000"
-      assert theme.colors.text == "#ffffff"
-      assert theme.settings.font_size == "large"
-      assert theme.settings.line_height == "wide"
-      assert theme.settings.contrast == "high"
-      assert theme.settings.animations == false
+      assert theme.colors[:background] == "#000000"
+      assert theme.colors[:text] == "#ffffff"
+      assert theme.settings[:font_size] == "large"
+      assert theme.settings[:line_height] == "wide"
+      assert theme.settings[:contrast] == "high"
+      assert theme.settings[:animations] == false
     end
 
     test "default_themes_fixture/0 creates all default themes" do
       themes = default_themes_fixture()
-
       assert length(themes) == 4
-      assert Enum.any?(themes, &(&1.mode == "light"))
-      assert Enum.any?(themes, &(&1.mode == "dark"))
-      assert Enum.any?(themes, &(&1.mode == "system"))
-      assert Enum.any?(themes, &(&1.mode == "dim"))
+      assert Enum.any?(themes, fn {:ok, theme} -> theme.mode == "light" end)
+      assert Enum.any?(themes, fn {:ok, theme} -> theme.mode == "dark" end)
+      assert Enum.any?(themes, fn {:ok, theme} -> theme.mode == "system" end)
+      assert Enum.any?(themes, fn {:ok, theme} -> theme.mode == "dim" end)
     end
 
     test "custom_theme_fixture/1 creates a theme with custom settings" do
-      theme = custom_theme_fixture()
+      {:ok, theme} = custom_theme_fixture()
 
-      assert theme.name =~ ~r/custom-\d+/
+      assert theme.name =~ ~r/custom--\d+/
       assert theme.mode == "light"
-      assert theme.colors.primary == "#ff0000"
-      assert theme.colors.secondary == "#00ff00"
-      assert theme.colors.accent == "#0000ff"
-      assert theme.settings.font_size == "small"
-      assert theme.settings.line_height == "narrow"
-      assert theme.settings.contrast == "low"
-      assert theme.settings.animations == false
+      assert theme.colors[:primary] == "#ff0000"
+      assert theme.colors[:secondary] == "#00ff00"
+      assert theme.colors[:accent] == "#0000ff"
+      assert theme.settings[:font_size] == "small"
+      assert theme.settings[:line_height] == "narrow"
+      assert theme.settings[:contrast] == "low"
+      assert theme.settings[:animations] == false
     end
 
     test "custom_theme_fixture/1 allows overriding custom theme values" do
@@ -125,53 +124,29 @@ defmodule HydepwnsLiveview.ThemeSystem.FixturesTest do
         }
       }
 
-      theme = custom_theme_fixture(attrs)
+      {:ok, theme} = custom_theme_fixture(attrs)
 
       assert theme.name == "my-custom-theme"
       assert theme.mode == "dark"
-      assert theme.colors.primary == "#ff00ff"
-      assert theme.colors.secondary == "#00ffff"
-      assert theme.settings.font_size == "xlarge"
-      assert theme.settings.contrast == "high"
-    end
-  end
-
-  describe "theme fixture interactions" do
-    test "setting a theme as default unsets other defaults" do
-      light_theme = light_theme_fixture()
-      dark_theme = dark_theme_fixture()
-
-      # Initially light theme should be default
-      assert ThemeSystem.get_default_theme() == light_theme
-
-      # Set dark theme as default
-      {:ok, updated_dark_theme} = ThemeSystem.set_default_theme(dark_theme)
-      assert updated_dark_theme.is_default == true
-
-      # Verify light theme is no longer default
-      light_theme = ThemeSystem.get_theme!(light_theme.id)
-      assert light_theme.is_default == false
-
-      # Verify dark theme is now default
-      assert ThemeSystem.get_default_theme() == dark_theme
+      assert theme.colors[:primary] == "#ff00ff"
+      assert theme.colors[:secondary] == "#00ffff"
+      assert theme.settings[:font_size] == "xlarge"
+      assert theme.settings[:contrast] == "high"
     end
 
     test "theme names are unique" do
-      theme1 = theme_fixture(%{name: "test-theme"})
-
-      assert_raise Ecto.ConstraintError, fn ->
-        theme_fixture(%{name: "test-theme"})
-      end
+      {:ok, _theme1} = theme_fixture(%{name: "test-theme"})
+      assert {:error, changeset} = theme_fixture(%{name: "test-theme"})
+      assert %{name: ["has already been taken"]} = errors_on(changeset)
     end
 
     test "theme modes are validated" do
-      assert_raise Ecto.ConstraintError, fn ->
-        theme_fixture(%{mode: "invalid-mode"})
-      end
+      assert {:error, changeset} = theme_fixture(%{mode: "invalid-mode"})
+      assert %{mode: ["is invalid"]} = errors_on(changeset)
     end
 
     test "theme colors are properly structured" do
-      theme = theme_fixture()
+      {:ok, theme} = theme_fixture()
 
       assert Map.has_key?(theme.colors, :primary)
       assert Map.has_key?(theme.colors, :secondary)
@@ -186,12 +161,34 @@ defmodule HydepwnsLiveview.ThemeSystem.FixturesTest do
     end
 
     test "theme settings are properly structured" do
-      theme = theme_fixture()
+      {:ok, theme} = theme_fixture()
 
       assert Map.has_key?(theme.settings, :font_size)
       assert Map.has_key?(theme.settings, :line_height)
       assert Map.has_key?(theme.settings, :contrast)
       assert Map.has_key?(theme.settings, :animations)
+    end
+  end
+
+  describe "theme fixture interactions" do
+    test "setting a theme as default unsets other defaults" do
+      {:ok, light_theme} = light_theme_fixture()
+      {:ok, dark_theme} = dark_theme_fixture()
+
+      # Initially light theme should be default
+      assert ThemeSystem.get_default_theme().id == light_theme.id
+
+      # Set dark theme as default
+      {:ok, updated_dark_theme} = ThemeSystem.set_default_theme(dark_theme)
+      assert updated_dark_theme.is_default == true
+
+      # Verify light theme is no longer default
+      light_theme = ThemeSystem.get_theme!(light_theme.id)
+      assert light_theme.is_default == false
+
+      # Verify dark theme is now default
+      dark_theme = ThemeSystem.get_theme!(dark_theme.id)
+      assert ThemeSystem.get_default_theme().id == dark_theme.id
     end
   end
 end

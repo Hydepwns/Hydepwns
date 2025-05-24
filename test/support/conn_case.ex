@@ -19,15 +19,29 @@ defmodule HydepwnsLiveviewWeb.ConnCase do
 
   using do
     quote do
-      # The default endpoint for testing
-      @endpoint HydepwnsLiveviewWeb.Endpoint
-
-      use HydepwnsLiveviewWeb, :verified_routes
-
-      # Import conveniences for testing with connections
       import Plug.Conn
       import Phoenix.ConnTest
       import HydepwnsLiveviewWeb.ConnCase
+      import Phoenix.LiveViewTest
+      import Phoenix.Component
+
+      alias HydepwnsLiveviewWeb.Router.Helpers, as: Routes
+
+      # The default endpoint for testing
+      @endpoint HydepwnsLiveviewWeb.Endpoint
+
+      # Add test routes
+      setup do
+        # Configure test routes
+        Application.put_env(:hydepwns_liveview, HydepwnsLiveviewWeb.Router,
+          live_routes: [
+            {"/test-types", HydepwnsLiveview.TypeValidationTest.TestTypeLive},
+            {"/", HydepwnsLiveviewWeb.HomeLive}
+          ]
+        )
+
+        :ok
+      end
     end
   end
 

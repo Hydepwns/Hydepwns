@@ -4,64 +4,9 @@ defmodule HydepwnsLiveview.EnhancedErrorReportingTest do
   alias HydepwnsLiveview.Utils.SocketValidator
 
   # Create a test LiveView for testing context-aware errors
-  defmodule TestErrorLive do
-    use HydepwnsLiveviewWeb.BaseLive,
-      required_assigns: [:user_id, :count, :settings],
-      type_specs: %{
-        user_id: :string,
-        count: :integer,
-        items: {:list, :string},
-        settings: %{theme: {:one_of, ["dark", "light"]}, notifications: :boolean},
-        status: {:one_of, ["active", "inactive", "pending"]},
-        callback: :function
-      }
-
-    def render(assigns) do
-      ~H"""
-      <div id="test-error-live">
-        <p>User ID: <span data-assign="user_id">{@user_id}</span></p>
-        <p>Count: <span data-assign="count">{@count}</span></p>
-        <p>Status: <span data-assign="status">{@status}</span></p>
-        <p>Settings: <span data-assign="settings">{inspect(@settings)}</span></p>
-        <%= if assigns[:items] do %>
-          <ul>
-            <%= for item <- @items do %>
-              <li>{item}</li>
-            <% end %>
-          </ul>
-        <% end %>
-      </div>
-      """
-    end
-
-    def do_mount(_params, session, socket) do
-      socket
-      |> Phoenix.Component.assign(:user_id, Map.get(session, "user_id", ""))
-      |> Phoenix.Component.assign(:count, Map.get(session, "count", 0))
-      |> Phoenix.Component.assign(:status, Map.get(session, "status", "active"))
-      |> Phoenix.Component.assign(:settings, Map.get(session, "settings", %{theme: "dark", notifications: true}))
-      |> Phoenix.Component.assign(:items, Map.get(session, "items", []))
-    end
-
-    # Add handler for updating count with wrong type
-    def handle_event("update_count", %{"count" => count}, socket) do
-      # Deliberately assign string instead of integer to trigger type error
-      {:noreply, Phoenix.Component.assign(socket, :count, count)}
-    end
-
-    # Add handler for updating status with invalid value
-    def handle_event("update_status", %{"status" => status}, socket) do
-      # Deliberately assign invalid status to trigger one_of error
-      {:noreply, Phoenix.Component.assign(socket, :status, status)}
-    end
-
-    # Add handler for updating settings with invalid structure
-    def handle_event("update_settings", %{"theme" => theme}, socket) do
-      # Deliberately create invalid settings to trigger nested error
-      settings = %{theme: theme, notifications: "yes"}
-      {:noreply, Phoenix.Component.assign(socket, :settings, settings)}
-    end
-  end
+  # defmodule HydepwnsLiveviewWeb.EnhancedErrorReportingTest.TestErrorLive do
+  #   ... (entire module definition removed) ...
+  # end
 
   describe "context_aware_error enhancements" do
     test "provides detailed suggestions for integer conversion", %{conn: conn} do
@@ -73,7 +18,7 @@ defmodule HydepwnsLiveview.EnhancedErrorReportingTest do
         %Phoenix.LiveView.Socket{}
         |> Phoenix.Component.assign(:user_id, "123")
         |> Phoenix.Component.assign(:count, "42")
-        |> Phoenix.Component.assign(:view, TestErrorLive)
+        |> Phoenix.Component.assign(:view, HydepwnsLiveviewWeb.TestErrorLive)
 
       # Generate error message
       {:error, message, _} =
@@ -106,7 +51,7 @@ defmodule HydepwnsLiveview.EnhancedErrorReportingTest do
       socket =
         %Phoenix.LiveView.Socket{}
         |> Phoenix.Component.assign(:status, "cancelled")
-        |> Phoenix.Component.assign(:view, TestErrorLive)
+        |> Phoenix.Component.assign(:view, HydepwnsLiveviewWeb.TestErrorLive)
 
       # Generate error message
       {:error, message, _} =
@@ -137,7 +82,7 @@ defmodule HydepwnsLiveview.EnhancedErrorReportingTest do
       socket =
         %Phoenix.LiveView.Socket{}
         |> Phoenix.Component.assign(:user_id, "123")
-        |> Phoenix.Component.assign(:view, TestErrorLive)
+        |> Phoenix.Component.assign(:view, HydepwnsLiveviewWeb.TestErrorLive)
         |> Phoenix.Component.assign(:__lifecycle_phase__, :handle_event)
 
       # Generate error message for missing assign
@@ -163,7 +108,7 @@ defmodule HydepwnsLiveview.EnhancedErrorReportingTest do
         socket =
           %Phoenix.LiveView.Socket{}
           |> Phoenix.Component.assign(:count, "not-a-number")
-          |> Phoenix.Component.assign(:view, TestErrorLive)
+          |> Phoenix.Component.assign(:view, HydepwnsLiveviewWeb.TestErrorLive)
 
         # Generate error message
         {:error, message, _} =
@@ -197,7 +142,7 @@ defmodule HydepwnsLiveview.EnhancedErrorReportingTest do
           :settings,
           %{theme: "blue", notifications: "maybe"}
         )
-        |> Phoenix.Component.assign(:view, TestErrorLive)
+        |> Phoenix.Component.assign(:view, HydepwnsLiveviewWeb.TestErrorLive)
 
       # Define schema
       settings_schema = %{
@@ -234,7 +179,7 @@ defmodule HydepwnsLiveview.EnhancedErrorReportingTest do
         %Phoenix.LiveView.Socket{}
         |> Phoenix.Component.assign(:user_id, "123")
         |> Phoenix.Component.assign(:count, 42)
-        |> Phoenix.Component.assign(:view, TestErrorLive)
+        |> Phoenix.Component.assign(:view, HydepwnsLiveviewWeb.TestErrorLive)
 
       # Validate these don't raise errors
       socket =

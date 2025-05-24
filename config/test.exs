@@ -29,7 +29,7 @@ config :hydepwns_liveview, HydepwnsLiveview.Mailer, adapter: Swoosh.Adapters.Tes
 config :swoosh, :api_client, false
 
 # Print only warnings and errors during test
-config :logger, level: :warning
+config :logger, level: :debug
 
 # Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime
@@ -52,7 +52,7 @@ config :wallaby,
   chromedriver: [
     headless: true
   ],
-  base_url: "http://localhost:4001"
+  base_url: "http://localhost:4002"
 
 # Configure your application to work with Wallaby
 config :hydepwns_liveview, HydepwnsLiveviewWeb.Endpoint,
@@ -66,3 +66,8 @@ config :hydepwns_liveview, :testing, true
 
 # Enable the :sql_sandbox flag for the test environment
 config :hydepwns_liveview, :sql_sandbox, true
+
+# Disable code reloader and live reloader for tests to avoid potential side effects
+config :hydepwns_liveview, HydepwnsLiveviewWeb.Endpoint, code_reloader: false
+
+config :phoenix, :live_reload, enable: false

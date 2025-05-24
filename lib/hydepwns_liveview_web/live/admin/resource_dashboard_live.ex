@@ -19,9 +19,7 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
       :images
     ]
 
-  alias HydepwnsLiveview.Events.Event, as: Event
   alias HydepwnsLiveview.Events.EventStore, as: EventStore
-  alias HydepwnsLiveview.Events.EventSourcedResource, as: EventSourcedResource
   alias HydepwnsLiveview.Events.EventBus, as: EventBus
 
   @impl true
@@ -623,7 +621,7 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
     filters
   end
 
-  defp get_display_fields(resource_module) do
+  defp get_display_fields(_resource_module) do
     # This would typically be based on the resource definition
     # For this example, we'll return some basic fields
     [:name, :status, :created_at, :updated_at]
@@ -667,17 +665,17 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
     # For example, for OrderResource it might call create_order
 
     # Get the creation function name (assuming convention of create_<resource_type>)
-    resource_type = resource_module.resource_type()
-    function_name = String.to_atom("create_#{resource_type}")
+    _resource_type = resource_module.resource_type()
+    function_name = String.to_atom("create_#{_resource_type}")
 
     # Extract required parameters based on resource type
-    args = extract_creation_args(resource_type, resource_id, params)
+    args = extract_creation_args(_resource_type, resource_id, params)
 
     # Call the function if it exists
     if function_exported?(resource_module, function_name, length(args)) do
       apply(resource_module, function_name, args)
     else
-      {:error, "Creation function not found for #{resource_type}"}
+      {:error, "Creation function not found for #{_resource_type}"}
     end
   end
 
@@ -688,7 +686,7 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
     # For simplicity, we'll just handle a few common update patterns
     # In a real implementation, this would be more sophisticated
 
-    resource_type = resource_module.resource_type()
+    _resource_type = resource_module.resource_type()
 
     # Try to find an appropriate update function based on the params
     # This is a simplified approach - real implementation would be more comprehensive
@@ -716,11 +714,11 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
     end
   end
 
-  defp extract_creation_args(resource_type, resource_id, params) do
+  defp extract_creation_args(_resource_type, resource_id, params) do
     # Extract the appropriate arguments based on resource type
     # This is a simplified implementation - would be more comprehensive in production
 
-    case resource_type do
+    case _resource_type do
       "order" ->
         # For OrderResource.create_order(resource_id, customer_id, metadata \\ %{})
         [resource_id, params["customer_id"] || "unknown", %{}]

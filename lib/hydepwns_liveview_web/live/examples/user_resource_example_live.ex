@@ -12,26 +12,29 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceExampleLive do
   alias HydepwnsLiveview.Resources.UserResource
 
   assigns do
-    attribute :page_title, :any, required: true
-    attribute :theme_class, :any, required: true
-    attribute :show_toc, :any, required: true
-    attribute :toc_items, :any, required: true
-    attribute :images, :any, required: true
+    attribute(:page_title, :any, required: true)
+    attribute(:theme_class, :any, required: true)
+    attribute(:show_toc, :any, required: true)
+    attribute(:toc_items, :any, required: true)
+    attribute(:images, :any, required: true)
 
     # Define attributes for user data that is managed by this LiveView
     # These were previously implicitly assigned in mount or via UserResource
-    attribute :user_id, :string
-    attribute :username, :string
-    attribute :email, :string
-    attribute :role, :string # Add role as an attribute
+    attribute(:user_id, :string)
+    attribute(:username, :string)
+    attribute(:email, :string)
+    # Add role as an attribute
+    attribute(:role, :string)
 
     # Define settings as a nested attribute, matching its usage
     attribute :settings, :map do
-      attribute :theme, :any # :string or {:one_of, [...]}, using :any for now
-      attribute :notifications, :boolean
+      # :string or {:one_of, [...]}, using :any for now
+      attribute(:theme, :any)
+      attribute(:notifications, :boolean)
     end
 
-    attribute :show_admin_panel, :boolean # For conditional rendering
+    # For conditional rendering
+    attribute(:show_admin_panel, :boolean)
   end
 
   def do_mount(_params, _session, socket) do

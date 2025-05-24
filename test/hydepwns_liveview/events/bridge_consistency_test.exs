@@ -23,7 +23,7 @@ defmodule HydepwnsLiveview.Events.BridgeConsistencyTest do
 
         # For each bridge function (except direct implementations), check if a matching core function exists
         for {name, arity} <- bridge_functions,
-            is_delegate?(bridge_module, name, arity) do
+            delegate?(bridge_module, name, arity) do
           assert function_exists?(core_module, name, arity) ||
                    aliased_function_exists?(bridge_module, core_module, name, arity),
                  "Bridge function #{inspect(bridge_module)}.#{name}/#{arity} does not have a matching core implementation"
@@ -40,7 +40,7 @@ defmodule HydepwnsLiveview.Events.BridgeConsistencyTest do
     _ -> []
   end
 
-  defp is_delegate?(module, name, arity) do
+  defp delegate?(module, name, arity) do
     # Determine if a function is delegated or directly implemented
     # This is a simplified approach and might need refinement
     # based on how delegates are actually implemented in your codebase

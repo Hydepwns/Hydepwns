@@ -16,6 +16,7 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
       :toc_items,
       :images
     ]
+
   alias HydepwnsLiveview.Resources.UserResource
   alias HydepwnsLiveview.Resources.TeamResource
   alias HydepwnsLiveview.Resources.PostResource

@@ -17,14 +17,15 @@ defmodule HydepwnsLiveviewWeb.Components.UI.DebugGrid do
   """
   attr :class, :string, default: nil
   attr :rest, :global
+  attr :id, :string, default: "debug-grid-toggle"
 
   def debug_grid(assigns) do
     ~H"""
     <div class="debug-grid-container">
       <div class="debug-grid" style="display: none;"></div>
       <div class="debug-toggle">
-        <label class="debug-toggle-label" for="debug-grid-toggle">
-          <input type="checkbox" id="debug-grid-toggle" phx-hook="DebugGridToggle" />
+        <label class="debug-toggle-label" for={@id}>
+          <input type="checkbox" id={@id} phx-hook="DebugGridToggle" />
           <span style="font-size: 0.75rem;">Grid</span>
         </label>
       </div>

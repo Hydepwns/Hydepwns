@@ -19,6 +19,8 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
   alias HydepwnsLiveview.Transformations.TransformationContext
   alias HydepwnsLiveview.Transformations.StandardTransformers
 
+  @adapter_info nil
+
   @example_resource %{
     username: "JOHN.DOE",
     email: "JOHN.DOE@EXAMPLE.COM",
@@ -55,6 +57,22 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
   attribute(:selected_transformers, :list, default: [])
   attribute(:execution_error, :string, default: nil)
 
+  @impl HydepwnsLiveview.Utils.LiveViewResource
+  def __resource_schema__ do
+    @type_schema
+  end
+
+  @impl HydepwnsLiveview.Utils.LiveViewResource
+  def relationships do
+    []
+  end
+
+  @impl HydepwnsLiveview.Utils.LiveViewResource
+  def validations do
+    []
+  end
+
+  @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
     # Start the transformation registry if not already started
     case Process.whereis(TransformationRegistry) do
@@ -102,6 +120,7 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
     socket
   end
 
+  @impl Phoenix.LiveView
   def handle_event("execute_transformations", _params, socket) do
     result =
       execute_transformation_pipeline(
@@ -141,6 +160,7 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
     end
   end
 
+  @impl Phoenix.LiveView
   def handle_event("reset_resource", _params, socket) do
     socket =
       socket
@@ -153,6 +173,7 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
     {:noreply, socket}
   end
 
+  @impl Phoenix.LiveView
   def handle_event("update_transformers", %{"transformers" => transformers}, socket) do
     selected =
       if is_list(transformers) do
@@ -164,11 +185,13 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
     {:noreply, assign(socket, :selected_transformers, selected)}
   end
 
+  @impl Phoenix.LiveView
   def handle_event("update_form", %{"form_data" => form_data}, socket) do
     updated_form_data = Map.merge(socket.assigns.form_data, form_data)
     {:noreply, assign(socket, :form_data, updated_form_data)}
   end
 
+  @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
     <div class="transformation-example">

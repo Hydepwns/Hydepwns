@@ -169,23 +169,18 @@ defmodule HydepwnsLiveviewWeb.ResourceLive do
     quote do
       unquote(block)
 
-      # Auto-generate required_assigns and type_specs from attributes
-      def do_mount(params, session, socket) do
-        # Set default values for attributes with defaults
+      # The do_mount defined in __using__ is defoverridable.
+      # The user should implement do_mount in their LiveView.
+      # Default setting logic will be handled by a helper function called by the user's do_mount.
+
+      defp __apply_resource_defaults__(socket) do
         defaults =
           @resource_attributes
-          |> Enum.filter(fn attr -> attr.default != nil end)
+          |> Enum.filter(fn attr -> Map.has_key?(attr, :default) && attr.default != nil end)
           |> Enum.map(fn attr -> {attr.name, attr.default} end)
           |> Map.new()
 
-        socket = Phoenix.Component.assign(socket, defaults)
-
-        # Call user-defined mount if it exists
-        if function_exported?(__MODULE__, :do_mount, 3) do
-          apply(__MODULE__, :do_mount, [params, session, socket])
-        else
-          socket
-        end
+        Phoenix.Component.assign(socket, defaults)
       end
     end
   end

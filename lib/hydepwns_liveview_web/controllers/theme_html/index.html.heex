@@ -1,3 +1,5 @@
+<% themes = @themes || [] %>
+
 <.header>
   Listing Themes
   <:actions>
@@ -7,7 +9,7 @@
   </:actions>
 </.header>
 
-<.table id="themes" rows={@themes} row_click={&JS.navigate(~p"/themes/#{&1}")}>
+<.table id="themes" rows={themes} row_click={&JS.navigate(~p"/themes/#{&1}")}>
   <:col :let={theme} label="Name">{theme.name}</:col>
   <:col :let={theme} label="Settings">{inspect(theme.settings)}</:col>
   <:action :let={theme}>

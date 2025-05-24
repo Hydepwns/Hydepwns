@@ -67,8 +67,16 @@ defmodule HydepwnsLiveview.Mocks do
 
     @impl true
     def fetch_data(id) do
-      # Real implementation would call external API
-      {:ok, %{"id" => id, "data" => "sample data"}}
+      # Mocked resource with all expected fields for integration tests
+      {:ok, %{
+        "id" => id,
+        "name" => "Test Resource",
+        "description" => "A resource for testing.",
+        "type" => "test-type",
+        "status" => "active",
+        "content" => "This is the test content.",
+        "html_content" => "<b>Test HTML Content</b>"
+      }}
     end
 
     @impl true
@@ -88,3 +96,20 @@ end
 # Define mocks
 Mox.defmock(HydepwnsLiveview.MockHTTPClient, for: HydepwnsLiveview.Mocks.HTTPClientBehaviour)
 Mox.defmock(HydepwnsLiveview.MockExternalAPI, for: HydepwnsLiveview.Mocks.ExternalAPIBehaviour)
+
+defmodule HydepwnsLiveview.DefaultHTTPClient do
+  @moduledoc false
+  @behaviour HydepwnsLiveview.Mocks.HTTPClientBehaviour
+
+  defdelegate get(url, headers \\ [], opts \\ []), to: HydepwnsLiveview.Mocks.DefaultHTTPClient
+  defdelegate post(url, body, headers \\ [], opts \\ []), to: HydepwnsLiveview.Mocks.DefaultHTTPClient
+end
+
+defmodule HydepwnsLiveview.DefaultExternalAPI do
+  @moduledoc false
+  @behaviour HydepwnsLiveview.Mocks.ExternalAPIBehaviour
+
+  defdelegate fetch_data(id), to: HydepwnsLiveview.Mocks.DefaultExternalAPI
+  defdelegate update_resource(id, data), to: HydepwnsLiveview.Mocks.DefaultExternalAPI
+  defdelegate delete_resource(id), to: HydepwnsLiveview.Mocks.DefaultExternalAPI
+end

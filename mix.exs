@@ -90,7 +90,7 @@ defmodule HydepwnsLiveview.MixProject do
 
       # Add test coverage and static analysis
       {:excoveralls, ">= 0.0.0", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.3", only: [:dev], runtime: false},
+      {:dialyxir, "~> 1.3", only: [:dev], runtime: false}
 
       # Authentication - Uncomment to add authentication
       # {:phx_gen_auth, "~> 0.7.1", only: [:dev], runtime: false},

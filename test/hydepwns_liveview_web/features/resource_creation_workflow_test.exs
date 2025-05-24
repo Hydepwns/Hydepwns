@@ -17,7 +17,11 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
 
   setup %{session: session} do
     # Start session and visit the resource dashboard
-    {:ok, session: visit_and_wait(session, "/resources")}
+    session = visit_and_wait(session, "/resources")
+    # Dump the HTML for debugging
+    html = Wallaby.Browser.page_source(session)
+    IO.puts("\n===== RESOURCE DASHBOARD HTML =====\n" <> html <> "\n===============================\n")
+    {:ok, session: session}
   end
 
   describe "resource creation workflow" do

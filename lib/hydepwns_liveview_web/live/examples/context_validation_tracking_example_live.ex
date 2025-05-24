@@ -16,12 +16,27 @@ defmodule HydepwnsLiveviewWeb.Examples.ContextValidationTrackingExampleLive do
       :toc_items,
       :images
     ]
+
   alias HydepwnsLiveview.Utils.LiveViewAPI
   import HydepwnsLiveviewWeb.Components.ChangeHistoryViewer
 
   # Define a resource module inline for the example
   defmodule ExampleUserResource do
     use HydepwnsLiveview.Utils.LiveViewResource
+    @adapter_info nil
+
+    @impl HydepwnsLiveview.Utils.LiveViewResource
+    def __resource_schema__ do
+      %{
+        id: :string,
+        name: :string,
+        email: :string,
+        role: :string,
+        permissions: {:list, :string},
+        active: :boolean,
+        settings: :map
+      }
+    end
 
     # Define validation rules
     def __validation_rules__ do

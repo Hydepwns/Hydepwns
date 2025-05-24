@@ -2,14 +2,13 @@ defmodule HydepwnsLiveviewWeb.ThemeManagerLive do
   use HydepwnsLiveviewWeb.BaseLive,
     layout: {HydepwnsLiveviewWeb.Layouts, :app}
 
-  alias HydepwnsLiveview.Themes
   alias HydepwnsLiveview.ThemeSystem.Models.Theme
   import HydepwnsLiveviewWeb.Components.UI.ThemeToggle
 
   @impl true
   def do_mount(_params, _session, socket) do
-    themes = Themes.list_themes()
-    changeset = Themes.change_theme(%Theme{})
+    themes = HydepwnsLiveview.ThemeSystem.list_themes()
+    changeset = HydepwnsLiveview.ThemeSystem.change_theme(%Theme{})
 
     socket =
       socket
@@ -141,14 +140,14 @@ defmodule HydepwnsLiveviewWeb.ThemeManagerLive do
       theme_params
       |> Map.put("colors", colors)
 
-    case Themes.create_theme(theme_params) do
+    case HydepwnsLiveview.ThemeSystem.create_theme(theme_params) do
       {:ok, _theme} ->
-        themes = Themes.list_themes()
+        themes = HydepwnsLiveview.ThemeSystem.list_themes()
 
         socket =
           socket
           |> assign(:themes, themes)
-          |> assign(:changeset, Themes.change_theme(%Theme{}))
+          |> assign(:changeset, HydepwnsLiveview.ThemeSystem.change_theme(%Theme{}))
           |> put_flash(:info, "Theme created successfully.")
 
         {:noreply, socket}
@@ -160,17 +159,17 @@ defmodule HydepwnsLiveviewWeb.ThemeManagerLive do
 
   @impl true
   def handle_event("set-default", %{"id" => id}, socket) do
-    theme = Themes.get_theme!(id)
-    {:ok, _} = Themes.update_theme(theme, %{is_default: true})
-    themes = Themes.list_themes()
+    theme = HydepwnsLiveview.ThemeSystem.get_theme!(id)
+    {:ok, _} = HydepwnsLiveview.ThemeSystem.update_theme(theme, %{is_default: true})
+    themes = HydepwnsLiveview.ThemeSystem.list_themes()
     {:noreply, assign(socket, :themes, themes)}
   end
 
   @impl true
   def handle_event("delete-theme", %{"id" => id}, socket) do
-    theme = Themes.get_theme!(id)
-    {:ok, _} = Themes.delete_theme(theme)
-    themes = Themes.list_themes()
+    theme = HydepwnsLiveview.ThemeSystem.get_theme!(id)
+    {:ok, _} = HydepwnsLiveview.ThemeSystem.delete_theme(theme)
+    themes = HydepwnsLiveview.ThemeSystem.list_themes()
     {:noreply, assign(socket, :themes, themes)}
   end
 

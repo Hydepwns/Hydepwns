@@ -4,12 +4,12 @@
  * Tests for the AutoResizeComponent class that manages automatic textarea resizing.
  */
 
-import { AutoResizeComponent } from '../../../../assets/js/components/auto_resize';
-import EventManager from '../../../../assets/js/components/event_manager';
-import DOMCleanup from '../../../../assets/js/utils/dom_cleanup';
+import { AutoResizeComponent } from '../../../../js/components/auto_resize';
+import EventManager from '../../../../js/components/event_manager';
+import DOMCleanup from '../../../../js/utils/dom_cleanup';
 
 // Mock dependencies
-jest.mock('../../../../assets/js/components/event_manager', () => ({
+jest.mock('../../../../js/components/event_manager', () => ({
   registerComponent: jest.fn().mockReturnValue({
     addEventListener: jest.fn(),
     addDelegatedEventListener: jest.fn()
@@ -17,7 +17,7 @@ jest.mock('../../../../assets/js/components/event_manager', () => ({
   unregisterComponent: jest.fn()
 }));
 
-jest.mock('../../../../assets/js/utils/dom_cleanup', () => ({
+jest.mock('../../../../js/utils/dom_cleanup', () => ({
   register: jest.fn().mockReturnValue({
     registerElement: jest.fn(),
     registerTimeout: jest.fn(),
@@ -225,7 +225,7 @@ describe('AutoResizeComponent', () => {
         }
       };
       
-      const AutoResize = require('../../../../assets/js/components/auto_resize').default;
+      const AutoResize = require('../../../../js/components/auto_resize').default;
       AutoResize.mounted.call(hook);
       
       expect(hook.component).toBeTruthy();
@@ -243,7 +243,7 @@ describe('AutoResizeComponent', () => {
       
       const resizeSpy = jest.spyOn(component, 'resize');
       
-      const AutoResize = require('../../../../assets/js/components/auto_resize').default;
+      const AutoResize = require('../../../../js/components/auto_resize').default;
       AutoResize.updated.call(hook);
       
       expect(resizeSpy).toHaveBeenCalled();
@@ -257,7 +257,7 @@ describe('AutoResizeComponent', () => {
         component: component.mount()
       };
       
-      const AutoResize = require('../../../../assets/js/components/auto_resize').default;
+      const AutoResize = require('../../../../js/components/auto_resize').default;
       AutoResize.destroyed.call(hook);
       
       expect(hook.component).toBeNull();

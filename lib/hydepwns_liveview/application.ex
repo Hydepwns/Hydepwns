@@ -10,31 +10,29 @@ defmodule HydepwnsLiveview.Application do
     # Initialize telemetry storage for socket validation
     HydepwnsLiveview.Telemetry.init_storage()
 
-    children = [
-      HydepwnsLiveviewWeb.Telemetry,
-      # Add our Telemetry module
-      HydepwnsLiveview.Telemetry,
-      # Start the ResourceSystem Agent (now has child_spec/1)
-      HydepwnsLiveview.ResourceSystem,
-      # Start the TransformationRegistry for the resource transformation pipeline
-      HydepwnsLiveview.Transformations.TransformationRegistry,
-      # Start the TransformationMetrics for tracking transformation performance
-      HydepwnsLiveview.Transformations.TransformationMetrics,
-      # Start the EventSupervisor for the resource event system
-      HydepwnsLiveview.Events.EventSupervisor,
-      # Start the EventMonitor for performance monitoring
-      HydepwnsLiveview.Events.Core.EventMonitor,
-      HydepwnsLiveview.Repo,
-      {DNSCluster, query: Application.get_env(:hydepwns_liveview, :dns_cluster_query) || :ignore},
-      {Phoenix.PubSub, name: HydepwnsLiveview.PubSub},
-      # Start the Finch HTTP client for sending emails
-      {Finch, name: HydepwnsLiveview.Finch},
-      # Start a worker by calling: HydepwnsLiveview.Worker.start_link(arg)
-      # {HydepwnsLiveview.Worker, arg},
-      # Start to serve requests, typically the last entry
-      HydepwnsLiveviewWeb.Endpoint,
-      HydepwnsLiveviewWeb.Presence
-    ]
+    children =
+      [
+        HydepwnsLiveviewWeb.Telemetry,
+        HydepwnsLiveview.Telemetry,
+        HydepwnsLiveview.Resources.ResourceSystem,
+        HydepwnsLiveview.Transformations.TransformationRegistry,
+        HydepwnsLiveview.Transformations.TransformationMetrics,
+        HydepwnsLiveview.Events.Core.EventSupervisor
+      ] ++
+        if Mix.env() != :test do
+          [HydepwnsLiveview.Events.Core.EventMonitor]
+        else
+          []
+        end ++
+        [
+          HydepwnsLiveview.Repo,
+          {DNSCluster,
+           query: Application.get_env(:hydepwns_liveview, :dns_cluster_query) || :ignore},
+          {Phoenix.PubSub, name: HydepwnsLiveview.PubSub},
+          {Finch, name: HydepwnsLiveview.Finch},
+          HydepwnsLiveviewWeb.Endpoint,
+          HydepwnsLiveviewWeb.Presence
+        ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options

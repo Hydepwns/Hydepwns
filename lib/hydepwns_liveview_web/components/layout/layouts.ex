@@ -34,7 +34,7 @@ defmodule HydepwnsLiveviewWeb.Layouts do
       </header>
 
       <main id="main-content" class="flex-grow">
-        <%= if assigns[:inner_block], do: render_slot(assigns[:inner_block]) %>
+        {if assigns[:inner_block], do: render_slot(assigns[:inner_block])}
       </main>
 
       <footer class="main-footer">

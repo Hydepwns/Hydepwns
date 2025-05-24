@@ -6,8 +6,8 @@
  * accessibility support, and proper cleanup.
  */
 
-import EventManager from '../../assets/js/components/event_manager';
-import DOMCleanup from '../../assets/js/utils/dom_cleanup';
+import EventManager from '../../js/components/event_manager';
+import DOMCleanup from '../../js/utils/dom_cleanup';
 
 class ModalComponent {
   /**

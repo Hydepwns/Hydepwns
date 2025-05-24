@@ -12,7 +12,6 @@ defmodule HydepwnsLiveview.Resources.TestFramework do
   """
 
   alias HydepwnsLiveview.Events.Core.Event
-  alias HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource
 
   @doc """
   Creates a test context for an event-sourced resource.
@@ -70,11 +69,11 @@ defmodule HydepwnsLiveview.Resources.TestFramework do
               )
         }
 
-      {:error, reason} ->
+      {:error, _reason} ->
         # Record error
         %{
           context
-          | errors: ["Command failed: #{inspect(reason)}" | context.errors]
+          | errors: ["Command failed: #{inspect(_reason)}" | context.errors]
         }
     end
   end
@@ -147,14 +146,19 @@ defmodule HydepwnsLiveview.Resources.TestFramework do
   * Updated test context
   """
   def then_fields(context, expected_fields) when is_map(expected_fields) do
-    errors = Enum.reduce(expected_fields, [], fn {field, expected_value}, acc_errors ->
-      current_value = Map.get(context.current_state, field)
-      if current_value == expected_value do
-        acc_errors
-      else
-        ["Field '#{field}' mismatch. Expected: #{inspect(expected_value)}, Got: #{inspect(current_value)}" | acc_errors]
-      end
-    end)
+    errors =
+      Enum.reduce(expected_fields, [], fn {field, expected_value}, acc_errors ->
+        current_value = Map.get(context.current_state, field)
+
+        if current_value == expected_value do
+          acc_errors
+        else
+          [
+            "Field '#{field}' mismatch. Expected: #{inspect(expected_value)}, Got: #{inspect(current_value)}"
+            | acc_errors
+          ]
+        end
+      end)
 
     if Enum.empty?(errors) do
       context
@@ -399,7 +403,7 @@ defmodule HydepwnsLiveview.Resources.TestFramework do
 
   # Private helper functions
 
-  defp verify_events(generated_events, expected_events, context) do
+  defp verify_events(generated_events, expected_events, _context) do
     # Check count and content
     Enum.count(generated_events) == Enum.count(expected_events) &&
       Enum.zip(generated_events, expected_events)

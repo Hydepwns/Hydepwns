@@ -1,7 +1,6 @@
 defmodule HydepwnsLiveviewWeb.Components.UI.ThemeToggle do
   use Phoenix.Component
   alias Phoenix.LiveView.JS
-  alias HydepwnsLiveview.Themes
 
   @moduledoc """
   Advanced theme toggle UI component for switching between application themes.
@@ -24,7 +23,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ThemeToggle do
   ## Implementation Notes
 
   The component relies on the ThemeToggle JavaScript hook for functionality.
-  See `assets/js/hooks/theme_toggle.js` for the implementation details.
+  See `js/hooks/theme_toggle.js` for the implementation details.
 
   ## CSS Dependencies
 
@@ -52,7 +51,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ThemeToggle do
   def theme_toggle(assigns) do
     # Get themes from database or use defaults if none exist
     themes =
-      case Themes.list_themes() do
+      case HydepwnsLiveview.ThemeSystem.list_themes() do
         [] ->
           [
             %{name: "light", mode: "light", is_default: true},

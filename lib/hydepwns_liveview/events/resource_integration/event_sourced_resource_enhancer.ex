@@ -10,7 +10,6 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResourceEnhanc
   """
 
   require Logger
-  alias HydepwnsLiveview.Events.Event
   alias HydepwnsLiveview.Events.EventStore
   alias HydepwnsLiveview.Events.EventSourcedResource
 
@@ -31,11 +30,19 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResourceEnhanc
 
     # Try to find a snapshot before the specified point in time
     snapshot_result =
-      EventStore.get_latest_snapshot(
-        resource_type,
-        id,
-        %{before: point_in_time}
-      )
+      case EventStore.get_snapshots(resource_type, id) do
+        {:ok, snapshots} ->
+          snapshots
+          |> Enum.filter(fn snap ->
+            snap.inserted_at && DateTime.compare(snap.inserted_at, point_in_time) != :gt
+          end)
+          |> Enum.max_by(& &1.inserted_at, fn -> nil end)
+          |> case do
+            nil -> {:error, :not_found}
+            snap -> {:ok, snap}
+          end
+        error -> error
+      end
 
     # Start with either the snapshot state or the initial state
     {state, start_from} =

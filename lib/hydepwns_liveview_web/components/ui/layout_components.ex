@@ -80,20 +80,16 @@ defmodule HydepwnsLiveviewWeb.Components.UI.LayoutComponents do
             {render_slot(@left)}
           </td>
           <td class="width-min metadata-cell">
-            <%= if @right != [] do %>
-              <table class="metadata-table">
-                {render_slot(@right)}
-              </table>
-            <% end %>
+            <table :if={@right != []} class="metadata-table">
+              {render_slot(@right)}
+            </table>
           </td>
         </tr>
         <tr>
           <td class="author-cell">
-            <%= if @metadata != [] do %>
-              <div class="author-row">
-                {render_slot(@metadata)}
-              </div>
-            <% end %>
+            <div :if={@metadata != []} class="author-row">
+              {render_slot(@metadata)}
+            </div>
           </td>
           <td class="width-min"></td>
         </tr>
@@ -116,15 +112,14 @@ defmodule HydepwnsLiveviewWeb.Components.UI.LayoutComponents do
   def nav(assigns) do
     ~H"""
     <nav class={["site-nav", @class]}>
-      <%= if @inner_block != [] do %>
+      <div :if={@inner_block != []}>
         {render_slot(@inner_block)}
-      <% else %>
-        <%= for item <- @item do %>
-          <a href={item.link} class={if Map.get(item, :active, false), do: "active"}>
-            {render_slot(item)}
-          </a>
-        <% end %>
-      <% end %>
+      </div>
+      <div :if={@inner_block == []}>
+        <a :for={item <- @item} href={item.link} class={if Map.get(item, :active, false), do: "active"}>
+          {render_slot(item)}
+        </a>
+      </div>
     </nav>
     """
   end

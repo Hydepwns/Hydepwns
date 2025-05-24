@@ -18,7 +18,7 @@ defmodule HydepwnsLiveviewWeb.FontOptimizationsTest do
                ~s(<link rel="preload" href="/assets/fonts/MonaspaceArgon-Bold.woff2" as="font" type="font/woff2" crossorigin>)
 
       # Test that the fonts-loading class is present
-      assert html =~ ~s(class="fonts-loading")
+      assert html =~ ~r/class="[^"]*\bfonts-loading\b[^"]*"/
 
       # Test that the critical CSS is inlined
       assert html =~ ~s(font-family: 'Monaspace Argon Fallback', monospace)

@@ -30,6 +30,11 @@ defmodule HydepwnsLiveview.Events.UserMetricsProjection do
     CoreUserMetricsProjection.apply_event(event, state)
   end
 
+  @impl true
+  def get_state do
+    CoreUserMetricsProjection.get_state()
+  end
+
   # Delegate all public functions to the core implementation
   defdelegate total_users(state), to: CoreUserMetricsProjection
   defdelegate total_logins(state), to: CoreUserMetricsProjection

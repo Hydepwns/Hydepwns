@@ -6,18 +6,18 @@
  */
 
 // Import the component to test
-import { ToastComponent } from '../../../../assets/js/components/toast';
+import { ToastComponent } from '../../../../js/components/toast';
 
 // Import testing utilities
 import { fireEvent } from '@testing-library/dom';
 
 // Mock the EventManager and DOMCleanup modules
-jest.mock('../../../../assets/js/components/event_manager', () => ({
+jest.mock('../../../../js/components/event_manager', () => ({
   __esModule: true,
   default: global.createEventManagerMock()
 }));
 
-jest.mock('../../../../assets/js/utils/dom_cleanup', () => ({
+jest.mock('../../../../js/utils/dom_cleanup', () => ({
   __esModule: true,
   default: global.createDOMCleanupMock()
 }));
@@ -39,7 +39,7 @@ describe('Toast Component (ES Module Testing Example)', () => {
     mockToastContainer.className = 'toast-container';
     
     // Override the mock implementation for this test
-    const domCleanup = require('../../../../assets/js/utils/dom_cleanup').default;
+    const domCleanup = require('../../../../js/utils/dom_cleanup').default;
     domCleanup.createElement.mockReturnValue(mockToastContainer);
   });
   
@@ -65,11 +65,11 @@ describe('Toast Component (ES Module Testing Example)', () => {
     expect(toast.elements.toastContainer).toBe(mockToastContainer);
     
     // Verify EventManager was called
-    const eventManager = require('../../../../assets/js/components/event_manager').default;
+    const eventManager = require('../../../../js/components/event_manager').default;
     expect(eventManager.registerComponent).toHaveBeenCalledWith(expect.any(String));
     
     // Verify DOMCleanup was called
-    const domCleanup = require('../../../../assets/js/utils/dom_cleanup').default;
+    const domCleanup = require('../../../../js/utils/dom_cleanup').default;
     expect(domCleanup.register).toHaveBeenCalledWith(expect.any(String));
   });
   
@@ -80,8 +80,8 @@ describe('Toast Component (ES Module Testing Example)', () => {
     }).mount();
     
     // Get mock instances
-    const eventManager = require('../../../../assets/js/components/event_manager').default;
-    const domCleanup = require('../../../../assets/js/utils/dom_cleanup').default;
+    const eventManager = require('../../../../js/components/event_manager').default;
+    const domCleanup = require('../../../../js/utils/dom_cleanup').default;
     const cleanupRegistry = domCleanup.register.mock.results[0].value;
     
     // Destroy component
@@ -99,7 +99,7 @@ describe('Toast Component (ES Module Testing Example)', () => {
     }).mount();
     
     // Mock createElement to return a real element for the toast
-    const domCleanup = require('../../../../assets/js/utils/dom_cleanup').default;
+    const domCleanup = require('../../../../js/utils/dom_cleanup').default;
     domCleanup.createElement.mockImplementation((tag, attributes = {}, children = '', cleanupAPI) => {
       const element = document.createElement(tag);
       

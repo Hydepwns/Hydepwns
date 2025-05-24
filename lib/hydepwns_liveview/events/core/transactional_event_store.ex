@@ -33,7 +33,8 @@ defmodule HydepwnsLiveview.Events.Core.TransactionalEventStore do
   * `{:ok, result, events}` - Transaction was successful
   * `{:error, reason}` - Transaction failed
   """
-  @spec transaction_with_events((() -> {:ok, any(), [map()]} | {:error, any()})) :: {:ok, any(), [map()]} | {:error, any()}
+  @spec transaction_with_events((-> {:ok, any(), [map()]} | {:error, any()})) ::
+          {:ok, any(), [map()]} | {:error, any()}
   def transaction_with_events(fun) when is_function(fun, 0) do
     Repo.transaction(fn ->
       case fun.() do
@@ -79,7 +80,12 @@ defmodule HydepwnsLiveview.Events.Core.TransactionalEventStore do
   * `{:ok, resource, events}` - The resource was updated and events stored
   * `{:error, reason}` - The update failed
   """
-  @spec change_resource_with_events(module(), any(), (() -> {:ok, any(), [map()]} | {:error, any()}), Keyword.t()) :: {:ok, any(), [map()]} | {:error, any()}
+  @spec change_resource_with_events(
+          module(),
+          any(),
+          (-> {:ok, any(), [map()]} | {:error, any()}),
+          Keyword.t()
+        ) :: {:ok, any(), [map()]} | {:error, any()}
   def change_resource_with_events(resource_module, id, change_fn, opts \\ []) do
     transaction_with_events(fn ->
       result = change_fn.()
@@ -161,7 +167,10 @@ defmodule HydepwnsLiveview.Events.Core.TransactionalEventStore do
   * `{:ok, results, events}` - All resources were updated and events stored
   * `{:error, reason}` - The bulk update failed
   """
-  @spec bulk_change_resources([{module(), any(), (() -> {:ok, any(), [map()]} | {:error, any()})}], Keyword.t()) :: {:ok, [any()], [map()]} | {:error, any()}
+  @spec bulk_change_resources(
+          [{module(), any(), (-> {:ok, any(), [map()]} | {:error, any()})}],
+          Keyword.t()
+        ) :: {:ok, [any()], [map()]} | {:error, any()}
   def bulk_change_resources(resource_changes, opts \\ []) do
     # Generate a single correlation ID for the entire bulk operation
     correlation_id = Keyword.get(opts, :correlation_id, Ecto.UUID.generate())

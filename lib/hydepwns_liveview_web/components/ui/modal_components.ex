@@ -99,14 +99,14 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ModalComponents do
 
   ## Examples
 
-      <.flash_group flash={@flash} id="flash-group" />
+      <.flash_group flash={@flash} flash_group_id="modal-flash-group" />
   """
   attr :flash, :map, required: true, doc: "the map of flash messages"
-  attr :id, :string, default: "flash-group", doc: "the optional id of flash container"
+  attr :flash_group_id, :string, default: "flash-group", doc: "the optional id of flash container"
 
   def flash_group(assigns) do
     ~H"""
-    <div id={@id}>
+    <div id={@flash_group_id}>
       <.flash kind={:info} title={gettext("Success!")} flash={@flash} />
       <.flash kind={:error} title={gettext("Error!")} flash={@flash} />
       <.flash id="client-error" kind={:error} title={gettext("We can't find the internet")} phx-disconnected={show(".phx-client-error #client-error")} phx-connected={hide("#client-error")} hidden>

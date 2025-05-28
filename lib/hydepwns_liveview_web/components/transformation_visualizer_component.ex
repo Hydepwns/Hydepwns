@@ -24,13 +24,13 @@ defmodule HydepwnsLiveviewWeb.Components.TransformationVisualizerComponent do
       <div class="transformation-visualizer__header">
         <h3 class="transformation-visualizer__title">Transformation Result</h3>
         <div class="transformation-visualizer__tabs">
-          <button phx-click={JS.push("select_tab", value: %{tab: "comparison"}, target: @myself)} class={"transformation-visualizer__tab #{if @selected_tab == "comparison", do: "active"}"}>
+          <button phx-click={Phoenix.LiveView.JS.push("select_tab", value: %{tab: "comparison"}, target: @myself)} class={"transformation-visualizer__tab #{if @selected_tab == "comparison", do: "active"}"}>
             Comparison
           </button>
-          <button phx-click={JS.push("select_tab", value: %{tab: "changes"}, target: @myself)} class={"transformation-visualizer__tab #{if @selected_tab == "changes", do: "active"}"}>
+          <button phx-click={Phoenix.LiveView.JS.push("select_tab", value: %{tab: "changes"}, target: @myself)} class={"transformation-visualizer__tab #{if @selected_tab == "changes", do: "active"}"}>
             Changes
           </button>
-          <button phx-click={JS.push("select_tab", value: %{tab: "errors"}, target: @myself)} class={"transformation-visualizer__tab #{if @selected_tab == "errors", do: "active"}"}>
+          <button phx-click={Phoenix.LiveView.JS.push("select_tab", value: %{tab: "errors"}, target: @myself)} class={"transformation-visualizer__tab #{if @selected_tab == "errors", do: "active"}"}>
             Errors <span :if={has_errors?(@context)} class="transformation-visualizer__error-count">{error_count(@context)}</span>
           </button>
         </div>

@@ -7,7 +7,6 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator do
   """
 
   alias HydepwnsLiveview.Events.Event
-  alias HydepwnsLiveview.Events.EventBus
 
   @doc """
   Generates and publishes an event for a resource creation.
@@ -31,7 +30,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator do
              data: resource_info.data,
              metadata: Map.merge(%{action: "create"}, metadata)
            }),
-         :ok <- EventBus.publish(event) do
+         :ok <- HydepwnsLiveview.Events.EventBus.publish(event) do
       {:ok, event}
     else
       error -> error
@@ -61,7 +60,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator do
              data: Map.merge(resource_info.data, %{changes: changes}),
              metadata: Map.merge(%{action: "update"}, metadata)
            }),
-         :ok <- EventBus.publish(event) do
+         :ok <- HydepwnsLiveview.Events.EventBus.publish(event) do
       {:ok, event}
     else
       error -> error
@@ -90,7 +89,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator do
              data: resource_info.data,
              metadata: Map.merge(%{action: "delete"}, metadata)
            }),
-         :ok <- EventBus.publish(event) do
+         :ok <- HydepwnsLiveview.Events.EventBus.publish(event) do
       {:ok, event}
     else
       error -> error
@@ -121,7 +120,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator do
              data: Map.merge(resource_info.data, data),
              metadata: metadata
            }),
-         :ok <- EventBus.publish(event) do
+         :ok <- HydepwnsLiveview.Events.EventBus.publish(event) do
       {:ok, event}
     else
       error -> error

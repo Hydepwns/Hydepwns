@@ -24,7 +24,7 @@ config :hydepwns_liveview, HydepwnsLiveviewWeb.Endpoint,
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
-  secret_key_base: System.get_env("DEV_SECRET_KEY_BASE") || "dev_secret_key_base",
+  secret_key_base: System.get_env("DEV_SECRET_KEY_BASE") || String.duplicate("a", 64),
   watchers: [
     esbuild: {Esbuild, :install_and_run, [:hydepwns_liveview, ~w(--sourcemap=inline --watch)]},
     dart_sass:
@@ -68,7 +68,7 @@ config :hydepwns_liveview, HydepwnsLiveviewWeb.Endpoint,
 config :hydepwns_liveview, HydepwnsLiveviewWeb.Endpoint,
   live_reload: [
     patterns: [
-      ~r"priv/static/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
+      ~r"assets/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"priv/gettext/.*(po)$",
       ~r"lib/hydepwns_liveview_web/(controllers|live|components)/.*(ex|heex)$"
     ]

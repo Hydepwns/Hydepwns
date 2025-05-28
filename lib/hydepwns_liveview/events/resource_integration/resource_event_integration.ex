@@ -14,10 +14,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventIntegration d
   - Resource history and versioning
   """
 
-  alias HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator
   alias HydepwnsLiveview.Events.ResourceIntegration.TransactionalResourceChanges
-  alias HydepwnsLiveview.Events.ResourceIntegration.ResourceReplay
-  alias HydepwnsLiveview.Events.Handlers.LiveEventUpdater
 
   @doc """
   Creates a resource with events in a transaction.

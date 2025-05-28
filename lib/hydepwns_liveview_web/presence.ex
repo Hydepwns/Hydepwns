@@ -3,7 +3,7 @@ defmodule HydepwnsLiveviewWeb.Presence do
     otp_app: :hydepwns_liveview,
     pubsub_server: HydepwnsLiveview.PubSub
 
-  def broadcast_to_users(topic, event, payload, user_ids) do
+  def broadcast_to_users(_topic, event, payload, user_ids) do
     Enum.each(user_ids, fn user_id ->
       Phoenix.PubSub.broadcast(
         HydepwnsLiveview.PubSub,

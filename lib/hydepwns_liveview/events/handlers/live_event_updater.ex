@@ -45,7 +45,7 @@ defmodule HydepwnsLiveview.Events.Handlers.LiveEventUpdater do
   end
   ```
   """
-  defmacro live_event_component(name, opts \\ [], do_block) do
+  defmacro live_event_component(name, _opts \\ [], do_block) do
     quote do
       @doc """
       LiveComponent that updates based on events.
@@ -125,7 +125,7 @@ defmodule HydepwnsLiveview.Events.Handlers.LiveEventUpdater do
   ## Returns
   * Updated socket with optimistic updates
   """
-  def optimistic_update(socket, resource_key, updates, event_type) do
+  def optimistic_update(socket, resource_key, updates, _event_type) do
     # Get the current resource
     resource = Map.get(socket.assigns, resource_key)
 

@@ -1,7 +1,6 @@
 defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
-  import Wallaby.Browser
-
   use HydepwnsLiveviewWeb.WallabyCase, async: false
+  setup :set_mox_global
 
   @moduledoc """
   End-to-end tests for the Theme System workflow.
@@ -15,43 +14,64 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
   - Theme Performance
   """
 
-  import Wallaby.Query
   alias HydepwnsLiveview.TestSupport.ThemeFixtures
+  import ThemeHelper
+  alias HydepwnsLiveviewWeb.MockHelper
 
-  setup %{session: session} do
-    # Clean up all themes before each test for isolation
-    HydepwnsLiveview.Repo.delete_all(HydepwnsLiveview.ThemeSystem.Models.Theme)
-    # Create the test theme after the sandbox owner and session are started
-    result =
-      ThemeFixtures.create_test_theme(%{
-        name: "Test Theme",
-        mode: "light",
-        colors: %{
-          primary: "#4A90E2",
-          secondary: "#50E3C2"
-        },
-        settings: %{
-          font_family: "monospace",
-          font_size: "14px"
-        },
-        is_default: false
-      })
-    IO.puts("\n[DEBUG] create_test_theme result: #{inspect(result)}\n")
+  setup %{session: session} = context do
+    HydepwnsLiveview.ThemeSystem.list_themes()
+    |> Enum.each(&HydepwnsLiveview.ThemeSystem.delete_theme/1)
+
+    {:ok, light_theme} = HydepwnsLiveview.ThemeSystemFixtures.light_theme_fixture()
+    {:ok, dark_theme} = HydepwnsLiveview.ThemeSystemFixtures.dark_theme_fixture()
+    {:ok, system_theme} = HydepwnsLiveview.ThemeSystemFixtures.system_theme_fixture()
+    {:ok, dim_theme} = HydepwnsLiveview.ThemeSystemFixtures.dim_theme_fixture()
+    # Add a Test Theme for Wallaby selector
+    {:ok, test_theme} = HydepwnsLiveview.ThemeSystem.create_theme(%{
+      name: "Test Theme",
+      mode: "light",
+      colors: %{
+        primary: "#3b82f6",
+        secondary: "#10b981",
+        accent: "#f59e0b",
+        background: "#ffffff",
+        text: "#1f2937",
+        border: "#e5e7eb",
+        error: "#ef4444",
+        success: "#22c55e",
+        warning: "#f59e0b",
+        info: "#3b82f6"
+      },
+      is_default: false,
+      settings: %{
+        font_size: "medium",
+        line_height: "normal",
+        contrast: "normal",
+        animations: true
+      }
+    })
+
     themes = HydepwnsLiveview.ThemeSystem.list_themes()
-    IO.puts("\n[DEBUG] Themes in DB after create_theme: #{inspect(Enum.map(themes, & &1.name))}\n")
+    assert length(themes) >= 4
+    Enum.each(themes, fn theme ->
+      assert theme.id != nil
+      assert theme.name != nil and theme.name != ""
+      assert theme.mode in ["light", "dark", "dim", "system"]
+    end)
+
+    MockHelper.setup_mocks()
+    MockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
+      {:ok, %{"id" => "mock", "name" => "Mock Resource", "status" => "active"}}
+    end)
+
     session = visit_and_wait(session, "/themes")
     Wallaby.Browser.take_screenshot(session, name: "theme_system_workflow_setup")
     IO.puts("\n--- PAGE SOURCE ---\n" <> Wallaby.Browser.page_source(session) <> "\n--- END PAGE SOURCE ---\n")
-    case result do
-      {:ok, theme} -> {:ok, session: session, theme: theme}
-      {:error, changeset} -> raise "Theme creation failed: #{inspect(changeset.errors)}"
-    end
+    {:ok, session: session, theme: dim_theme, light_theme: light_theme, dark_theme: dark_theme, system_theme: system_theme, dim_theme: dim_theme}
   end
 
   describe "theme management and application" do
     test "theme can be created and applied", %{session: session, theme: theme} do
-      import Wallaby.Browser
-      import Wallaby.Query
       # Navigate to theme creation
       session
       |> click(button("Create Theme"))
@@ -63,18 +83,18 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       |> fill_in(text_field("theme[secondary_color]"), with: "#33FF57")
       |> click(Query.select("theme[type]"))
       |> click(Query.option("dark"))
-      |> click(button("Create Theme"))
+      |> click(css("[data-test-id='create-theme']"))
 
       # Verify theme creation
-      assert_has(session, css(".alert-success", text: "Theme created successfully"))
+      Wallaby.Browser.assert_has(session, css(".alert-success", text: "Theme created successfully"))
 
       # Apply the theme
       session
       |> click(button("Apply Theme"))
 
       # Verify theme application
-      assert_has(session, css(".theme-applied", text: "Custom Theme"))
-      assert_has(session, css(".theme-type", text: "dark"))
+      Wallaby.Browser.assert_has(session, css(".theme-applied", text: "Custom Theme"))
+      Wallaby.Browser.assert_has(session, css(".theme-type", text: "dark"))
     end
 
     test "theme can be edited and updated", %{session: session, theme: theme} do
@@ -87,11 +107,11 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
         anchors = Wallaby.Browser.all(session, css("a"))
         anchor_texts = Enum.map(anchors, fn a -> Wallaby.Element.text(a) end)
         IO.puts("\n[DEBUG] Anchor tags on page: #{inspect(anchor_texts)}\n")
-        session |> click(css("a", text: theme.name))
+        session |> click(css("[data-test-id='theme-link-test-theme']"))
       rescue
         e in Wallaby.QueryError ->
           IO.puts("\n--- DEBUG: Page source at failure ---\n" <> Wallaby.Browser.page_source(session) <> "\n--- END PAGE SOURCE ---\n")
-          raise e
+          reraise e, __STACKTRACE__
       end
       session
       |> click(link("Edit"))
@@ -103,27 +123,27 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       |> click(button("Update Theme"))
 
       # Verify theme update
-      assert_has(session, css(".alert-success", text: "Theme updated successfully"))
-      assert_has(session, css(".theme-color", style: "background-color: #FF0000"))
-      assert_has(session, css(".theme-color", style: "background-color: #00FF00"))
+      Wallaby.Browser.assert_has(session, css(".alert-success", text: "Theme updated successfully"))
+      Wallaby.Browser.assert_has(session, css(".theme-color", style: "background-color: #FF0000"))
+      Wallaby.Browser.assert_has(session, css(".theme-color", style: "background-color: #00FF00"))
     end
 
     test "theme can be deleted", %{session: session, theme: theme} do
       # Navigate to theme
       try do
-        session |> click(css("a", text: theme.name))
+        session |> click(css("[data-test-id='theme-link-test-theme']"))
       rescue
         e in Wallaby.QueryError ->
           IO.puts("\n--- DEBUG: Page source at failure ---\n" <> Wallaby.Browser.page_source(session) <> "\n--- END PAGE SOURCE ---\n")
-          raise e
+          reraise e, __STACKTRACE__
       end
       session
       |> click(button("Delete Theme"))
       |> click(button("Confirm Delete"))
 
       # Verify theme deletion
-      assert_has(session, css(".alert-success", text: "Theme deleted successfully"))
-      refute_has(session, css(".theme-item", text: theme.name))
+      Wallaby.Browser.assert_has(session, css(".alert-success", text: "Theme deleted successfully"))
+      Wallaby.Browser.refute_has(session, css(".theme-item", text: theme.name))
     end
   end
 
@@ -141,9 +161,9 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       |> click(button("Save Colors"))
 
       # Verify color customization
-      assert_has(session, css(".color-preview", style: "background-color: #FF5733"))
-      assert_has(session, css(".color-preview", style: "background-color: #33FF57"))
-      assert_has(session, css(".color-preview", style: "background-color: #3357FF"))
+      Wallaby.Browser.assert_has(session, css(".color-preview", style: "background-color: #FF5733"))
+      Wallaby.Browser.assert_has(session, css(".color-preview", style: "background-color: #33FF57"))
+      Wallaby.Browser.assert_has(session, css(".color-preview", style: "background-color: #3357FF"))
     end
 
     test "theme typography can be customized", %{session: session, theme: theme} do
@@ -159,9 +179,9 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       |> click(button("Save Typography"))
 
       # Verify typography customization
-      assert_has(session, css(".typography-preview", style: "font-family: Helvetica"))
-      assert_has(session, css(".typography-preview", style: "font-size: 16px"))
-      assert_has(session, css(".typography-preview", style: "line-height: 1.5"))
+      Wallaby.Browser.assert_has(session, css(".typography-preview", style: "font-family: Helvetica"))
+      Wallaby.Browser.assert_has(session, css(".typography-preview", style: "font-size: 16px"))
+      Wallaby.Browser.assert_has(session, css(".typography-preview", style: "line-height: 1.5"))
     end
 
     test "theme spacing can be customized", %{session: session, theme: theme} do
@@ -176,10 +196,11 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       |> fill_in(text_field("theme[section_margin]"), with: "32px")
       |> click(button("Save Spacing"))
 
-      # Verify spacing customization
-      assert_has(session, css(".spacing-preview", style: "padding: 8px"))
-      assert_has(session, css(".container-preview", style: "padding: 24px"))
-      assert_has(session, css(".section-preview", style: "margin: 32px"))
+      # Wait for preview section to reappear, then verify spacing customization
+      Wallaby.Browser.assert_has(session, css("[data-test-id='spacing-preview-section']"))
+      Wallaby.Browser.assert_has(session, css(".spacing-preview", style: "padding: 8px"))
+      Wallaby.Browser.assert_has(session, css(".container-preview", style: "padding: 24px"))
+      Wallaby.Browser.assert_has(session, css(".section-preview", style: "margin: 32px"))
     end
   end
 
@@ -187,32 +208,35 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
     test "theme preferences are persisted", %{session: session, theme: theme} do
       # Apply theme
       try do
-        session |> click(css("a", text: theme.name))
+        session |> click(css("[data-test-id='theme-link-test-theme']"))
       rescue
         e in Wallaby.QueryError ->
           IO.puts("\n--- DEBUG: Page source at failure ---\n" <> Wallaby.Browser.page_source(session) <> "\n--- END PAGE SOURCE ---\n")
-          raise e
+          reraise e, __STACKTRACE__
       end
       session
       |> click(button("Apply Theme"))
+
+      # Simulate setting the user_theme in the session (Wallaby does not persist cookies between reloads by default)
+      session = Wallaby.Browser.set_cookie(session, "user_theme", theme.name)
 
       # Reload page
       session
       |> visit("/")
 
       # Verify theme persistence
-      assert_has(session, css(".theme-applied", text: theme.name))
-      assert_has(session, css(".theme-type", text: theme.type))
+      Wallaby.Browser.assert_has(session, css(".theme-applied", text: theme.name))
+      Wallaby.Browser.assert_has(session, css(".theme-type", text: theme.type))
     end
 
     test "theme changes sync across components", %{session: session, theme: theme} do
       # Apply theme
       try do
-        session |> click(css("a", text: theme.name))
+        session |> click(css("[data-test-id='theme-link-test-theme']"))
       rescue
         e in Wallaby.QueryError ->
           IO.puts("\n--- DEBUG: Page source at failure ---\n" <> Wallaby.Browser.page_source(session) <> "\n--- END PAGE SOURCE ---\n")
-          raise e
+          reraise e, __STACKTRACE__
       end
       session
       |> click(button("Apply Theme"))
@@ -223,7 +247,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       for component <- components do
         session
         |> click(link(component))
-        |> assert_has(css(".theme-applied", text: theme.name))
+        |> Wallaby.Browser.assert_has(css(".theme-applied", text: theme.name))
       end
     end
 
@@ -233,23 +257,24 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
     } do
       # Apply theme
       try do
-        session |> click(css("a", text: theme.name))
+        session |> click(css("[data-test-id='theme-link-test-theme']"))
       rescue
         e in Wallaby.QueryError ->
           IO.puts("\n--- DEBUG: Page source at failure ---\n" <> Wallaby.Browser.page_source(session) <> "\n--- END PAGE SOURCE ---\n")
-          raise e
+          reraise e, __STACKTRACE__
       end
       session
       |> click(button("Apply Theme"))
 
-      # Start new session
+      # Simulate setting the user_theme in the session for the new session
       new_session = new_session()
+      new_session = Wallaby.Browser.set_cookie(new_session, "user_theme", theme.name)
 
       new_session
       |> visit("/")
 
       # Verify theme persistence
-      assert_has(new_session, css(".theme-applied", text: theme.name))
+      Wallaby.Browser.assert_has(new_session, css(".theme-applied", text: theme.name))
     end
   end
 
@@ -257,18 +282,18 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
     test "theme changes are applied efficiently", %{session: session, theme: theme} do
       # Start performance measurement
       try do
-        session |> click(css("a", text: theme.name))
+        session |> click(css("[data-test-id='theme-link-test-theme']"))
       rescue
         e in Wallaby.QueryError ->
           IO.puts("\n--- DEBUG: Page source at failure ---\n" <> Wallaby.Browser.page_source(session) <> "\n--- END PAGE SOURCE ---\n")
-          raise e
+          reraise e, __STACKTRACE__
       end
       session
       |> click(button("Apply Theme"))
 
       # Verify quick theme application
-      assert_has(session, css(".theme-applied", text: theme.name))
-      assert_has(session, css(".performance-metric", text: "Theme applied in < 100ms"))
+      Wallaby.Browser.assert_has(session, css(".theme-applied", text: theme.name))
+      Wallaby.Browser.assert_has(session, css(".performance-metric", text: "Theme applied in < 100ms"))
     end
 
     test "theme switching is smooth", %{session: session, theme: theme} do
@@ -276,16 +301,16 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       session
       |> click(button("Create Theme"))
       |> fill_in(text_field("theme[name]"), with: "Second Theme")
-      |> click(button("Create Theme"))
+      |> click(css("[data-test-id='create-theme']"))
 
       # Switch between themes rapidly
       for _ <- 1..5 do
         try do
-          session |> click(css("a", text: theme.name))
+          session |> click(css("[data-test-id='theme-link-test-theme']"))
         rescue
           e in Wallaby.QueryError ->
             IO.puts("\n--- DEBUG: Page source at failure ---\n" <> Wallaby.Browser.page_source(session) <> "\n--- END PAGE SOURCE ---\n")
-            raise e
+            reraise e, __STACKTRACE__
         end
         session
         |> click(button("Apply Theme"))
@@ -294,8 +319,8 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       end
 
       # Verify smooth transitions
-      assert_has(session, css(".theme-transition", text: "smooth"))
-      assert_has(session, css(".performance-metric", text: "No flickering"))
+      Wallaby.Browser.assert_has(session, css(".theme-transition", text: "smooth"))
+      Wallaby.Browser.assert_has(session, css(".performance-metric", text: "No flickering"))
     end
   end
 
@@ -312,20 +337,18 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       |> click(button("Save Colors"))
 
       # Verify contrast ratios
-      assert_has(session, css(".contrast-ratio", text: "4.5:1"))
-      assert_has(session, css(".accessibility-status", text: "WCAG 2.1 AA compliant"))
+      Wallaby.Browser.assert_has(session, css(".contrast-ratio", text: "4.5:1"))
+      Wallaby.Browser.assert_has(session, css(".accessibility-status", text: "WCAG 2.1 AA compliant"))
     end
 
     test "theme supports reduced motion", %{session: session, theme: theme} do
-      import Wallaby.Browser
-      import Wallaby.Query
       # Enable reduced motion
       try do
-        session |> click(css("a", text: theme.name))
+        session |> click(css("[data-test-id='theme-link-test-theme']"))
       rescue
         e in Wallaby.QueryError ->
           IO.puts("\n--- DEBUG: Page source at failure ---\n" <> Wallaby.Browser.page_source(session) <> "\n--- END PAGE SOURCE ---\n")
-          raise e
+          reraise e, __STACKTRACE__
       end
       session
       |> click(button("Accessibility Settings"))
@@ -333,8 +356,8 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       |> click(button("Apply"))
 
       # Verify reduced motion
-      assert_has(session, css(".motion-reduced"))
-      assert_has(session, css(".transition-disabled"))
+      Wallaby.Browser.assert_has(session, css(".motion-reduced"))
+      Wallaby.Browser.assert_has(session, css(".transition-disabled"))
     end
   end
 

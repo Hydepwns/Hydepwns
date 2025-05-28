@@ -326,7 +326,7 @@ defmodule HydepwnsLiveviewWeb.Components.Visualization.AsciiArtGenerator do
             data_index = col_count * row_index + col_index - 1
 
             if data_index < length(parts) do
-              String.slice(Enum.at(parts, data_index, ""), 0, cell_width - 2)
+              String.slice(Enum.at(parts, data_index, nil) || "", 0, cell_width - 2)
               |> String.pad_trailing(cell_width - 2)
             else
               String.duplicate(" ", cell_width - 2)
@@ -376,7 +376,7 @@ defmodule HydepwnsLiveviewWeb.Components.Visualization.AsciiArtGenerator do
             data_index = col_count * row_index + col_index - 1
 
             if data_index < length(parts) do
-              String.slice(Enum.at(parts, data_index, ""), 0, cell_width - 2)
+              String.slice(Enum.at(parts, data_index, nil) || "", 0, cell_width - 2)
               |> String.pad_trailing(cell_width - 2)
             else
               String.duplicate(" ", cell_width - 2)
@@ -530,8 +530,8 @@ defmodule HydepwnsLiveviewWeb.Components.Visualization.AsciiArtGenerator do
   defp generate_badge(style, width, text) do
     parts = String.split(text, ":", parts: 2)
 
-    label = if length(parts) > 0, do: Enum.at(parts, 0, ""), else: ""
-    value = if length(parts) > 1, do: Enum.at(parts, 1, ""), else: ""
+    label = if length(parts) > 0, do: Enum.at(parts, 0, nil) || "", else: ""
+    value = if length(parts) > 1, do: Enum.at(parts, 1, nil) || "", else: ""
 
     # Trim to fit within width
     label_max = min(String.length(label), div(width, 2) - 2)

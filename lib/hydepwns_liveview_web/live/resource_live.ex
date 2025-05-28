@@ -47,6 +47,220 @@ defmodule HydepwnsLiveviewWeb.ResourceLive do
 
   alias HydepwnsLiveview.Utils.LiveViewAPI
   alias HydepwnsLiveview.Utils.SocketValidator
+  alias HydepwnsLiveview.Resources.ResourceSystem
+  alias HydepwnsLiveview.Events.Event
+
+  use HydepwnsLiveviewWeb.BaseLive,
+    layout: {HydepwnsLiveviewWeb.Layouts, :app}
+
+  @impl true
+  def mount(_params, _session, socket) do
+    {:ok,
+     socket
+     |> assign(:page_title, "Resources")
+     |> assign(:resources, ResourceSystem.list_resources())}
+  end
+
+  @impl true
+  def handle_params(%{"id" => id}, _uri, socket) do
+    case ResourceSystem.get_resource(id) do
+      {:ok, resource} ->
+        all_resources = ResourceSystem.list_resources()
+        child_resources = Enum.filter(all_resources, fn r -> r.parent_id == resource.id end)
+        {:noreply,
+         socket
+         |> assign(:resource, resource)
+         |> assign(:page_title, "Resource: #{resource.name}")
+         |> assign(:parent_resource, get_parent_resource(resource.parent_id))
+         |> assign(:child_resources, child_resources)}
+
+      {:error, _reason} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Resource not found")
+         |> redirect(to: ~p"/resources")}
+    end
+  end
+
+  @impl true
+  def handle_params(_params, _uri, socket) do
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("delete_resource", %{"id" => id}, socket) do
+    case ResourceSystem.delete_resource(id) do
+      {:ok, _} ->
+        Event.create("resource.deleted", %{resource_id: id})
+
+        {:noreply,
+         socket
+         |> put_flash(:info, "Resource deleted successfully")
+         |> redirect(to: ~p"/resources")}
+
+      {:error, reason} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Failed to delete resource: #{reason}")}
+    end
+  end
+
+  defp get_parent_resource(nil), do: nil
+  defp get_parent_resource(parent_id) do
+    case ResourceSystem.get_resource(parent_id) do
+      {:ok, resource} -> resource
+      {:error, _} -> nil
+    end
+  end
+
+  @impl true
+  def render(assigns) do
+    ~H"""
+    <div class="container mx-auto px-4 py-8">
+      <div :if={@live_action == :index} class="space-y-8">
+        <div class="flex justify-between items-center">
+          <h1 class="text-3xl font-bold">Resources</h1>
+          <.link
+            navigate={~p"/resources/new"}
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+            New Resource
+          </.link>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <%= for resource <- @resources do %>
+            <div class="border rounded-lg p-4 shadow-sm">
+              <h2 class="text-xl font-semibold mb-2"><%= resource.name %></h2>
+              <p class="text-gray-600 mb-4"><%= resource.description %></p>
+              <div class="flex flex-wrap gap-2">
+                <.link
+                  navigate={~p"/resources/#{resource.id}/edit"}
+                  class="text-blue-600 hover:text-blue-800"
+                  data-test-id={"edit-resource-#{resource.id}"}
+                >
+                  Edit
+                </.link>
+                <.link
+                  navigate={~p"/resources/#{resource.id}/subscriptions"}
+                  class="text-blue-600 hover:text-blue-800"
+                  data-test-id={"manage-subscriptions-#{resource.id}"}
+                >
+                  Manage Subscriptions
+                </.link>
+                <.link
+                  navigate={~p"/resources/#{resource.id}/events"}
+                  class="text-blue-600 hover:text-blue-800"
+                  data-test-id={"view-events-#{resource.id}"}
+                >
+                  View Events
+                </.link>
+                <button
+                  phx-click="delete_resource"
+                  phx-value-id={resource.id}
+                  data-confirm="Are you sure you want to delete this resource?"
+                  class="text-red-600 hover:text-red-800"
+                  data-test-id={"delete-resource-#{resource.id}"}
+                >
+                  Delete Resource
+                </button>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <div :if={@live_action == :show} class="space-y-8">
+        <div class="flex justify-between items-center">
+          <h1 class="text-3xl font-bold"><%= @resource.name %></h1>
+          <div class="flex gap-4">
+            <.link
+              navigate={~p"/resources/#{@resource.id}/edit"}
+              class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded"
+            >
+              Edit
+            </.link>
+            <button
+              phx-click="delete_resource"
+              phx-value-id={@resource.id}
+              data-confirm="Are you sure you want to delete this resource?"
+              class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
+            >
+              Delete Resource
+            </button>
+          </div>
+        </div>
+
+        <div class="bg-white shadow-lg rounded-lg p-6">
+          <div class="space-y-4">
+            <div>
+              <h2 class="text-xl font-semibold mb-2">Description</h2>
+              <p class="text-gray-600"><%= @resource.description %></p>
+            </div>
+
+            <div>
+              <h2 class="text-xl font-semibold mb-2">Type</h2>
+              <p class="text-gray-600"><%= @resource.type %></p>
+            </div>
+
+            <div>
+              <h2 class="text-xl font-semibold mb-2">Status</h2>
+              <p class="text-gray-600"><%= @resource.status %></p>
+            </div>
+
+            <div :if={@parent_resource} class="relationship-row parent-resource">
+              <h2 class="text-xl font-semibold mb-2">Parent Resource</h2>
+              <.link
+                navigate={~p"/resources/#{@parent_resource.id}"}
+                class="text-blue-600 hover:text-blue-800"
+              >
+                <%= @parent_resource.name %>
+              </.link>
+            </div>
+
+            <div :if={@child_resources && @child_resources != []}>
+              <h2 class="text-xl font-semibold mb-2">Child Resources</h2>
+              <div>
+                <%= for child <- @child_resources do %>
+                  <div class="child-resource">
+                    <.link navigate={~p"/resources/#{child.id}"} class="text-blue-600 hover:text-blue-800">
+                      <%= child.name %>
+                    </.link>
+                  </div>
+                <% end %>
+              </div>
+              <div class="relationship-count">
+                <%= length(@child_resources) %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div class="bg-white shadow-lg rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Events</h2>
+            <.link
+              navigate={~p"/resources/#{@resource.id}/events"}
+              class="text-blue-600 hover:text-blue-800"
+            >
+              View All Events
+            </.link>
+          </div>
+
+          <div class="bg-white shadow-lg rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Subscriptions</h2>
+            <.link
+              navigate={~p"/resources/#{@resource.id}/subscriptions"}
+              class="text-blue-600 hover:text-blue-800"
+            >
+              Manage Subscriptions
+            </.link>
+          </div>
+        </div>
+      </div>
+    </div>
+    """
+  end
 
   defmacro __using__(_opts) do
     quote do

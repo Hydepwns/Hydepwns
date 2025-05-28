@@ -1,15 +1,34 @@
 defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
   use HydepwnsLiveviewWeb.ConnCase, async: false
+  @moduletag :liveview
   import Phoenix.LiveViewTest
   import HydepwnsLiveview.ThemeSystemFixtures
+  import ThemeHelper
+  alias HydepwnsLiveviewWeb.MockHelper
 
   setup %{conn: conn} do
+    # Optionally clear themes table for a clean slate
+    HydepwnsLiveview.ThemeSystem.list_themes()
+    |> Enum.each(&HydepwnsLiveview.ThemeSystem.delete_theme/1)
+
     {:ok, light_theme} = light_theme_fixture()
     {:ok, dark_theme} = dark_theme_fixture()
     {:ok, system_theme} = system_theme_fixture()
     {:ok, dim_theme} = dim_theme_fixture()
     themes = HydepwnsLiveview.ThemeSystem.list_themes()
-    IO.inspect(themes, label: "[DEBUG] themes in DB after fixtures")
+
+    # Defensive: ensure themes are present and valid
+    assert length(themes) >= 4
+    Enum.each(themes, fn theme ->
+      assert theme.id != nil
+      assert theme.name != nil and theme.name != ""
+      assert theme.mode in ["light", "dark", "dim", "system"]
+    end)
+
+    MockHelper.setup_mocks()
+    MockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
+      {:ok, %{"id" => "mock", "name" => "Mock Resource", "status" => "active"}}
+    end)
 
     {:ok,
      conn: conn,
@@ -21,6 +40,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
 
   describe "Theme Manager Live View" do
     test "renders theme manager page", %{conn: conn} do
+      ensure_theme_exists()
       {:ok, view, html} = live(conn, "/themes")
       assert html =~ "Theme Manager"
       assert html =~ "Current Themes"
@@ -32,6 +52,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
       light_theme: light_theme,
       dark_theme: dark_theme
     } do
+      ensure_theme_exists()
       {:ok, view, html} = live(conn, "/themes")
       # Only check Current Themes section
       current_themes_html = html |> Floki.find(".mb-8 .grid") |> Floki.raw_html()
@@ -40,6 +61,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
     end
 
     test "creates a new theme", %{conn: conn} do
+      ensure_theme_exists()
       {:ok, view, _html} = live(conn, "/themes")
 
       attrs = %{
@@ -70,6 +92,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
       light_theme: light_theme,
       dark_theme: dark_theme
     } do
+      ensure_theme_exists()
       {:ok, view, _html} = live(conn, "/themes")
 
       # Initially light theme should be default
@@ -89,6 +112,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
     end
 
     test "deletes a theme", %{conn: conn, dark_theme: dark_theme} do
+      ensure_theme_exists()
       {:ok, view, html} = live(conn, "/themes")
       # Only check Current Themes section
       current_themes_html = html |> Floki.find(".mb-8 .grid") |> Floki.raw_html()
@@ -99,6 +123,9 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
       |> element("button[data-action='delete'][data-id='#{dark_theme.id}']")
       |> render_click()
 
+      # Defensive: ensure at least one theme exists after deletion
+      ensure_theme_exists()
+
       # Verify theme is removed from Current Themes
       html = render(view)
       current_themes_html = html |> Floki.find(".mb-8 .grid") |> Floki.raw_html()
@@ -106,6 +133,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
     end
 
     test "validates theme creation", %{conn: conn} do
+      ensure_theme_exists()
       {:ok, view, _html} = live(conn, "/themes")
 
       # Try to create a theme with invalid data (blank name)
@@ -127,6 +155,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
     end
 
     test "updates an existing theme", %{conn: conn, light_theme: light_theme} do
+      ensure_theme_exists()
       {:ok, view, _html} = live(conn, "/themes")
 
       # Edit the theme
@@ -159,6 +188,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
     end
 
     test "handles theme mode changes", %{conn: conn, light_theme: light_theme} do
+      ensure_theme_exists()
       {:ok, view, _html} = live(conn, "/themes")
 
       # Change theme mode to dark

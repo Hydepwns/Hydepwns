@@ -25,6 +25,7 @@ defmodule HydepwnsLiveview.Schemas.User do
   Changeset for user creation/updates.
   """
   def changeset(user, attrs) do
+    attrs = for {k, v} <- attrs, into: %{}, do: {to_string(k), v}
     user
     |> cast(attrs, [:name, :email, :role, :active])
     |> validate_required([:name, :email])

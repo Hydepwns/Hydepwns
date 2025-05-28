@@ -6,8 +6,7 @@ defmodule HydepwnsLiveview.Events.ResourceEventGenerator do
   for resource-related operations like create, update, delete, etc.
   """
 
-  alias HydepwnsLiveview.Events.Core.Event
-  alias HydepwnsLiveview.Events.Core.EventBus
+  alias HydepwnsLiveview.Events.Event
 
   @doc """
   Generate and publish an event for a resource.
@@ -39,7 +38,7 @@ defmodule HydepwnsLiveview.Events.ResourceEventGenerator do
       )
 
     # Publish the event
-    EventBus.publish(event)
+    HydepwnsLiveview.Events.EventBus.publish(event)
 
     {:ok, event}
   end

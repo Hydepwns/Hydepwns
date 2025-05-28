@@ -11,6 +11,7 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
 
   setup do
     # Set up mocks for all tests
+    Application.put_env(:hydepwns_liveview, :external_api, HydepwnsLiveview.MockExternalAPI)
     MockHelper.setup_mocks()
     :ok
   end

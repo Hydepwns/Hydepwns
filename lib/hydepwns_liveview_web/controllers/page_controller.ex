@@ -10,4 +10,10 @@ defmodule HydepwnsLiveviewWeb.PageController do
     # so skip the default app layout.
     render(conn, :home, layout: false)
   end
+
+  def favicon(conn, _params) do
+    conn
+    |> put_resp_content_type("image/x-icon")
+    |> send_file(200, "priv/static/favicon.ico")
+  end
 end

@@ -8,7 +8,6 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoTabs do
   monospace aesthetic.
   """
   use Phoenix.Component
-  import HydepwnsLiveviewWeb.Components.MonoGrid
   alias Phoenix.LiveView.JS
   import HydepwnsLiveviewWeb.Components.Common.CoreComponents, only: [icon: 1]
 
@@ -83,24 +82,4 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoTabs do
     </div>
     """
   end
-
-  # Helper function to show a specific tab
-  defp show_tab(tabs_id, tab_id) do
-    JS.remove_class("mono-tabs__tab--active", to: "##{tabs_id} .mono-tabs__tab")
-    |> JS.add_class("mono-tabs__tab--active", to: "##{tabs_id}-tab-#{tab_id}")
-    |> JS.set_attribute({"aria-selected", "true"}, to: "##{tabs_id}-tab-#{tab_id}")
-    |> JS.set_attribute({"aria-selected", "false"},
-      to: "##{tabs_id} .mono-tabs__tab:not(##{tabs_id}-tab-#{tab_id})"
-    )
-    |> JS.remove_class("mono-tabs__panel--active", to: "##{tabs_id} .mono-tabs__panel")
-    |> JS.add_class("mono-tabs__panel--active", to: "##{tabs_id}-panel-#{tab_id}")
-    |> JS.remove_attribute("hidden", to: "##{tabs_id}-panel-#{tab_id}")
-    |> JS.set_attribute({"hidden", "true"},
-      to: "##{tabs_id} .mono-tabs__panel:not(##{tabs_id}-panel-#{tab_id})"
-    )
-  end
-
-  # Helper function to get the ID of the first tab
-  defp get_first_tab_id([]), do: nil
-  defp get_first_tab_id([first_tab | _]), do: first_tab.id
 end

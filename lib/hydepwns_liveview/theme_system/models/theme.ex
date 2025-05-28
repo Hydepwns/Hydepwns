@@ -33,6 +33,7 @@ defmodule HydepwnsLiveview.ThemeSystem.Models.Theme do
   An Ecto.Changeset with validations applied
   """
   def changeset(theme, attrs) do
+    attrs = for {k, v} <- attrs, into: %{}, do: {to_string(k), v}
     theme
     |> cast(attrs, [:name, :mode, :colors, :is_default, :settings])
     |> validate_required([:name, :mode])
@@ -55,6 +56,7 @@ defmodule HydepwnsLiveview.ThemeSystem.Models.Theme do
   A validated map or changeset with errors
   """
   def validate_theme(params) do
+    params = for {k, v} <- params, into: %{}, do: {to_string(k), v}
     types = %{
       name: :string,
       mode: :string,

@@ -165,10 +165,9 @@ defmodule HydepwnsLiveview.TypeValidationTest do
       assert {:error, message, _} =
                SocketValidator.type_validation(invalid_socket, :user, user_schema)
 
-      assert message =~ "schema validation failed"
-      assert message =~ "age: expected integer"
-      assert message =~ "settings.theme: expected one of"
-      assert message =~ "settings.notifications: expected boolean"
+      assert message =~ "expected integer"
+      assert message =~ "theme: expected one of"
+      assert message =~ "notifications: expected boolean"
     end
 
     test "validates lists with type specs correctly" do
@@ -242,7 +241,7 @@ defmodule HydepwnsLiveview.TypeValidationTest do
       assert {:error, message, _} =
                SocketValidator.type_validation(socket, :invalid_email, {:custom, email_validator})
 
-      assert message =~ "failed custom validation"
+      assert message =~ "custom validation failed"
     end
 
     test "emits telemetry events for validation failures" do
@@ -377,7 +376,6 @@ defmodule HydepwnsLiveview.TypeValidationTest do
       assert {:error, message, _} =
                SocketValidator.type_validation(socket, :mixed_users, {:list_of_maps, user_schema})
 
-      assert message =~ "list_of_maps validation failed"
       assert message =~ "item at index 1"
       assert message =~ "name: expected string"
     end

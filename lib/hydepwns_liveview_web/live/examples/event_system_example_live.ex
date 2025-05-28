@@ -33,7 +33,6 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
   require Logger
 
   alias HydepwnsLiveview.Events.Event, as: Event
-  alias HydepwnsLiveview.Events.EventBus, as: EventBus
   alias HydepwnsLiveview.Events.EventStore, as: EventStore
   alias HydepwnsLiveview.Events.TestEvents, as: TestEvents
   alias HydepwnsLiveview.Events.ProjectionSupervisor, as: ProjectionSupervisor
@@ -111,7 +110,7 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
          }) do
       {:ok, event} ->
         # Publish the event
-        EventBus.publish(event)
+        HydepwnsLiveview.Events.EventBus.publish(event)
 
         # Refresh the events list
         {:ok, latest_events} = EventStore.get_events(%{limit: 10, sort: [timestamp: :desc]})
@@ -132,45 +131,51 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
   @impl true
   def handle_event("view_projection", %{"projection" => projection_index}, socket) do
     # Get the projection from the list
-    {projection_module, pid} =
-      Enum.at(socket.assigns.projections, String.to_integer(projection_index))
+    case Enum.at(socket.assigns.projections, String.to_integer(projection_index), nil) do
+      {projection_module, pid} ->
+        # Get the projection state
+        {:ok, state} = ProjectionSupervisor.get_projection_state(pid)
 
-    # Get the projection state
-    {:ok, state} = ProjectionSupervisor.get_projection_state(pid)
+        socket =
+          socket
+          |> assign(:selected_projection, projection_module)
+          |> assign(:projection_state, state)
 
-    socket =
-      socket
-      |> assign(:selected_projection, projection_module)
-      |> assign(:projection_state, state)
-
-    {:noreply, socket}
+        {:noreply, socket}
+      nil ->
+        socket = assign(socket, :event_result, "Invalid projection index")
+        {:noreply, socket}
+    end
   end
 
   @impl true
   def handle_event("rebuild_projection", %{"projection" => projection_index}, socket) do
     # Get the projection from the list
-    {_projection_module, pid} =
-      Enum.at(socket.assigns.projections, String.to_integer(projection_index))
+    case Enum.at(socket.assigns.projections, String.to_integer(projection_index), nil) do
+      {_projection_module, pid} ->
+        # Rebuild the projection
+        ProjectionSupervisor.rebuild_projection(pid)
 
-    # Rebuild the projection
-    ProjectionSupervisor.rebuild_projection(pid)
+        # Wait a moment for the rebuild to complete
+        Process.sleep(100)
 
-    # Wait a moment for the rebuild to complete
-    Process.sleep(100)
+        # Refresh the projection state
+        {:ok, projections} = ProjectionSupervisor.list_projections()
 
-    # Refresh the projection state
-    {:ok, projections} = ProjectionSupervisor.list_projections()
+        socket =
+          socket
+          |> assign(:projections, projections)
+          |> assign(:event_result, "Projection rebuild initiated")
 
-    socket =
-      socket
-      |> assign(:projections, projections)
-      |> assign(:event_result, "Projection rebuild initiated")
-
-    {:noreply, socket}
+        {:noreply, socket}
+      nil ->
+        socket = assign(socket, :event_result, "Invalid projection index")
+        {:noreply, socket}
+    end
   end
 
   @impl true
-  def handle_info(msg, socket) do
+  def handle_info(_msg, socket) do
     {:noreply, socket}
   end
 

@@ -18,6 +18,7 @@ defmodule HydepwnsLiveview.Events.EventBus do
   defdelegate subscribe(subscriber, event_types), to: CoreEventBus
   defdelegate unsubscribe(subscriber, event_types), to: CoreEventBus
   defdelegate publish(event), to: CoreEventBus
+  defdelegate publish(event, opts), to: CoreEventBus
 
   # Add any other functions that might be called on EventBus
   # For example:

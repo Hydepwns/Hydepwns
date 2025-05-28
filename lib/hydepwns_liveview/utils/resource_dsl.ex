@@ -93,52 +93,58 @@ defmodule HydepwnsLiveview.Utils.ResourceDSL do
 
   defmacro has_many_through(name, opts, through_opts \\ []) do
     quote bind_quoted: [name: name, opts: opts, through_opts: through_opts] do
-      [through: [through_rel, target_rel]] = opts
-
-      relationship_def = %{
-        name: name,
-        type: :through,
-        through: through_rel,
-        target: target_rel,
-        cardinality: :many,
-        foreign_key: Keyword.get(through_opts, :foreign_key, nil)
-      }
-
-      Module.put_attribute(__MODULE__, :relationships, relationship_def)
+      case opts do
+        [through: [through_rel, target_rel]] ->
+          relationship_def = %{
+            name: name,
+            type: :through,
+            through: through_rel,
+            target: target_rel,
+            cardinality: :many,
+            foreign_key: Keyword.get(through_opts, :foreign_key, nil)
+          }
+          Module.put_attribute(__MODULE__, :relationships, relationship_def)
+        _ ->
+          raise ArgumentError, "has_many_through expects opts: [through: [rel1, rel2]]"
+      end
     end
   end
 
   defmacro has_one_through(name, opts, through_opts \\ []) do
     quote bind_quoted: [name: name, opts: opts, through_opts: through_opts] do
-      [through: [through_rel, target_rel]] = opts
-
-      relationship_def = %{
-        name: name,
-        type: :through,
-        through: through_rel,
-        target: target_rel,
-        cardinality: :one,
-        foreign_key: Keyword.get(through_opts, :foreign_key, nil)
-      }
-
-      Module.put_attribute(__MODULE__, :relationships, relationship_def)
+      case opts do
+        [through: [through_rel, target_rel]] ->
+          relationship_def = %{
+            name: name,
+            type: :through,
+            through: through_rel,
+            target: target_rel,
+            cardinality: :one,
+            foreign_key: Keyword.get(through_opts, :foreign_key, nil)
+          }
+          Module.put_attribute(__MODULE__, :relationships, relationship_def)
+        _ ->
+          raise ArgumentError, "has_one_through expects opts: [through: [rel1, rel2]]"
+      end
     end
   end
 
   defmacro polymorphic(name, opts, poly_opts \\ []) do
     quote bind_quoted: [name: name, opts: opts, poly_opts: poly_opts] do
-      [types: allowed_types] = opts
-      polymorphic_name = Keyword.get(poly_opts, :polymorphic_name, name)
-
-      relationship_def = %{
-        name: name,
-        type: :polymorphic,
-        polymorphic_name: polymorphic_name,
-        allowed_types: allowed_types,
-        cardinality: Keyword.get(poly_opts, :cardinality, :one)
-      }
-
-      Module.put_attribute(__MODULE__, :relationships, relationship_def)
+      case opts do
+        [types: allowed_types] ->
+          polymorphic_name = Keyword.get(poly_opts, :polymorphic_name, name)
+          relationship_def = %{
+            name: name,
+            type: :polymorphic,
+            polymorphic_name: polymorphic_name,
+            allowed_types: allowed_types,
+            cardinality: Keyword.get(poly_opts, :cardinality, :one)
+          }
+          Module.put_attribute(__MODULE__, :relationships, relationship_def)
+        _ ->
+          raise ArgumentError, "polymorphic expects opts: [types: allowed_types]"
+      end
     end
   end
 end

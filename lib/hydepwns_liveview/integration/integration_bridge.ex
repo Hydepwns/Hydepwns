@@ -53,7 +53,7 @@ defmodule HydepwnsLiveview.Integration.IntegrationBridge do
       Application.put_env(:hydepwns_liveview, :integration_adapters, adapters)
 
       # Publish adapter registration event
-      EventBus.publish(%Event{
+      HydepwnsLiveview.Events.EventBus.publish(%Event{
         type: "integration_adapter_registered",
         resource_id: adapter_id,
         data: %{name: name, adapter_module: adapter_module},
@@ -92,7 +92,7 @@ defmodule HydepwnsLiveview.Integration.IntegrationBridge do
               # Create or update resource
               resource_id = Map.get(resource_data, :id) || generate_resource_id(resource_type)
 
-              EventBus.publish(%Event{
+              HydepwnsLiveview.Events.EventBus.publish(%Event{
                 type: "#{resource_type}_imported",
                 resource_id: resource_id,
                 data: resource_data,
@@ -190,7 +190,7 @@ defmodule HydepwnsLiveview.Integration.IntegrationBridge do
               Enum.map(to_export, fn {:ok, id, _} -> id end),
               external_ids,
               fn internal_id, external_id ->
-                EventBus.publish(%Event{
+                HydepwnsLiveview.Events.EventBus.publish(%Event{
                   type: "#{resource_module.resource_type()}_exported",
                   resource_id: internal_id,
                   data: %{external_id: external_id},

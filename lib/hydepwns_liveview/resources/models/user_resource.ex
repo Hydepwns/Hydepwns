@@ -151,4 +151,50 @@ defmodule HydepwnsLiveview.Resources.UserResource do
       {:error, "update/3 not implemented for UserResource"}
     end
   end
+
+  @doc """
+  Returns the resource type for this module.
+  """
+  def resource_type, do: "user"
+
+  # Returns an Ecto.Changeset for use in LiveView forms
+  def changeset(attrs) when is_map(attrs) do
+    attrs = for {k, v} <- attrs, into: %{}, do: {to_string(k), v}
+    types = %{
+      id: :string,
+      name: :string,
+      email: :string,
+      role: :string,
+      settings: :map,
+      permissions: {:array, :string},
+      active: :boolean,
+      last_login: :utc_datetime,
+      team_id: :string
+    }
+    case validate(attrs) do
+      {:ok, _struct} ->
+        {%{}, types}
+        |> Ecto.Changeset.cast(attrs, Map.keys(types))
+      {:error, errors} ->
+        changeset = {%{}, types} |> Ecto.Changeset.cast(attrs, Map.keys(types))
+        Enum.reduce(errors, changeset, fn {field, msg}, cs ->
+          Ecto.Changeset.add_error(cs, field, msg)
+        end)
+    end
+  end
+
+  def changeset(_), do: Ecto.Changeset.change(%{})
+
+  @doc """
+  Validates a user resource map or struct. Returns {:ok, struct} or {:error, errors}.
+  
+  # NOTE: Do not use this directly in LiveView forms or controllers. Use `changeset/1` for form validation.
+  """
+  def validate(attrs) when is_map(attrs) do
+    errors = []
+    errors = if is_nil(attrs["email"]) or attrs["email"] == "", do: [{:email, "Email can't be blank"} | errors], else: errors
+    errors = if attrs["email"] && !String.contains?(attrs["email"], "@"), do: [{:email, "Email must contain @"} | errors], else: errors
+    errors = if is_nil(attrs["name"]) or attrs["name"] == "", do: [{:name, "Name can't be blank"} | errors], else: errors
+    if errors == [], do: {:ok, struct(__MODULE__, attrs)}, else: {:error, errors}
+  end
 end

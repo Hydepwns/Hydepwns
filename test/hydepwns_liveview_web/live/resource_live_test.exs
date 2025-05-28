@@ -35,33 +35,16 @@ defmodule HydepwnsLiveviewWeb.ResourceLiveTest do
 
     @impl Phoenix.LiveView
     def handle_event("update_role", %{"role" => role}, socket) do
-      IO.inspect(self(),
-        label:
-          "TestResourceLive: handle_event start, role: #{role}, socket.assigns.user: #{inspect(socket.assigns.user)}"
-      )
-
       current_user = LiveViewAPI.get_assign(socket, :user)
-      IO.inspect(current_user, label: "TestResourceLive: current_user")
       updated_user = Map.put(current_user, :role, role)
-      IO.inspect(updated_user, label: "TestResourceLive: updated_user")
 
-      IO.inspect("TestResourceLive: before LiveViewAPI.update")
       update_result = LiveViewAPI.update(socket, :user, updated_user)
-      IO.inspect(update_result, label: "TestResourceLive: after LiveViewAPI.update")
 
       case update_result do
         {:ok, updated_socket} ->
-          IO.inspect(updated_socket.assigns.user,
-            label: "TestResourceLive: handle_event success, new user"
-          )
-
           {:noreply, updated_socket}
 
         {:error, message, error_socket} ->
-          IO.inspect({message, error_socket.assigns.user},
-            label: "TestResourceLive: handle_event error"
-          )
-
           {:noreply, Phoenix.LiveView.put_flash(error_socket, :error, message)}
       end
     end
@@ -147,27 +130,20 @@ defmodule HydepwnsLiveviewWeb.ResourceLiveTest do
     end
 
     test "updates resource values via event", %{conn: conn} do
-      IO.inspect("Test: starting 'updates resource values via event'")
       {:ok, view, _html} = live_isolated(conn, TestResourceLive)
-      IO.inspect("Test: live_isolated OK")
 
       # Click the set-admin button
-      IO.inspect("Test: before render_click #set-admin")
       view |> element("#set-admin") |> render_click()
       # Might not be reached
-      IO.inspect("Test: after render_click #set-admin")
 
       # Check that the role was updated
-      IO.inspect("Test: before assert_has_element #user-role admin")
       assert has_element?(view, "#user-role", "admin")
-      IO.inspect("Test: after assert_has_element #user-role admin")
 
       # Click the set-guest button
       # view |> element("#set-guest") |> render_click()
 
       # Check that the role was updated again
       # assert has_element?(view, "#user-role", "guest")
-      IO.inspect("Test: finished 'updates resource values via event'")
     end
 
     test "updates resource via API", %{conn: conn} do

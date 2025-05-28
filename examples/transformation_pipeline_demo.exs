@@ -64,18 +64,18 @@ user1 = %{
   email: "John.Doe@Example.COM"
 }
 
-IO.puts("\n\n========== Example 1: Basic User ==========")
-IO.puts("Original resource:")
-IO.inspect(user1)
+# IO.puts("\n\n========== Example 1: Basic User ==========")
+# IO.puts("Original resource:")
+# IO.inspect(user1)
 
 case TransformationPipeline.apply(pipeline, user1) do
   {:ok, transformed} ->
-    IO.puts("\nTransformed resource:")
-    IO.inspect(transformed)
+    # IO.puts("\nTransformed resource:")
+    # IO.inspect(transformed)
     print_applied_transformations(user1, transformed)
     
   {:error, reason} ->
-    IO.puts("\nError transforming resource: #{inspect(reason)}")
+    # IO.puts("\nError transforming resource: #{inspect(reason)}")
 end
 
 # Example 2: Blog post with HTML content
@@ -86,18 +86,18 @@ blog_post = %{
   published: true
 }
 
-IO.puts("\n\n========== Example 2: Blog Post with HTML ==========")
-IO.puts("Original resource:")
-IO.inspect(blog_post)
+# IO.puts("\n\n========== Example 2: Blog Post with HTML ==========")
+# IO.puts("Original resource:")
+# IO.inspect(blog_post)
 
 case TransformationPipeline.apply(pipeline, blog_post) do
   {:ok, transformed} ->
-    IO.puts("\nTransformed resource:")
-    IO.inspect(transformed)
+    # IO.puts("\nTransformed resource:")
+    # IO.inspect(transformed)
     print_applied_transformations(blog_post, transformed)
     
   {:error, reason} ->
-    IO.puts("\nError transforming resource: #{inspect(reason)}")
+    # IO.puts("\nError transforming resource: #{inspect(reason)}")
 end
 
 # Example 3: User with image upload
@@ -107,18 +107,18 @@ user_with_image = %{
   image_upload: mock_image_upload
 }
 
-IO.puts("\n\n========== Example 3: User with Image Upload ==========")
-IO.puts("Original resource:")
-IO.inspect(user_with_image)
+# IO.puts("\n\n========== Example 3: User with Image Upload ==========")
+# IO.puts("Original resource:")
+# IO.inspect(user_with_image)
 
 case TransformationPipeline.apply(pipeline, user_with_image) do
   {:ok, transformed} ->
-    IO.puts("\nTransformed resource:")
-    IO.inspect(transformed)
+    # IO.puts("\nTransformed resource:")
+    # IO.inspect(transformed)
     print_applied_transformations(user_with_image, transformed)
     
   {:error, reason} ->
-    IO.puts("\nError transforming resource: #{inspect(reason)}")
+    # IO.puts("\nError transforming resource: #{inspect(reason)}")
 end
 
 # Example 4: Complex case with conditionals
@@ -130,18 +130,18 @@ complex_case = %{
   image_upload: mock_image_upload
 }
 
-IO.puts("\n\n========== Example 4: Complex Case ==========")
-IO.puts("Original resource:")
-IO.inspect(complex_case)
+# IO.puts("\n\n========== Example 4: Complex Case ==========")
+# IO.puts("Original resource:")
+# IO.inspect(complex_case)
 
 case TransformationPipeline.apply(pipeline, complex_case) do
   {:ok, transformed} ->
-    IO.puts("\nTransformed resource:")
-    IO.inspect(transformed)
+    # IO.puts("\nTransformed resource:")
+    # IO.inspect(transformed)
     print_applied_transformations(complex_case, transformed)
     
   {:error, reason} ->
-    IO.puts("\nError transforming resource: #{inspect(reason)}")
+    # IO.puts("\nError transforming resource: #{inspect(reason)}")
 end
 
 # ====================================
@@ -164,21 +164,21 @@ content_pipeline = TransformationPipeline.new()
 user = %{name: "Test User", email: "TEST@EXAMPLE.COM"}
 content = %{title: "Test Content", content: "<p>Test <script>alert('XSS')</script></p>"}
 
-IO.puts("\nUser before transformation:")
-IO.inspect(user)
+# IO.puts("\nUser before transformation:")
+# IO.inspect(user)
 
 {:ok, transformed_user} = TransformationPipeline.apply(user_pipeline, user)
 
-IO.puts("\nUser after transformation:")
-IO.inspect(transformed_user)
+# IO.puts("\nUser after transformation:")
+# IO.inspect(transformed_user)
 
-IO.puts("\nContent before transformation:")
-IO.inspect(content)
+# IO.puts("\nContent before transformation:")
+# IO.inspect(content)
 
 {:ok, transformed_content} = TransformationPipeline.apply(content_pipeline, content)
 
-IO.puts("\nContent after transformation:")
-IO.inspect(transformed_content)
+# IO.puts("\nContent after transformation:")
+# IO.inspect(transformed_content)
 
 IO.puts("\n\nTransformation pipeline demo completed!")
 

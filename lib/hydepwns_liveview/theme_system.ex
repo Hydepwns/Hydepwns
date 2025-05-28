@@ -14,7 +14,6 @@ defmodule HydepwnsLiveview.ThemeSystem do
   @spec list_themes() :: [Theme.t()]
   def list_themes do
     themes = Repo.all(Theme)
-    IO.inspect(themes, label: "[DEBUG] list_themes returned")
     themes
   end
 

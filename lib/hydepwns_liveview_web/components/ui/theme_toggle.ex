@@ -1,6 +1,5 @@
 defmodule HydepwnsLiveviewWeb.Components.UI.ThemeToggle do
   use Phoenix.Component
-  alias Phoenix.LiveView.JS
 
   @moduledoc """
   Advanced theme toggle UI component for switching between application themes.
@@ -69,9 +68,11 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ThemeToggle do
     <div id={@id} class={["theme-toggle", @class]} phx-hook="ThemeToggle" {@rest} role="group" aria-label={@aria_label}>
       <%= for theme <- @themes do %>
         <button
-          id={"#{theme.name}-theme-button"}
+          id={"#{@id}-#{theme.name}-#{theme.id}-theme-button"}
           data-theme={theme.name}
-          phx-click={JS.dispatch("theme-set", detail: %{theme: "#{theme.name}-theme"})}
+          phx-click="change_theme"
+          phx-value-theme={theme.name}
+          phx-hook="ThemeToggle"
           aria-label={"#{String.capitalize(theme.name)} theme"}
           title={"#{String.capitalize(theme.name)} theme"}
           aria-pressed={if theme.is_default, do: "true", else: "false"}
@@ -90,7 +91,18 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ThemeToggle do
                 □
             <% end %>
           </span>
-          <span class="theme-label">{String.capitalize(theme.name)}</span>
+          <span class="theme-label">
+            <%=
+              cond do
+                theme.name == "light" -> "Light"
+                theme.name == "dark" -> "Dark"
+                theme.name == "system" -> "System"
+                String.starts_with?(to_string(theme.name), "high-contrast") -> "High contrast"
+                String.starts_with?(to_string(theme.name), "dim") -> "Dim"
+                true -> String.capitalize(to_string(theme.name))
+              end
+            %>
+          </span>
         </button>
       <% end %>
     </div>

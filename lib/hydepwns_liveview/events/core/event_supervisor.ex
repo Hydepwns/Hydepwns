@@ -14,7 +14,6 @@ defmodule HydepwnsLiveview.Events.Core.EventSupervisor do
 
   alias HydepwnsLiveview.Events.EventBus
   alias HydepwnsLiveview.Events.EventStore
-  alias HydepwnsLiveview.Events.HandlerSupervisor
   alias HydepwnsLiveview.Events.ProjectionSupervisor
   alias HydepwnsLiveview.Events.StandardHandlers
 
@@ -37,9 +36,6 @@ defmodule HydepwnsLiveview.Events.Core.EventSupervisor do
 
       # Event store for persisting events
       {EventStore, []},
-
-      # Handler supervisor for managing event handlers
-      {HandlerSupervisor, []},
 
       # Projection supervisor for managing projections
       {ProjectionSupervisor, []}

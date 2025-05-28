@@ -1,5 +1,8 @@
 defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
   use HydepwnsLiveviewWeb.WallabyCase, async: false
+  setup :set_mox_global
+  import Wallaby.Query
+  alias HydepwnsLiveviewWeb.MockHelper
 
   @moduledoc """
   End-to-end tests for the Resource Event Processing and Subscription workflow.
@@ -12,7 +15,6 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
   - Event Visualization
   """
 
-  import Wallaby.Query
   alias HydepwnsLiveview.TestSupport.ResourceFixtures
 
   setup %{session: session} do
@@ -25,6 +27,8 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
         content: "Initial content"
       })
 
+    MockHelper.setup_mocks()
+
     {:ok, session: visit_and_wait(session, "/resources"), resource: resource}
   end
 
@@ -33,9 +37,13 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
       session: session,
       resource: resource
     } do
+      MockHelper.expect_api_call(:external_api, :fetch_data, fn id ->
+        {:ok, %{"id" => id, "name" => resource.name, "content" => resource.content, "type" => resource.type, "status" => "active"}}
+      end)
+
       # Navigate to resource
       session
-      |> click(link(resource.name))
+      |> click(Query.css("[data-test-id='resource-link-#{resource.id}']"))
       |> click(link("Edit"))
 
       # Update resource content
@@ -44,48 +52,26 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
       |> click(button("Save"))
 
       # Verify success message
-      assert_has(session, css(".alert-success", text: "Resource updated successfully"))
+      Wallaby.Browser.assert_has(session, css(".alert-success", text: "Resource updated successfully"))
 
       # Navigate to events dashboard
       session
       |> click(link("View Events"))
 
       # Verify events were generated and processed
-      assert_has(session, css(".event-row", text: "resource.updated"))
-      assert_has(session, css(".event-row", text: "resource.transformed"))
-      assert_has(session, css(".event-data", text: "Updated content"))
+      Wallaby.Browser.assert_has(session, css(".event-row", text: "resource.updated"))
+      Wallaby.Browser.assert_has(session, css(".event-row", text: "resource.transformed"))
+      Wallaby.Browser.assert_has(session, css(".event-data", text: "Updated content"))
     end
 
-    # test "real-time updates are delivered to subscribers", %{session: session, resource: resource} do
-    #   # Open two browser windows (simulate with two sessions)
-    #   dashboard_view = session
-    #
-    #   # Subscribe to resource events from backend
-    #   {:ok, _subscription} =
-    #     HydepwnsLiveview.Resources.EventManager.subscribe_to_resource(
-    #       resource.id,
-    #       self()
-    #     )
-    #
-    #   # Update resource from another session
-    #   {:ok, _updated} =
-    #     HydepwnsLiveview.Resources.ResourceManager.update_resource(
-    #       resource.id,
-    #       %{content: "Real-time update"}
-    #     )
-    #
-    #   # Verify UI updates automatically
-    #   Process.sleep(500)
-    #   assert_has(dashboard_view, css(".resource-content", text: "Real-time update"))
-    #
-    #   # Verify event was received
-    #   assert_has(dashboard_view, css(".event-row", text: "resource.updated"))
-    # end
-
     test "event processing maintains consistency", %{session: session, resource: resource} do
+      MockHelper.expect_api_call(:external_api, :fetch_data, fn id ->
+        {:ok, %{"id" => id, "name" => resource.name, "content" => resource.content, "type" => resource.type, "status" => "active"}}
+      end)
+
       # Navigate to resource
       session
-      |> click(link(resource.name))
+      |> click(Query.css("[data-test-id='resource-link-#{resource.id}']"))
       |> click(link("Edit"))
 
       # Make multiple rapid updates
@@ -106,29 +92,37 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
       assert length(events) >= 3
 
       # Verify final state is consistent
-      assert_has(session, css(".resource-content", text: "Update 3"))
+      Wallaby.Browser.assert_has(session, css(".resource-content", text: "Update 3"))
     end
 
     test "event visualization shows processing status", %{session: session, resource: resource} do
+      MockHelper.expect_api_call(:external_api, :fetch_data, fn id ->
+        {:ok, %{"id" => id, "name" => resource.name, "content" => resource.content, "type" => resource.type, "status" => "active"}}
+      end)
+
       # Navigate to events dashboard
       session
-      |> click(link(resource.name))
+      |> click(Query.css("[data-test-id='resource-link-#{resource.id}']"))
       |> click(link("View Events"))
 
       # Verify event processing status indicators
-      assert_has(session, css(".event-status", text: "processed"))
-      assert_has(session, css(".event-timestamp"))
-      assert_has(session, css(".event-type"))
+      Wallaby.Browser.assert_has(session, css(".event-status", text: "processed"))
+      Wallaby.Browser.assert_has(session, css(".event-timestamp"))
+      Wallaby.Browser.assert_has(session, css(".event-type"))
 
       # Verify event details are shown
-      assert_has(session, css(".event-details"))
-      assert_has(session, css(".event-metadata"))
+      Wallaby.Browser.assert_has(session, css(".event-details"))
+      Wallaby.Browser.assert_has(session, css(".event-metadata"))
     end
 
     test "event subscription management", %{session: session, resource: resource} do
+      MockHelper.expect_api_call(:external_api, :fetch_data, fn id ->
+        {:ok, %{"id" => id, "name" => resource.name, "content" => resource.content, "type" => resource.type, "status" => "active"}}
+      end)
+
       # Navigate to resource
       session
-      |> click(link(resource.name))
+      |> click(Query.css("[data-test-id='resource-link-#{resource.id}']"))
       |> click(link("Manage Subscriptions"))
 
       # Subscribe to specific event types
@@ -138,9 +132,9 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
       |> click(button("Save Subscriptions"))
 
       # Verify subscription status
-      assert_has(session, css(".subscription-status", text: "Active"))
-      assert_has(session, css(".subscription-events", text: "resource.updated"))
-      assert_has(session, css(".subscription-events", text: "resource.transformed"))
+      Wallaby.Browser.assert_has(session, css(".subscription-status", text: "Active"))
+      Wallaby.Browser.assert_has(session, css(".subscription-events", text: "resource.updated"))
+      Wallaby.Browser.assert_has(session, css(".subscription-events", text: "resource.transformed"))
 
       # Unsubscribe from events
       session
@@ -148,13 +142,17 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
       |> click(button("Save Subscriptions"))
 
       # Verify subscription was removed
-      refute_has(session, css(".subscription-events", text: "resource.updated"))
+      Wallaby.Browser.refute_has(session, css(".subscription-events", text: "resource.updated"))
     end
 
     test "event processing error handling", %{session: session, resource: resource} do
+      MockHelper.expect_api_call(:external_api, :fetch_data, fn id ->
+        {:ok, %{"id" => id, "name" => resource.name, "content" => resource.content, "type" => resource.type, "status" => "active"}}
+      end)
+
       # Navigate to resource
       session
-      |> click(link(resource.name))
+      |> click(Query.css("[data-test-id='resource-link-#{resource.id}']"))
       |> click(link("Edit"))
 
       # Attempt invalid update
@@ -164,15 +162,15 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
       |> click(button("Save"))
 
       # Verify error message
-      assert_has(session, css(".error-message", text: "Content can't be blank"))
+      Wallaby.Browser.assert_has(session, css(".error-message", text: "Content can't be blank"))
 
       # Navigate to events dashboard
       session
       |> click(link("View Events"))
 
       # Verify error event was generated
-      assert_has(session, css(".event-row", text: "resource.validation_error"))
-      assert_has(session, css(".event-data", text: "Content can't be blank"))
+      Wallaby.Browser.assert_has(session, css(".event-row", text: "resource.validation_error"))
+      Wallaby.Browser.assert_has(session, css(".event-data", text: "Content can't be blank"))
     end
   end
 end

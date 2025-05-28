@@ -41,6 +41,7 @@ defmodule HydepwnsLiveview.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:raxol, "~> 0.4.0"},
       {:phoenix, "~> 1.7.20"},
       {:phoenix_ecto, "~> 4.5"},
       {:ecto_sql, "~> 3.11"},
@@ -48,7 +49,7 @@ defmodule HydepwnsLiveview.MixProject do
       {:phoenix_html, "~> 4.1"},
       {:phoenix_html_helpers, "~> 1.0"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
-      {:phoenix_live_view, "~> 1.0.0"},
+      {:phoenix_live_view, "~> 1.0"},
       {:floki, ">= 0.30.0", only: :test},
       {:phoenix_live_dashboard, "~> 0.8.3"},
       {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
@@ -108,7 +109,7 @@ defmodule HydepwnsLiveview.MixProject do
       setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
+      test: ["cmd npm --prefix assets run build", "test"],
       "assets.setup": ["esbuild.install --if-missing", "sass.install --if-missing"],
       "assets.build": ["esbuild hydepwns_liveview", "sass default"],
       "assets.deploy": [

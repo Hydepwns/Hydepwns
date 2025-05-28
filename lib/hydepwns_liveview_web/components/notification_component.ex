@@ -215,40 +215,4 @@ defmodule HydepwnsLiveviewWeb.NotificationComponent do
     </svg>
     """
   end
-
-  defp format_notification_type(type) do
-    type
-    |> to_string()
-    |> String.replace("_", " ")
-    |> String.capitalize()
-  end
-
-  defp format_timestamp(timestamp) do
-    case timestamp do
-      %DateTime{} ->
-        Calendar.strftime(timestamp, "%b %d, %H:%M")
-
-      %NaiveDateTime{} ->
-        Calendar.strftime(timestamp, "%b %d, %H:%M")
-
-      timestamp when is_binary(timestamp) ->
-        timestamp
-
-      _ ->
-        ""
-    end
-  end
-
-  defp show_details?(notification) do
-    Map.has_key?(notification, :details) && notification.details != nil
-  end
-
-  defp action_button_class(style) do
-    case style do
-      :primary -> "bg-blue-600 hover:bg-blue-700 text-white"
-      :secondary -> "bg-gray-200 hover:bg-gray-300 text-gray-700"
-      :danger -> "bg-red-600 hover:bg-red-700 text-white"
-      _ -> "bg-gray-200 hover:bg-gray-300 text-gray-700"
-    end
-  end
 end

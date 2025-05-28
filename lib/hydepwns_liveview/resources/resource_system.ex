@@ -14,26 +14,28 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
   Creates a new resource with the given attributes. Assigns a unique integer id.
   """
   def create_resource(attrs) do
-    id = System.unique_integer([:positive])
+    id = System.unique_integer([:positive]) |> Integer.to_string()
     resource = Map.merge(%{id: id}, attrs) |> Map.put(:id, id)
     case Map.get(resource, :type) do
       "document" ->
-        case HydepwnsLiveview.Resources.DocumentResource.validate(resource) do
-          {:ok, valid_resource} ->
-            valid_resource = Map.put(valid_resource, :__resource_module__, HydepwnsLiveview.Resources.DocumentResource)
-            Agent.update(@agent_name, &Map.put(&1, id, valid_resource))
-            {:ok, valid_resource}
-          {:error, errors} ->
-            {:error, errors}
+        changeset = HydepwnsLiveview.Resources.DocumentResource.changeset(resource)
+        if changeset.valid? do
+          valid_resource = Ecto.Changeset.apply_changes(changeset)
+          valid_resource = Map.put(valid_resource, :__resource_module__, HydepwnsLiveview.Resources.DocumentResource)
+          Agent.update(@agent_name, &Map.put(&1, id, valid_resource))
+          {:ok, valid_resource}
+        else
+          {:error, changeset}
         end
       "folder" ->
-        case HydepwnsLiveview.Resources.FolderResource.validate(resource) do
-          {:ok, valid_resource} ->
-            valid_resource = Map.put(valid_resource, :__resource_module__, HydepwnsLiveview.Resources.FolderResource)
-            Agent.update(@agent_name, &Map.put(&1, id, valid_resource))
-            {:ok, valid_resource}
-          {:error, errors} ->
-            {:error, errors}
+        changeset = HydepwnsLiveview.Resources.FolderResource.changeset(resource)
+        if changeset.valid? do
+          valid_resource = Ecto.Changeset.apply_changes(changeset)
+          valid_resource = Map.put(valid_resource, :__resource_module__, HydepwnsLiveview.Resources.FolderResource)
+          Agent.update(@agent_name, &Map.put(&1, id, valid_resource))
+          {:ok, valid_resource}
+        else
+          {:error, changeset}
         end
       _ ->
         Agent.update(@agent_name, &Map.put(&1, id, resource))

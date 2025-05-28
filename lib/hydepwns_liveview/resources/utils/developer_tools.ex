@@ -164,8 +164,8 @@ defmodule HydepwnsLiveview.Resources.DeveloperTools do
       if snapshot1_index >= length(snapshots) or snapshot2_index >= length(snapshots) do
         {:error, :invalid_snapshot_index}
       else
-        snapshot1 = Enum.at(snapshots, snapshot1_index)
-        snapshot2 = Enum.at(snapshots, snapshot2_index)
+        snapshot1 = Enum.at(snapshots, snapshot1_index, nil)
+        snapshot2 = Enum.at(snapshots, snapshot2_index, nil)
 
         # Compute differences
         diff = compute_state_diff(snapshot1.state, snapshot2.state)
@@ -772,15 +772,16 @@ defmodule HydepwnsLiveview.Resources.DeveloperTools do
         |> Enum.with_index()
         |> Enum.flat_map(fn {event, index} ->
           if index < length(sorted_events) - 1 do
-            next_event = Enum.at(sorted_events, index + 1)
-
-            [
-              %{
-                source: event.id,
-                target: next_event.id,
-                type: "correlation"
-              }
-            ]
+            case Enum.at(sorted_events, index + 1, nil) do
+              nil -> []
+              next_event -> [
+                %{
+                  source: event.id,
+                  target: next_event.id,
+                  type: "correlation"
+                }
+              ]
+            end
           else
             []
           end

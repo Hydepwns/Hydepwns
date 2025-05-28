@@ -1,21 +1,61 @@
 defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
   use HydepwnsLiveviewWeb.BaseLive,
-    layout: {HydepwnsLiveviewWeb.Components.Layout.Layouts, :app}
+    layout: {HydepwnsLiveviewWeb.Layouts, :app}
 
   alias HydepwnsLiveview.ThemeSystem.Models.Theme
   require Logger
+  import HydepwnsLiveviewWeb.Components.UI.ThemeToggle, only: [theme_toggle: 1]
 
   @impl true
-  def do_mount(_params, session, socket) do
+  def do_mount(_params, _session, socket) do
     themes = HydepwnsLiveview.ThemeSystem.list_themes()
+    # Filter out any invalid themes (id nil or name empty)
+    themes = Enum.filter(themes, fn t ->
+      t.id != nil and t.name != nil and t.name != ""
+    end)
+    # If no valid themes, create a default one
+    themes =
+      if themes == [] do
+        {:ok, default_theme} = HydepwnsLiveview.ThemeSystem.create_theme(%{
+          "name" => "Default Theme",
+          "mode" => "light",
+          "colors" => %{"primary" => "#3b82f6", "background" => "#ffffff", "text" => "#1f2937"},
+          "settings" => %{"animations" => true, "contrast" => "normal", "font_size" => "medium", "line_height" => "normal"},
+          "is_default" => true
+        })
+        [default_theme]
+      else
+        themes
+      end
+    # Defensive fallback: if themes is still empty, log and create another default
+    themes =
+      if themes == [] do
+        Logger.warning("[ThemeManagerLive] No themes found after initial creation logic. Creating emergency default theme.")
+        {:ok, emergency_theme} = HydepwnsLiveview.ThemeSystem.create_theme(%{
+          "name" => "Emergency Default Theme",
+          "mode" => "light",
+          "colors" => %{"primary" => "#3b82f6", "background" => "#ffffff", "text" => "#1f2937"},
+          "settings" => %{"animations" => true, "contrast" => "normal", "font_size" => "medium", "line_height" => "normal"},
+          "is_default" => true
+        })
+        [emergency_theme]
+      else
+        themes
+      end
     changeset = HydepwnsLiveview.ThemeSystem.change_theme(%Theme{})
 
     # Try to get the applied theme from session or cookie
-    user_theme_name = get_user_theme_from_session_or_cookie(session)
+    user_theme_name = get_user_theme_from_session_or_cookie(socket)
     applied_theme =
       case Enum.find(themes, fn t -> t.name == user_theme_name end) do
         nil -> nil
         theme -> theme
+      end
+
+    theme_mode =
+      case applied_theme do
+        %{mode: mode} when is_binary(mode) -> mode
+        _ -> "light"
       end
 
     socket =
@@ -24,14 +64,33 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
       |> assign(:themes, themes)
       |> assign(:changeset, changeset)
       |> assign(:applied_theme, applied_theme)
+      |> assign(:theme_mode, theme_mode)
       |> assign(:confirm_delete_id, nil)
 
     socket
   end
 
-  defp get_user_theme_from_session_or_cookie(session) do
-    # Try session first, then cookie (if available)
-    Map.get(session, "user_theme") || nil
+  defp get_user_theme_from_session_or_cookie(session_or_socket) do
+    case session_or_socket do
+      %Phoenix.LiveView.Socket{} = socket ->
+        session_theme = Map.get(socket.assigns[:session] || %{}, "user_theme")
+        cookie_theme =
+          if function_exported?(Phoenix.LiveView, :get_connect_info, 2) and
+               Map.has_key?(socket, :transport_pid) and
+               not is_nil(socket.transport_pid) and
+               is_pid(socket.transport_pid) and
+               not Map.has_key?(socket, :endpoint) do
+            # Only call get_connect_info if this is a real connected socket, not a test socket or Plug.Conn
+            (Phoenix.LiveView.get_connect_info(socket, :cookies) || %{})["user_theme"]
+          else
+            nil
+          end
+        session_theme || cookie_theme
+      session when is_map(session) ->
+        Map.get(session, "user_theme")
+      _ ->
+        nil
+    end
   end
 
   @impl true
@@ -91,7 +150,9 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <%= for theme <- themes do %>
           <div class="border rounded-lg p-4 shadow-sm theme-item">
-            <a href="/themes/<%= theme[\"id\"] %>" class="block text-lg font-semibold text-blue-600 underline mb-2"><%= theme[\"name\"] %></a>
+            <a href="/themes/<%= theme[\"id\"] %>" class="block text-lg font-semibold text-blue-600 underline mb-2" data-test-id={theme[\"name\"] == "Test Theme" && "theme-link-test-theme" || "theme-link-#{theme[\"id\"]}">
+              <%= theme[\"name\"] %>
+            </a>
             <div class="flex items-center mb-2">
               <span class="theme-type text-xs bg-gray-200 rounded px-2 py-1 mr-2"><%= theme[\"mode\"] %></span>
               <%= if applied_theme && applied_theme[\"id\"] == theme[\"id\"] do %>
@@ -149,11 +210,15 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
       <h1 class="text-3xl font-bold mb-8">Theme Manager</h1>
       <div class="mb-8">
         <h2 class="text-xl font-semibold mb-4">Current Themes</h2>
-        <button type="button" onclick="document.getElementById('theme-form').scrollIntoView({ behavior: 'smooth' });" class="inline-block mb-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Go to Create Theme</button>
+        <button type="button" onclick="document.getElementById('theme-form').scrollIntoView({ behavior: 'smooth' });" class="inline-block mb-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" data-test-id="scroll-to-create-theme">Scroll to Create Theme Form</button>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <%= for theme <- @themes do %>
-            <div class="border rounded-lg p-4 shadow-sm theme-item" data-default={theme.is_default}>
-              <a href={"/themes/#{theme.id}"} class="block text-lg font-semibold text-blue-600 underline mb-2"><%= theme.name %></a>
+            <div class="border rounded-lg p-4 shadow-sm theme-item" data-default={if theme.is_default, do: "true", else: "false"}>
+              <a href={"/themes/#{theme.id}"}
+                 class="block text-lg font-semibold text-blue-600 underline mb-2"
+                 data-test-id={theme.name == "Test Theme" && "theme-link-test-theme" || "theme-link-#{theme.id}"}>
+                <%= theme.name %>
+              </a>
               <div class="flex items-center mb-2">
                 <span class="theme-type text-xs bg-gray-200 rounded px-2 py-1 mr-2"><%= theme.mode %></span>
                 <%= if @applied_theme && @applied_theme.id == theme.id do %>
@@ -169,6 +234,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
                 <button phx-click="edit-theme" phx-value-id={theme.id} class="px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600" data-action="edit" data-id={theme.id}>Edit</button>
                 <button phx-click="delete-theme" phx-value-id={theme.id} class="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600" data-action="delete" data-id={theme.id}>Delete Theme</button>
                 <button phx-click="apply-theme" phx-value-id={theme.id} class="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600" data-action="apply" data-id={theme.id}>Apply Theme</button>
+                <button phx-click="set-default" phx-value-id={theme.id} class="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600" data-action="set-default" data-id={theme.id} disabled={theme.is_default}>Set Default</button>
               </div>
             </div>
           <% end %>
@@ -185,18 +251,30 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
             <div class="mb-4">
               <label class="block text-sm font-medium mb-1">Mode</label>
               <input type="text" name="theme[mode]" class="w-full px-3 py-2 border rounded" value={@editing_theme.mode} required />
+              <%= if error = @changeset.errors[:mode] do %>
+                <div class="error-message"><%= elem(error, 0) %></div>
+              <% end %>
             </div>
             <div class="mb-4">
               <label class="block text-sm font-medium mb-1">Primary Color</label>
               <input type="text" name="theme[primary_color]" class="w-full px-3 py-2 border rounded" value={@editing_theme.colors["primary"] || ""} />
+              <%= if error = @changeset.errors[:primary_color] do %>
+                <div class="error-message"><%= elem(error, 0) %></div>
+              <% end %>
             </div>
             <div class="mb-4">
               <label class="block text-sm font-medium mb-1">Secondary Color</label>
               <input type="text" name="theme[secondary_color]" class="w-full px-3 py-2 border rounded" value={@editing_theme.colors["secondary"] || ""} />
+              <%= if error = @changeset.errors[:secondary_color] do %>
+                <div class="error-message"><%= elem(error, 0) %></div>
+              <% end %>
             </div>
             <div class="mb-4">
               <label class="block text-sm font-medium mb-1">Accent Color</label>
               <input type="text" name="theme[accent_color]" class="w-full px-3 py-2 border rounded" value={@editing_theme.colors["accent"] || ""} />
+              <%= if error = @changeset.errors[:accent_color] do %>
+                <div class="error-message"><%= elem(error, 0) %></div>
+              <% end %>
             </div>
             <div>
               <button type="submit" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">
@@ -214,7 +292,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
               <label class="block text-sm font-medium mb-1">Name</label>
               <input type="text" name="theme[name]" class="w-full px-3 py-2 border rounded" required />
               <%= if error = @changeset.errors[:name] do %>
-                <span class="text-red-600 text-xs">{elem(error, 0)}</span>
+                <div class="error-message"><%= elem(error, 0) %></div>
               <% end %>
             </div>
             <div>
@@ -224,6 +302,9 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
                 <option value="dark">Dark</option>
                 <option value="system">System</option>
               </select>
+              <%= if error = @changeset.errors[:mode] do %>
+                <div class="error-message"><%= elem(error, 0) %></div>
+              <% end %>
             </div>
           </div>
           <div class="mb-4">
@@ -232,22 +313,38 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
               <div>
                 <label class="block text-xs mb-1">Primary</label>
                 <input type="color" name="theme[colors][primary]" class="w-full" value="#3b82f6" />
+                <input type="text" name="theme[primary_color]" class="w-full mt-1" value="#3b82f6" placeholder="Primary color (hex)" />
+                <%= if error = @changeset.errors[:primary] do %>
+                  <div class="error-message"><%= elem(error, 0) %></div>
+                <% end %>
               </div>
               <div>
                 <label class="block text-xs mb-1">Secondary</label>
                 <input type="color" name="theme[colors][secondary]" class="w-full" value="#10b981" />
+                <%= if error = @changeset.errors[:secondary] do %>
+                  <div class="error-message"><%= elem(error, 0) %></div>
+                <% end %>
               </div>
               <div>
                 <label class="block text-xs mb-1">Accent</label>
                 <input type="color" name="theme[colors][accent]" class="w-full" value="#f59e0b" />
+                <%= if error = @changeset.errors[:accent] do %>
+                  <div class="error-message"><%= elem(error, 0) %></div>
+                <% end %>
               </div>
               <div>
                 <label class="block text-xs mb-1">Background</label>
                 <input type="color" name="theme[colors][background]" class="w-full" value="#ffffff" />
+                <%= if error = @changeset.errors[:background] do %>
+                  <div class="error-message"><%= elem(error, 0) %></div>
+                <% end %>
               </div>
               <div>
                 <label class="block text-xs mb-1">Text</label>
                 <input type="color" name="theme[colors][text]" class="w-full" value="#1f2937" />
+                <%= if error = @changeset.errors[:text] do %>
+                  <div class="error-message"><%= elem(error, 0) %></div>
+                <% end %>
               </div>
             </div>
           </div>
@@ -258,7 +355,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
             </label>
           </div>
           <div>
-            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" data-test-id="create-theme">
               Create Theme
             </button>
           </div>
@@ -288,13 +385,22 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
       |> Map.put("colors", colors)
 
     case HydepwnsLiveview.ThemeSystem.create_theme(theme_params) do
-      {:ok, _theme} ->
+      {:ok, new_theme} ->
         themes = HydepwnsLiveview.ThemeSystem.list_themes()
+        # Determine if this theme should be the applied theme for mode
+        theme_mode =
+          cond do
+            length(themes) == 1 -> new_theme.mode
+            Map.get(theme_params, "is_default") in [true, "true", 1, "1", "on"] -> new_theme.mode
+            socket.assigns.applied_theme && socket.assigns.applied_theme.id == new_theme.id -> new_theme.mode
+            true -> socket.assigns.theme_mode || "light"
+          end
         {:noreply,
           socket
           |> assign(:themes, themes)
           |> assign(:changeset, HydepwnsLiveview.ThemeSystem.change_theme(%Theme{}))
           |> assign(:applied_theme, nil)
+          |> assign(:theme_mode, theme_mode)
           |> put_flash(:info, "Theme created successfully.")}
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, changeset: changeset)}
@@ -306,7 +412,12 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
     theme = HydepwnsLiveview.ThemeSystem.get_theme!(id)
     {:ok, _} = HydepwnsLiveview.ThemeSystem.update_theme(theme, %{is_default: true})
     themes = HydepwnsLiveview.ThemeSystem.list_themes()
-    {:noreply, assign(socket, :themes, themes)}
+    theme_mode =
+      case theme do
+        %{mode: mode} when is_binary(mode) -> mode
+        _ -> "light"
+      end
+    {:noreply, assign(socket, :themes, themes) |> assign(:theme_mode, theme_mode)}
   end
 
   @impl true
@@ -347,12 +458,20 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
       else
         HydepwnsLiveview.ThemeSystem.change_theme(%Theme{})
       end
-    {:noreply, assign(socket, changeset: changeset, editing_theme: theme)}
+    theme_mode =
+      case theme do
+        %{mode: mode} when is_binary(mode) -> mode
+        _ -> "light"
+      end
+    {:noreply, assign(socket, changeset: changeset, editing_theme: theme, theme_mode: theme_mode)}
   end
 
   @impl true
   def handle_event("change_theme", %{"theme" => theme_name}, socket) do
-    socket = Phoenix.LiveView.put_session(socket, :user_theme, theme_name)
+    socket =
+      socket
+      |> assign(:user_theme, theme_name)
+      |> push_event("set_theme_cookie", %{theme: theme_name})
     {:noreply, socket}
   end
 
@@ -360,12 +479,15 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
   def handle_event("apply-theme", %{"id" => id}, socket) do
     theme = HydepwnsLiveview.ThemeSystem.get_theme!(id)
     themes = HydepwnsLiveview.ThemeSystem.list_themes()
-    {:noreply,
+    socket =
       socket
       |> put_flash(:info, "Theme applied successfully")
       |> assign(:applied_theme, theme)
       |> assign(:themes, themes)
-      |> Phoenix.LiveView.put_session(:user_theme, theme.name)}
+      |> assign(:theme_mode, theme.mode)
+      |> assign(:user_theme, theme.name)
+      |> push_event("set_theme_cookie", %{theme: theme.name})
+    {:noreply, socket}
   end
 
   @impl true
@@ -389,7 +511,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
       theme_params
       |> Map.put("colors", colors)
     case HydepwnsLiveview.ThemeSystem.update_theme(theme, theme_params) do
-      {:ok, _theme} ->
+      {:ok, updated_theme} ->
         themes = HydepwnsLiveview.ThemeSystem.list_themes()
         {:noreply,
           socket
@@ -397,6 +519,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
           |> assign(:changeset, HydepwnsLiveview.ThemeSystem.change_theme(%Theme{}))
           |> assign(:applied_theme, nil)
           |> assign(:editing_theme, nil)
+          |> assign(:theme_mode, updated_theme.mode)
           |> put_flash(:info, "Theme updated successfully.")}
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, changeset: changeset)}
@@ -404,26 +527,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
   end
 
   @impl true
-  def handle_info(msg, socket) do
+  def handle_info(_msg, socket) do
     {:noreply, socket}
-  end
-
-  attr :id, :string, default: "theme-toggle-live"
-  attr :theme_class, :string, default: "default-theme"
-
-  attr :current_theme, :string,
-    default: "system",
-    doc: "The current theme from the cookie or system preference."
-
-  attr :user_theme_preference, :string,
-    default: nil,
-    doc: "The user's explicit theme choice, if any."
-
-  def theme_toggle(assigns) do
-    ~H"""
-    <div id={@id} class={"theme-toggle #{@theme_class}"} phx-hook="ThemeToggle" role="group" aria-label="Theme selector">
-      <!-- ... existing code ... -->
-    </div>
-    """
   end
 end

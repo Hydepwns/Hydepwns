@@ -110,4 +110,4 @@ Comprehensive documentation is available in:
 - Enhanced relationship support
 - Integration with Ecto schemas and Ash resources
 - Custom validation DSL
-- Visual resource editor 
+- Visual resource editor

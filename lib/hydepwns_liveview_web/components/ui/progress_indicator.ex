@@ -122,7 +122,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ProgressIndicator do
                       [{i}]
                     <% end %>
                   </div>
-                  <div class="step-label">{Enum.at(@labels, i - 1)}</div>
+                  <div class="step-label">{Enum.at(@labels, i - 1, "")}</div>
                 </div>
                 <%= if i < @total_steps do %>
                   <div class="step-connector">
@@ -153,7 +153,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ProgressIndicator do
                         (○)
                     <% end %>
                   </div>
-                  <div class="step-label">{Enum.at(@labels, i - 1)}</div>
+                  <div class="step-label">{Enum.at(@labels, i - 1, "")}</div>
                 </div>
                 <%= if i < @total_steps do %>
                   <div class="step-connector">
@@ -184,7 +184,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ProgressIndicator do
                         [─]
                     <% end %>
                   </div>
-                  <div class="step-label">{Enum.at(@labels, i - 1)}</div>
+                  <div class="step-label">{Enum.at(@labels, i - 1, "")}</div>
                 </div>
                 <%= if i < @total_steps do %>
                   <div class="step-connector">
@@ -255,7 +255,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ProgressIndicator do
     <div id={@id} class={"monospace-progress spinner #{@style} #{@class}"} phx-hook="ProgressIndicatorHook" data-frames={encode!(@frames)} data-speed={@speed}>
       <div class="spinner-container">
         <div class="spinner-animation" role="status" aria-live="polite">
-          {hd(@frames)}
+          <%= if Enum.empty?(@frames), do: "", else: (case @frames do [h | _] -> h; _ -> "" end) %>
         </div>
         <%= if @label do %>
           <div class="spinner-label">{@label}</div>

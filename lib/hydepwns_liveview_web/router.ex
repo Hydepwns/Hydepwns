@@ -6,7 +6,7 @@ defmodule HydepwnsLiveviewWeb.Router do
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_live_flash
-    plug :put_root_layout, html: {HydepwnsLiveviewWeb.Components.Layout.Layouts, :root}
+    plug :put_root_layout, html: {HydepwnsLiveviewWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
   end
@@ -19,6 +19,9 @@ defmodule HydepwnsLiveviewWeb.Router do
   # Main application routes
   scope "/", HydepwnsLiveviewWeb do
     pipe_through :browser
+
+    # get "/", PageController, :home
+    # get "/favicon.ico", PageController, :favicon
 
     live "/", HomeLive, :index
     live "/about", AboutLive, :index
@@ -38,9 +41,11 @@ defmodule HydepwnsLiveviewWeb.Router do
     # Reuse form for editing
     live "/resources/:id/edit", ResourceFormLive, :edit
     live "/resources/:id/manage-subscriptions", ResourceSubscriptionLive, :manage_subscriptions
+    live "/resources/:id/events", ResourceEventLive, :index
+    live "/resources/:id/subscriptions", ResourceSubscriptionLive, :index
 
     # Theme system routes
-    resources "/themes", ThemeController
+    resources "/themes", ThemeController, except: [:index]
 
     # Playground routes
     scope "/playground", Live.Playground, as: :playground do
@@ -75,6 +80,9 @@ defmodule HydepwnsLiveviewWeb.Router do
       live "/event-dashboard", EventDashboardLive, :index
       live "/resources", ResourceDashboardLive, :index
     end
+
+    live "/account", AccountLive, :index
+    live "/account/notifications", NotificationSettingsLive, :index
   end
 
   # Development-only routes
@@ -87,6 +95,13 @@ defmodule HydepwnsLiveviewWeb.Router do
 
       live_dashboard "/dashboard", metrics: HydepwnsLiveviewWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
+    end
+  end
+
+  # Test-only route for type validation tests
+  if Mix.env() == :test do
+    scope "/", HydepwnsLiveviewWeb do
+      live "/test-types", HydepwnsLiveview.TypeValidationTest.TestTypeLive
     end
   end
 end

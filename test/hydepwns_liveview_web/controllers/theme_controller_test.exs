@@ -4,6 +4,8 @@ defmodule HydepwnsLiveviewWeb.ThemeControllerTest do
   import Phoenix.VerifiedRoutes
   use HydepwnsLiveviewWeb.ConnCase, async: true
   import Phoenix.Component
+  import ThemeHelper
+  import HydepwnsLiveview.ThemeSystemFixtures
 
   alias HydepwnsLiveview.ThemeSystem
 
@@ -26,7 +28,8 @@ defmodule HydepwnsLiveviewWeb.ThemeControllerTest do
   @invalid_attrs %{name: nil, type: nil}
 
   def fixture(:theme) do
-    {:ok, theme} = ThemeSystem.create_theme(@create_attrs)
+    ensure_theme_exists(@create_attrs)
+    theme = HydepwnsLiveview.ThemeSystem.get_theme_by_name(@create_attrs.name)
     theme
   end
 
@@ -103,5 +106,30 @@ defmodule HydepwnsLiveviewWeb.ThemeControllerTest do
   defp create_theme(_) do
     theme = fixture(:theme)
     %{theme: theme}
+  end
+
+  setup do
+    HydepwnsLiveview.ThemeSystem.list_themes()
+    |> Enum.each(&HydepwnsLiveview.ThemeSystem.delete_theme/1)
+
+    {:ok, light_theme} = light_theme_fixture()
+    {:ok, dark_theme} = dark_theme_fixture()
+    {:ok, system_theme} = system_theme_fixture()
+    {:ok, dim_theme} = dim_theme_fixture()
+
+    themes = HydepwnsLiveview.ThemeSystem.list_themes()
+    assert length(themes) >= 4
+    Enum.each(themes, fn theme ->
+      assert theme.id != nil
+      assert theme.name != nil and theme.name != ""
+      assert theme.mode in ["light", "dark", "dim", "system"]
+    end)
+
+    %{
+      light_theme: light_theme,
+      dark_theme: dark_theme,
+      system_theme: system_theme,
+      dim_theme: dim_theme
+    }
   end
 end

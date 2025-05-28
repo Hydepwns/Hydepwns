@@ -16,12 +16,9 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
   alias HydepwnsLiveviewWeb.Helpers.TocHelper
   alias HydepwnsLiveviewWeb.Helpers.PathHelper
   alias HydepwnsLiveviewWeb.Helpers.ViewportHelper
-  alias HydepwnsLiveviewWeb.Components.Interactive.Plugins.Navigation
-  import HydepwnsLiveviewWeb.Components.UI.Nav, only: [hierarchical_toc_nav: 1, monospace_nav: 1]
   import HydepwnsLiveviewWeb.Components.UI.ThemeToggle, only: [theme_toggle: 1]
   import HydepwnsLiveviewWeb.Components.UI.DebugGrid, only: [debug_grid: 1]
   import HydepwnsLiveviewWeb.Components.UI.AccessibilityMenu, only: [accessibility_menu: 1]
-  # import HydepwnsLiveviewWeb.Components.Interactive.Terminal
 
   @impl true
   def do_mount(_params, _session, socket) do

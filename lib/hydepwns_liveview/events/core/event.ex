@@ -64,6 +64,7 @@ defmodule HydepwnsLiveview.Events.Core.Event do
     attrs = Map.put(attrs, :type, type)
     attrs = set_default_timestamp(attrs)
     attrs = set_default_ids(attrs)
+    attrs = for {k, v} <- attrs, into: %{}, do: {to_string(k), v}
 
     %__MODULE__{}
     |> cast(attrs, [

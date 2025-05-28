@@ -245,8 +245,14 @@ defmodule HydepwnsLiveviewWeb.Components.Visualization.DiagramEditor do
     {:ok,
      assign(socket,
        templates_list: templates_list,
-       selected_template: hd(templates_list).key,
-       content: @templates[hd(templates_list).key] || "",
+       selected_template: (case templates_list do
+         [first | _] -> first.key
+         [] -> nil
+       end),
+       content: (case templates_list do
+         [first | _] -> @templates[first.key] || ""
+         [] -> ""
+       end),
        copy_tooltip: "Copy to clipboard"
      )}
   end

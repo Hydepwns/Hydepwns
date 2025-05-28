@@ -8,7 +8,6 @@ defmodule HydepwnsLiveview.Events.Handlers.StandardHandlers do
   """
 
   require Logger
-  alias HydepwnsLiveview.Events.Handlers.HandlerSupervisor
 
   @doc """
   Registers all standard handlers.

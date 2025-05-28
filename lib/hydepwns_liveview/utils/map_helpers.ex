@@ -16,10 +16,13 @@ defmodule HydepwnsLiveview.Utils.MapHelpers do
     map
     |> Enum.map(fn {k, v} ->
       key = if is_atom(k), do: Atom.to_string(k), else: k
-      value = if is_map(v), do: stringify_keys(v), else: v
+      value = stringify_keys(v)
       {key, value}
     end)
     |> Enum.into(%{})
+  end
+  def stringify_keys(list) when is_list(list) do
+    Enum.map(list, &stringify_keys/1)
   end
   def stringify_keys(other), do: other
 end 

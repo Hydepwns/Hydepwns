@@ -30,7 +30,7 @@ defmodule HydepwnsLiveview.Events.Core.TestEvents do
     events = generate_user_events(user_count)
 
     # Publish all events
-    Enum.each(events, &EventBus.publish/1)
+    Enum.each(events, &HydepwnsLiveview.Events.EventBus.publish/1)
 
     {:ok, events}
   end

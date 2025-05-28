@@ -19,8 +19,15 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
       :images
     ]
 
-  alias HydepwnsLiveview.Events.EventStore, as: EventStore
   alias HydepwnsLiveview.Events.EventBus, as: EventBus
+  alias HydepwnsLiveview.Resources.ResourceSystem
+
+  @impl true
+  def mount(params, session, socket) do
+    # Pattern match on the tuple returned by super
+    {:ok, socket} = super(params, session, socket)
+    {:ok, socket}
+  end
 
   @impl true
   def do_mount(_params, _session, socket) do
@@ -29,7 +36,10 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
 
     # Default to the first resource type if available
     default_resource_type =
-      if Enum.empty?(resource_modules), do: nil, else: List.first(resource_modules)
+      case resource_modules do
+        [first | _] -> first
+        _ -> nil
+      end
 
     socket =
       socket
@@ -37,6 +47,10 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
       |> assign(:selected_resource_type, nil)
       |> assign(:resources, [])
       |> assign(:page_title, "Resource Dashboard")
+      |> assign(:theme_class, "default-theme")
+      |> assign(:show_toc, false)
+      |> assign(:toc_items, [])
+      |> assign(:images, [])
       |> assign(:loading, false)
       |> assign(:filter, %{})
       |> assign(:sort, %{field: "updated_at", direction: :desc})
@@ -59,7 +73,7 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
       EventBus.subscribe(self(), "resource:*")
     end
 
-    {:ok, socket}
+    socket
   end
 
   @impl true
@@ -184,11 +198,13 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
   @impl true
   def handle_event("new-resource", _params, socket) do
     if socket.assigns.selected_resource_type do
+      changeset = socket.assigns.selected_resource_type.changeset(%{})
       {:noreply,
        socket
        |> assign(:view_mode, :edit)
-       |> assign(:current_resource, %{})
-       |> assign(:edit_mode, :create)}
+       |> assign(:edit_mode, :create)
+       |> assign(:changeset, changeset)
+       |> assign(:current_resource, %{})}
     else
       {:noreply, socket}
     end
@@ -197,25 +213,22 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
   @impl true
   def handle_event("edit-resource", %{"resource-id" => resource_id}, socket) do
     socket = load_resource(socket, resource_id)
-
+    resource = socket.assigns.current_resource
+    changeset = socket.assigns.selected_resource_type.changeset(resource)
     {:noreply,
      socket
      |> assign(:view_mode, :edit)
-     |> assign(:edit_mode, :update)}
+     |> assign(:edit_mode, :update)
+     |> assign(:changeset, changeset)}
   end
 
   @impl true
   def handle_event("save-resource", %{"resource" => resource_params}, socket) do
     resource_module = socket.assigns.selected_resource_type
-
     case socket.assigns.edit_mode do
       :create ->
-        # Generate a unique ID for the new resource
         resource_id = "#{resource_module.resource_type()}-#{Ecto.UUID.generate()}"
-
-        # Call the appropriate creation function based on resource type
         result = create_resource(resource_module, resource_id, resource_params)
-
         case result do
           {:ok, _event} ->
             {:noreply,
@@ -224,26 +237,24 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
              |> push_patch(
                to: ~p"/admin/resources?resource_type=#{resource_module.resource_type()}&view=list"
              )}
-
+          {:error, %Ecto.Changeset{} = changeset} ->
+            {:noreply, assign(socket, changeset: changeset)}
           {:error, reason} ->
             {:noreply,
              socket
              |> put_flash(:error, "Failed to create resource: #{inspect(reason)}")}
         end
-
       :update ->
         resource_id = socket.assigns.current_resource.id
-
-        # Call the appropriate update function based on resource type
         result = update_resource(resource_module, resource_id, resource_params)
-
         case result do
           {:ok, _event} ->
             {:noreply,
              socket
              |> put_flash(:info, "Resource updated successfully")
              |> push_patch(to: ~p"/admin/resources?resource_id=#{resource_id}&view=detail")}
-
+          {:error, %Ecto.Changeset{} = changeset} ->
+            {:noreply, assign(socket, changeset: changeset)}
           {:error, reason} ->
             {:noreply,
              socket
@@ -274,14 +285,13 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
   @impl true
   def render(assigns) do
     ~H"""
+    <.flash_group flash={@flash} flash_group_id="admin-dashboard-flash-group" />
     <div class="admin-dashboard">
       <div class="admin-header">
         <h1>Resource Management</h1>
         <div class="admin-actions">
           <%= if @selected_resource_type && @view_mode == :list do %>
-            <button phx-click="new-resource" class="btn btn-primary">
-              New Resource
-            </button>
+            <.link navigate={~p"/resources/new"} class="btn btn-primary" data-test-id="create-new-resource">Create New Resource</.link>
           <% end %>
           <button phx-click="toggle-filters" class="btn btn-outline-primary">
             {if @show_filters, do: "Hide Filters", else: "Show Filters"}
@@ -296,10 +306,10 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
 
       <div class="resource-type-selector">
         <label for="resource-type-select">Resource Type:</label>
-        <select id="resource-type-select" phx-change="select-resource-type" name="resource-type">
+        <select id="resource-type-select" data-test-id="resource-type-select" phx-change="select-resource-type" name="resource-type">
           <option value="">Select a resource type</option>
           <%= for module <- @resource_modules do %>
-            <option value={module.resource_type()} selected={@selected_resource_type == module}>
+            <option value={module.resource_type()} selected={@selected_resource_type == module} data-test-id={"resource-type-option-#{module.resource_type()}"}>
               {module.resource_type()}
             </option>
           <% end %>
@@ -375,12 +385,9 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
                         <% end %>
                       <% end %>
                       <td class="actions">
-                        <button class="btn btn-sm btn-outline-primary" phx-click="load-resource" phx-value-resource-id={resource.id}>
-                          View
-                        </button>
-                        <button class="btn btn-sm btn-outline-info" phx-click="view-resource-events" phx-value-resource-id={resource.id}>
-                          Events
-                        </button>
+                        <.link navigate={~p"/admin/resources?resource_id=#{resource.id}&view=detail"} class="btn btn-sm btn-outline-primary" data-test-id={"resource-link-#{resource.id}"} data-resource-name={resource.name}>View</.link>
+                        <.link navigate={~p"/admin/resources?resource_id=#{resource.id}&view=events"} class="btn btn-sm btn-outline-info" data-test-id={"resource-events-link-#{resource.id}"} data-resource-name={resource.name}>View Events</.link>
+                        <.link navigate={~p"/admin/resources?resource_id=#{resource.id}&view=events"} class="btn btn-sm btn-outline-info" data-test-id={"resource-events-link-#{resource.id}-alt"} data-resource-name={resource.name}>Events</.link>
                       </td>
                     </tr>
                   <% end %>
@@ -404,7 +411,7 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
               </div>
 
               <div class="resource-properties">
-                <%= for {key, value} <- Map.drop(@current_resource, [:__struct__, :__resource_module__]) do %>
+                <%= for {key, _value} <- Map.drop(@current_resource, [:__struct__, :__resource_module__]) do %>
                   <div class="property">
                     <div class="property-name">{humanize(key)}</div>
                     <div class="property-value">{display_field_value(@current_resource, key)}</div>
@@ -416,12 +423,9 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
                 <button class="btn btn-primary" phx-click="edit-resource" phx-value-resource-id={@current_resource.id}>
                   Edit
                 </button>
-                <button class="btn btn-danger" phx-click="delete-resource" phx-value-resource-id={@current_resource.id} data-confirm="Are you sure you want to delete this resource? This action cannot be undone.">
-                  Delete
-                </button>
-                <button class="btn btn-info" phx-click="view-resource-events" phx-value-resource-id={@current_resource.id}>
-                  View Events
-                </button>
+                <button class="btn btn-danger" phx-click="delete-resource" phx-value-resource-id={@current_resource.id} data-confirm="Are you sure you want to delete this resource? This action cannot be undone." data-test-id="delete-resource">Delete Resource</button>
+                <.link navigate={~p"/admin/resources?resource_id=#{@current_resource.id}&view=events"} class="btn btn-sm btn-outline-info" data-test-id="view-events-link">View Events</.link>
+                <.link navigate={~p"/admin/resources?resource_id=#{@current_resource.id}&view=events"} class="btn btn-sm btn-outline-info">Events</.link>
               </div>
             <% else %>
               <div class="empty-state">
@@ -440,13 +444,13 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
 
               <div class="event-timeline">
                 <%= for event <- @resource_events do %>
-                  <div class="event-item">
+                  <div class="event-item event-row" data-test-id={"event-row-#{event.type}"}>
                     <div class="event-time">
                       {format_datetime(event.timestamp)}
                     </div>
                     <div class="event-content">
-                      <div class="event-type">{event.type}</div>
-                      <div class="event-data">
+                      <div class="event-type" data-test-id={"event-type-#{event.type}"}>{event.type}</div>
+                      <div class="event-data" data-test-id={"event-data-#{event.type}"}>
                         <pre><%= Jason.encode!(event.data, pretty: true) %></pre>
                       </div>
                       <%= if map_size(event.metadata) > 0 do %>
@@ -474,79 +478,29 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
         <% :edit -> %>
           <div class="resource-edit">
             <h2>{if @edit_mode == :create, do: "Create New", else: "Edit"} {humanize(@selected_resource_type.resource_type())}</h2>
-
-            <form phx-submit="save-resource">
+            <.form for={@changeset} phx-submit="save-resource" data-test-id="resource-form">
               <div class="form-fields">
-                <%= case @selected_resource_type.resource_type() do %>
-                  <% "order" -> %>
-                    <div class="form-group">
-                      <label for="customer_id">Customer ID</label>
-                      <input type="text" id="customer_id" name="resource[customer_id]" value={Map.get(@current_resource, :customer_id)} required />
-                    </div>
-
-                    <%= if @edit_mode == :update do %>
-                      <div class="form-group">
-                        <label for="status">Status</label>
-                        <select id="status" name="resource[status]">
-                          <option value="cart" selected={Map.get(@current_resource, :status) == "cart"}>Cart</option>
-                          <option value="submitted" selected={Map.get(@current_resource, :status) == "submitted"}>Submitted</option>
-                          <option value="paid" selected={Map.get(@current_resource, :status) == "paid"}>Paid</option>
-                          <option value="shipped" selected={Map.get(@current_resource, :status) == "shipped"}>Shipped</option>
-                          <option value="delivered" selected={Map.get(@current_resource, :status) == "delivered"}>Delivered</option>
-                          <option value="fulfilled" selected={Map.get(@current_resource, :status) == "fulfilled"}>Fulfilled</option>
-                          <option value="cancelled" selected={Map.get(@current_resource, :status) == "cancelled"}>Cancelled</option>
-                        </select>
-                      </div>
+                <!-- Render fields using @changeset, e.g. -->
+                <%= for {field, _type} <- @changeset.types do %>
+                  <div class="form-group">
+                    <label for={to_string(field)}>{humanize(field)}</label>
+                    <%= if @changeset.types[field] == :string do %>
+                      <input type="text" id={to_string(field)} name={"resource[#{field}]"} value={Ecto.Changeset.get_field(@changeset, field) || ""} />
+                    <% else %>
+                      <!-- Add more field types as needed -->
+                      <input type="text" id={to_string(field)} name={"resource[#{field}]"} value={Ecto.Changeset.get_field(@changeset, field) || ""} />
                     <% end %>
-                  <% "product" -> %>
-                    <div class="form-group">
-                      <label for="name">Name</label>
-                      <input type="text" id="name" name="resource[name]" value={Map.get(@current_resource, :name)} required />
-                    </div>
-
-                    <div class="form-group">
-                      <label for="price">Price</label>
-                      <input type="number" id="price" name="resource[price]" step="0.01" value={Map.get(@current_resource, :price)} required />
-                    </div>
-
-                    <%= if @edit_mode == :update do %>
-                      <div class="form-group">
-                        <label for="active">Active</label>
-                        <select id="active" name="resource[active]">
-                          <option value="true" selected={Map.get(@current_resource, :active) == true}>Yes</option>
-                          <option value="false" selected={Map.get(@current_resource, :active) == false}>No</option>
-                        </select>
-                      </div>
+                    <%= if error = @changeset.errors[field] do %>
+                      <div class="error-message" data-test-id="error-message"><%= elem(error, 0) %></div>
                     <% end %>
-                  <% "user" -> %>
-                    <div class="form-group">
-                      <label for="email">Email</label>
-                      <input type="email" id="email" name="resource[email]" value={Map.get(@current_resource, :email)} required />
-                    </div>
-
-                    <div class="form-group">
-                      <label for="name">Name</label>
-                      <input type="text" id="name" name="resource[name]" value={Map.get(@current_resource, :name)} required />
-                    </div>
-                  <% _ -> %>
-                    <!-- Generic form for other resource types -->
-                    <div class="form-group">
-                      <label for="name">Name</label>
-                      <input type="text" id="name" name="resource[name]" value={Map.get(@current_resource, :name)} />
-                    </div>
-
-                    <div class="form-group">
-                      <label for="description">Description</label>
-                      <textarea id="description" name="resource[description]">{Map.get(@current_resource, :description)}</textarea>
-                    </div>
+                  </div>
                 <% end %>
               </div>
-
               <div class="form-actions">
-                <button type="submit" class="btn btn-primary">Save</button>
-                <button type="button" phx-click="cancel-edit" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary" data-test-id="save-resource">Save</button>
+                <button type="button" phx-click="cancel-edit" class="btn btn-secondary" data-test-id="cancel-edit">Cancel</button>
               </div>
-            </form>
+            </.form>
           </div>
       <% end %>
     </div>
@@ -581,38 +535,25 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
   end
 
   defp load_resources(socket) do
-    # This would typically load resources from a database
-    # For this example, we'll just return an empty list
-    assign(socket, :resources, [])
+    resources = ResourceSystem.list_resources()
+    assign(socket, :resources, resources)
   end
 
   defp load_resource(socket, resource_id) do
-    resource_module = socket.assigns.selected_resource_type
+    resource = ResourceSystem.get_resource(resource_id)
+    socket = assign(socket, :current_resource, resource)
 
-    if resource_module do
-      # Load the resource
-      case resource_module.load(resource_id) do
-        {:ok, resource} ->
-          # Load events if in events view
-          events =
-            if socket.assigns.view_mode == :events do
-              EventStore.get_events(resource_id)
-            else
-              []
-            end
-
-          socket
-          |> assign(:current_resource, resource)
-          |> assign(:resource_events, events)
-
-        {:error, _reason} ->
-          socket
-          |> assign(:current_resource, nil)
-          |> assign(:resource_events, [])
+    # Assign parent resources if editing a document
+    socket =
+      if socket.assigns.selected_resource_type &&
+           socket.assigns.selected_resource_type.resource_type() == "document" do
+        parent_resources = ResourceSystem.list_resources() |> Enum.filter(fn r -> r.type == "folder" end)
+        assign(socket, :parent_resources, parent_resources)
+      else
+        assign(socket, :parent_resources, nil)
       end
-    else
-      socket
-    end
+
+    socket
   end
 
   defp parse_filters(filters) do
@@ -665,17 +606,15 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
     # For example, for OrderResource it might call create_order
 
     # Get the creation function name (assuming convention of create_<resource_type>)
-    _resource_type = resource_module.resource_type()
-    function_name = String.to_atom("create_#{_resource_type}")
-
-    # Extract required parameters based on resource type
-    args = extract_creation_args(_resource_type, resource_id, params)
+    resource_type = resource_module.resource_type()
+    function_name = String.to_atom("create_#{resource_type}")
+    args = extract_creation_args(resource_type, resource_id, params)
 
     # Call the function if it exists
     if function_exported?(resource_module, function_name, length(args)) do
       apply(resource_module, function_name, args)
     else
-      {:error, "Creation function not found for #{_resource_type}"}
+      {:error, "Creation function not found for #{resource_type}"}
     end
   end
 
@@ -714,11 +653,11 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
     end
   end
 
-  defp extract_creation_args(_resource_type, resource_id, params) do
+  defp extract_creation_args(resource_type, resource_id, params) do
     # Extract the appropriate arguments based on resource type
     # This is a simplified implementation - would be more comprehensive in production
 
-    case _resource_type do
+    case resource_type do
       "order" ->
         # For OrderResource.create_order(resource_id, customer_id, metadata \\ %{})
         [resource_id, params["customer_id"] || "unknown", %{}]

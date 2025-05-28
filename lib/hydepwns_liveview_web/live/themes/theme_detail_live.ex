@@ -1,5 +1,5 @@
 defmodule HydepwnsLiveviewWeb.Themes.ThemeDetailLive do
-  use HydepwnsLiveviewWeb.BaseLive, layout: {HydepwnsLiveviewWeb.Components.Layout.Layouts, :app}
+  use HydepwnsLiveviewWeb.BaseLive, layout: {HydepwnsLiveviewWeb.Layouts, :app}
   alias HydepwnsLiveview.ThemeSystem
   alias HydepwnsLiveview.ThemeSystem.Models.Theme
 
@@ -95,7 +95,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeDetailLive do
             <div class="color-preview w-8 h-8 rounded border mr-2" style={"background-color: #{value};"} title={key}></div>
           <% end %>
         </div>
-        <div class="flex flex-wrap gap-2 mb-4">
+        <div class="flex flex-wrap gap-2 mb-4" data-test-id="spacing-preview-section">
           <div class="spacing-preview w-8 h-8 rounded border mr-2" style={"padding: #{@theme.settings["spacing_unit"] || ""};"}></div>
           <div class="container-preview w-8 h-8 rounded border mr-2" style={"padding: #{@theme.settings["container_padding"] || ""};"}></div>
           <div class="section-preview w-8 h-8 rounded border mr-2" style={"margin: #{@theme.settings["section_margin"] || ""};"}></div>
@@ -116,7 +116,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeDetailLive do
       <%= if @show_accessibility_form do %>
         <form phx-submit="save-accessibility" class="mb-4">
           <div>
-            <input type="checkbox" id="reduced_motion" name="theme[reduced_motion]" checked={Map.get(@theme.settings, "reduced_motion", false)} />
+            <input type="checkbox" id="reduced_motion" name="theme[reduced_motion]" checked={Map.get(@theme.settings, "reduced_motion", false)} data-test-id="reduced-motion-checkbox" />
             <label for="reduced_motion">Reduced Motion</label>
           </div>
           <button type="submit" class="mt-2 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">Save Accessibility</button>

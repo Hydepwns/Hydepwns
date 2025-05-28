@@ -2,6 +2,16 @@ defmodule HydepwnsLiveviewWeb.StyleGuideLiveTest do
   use HydepwnsLiveviewWeb.ConnCase, async: true
   import Phoenix.LiveViewTest
 
+  alias HydepwnsLiveviewWeb.MockHelper
+
+  setup context do
+    MockHelper.setup_mocks()
+    MockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
+      {:ok, %{"id" => "mock", "name" => "Mock Resource", "status" => "active"}}
+    end)
+    context
+  end
+
   describe "StyleGuideLive" do
     test "renders the style guide page", %{conn: conn} do
       {:ok, _view, html} = live(conn, "/style-guide")

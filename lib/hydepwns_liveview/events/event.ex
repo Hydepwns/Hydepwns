@@ -1,20 +1,27 @@
 defmodule HydepwnsLiveview.Events.Event do
   @moduledoc """
-  Bridge module for the Event structure.
-
-  This module delegates to HydepwnsLiveview.Events.Core.Event,
-  which is the actual implementation of the event structure.
-
-  This module exists to maintain backward compatibility with code that
-  expects the event structure to be at this module path.
+  Event module for handling resource events.
   """
 
-  alias HydepwnsLiveview.Events.Core.Event, as: CoreEvent
+  alias HydepwnsLiveview.Events.EventBus
 
-  # Delegate all public functions to the core implementation
-  defdelegate create(type, attrs), to: CoreEvent
+  @doc """
+  Creates a new event with the given type and data.
+  """
+  @spec create(String.t(), map()) :: {:ok, map()} | {:error, term()}
+  def create(type, data) when is_binary(type) and is_map(data) do
+    case HydepwnsLiveview.Events.Core.Event.create(type, data) do
+      {:ok, event} ->
+        case HydepwnsLiveview.Events.EventBus.publish(event) do
+          :ok -> {:ok, event}
+          error -> error
+        end
+      error -> error
+    end
+  end
 
-  # Add any other functions that might be called on Event
-  # For example:
-  # defdelegate some_function(args), to: CoreEvent
+  defp generate_event_id do
+    :crypto.strong_rand_bytes(16)
+    |> Base.encode16(case: :lower)
+  end
 end

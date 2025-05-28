@@ -933,7 +933,10 @@ defmodule HydepwnsLiveview.Utils.ValidationDependencyResolver do
           updated_state
           | visited: MapSet.put(updated_state.visited, validation_id),
             temp_visited: MapSet.delete(updated_state.temp_visited, validation_id),
-            current_path: tl(updated_state.current_path)
+            current_path: (case updated_state.current_path do
+              [_ | rest] -> rest
+              [] -> []
+            end)
         }
       end
     end
@@ -945,8 +948,15 @@ defmodule HydepwnsLiveview.Utils.ValidationDependencyResolver do
     frequency =
       cycles
       |> Enum.flat_map(fn cycle ->
-        # Generate all edges in the cycle
-        Enum.zip(cycle, tl(cycle) ++ [hd(cycle)])
+        if length(cycle) > 1 do
+          # Defensive: Only use hd/tl if cycle is not empty
+          case cycle do
+            [] -> []
+            [_ | _] -> Enum.zip(cycle, tl(cycle) ++ [hd(cycle)])
+          end
+        else
+          []
+        end
       end)
       |> Enum.frequencies()
 
@@ -1054,7 +1064,16 @@ defmodule HydepwnsLiveview.Utils.ValidationDependencyResolver do
   # Find edge to remove based on priorities
   defp find_edge_to_remove(cycle, priorities) do
     # Generate all edges in the cycle
-    edges = Enum.zip(cycle, tl(cycle) ++ [hd(cycle)])
+    edges =
+      if length(cycle) > 1 do
+        # Defensive: Only use hd/tl if cycle is not empty
+        case cycle do
+          [] -> []
+          [_ | _] -> Enum.zip(cycle, tl(cycle) ++ [hd(cycle)])
+        end
+      else
+        []
+      end
 
     # Find the edge with the lowest priority
     Enum.min_by(

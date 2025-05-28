@@ -514,10 +514,14 @@ defmodule HydepwnsLiveview.Utils.TransformationPipeline do
       Enum.flat_map(pipeline.hooks, fn {hook_name, steps} ->
         # Create edges between steps within the same hook
         intra_hook_edges =
-          Enum.zip(steps, tl(steps))
-          |> Enum.map_join("\n", fn {step1, step2} ->
-            "  \"#{hook_name}_#{step1.name}\" -> \"#{hook_name}_#{step2.name}\";"
-          end)
+          if length(steps) > 1 do
+            Enum.zip(steps, tl(steps))
+            |> Enum.map_join("\n", fn {step1, step2} ->
+              "  \"#{hook_name}_#{step1.name}\" -> \"#{hook_name}_#{step2.name}\";"
+            end)
+          else
+            ""
+          end
 
         # Create edges between the last step of one hook and the first of the next (if applicable)
         # This requires knowing the order of hooks, which is implicit here (pre_validation then post_validation)

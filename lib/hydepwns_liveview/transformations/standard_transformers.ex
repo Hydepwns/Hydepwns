@@ -338,26 +338,26 @@ defmodule HydepwnsLiveview.Transformations.StandardTransformers do
   def remove_fields(resource, context, opts \\ []) do
     fields = Keyword.get(opts, :fields, [])
 
-    updated_resource =
-      Enum.reduce(fields, resource, fn field, acc ->
-        if Map.has_key?(acc, field) do
+    {updated_resource, updated_context} =
+      Enum.reduce(fields, {resource, context}, fn field, {acc_resource, acc_context} ->
+        if Map.has_key?(acc_resource, field) do
           # Record the removal
-          context =
+          new_context =
             TransformationContext.record_change(
-              context,
+              acc_context,
               "remove_fields",
               field,
-              Map.get(acc, field),
+              Map.get(acc_resource, field),
               nil
             )
 
-          Map.delete(acc, field)
+          {Map.delete(acc_resource, field), new_context}
         else
-          acc
+          {acc_resource, acc_context}
         end
       end)
 
-    {:ok, updated_resource, context}
+    {:ok, updated_resource, updated_context}
   end
 
   @doc """

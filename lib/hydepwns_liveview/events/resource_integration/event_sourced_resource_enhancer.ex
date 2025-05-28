@@ -337,7 +337,11 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResourceEnhanc
         "No changes between states"
 
       num_changes == 1 ->
-        "1 field changed: #{hd(Map.keys(differences))}"
+        key = case Map.keys(differences) do
+          [h | _] -> h
+          _ -> "unknown"
+        end
+        "1 field changed: #{key}"
 
       num_changes <= 3 ->
         "#{num_changes} fields changed: #{Enum.join(Map.keys(differences), ", ")}"

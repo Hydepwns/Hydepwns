@@ -57,7 +57,7 @@ defmodule HydepwnsLiveview.Events.Core.TransactionalEventStore do
       {:ok, {result, events}} ->
         # Publish events after successful transaction
         Enum.each(events, fn event ->
-          EventBus.publish(event, store: false)
+          HydepwnsLiveview.Events.EventBus.publish(event, store: false)
         end)
 
         {:ok, result, events}

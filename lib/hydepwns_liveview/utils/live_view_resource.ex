@@ -611,92 +611,104 @@ defmodule HydepwnsLiveview.Utils.LiveViewResource do
         end
 
         has_many_through = fn name, opts ->
-          [through: [through_rel, target_rel]] = opts
-
-          relationship_def = %{
-            name: name,
-            type: :through,
-            through: through_rel,
-            target: target_rel,
-            cardinality: :many,
-            foreign_key: nil
-          }
-
-          Module.put_attribute(__MODULE__, :resource_relationships, relationship_def)
+          case opts do
+            [through: [through_rel, target_rel]] ->
+              relationship_def = %{
+                name: name,
+                type: :through,
+                through: through_rel,
+                target: target_rel,
+                cardinality: :many,
+                foreign_key: nil
+              }
+              Module.put_attribute(__MODULE__, :resource_relationships, relationship_def)
+            _ ->
+              raise ArgumentError, "has_many_through expects opts: [through: [rel1, rel2]]"
+          end
         end
 
         has_many_through_with_opts = fn name, opts, through_opts ->
-          [through: [through_rel, target_rel]] = opts
-
-          relationship_def = %{
-            name: name,
-            type: :through,
-            through: through_rel,
-            target: target_rel,
-            cardinality: :many,
-            foreign_key: Keyword.get(through_opts, :foreign_key, nil)
-          }
-
-          Module.put_attribute(__MODULE__, :resource_relationships, relationship_def)
+          case opts do
+            [through: [through_rel, target_rel]] ->
+              relationship_def = %{
+                name: name,
+                type: :through,
+                through: through_rel,
+                target: target_rel,
+                cardinality: :many,
+                foreign_key: Keyword.get(through_opts, :foreign_key, nil)
+              }
+              Module.put_attribute(__MODULE__, :resource_relationships, relationship_def)
+            _ ->
+              raise ArgumentError, "has_many_through_with_opts expects opts: [through: [rel1, rel2]]"
+          end
         end
 
         has_one_through = fn name, opts ->
-          [through: [through_rel, target_rel]] = opts
-
-          relationship_def = %{
-            name: name,
-            type: :through,
-            through: through_rel,
-            target: target_rel,
-            cardinality: :one,
-            foreign_key: nil
-          }
-
-          Module.put_attribute(__MODULE__, :resource_relationships, relationship_def)
+          case opts do
+            [through: [through_rel, target_rel]] ->
+              relationship_def = %{
+                name: name,
+                type: :through,
+                through: through_rel,
+                target: target_rel,
+                cardinality: :one,
+                foreign_key: nil
+              }
+              Module.put_attribute(__MODULE__, :resource_relationships, relationship_def)
+            _ ->
+              raise ArgumentError, "has_one_through expects opts: [through: [rel1, rel2]]"
+          end
         end
 
         has_one_through_with_opts = fn name, opts, through_opts ->
-          [through: [through_rel, target_rel]] = opts
-
-          relationship_def = %{
-            name: name,
-            type: :through,
-            through: through_rel,
-            target: target_rel,
-            cardinality: :one,
-            foreign_key: Keyword.get(through_opts, :foreign_key, nil)
-          }
-
-          Module.put_attribute(__MODULE__, :resource_relationships, relationship_def)
+          case opts do
+            [through: [through_rel, target_rel]] ->
+              relationship_def = %{
+                name: name,
+                type: :through,
+                through: through_rel,
+                target: target_rel,
+                cardinality: :one,
+                foreign_key: Keyword.get(through_opts, :foreign_key, nil)
+              }
+              Module.put_attribute(__MODULE__, :resource_relationships, relationship_def)
+            _ ->
+              raise ArgumentError, "has_one_through_with_opts expects opts: [through: [rel1, rel2]]"
+          end
         end
 
         polymorphic = fn name, opts ->
-          [types: allowed_types] = opts
-
-          relationship_def = %{
-            name: name,
-            type: :polymorphic,
-            polymorphic_name: name,
-            allowed_types: allowed_types,
-            cardinality: :one
-          }
-
-          Module.put_attribute(__MODULE__, :resource_relationships, relationship_def)
+          case opts do
+            [types: allowed_types] ->
+              relationship_def = %{
+                name: name,
+                type: :polymorphic,
+                polymorphic_name: name,
+                allowed_types: allowed_types,
+                cardinality: :one
+              }
+              Module.put_attribute(__MODULE__, :resource_relationships, relationship_def)
+            _ ->
+              raise ArgumentError, "polymorphic expects opts: [types: allowed_types]"
+          end
         end
 
         polymorphic_with_opts = fn name, opts, poly_opts ->
-          [types: allowed_types] = opts
-          polymorphic_name = Keyword.get(poly_opts, :polymorphic_name, name)
-
-          relationship_def = %{
-            name: name,
-            type: :polymorphic,
-            polymorphic_name: polymorphic_name,
-            allowed_types: allowed_types,
-            cardinality: Keyword.get(poly_opts, :cardinality, :one)
-          }
-
-          Module.put_attribute(__MODULE__, :resource_relationships, relationship_def)
+          case opts do
+            [types: allowed_types] ->
+              polymorphic_name = Keyword.get(poly_opts, :polymorphic_name, name)
+              relationship_def = %{
+                name: name,
+                type: :polymorphic,
+                polymorphic_name: polymorphic_name,
+                allowed_types: allowed_types,
+                cardinality: Keyword.get(poly_opts, :cardinality, :one)
+              }
+              Module.put_attribute(__MODULE__, :resource_relationships, relationship_def)
+            _ ->
+              raise ArgumentError, "polymorphic_with_opts expects opts: [types: allowed_types]"
+          end
         end
 
         # Execute the block with the relationship functions in scope

@@ -1,15 +1,13 @@
 defmodule HydepwnsLiveviewWeb.ResourceShowLive do
   use HydepwnsLiveviewWeb.BaseLive,
-    layout: {HydepwnsLiveviewWeb.Components.Layout.Layouts, :app}
+    layout: {HydepwnsLiveviewWeb.Layouts, :app}
 
-  alias HydepwnsLiveview.Resources.ResourceSystem
-  alias HydepwnsLiveview.DefaultExternalAPI
   alias HydepwnsLiveview.Utils.MapHelpers
   import HydepwnsLiveviewWeb.CoreComponents
 
   @impl true
   def do_mount(%{"id" => id}, _session, socket) do
-    case DefaultExternalAPI.fetch_data(id) do
+    case api_module().fetch_data(id) do
       {:ok, resource} ->
         # Recursively unwrap nested 'data' keys and ensure all keys are strings
         resource =
@@ -21,6 +19,7 @@ defmodule HydepwnsLiveviewWeb.ResourceShowLive do
           |> assign(:page_title, "Show Resource")
           |> assign(:resource, resource)
           |> assign(:resource_not_found, false)
+          |> assign_new(:flash_group_id, fn -> "resource-show-flash" end)
         socket
       {:error, _reason} ->
         socket =
@@ -28,6 +27,7 @@ defmodule HydepwnsLiveviewWeb.ResourceShowLive do
           |> assign(:page_title, "Show Resource")
           |> assign(:resource, nil)
           |> assign(:resource_not_found, true)
+          |> assign_new(:flash_group_id, fn -> "resource-show-flash" end)
         socket
     end
   end
@@ -35,7 +35,7 @@ defmodule HydepwnsLiveviewWeb.ResourceShowLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <.flash_group flash={@flash} />
+    <.flash_group flash={@flash} flash_group_id="resource-show-flash-group" />
     <div>
       <div :if={@resource_not_found}>
         <h1>Resource Not Found</h1>
@@ -68,5 +68,10 @@ defmodule HydepwnsLiveviewWeb.ResourceShowLive do
       <.link navigate={~p"/resources"}>Back to Resources</.link>
     </div>
     """
+  end
+
+  # Dependency-injectable API module
+  defp api_module do
+    Application.get_env(:hydepwns_liveview, :external_api, HydepwnsLiveview.DefaultExternalAPI)
   end
 end

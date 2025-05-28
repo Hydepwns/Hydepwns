@@ -187,52 +187,58 @@ defmodule HydepwnsLiveview.Resources.Examples.UserResource do
   Overrides the default implementation from EventSourcedResource.
   """
   def execute_command(resource, command, params) do
-    case command do
-      "activate" ->
-        [
-          %Event{
-            id: Ecto.UUID.generate(),
-            type: "user.activated",
-            resource_id: resource.id,
-            resource_type: "user",
-            timestamp: DateTime.utc_now(),
-            data: %{},
-            metadata: %{reason: params["reason"]}
-          }
-        ]
-
-      "deactivate" ->
-        [
-          %Event{
-            id: Ecto.UUID.generate(),
-            type: "user.deactivated",
-            resource_id: resource.id,
-            resource_type: "user",
-            timestamp: DateTime.utc_now(),
-            data: %{},
-            metadata: %{reason: params["reason"]}
-          }
-        ]
-
-      "login" ->
-        [
-          %Event{
-            id: Ecto.UUID.generate(),
-            type: "user.logged_in",
-            resource_id: resource.id,
-            resource_type: "user",
-            timestamp: DateTime.utc_now(),
-            data: %{},
-            metadata: %{
-              ip_address: params["ip_address"],
-              user_agent: params["user_agent"]
+    events =
+      case command do
+        "activate" ->
+          [
+            %Event{
+              id: Ecto.UUID.generate(),
+              type: "user.activated",
+              resource_id: resource.id,
+              resource_type: "user",
+              timestamp: DateTime.utc_now(),
+              data: %{},
+              metadata: %{reason: params["reason"]}
             }
-          }
-        ]
+          ]
 
-      _ ->
-        raise "Unknown command: #{command}"
-    end
+        "deactivate" ->
+          [
+            %Event{
+              id: Ecto.UUID.generate(),
+              type: "user.deactivated",
+              resource_id: resource.id,
+              resource_type: "user",
+              timestamp: DateTime.utc_now(),
+              data: %{},
+              metadata: %{reason: params["reason"]}
+            }
+          ]
+
+        "login" ->
+          [
+            %Event{
+              id: Ecto.UUID.generate(),
+              type: "user.logged_in",
+              resource_id: resource.id,
+              resource_type: "user",
+              timestamp: DateTime.utc_now(),
+              data: %{},
+              metadata: %{
+                ip_address: params["ip_address"],
+                user_agent: params["user_agent"]
+              }
+            }
+          ]
+
+        _ ->
+          raise "Unknown command: #{command}"
+      end
+
+    # Apply the events to the resource to get the updated user
+    updated_user = Enum.reduce(events, resource, fn event, acc -> apply_event(event, acc) end)
+
+    {:ok, events, updated_user}
   end
 
   @doc """

@@ -11,6 +11,7 @@ defmodule HydepwnsLiveview.ThemeSystem.Theme do
 
   @doc false
   def changeset(theme, attrs) do
+    attrs = for {k, v} <- attrs, into: %{}, do: {to_string(k), v}
     theme
     |> cast(attrs, [:name, :settings])
     |> validate_required([:name])

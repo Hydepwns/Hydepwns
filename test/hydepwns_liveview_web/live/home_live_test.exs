@@ -5,6 +5,15 @@ defmodule HydepwnsLiveviewWeb.HomeLiveTest do
   import Phoenix.LiveViewTest
   import Phoenix.Component
   import Phoenix.VerifiedRoutes
+  alias HydepwnsLiveviewWeb.MockHelper
+
+  setup context do
+    MockHelper.setup_mocks()
+    MockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
+      {:ok, %{"id" => "mock", "name" => "Mock Resource", "status" => "active"}}
+    end)
+    context
+  end
 
   test "disconnected and connected render", %{conn: conn} do
     {:ok, _view, html} = live(conn, ~p"/")

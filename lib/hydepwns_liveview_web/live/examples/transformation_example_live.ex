@@ -80,7 +80,7 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
         {:ok, _pid} = TransformationRegistry.start_link()
 
       _pid ->
-        TransformationRegistry.clear()
+        HydepwnsLiveview.Utils.TransformationRegistry.clear()
     end
 
     # Register standard transformers

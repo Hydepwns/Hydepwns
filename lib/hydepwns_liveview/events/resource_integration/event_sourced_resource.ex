@@ -543,7 +543,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
   """
   def __publish_events__(events, metadata, module) do
     Enum.reduce_while(events, :ok, fn event, acc ->
-      case EventBus.publish(event, metadata) do
+      case HydepwnsLiveview.Events.EventBus.publish(event, metadata) do
         :ok -> {:cont, :ok}
         {:error, reason} -> {:halt, {:error, reason}}
       end

@@ -283,23 +283,27 @@ defmodule HydepwnsLiveview.Transformations.TransformationRegistry do
   # Recursive topological sort implementation
   defp topological_sort_visit(_graph, [], sorted), do: Enum.reverse(sorted)
 
-  defp topological_sort_visit(graph, [node | rest], sorted) do
-    # Remove this node from the dependency lists of all other nodes
-    new_graph =
-      Enum.map(graph, fn {n, deps} ->
-        {n, Enum.reject(deps, &(&1 == node))}
-      end)
-      |> Map.new()
+  defp topological_sort_visit(graph, nodes, sorted) do
+    case nodes do
+      [] -> Enum.reverse(sorted)
+      [node | rest] ->
+        # Remove this node from the dependency lists of all other nodes
+        new_graph =
+          Enum.map(graph, fn {n, deps} ->
+            {n, Enum.reject(deps, &(&1 == node))}
+          end)
+          |> Map.new()
 
-    # Find newly dependency-free nodes
-    new_no_deps =
-      new_graph
-      |> Enum.filter(fn {n, deps} -> n != node && Enum.empty?(deps) end)
-      |> Enum.map(fn {n, _deps} -> n end)
-      |> Enum.reject(&(&1 in sorted))
-      |> Enum.reject(&(&1 in rest))
+        # Find newly dependency-free nodes
+        new_no_deps =
+          new_graph
+          |> Enum.filter(fn {n, deps} -> n != node && Enum.empty?(deps) end)
+          |> Enum.map(fn {n, _deps} -> n end)
+          |> Enum.reject(&(&1 in sorted))
+          |> Enum.reject(&(&1 in rest))
 
-    # Continue sorting
-    topological_sort_visit(new_graph, rest ++ new_no_deps, [node | sorted])
+        # Continue sorting
+        topological_sort_visit(new_graph, rest ++ new_no_deps, [node | sorted])
+    end
   end
 end

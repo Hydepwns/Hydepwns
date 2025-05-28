@@ -43,7 +43,7 @@ defmodule HydepwnsLiveview.ThemeSystemFixtures do
   def light_theme_fixture(attrs \\ %{}) do
     attrs
     |> Enum.into(%{
-      name: "light-#{System.unique_integer()}",
+      name: "light",
       mode: "light",
       colors: %{
         primary: "#3b82f6",
@@ -75,7 +75,7 @@ defmodule HydepwnsLiveview.ThemeSystemFixtures do
   def dark_theme_fixture(attrs \\ %{}) do
     attrs
     |> Enum.into(%{
-      name: "dark-#{System.unique_integer()}",
+      name: "dark",
       mode: "dark",
       colors: %{
         primary: "#60a5fa",
@@ -107,7 +107,7 @@ defmodule HydepwnsLiveview.ThemeSystemFixtures do
   def system_theme_fixture(attrs \\ %{}) do
     attrs
     |> Enum.into(%{
-      name: "system-#{System.unique_integer()}",
+      name: "system",
       mode: "system",
       colors: %{
         primary: "#8b5cf6",
@@ -139,7 +139,7 @@ defmodule HydepwnsLiveview.ThemeSystemFixtures do
   def dim_theme_fixture(attrs \\ %{}) do
     attrs
     |> Enum.into(%{
-      name: "dim-#{System.unique_integer()}",
+      name: "dim",
       mode: "dim",
       colors: %{
         primary: "#818cf8",

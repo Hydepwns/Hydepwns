@@ -430,4 +430,37 @@ defmodule HydepwnsLiveview.Resources.OrderResource do
       Decimal.add(acc, item_total)
     end)
   end
+
+  # Returns an Ecto.Changeset for use in LiveView forms
+  def changeset(attrs) when is_map(attrs) do
+    attrs = for {k, v} <- attrs, into: %{}, do: {to_string(k), v}
+    types = %{
+      status: :string,
+      items: :map,
+      customer_id: :string,
+      shipping_address: :string,
+      billing_address: :string,
+      payment_method: :string,
+      total_amount: :decimal,
+      tax_amount: :decimal,
+      shipping_amount: :decimal,
+      discount_amount: :decimal,
+      created_at: :utc_datetime,
+      updated_at: :utc_datetime,
+      fulfilled_at: :utc_datetime,
+      cancelled_at: :utc_datetime
+    }
+    errors = []
+    errors = if is_nil(attrs["customer_id"]) or attrs["customer_id"] == "", do: [{:customer_id, "Customer ID can't be blank"} | errors], else: errors
+    if errors == [] do
+      {%{}, types}
+      |> Ecto.Changeset.cast(attrs, Map.keys(types))
+    else
+      changeset = {%{}, types} |> Ecto.Changeset.cast(attrs, Map.keys(types))
+      Enum.reduce(errors, changeset, fn {field, msg}, cs ->
+        Ecto.Changeset.add_error(cs, field, msg)
+      end)
+    end
+  end
+  def changeset(_), do: Ecto.Changeset.change(%{})
 end

@@ -287,7 +287,15 @@ defmodule HydepwnsLiveviewWeb.Components.MonoGrid do
 
   # Helper function to generate text styles with padding
   defp text_style(base_style, padding) do
-    [top, right, bottom, left] = String.split(padding, " ", trim: true)
+    parts = String.split(padding, " ", trim: true)
+    [top, right, bottom, left] =
+      case parts do
+        [a, b, c, d] -> [a, b, c, d]
+        [a, b, c] -> [a, b, c, "0"]
+        [a, b] -> [a, b, a, b]
+        [a] -> [a, a, a, a]
+        _ -> ["0", "0", "0", "0"]
+      end
 
     padding_style = """
     padding-top: #{top}ch;

@@ -289,9 +289,6 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
         <p><strong>Reason:</strong> <%= Map.get(@entry.metadata, :reason) || "No reason provided" %></p>
       </div>
       <div class="details">
-        <p>DEBUG: Entry has :diff key? <%= inspect Map.has_key?(@entry, :diff) %></p>
-        <p :if={Map.has_key?(@entry, :diff)}>DEBUG: Entry.diff.changes keys: <%= inspect Map.keys(@entry.diff.changes) %></p>
-
         <%= for {field, diff_val} <- Map.to_list(@entry.diff.changes) do %>
           <div class="field-change">
             <strong><%= field %>:</strong>

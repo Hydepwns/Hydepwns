@@ -46,7 +46,10 @@ defmodule HydepwnsLiveviewWeb.ConnCase do
   end
 
   setup tags do
-    HydepwnsLiveview.DataCase.setup_sandbox(tags)
+    pid = HydepwnsLiveview.DataCase.setup_sandbox(tags)
+    if tags[:liveview] do
+      Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), pid)
+    end
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 end

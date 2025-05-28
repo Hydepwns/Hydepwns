@@ -171,7 +171,16 @@ defmodule HydepwnsLiveview.Utils.TransformationMetrics do
 
       {module,
        %{
-         transformation_name: List.first(module_metrics).transformation_name,
+         transformation_name: (case module_metrics do
+           [%{transformation_name: name} | _] -> name
+           [first | _] ->
+             if is_map(first) and Map.has_key?(first, :transformation_name) do
+               first.transformation_name
+             else
+               "unknown"
+             end
+           _ -> "unknown"
+         end),
          total_executions: length(module_metrics),
          avg_execution_time_ms: avg_time,
          success_rate: success_rate,

@@ -334,26 +334,30 @@ defmodule HydepwnsLiveview.Utils.ValidationErrorReporter do
 
   # Add an error with a relationship path
   defp add_path_error(tree, path, error) do
-    # Process the first path segment
-    [first | rest] = path
+    case path do
+      [first | rest] ->
+        # Get or create the child node for this relationship
+        children = Map.get(tree, :children, %{})
+        child = Map.get(children, first, %{errors: [], children: %{}})
 
-    # Get or create the child node for this relationship
-    children = Map.get(tree, :children, %{})
-    child = Map.get(children, first, %{errors: [], children: %{}})
+        # Process the error
+        updated_child =
+          if Enum.empty?(rest) do
+            # This is the target node, add the error here
+            existing_errors = Map.get(child, :errors, [])
+            %{child | errors: existing_errors ++ [error]}
+          else
+            # Continue down the path
+            add_path_error(child, rest, error)
+          end
 
-    # Process the error
-    updated_child =
-      if Enum.empty?(rest) do
-        # This is the target node, add the error here
-        existing_errors = Map.get(child, :errors, [])
-        %{child | errors: existing_errors ++ [error]}
-      else
-        # Continue down the path
-        add_path_error(child, rest, error)
-      end
-
-    # Update the tree
-    %{tree | children: Map.put(children, first, updated_child)}
+        # Update the tree
+        %{tree | children: Map.put(children, first, updated_child)}
+      [] ->
+        # If path is empty, just add the error at the root
+        existing_errors = Map.get(tree, :errors, [])
+        %{tree | errors: existing_errors ++ [error]}
+    end
   end
 
   # Navigate to a specific path in the error tree

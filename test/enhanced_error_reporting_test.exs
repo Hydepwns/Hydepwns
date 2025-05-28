@@ -8,10 +8,15 @@ defmodule HydepwnsLiveview.EnhancedErrorReportingTest do
   #   ... (entire module definition removed) ...
   # end
 
+  # Helper to assert LiveView mount success
+  defp assert_live_ok({:ok, view, html}), do: {:ok, view, html}
+  defp assert_live_ok({:ok, view}), do: {:ok, view, nil}
+  defp assert_live_ok(other), do: flunk("Expected {:ok, view, html}, got: #{inspect(other)}")
+
   describe "context_aware_error enhancements" do
     test "provides detailed suggestions for integer conversion", %{conn: conn} do
       # Mount LiveView with valid data
-      {:ok, view, _html} = live(conn, "/test")
+      {:ok, view, _html} = live(conn, "/test") |> assert_live_ok()
 
       # Create socket with wrong type for testing
       socket =
@@ -38,7 +43,7 @@ defmodule HydepwnsLiveview.EnhancedErrorReportingTest do
 
     test "provides code examples for enum conversion", %{conn: conn} do
       # Mount LiveView with invalid data
-      {:ok, view, _html} = live(conn, "/test", %{"status" => "deleted"})
+      {:ok, view, _html} = live(conn, "/test", %{"status" => "deleted"}) |> assert_live_ok()
 
       # Send event to update status with invalid value
       view
@@ -76,7 +81,7 @@ defmodule HydepwnsLiveview.EnhancedErrorReportingTest do
 
     test "detects lifecycle context for better suggestions", %{conn: conn} do
       # Mount LiveView with valid data
-      {:ok, view, _html} = live(conn, "/test")
+      {:ok, view, _html} = live(conn, "/test") |> assert_live_ok()
 
       # Create socket with lifecycle context
       socket =
@@ -102,7 +107,7 @@ defmodule HydepwnsLiveview.EnhancedErrorReportingTest do
       # Only run this test in development mode
       if Mix.env() == :dev do
         # Mount LiveView with invalid data
-        {:ok, view, _html} = live(conn, "/test", %{"count" => "not-a-number"})
+        {:ok, view, _html} = live(conn, "/test", %{"count" => "not-a-number"}) |> assert_live_ok()
 
         # Create socket for testing
         socket =
@@ -133,7 +138,7 @@ defmodule HydepwnsLiveview.EnhancedErrorReportingTest do
             "theme" => "blue",
             "notifications" => "maybe"
           }
-        })
+        }) |> assert_live_ok()
 
       # Create test socket
       socket =
@@ -206,7 +211,7 @@ defmodule HydepwnsLiveview.EnhancedErrorReportingTest do
       # Only test this in development mode
       if Mix.env() == :dev do
         # Mount LiveView with valid data
-        {:ok, view, html} = live(conn, "/test")
+        {:ok, view, html} = live(conn, "/test") |> assert_live_ok()
 
         # Verify the socket validation debug data is set
         assert view.assigns.__debug_grid_data__

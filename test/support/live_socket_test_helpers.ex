@@ -188,8 +188,7 @@ defmodule HydepwnsLiveviewWeb.LiveSocketTestHelpers do
     :ok
   end
 
-  def assert_type(value, {:list, _}, context),
-    do: flunk("#{context} expected to be a list, got: #{inspect(value)}")
+  def assert_type([], {:list, _elem_type_spec}, _context), do: :ok
 
   # Support for list_of_maps validation
   def assert_type(value, {:list_of_maps, schema}, context) when is_list(value) do
@@ -544,8 +543,13 @@ defmodule HydepwnsLiveviewWeb.LiveSocketTestHelpers do
   end
 
   defp generate_mutations_for_type(key, {:one_of, allowed}) do
-    valid_value = List.first(allowed)
-    invalid_value = "invalid_#{valid_value}"
+    valid_value =
+      case allowed do
+        [v | _] -> v
+        [] -> nil
+      end
+    invalid_value =
+      if valid_value != nil, do: "invalid_#{valid_value}", else: "invalid_value"
 
     [
       # Valid case
@@ -569,8 +573,11 @@ defmodule HydepwnsLiveviewWeb.LiveSocketTestHelpers do
   end
 
   defp generate_mutations_for_type(key, {:union, type_specs}) do
-    # Generate valid data for the first type in the union
-    valid_value = generate_test_data(List.first(type_specs))
+    valid_value =
+      case type_specs do
+        [v | _] -> generate_test_data(v)
+        [] -> nil
+      end
 
     [
       # Valid case
@@ -584,8 +591,13 @@ defmodule HydepwnsLiveviewWeb.LiveSocketTestHelpers do
     # Generate a valid nested structure
     valid_map = generate_test_data(type_spec)
     # Missing a required field
-    first_key = type_spec |> Map.keys() |> List.first()
-    invalid_map = Map.delete(valid_map, first_key)
+    keys = Map.keys(type_spec)
+    first_key =
+      case keys do
+        [k | _] -> k
+        [] -> nil
+      end
+    invalid_map = if first_key, do: Map.delete(valid_map, first_key), else: valid_map
 
     [
       # Valid case

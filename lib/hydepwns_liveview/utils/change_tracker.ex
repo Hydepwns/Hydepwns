@@ -411,11 +411,15 @@ defmodule HydepwnsLiveview.Utils.ChangeTracker do
   # Get the current version of a resource
   defp get_current_version(resource) do
     history = get_resource_history(resource)
-
-    if Enum.empty?(history) do
-      0
-    else
-      List.first(history).version
+    case history do
+      [%{version: version} | _] -> version
+      [first | _] ->
+        if is_map(first) and Map.has_key?(first, :version) do
+          first.version
+        else
+          0
+        end
+      _ -> 0
     end
   end
 

@@ -1,8 +1,6 @@
 defmodule HydepwnsLiveviewWeb.ResourceSubscriptionLive do
   use HydepwnsLiveviewWeb, :live_view
 
-  @event_types ["resource.updated", "resource.transformed"]
-
   @impl true
   def mount(%{"id" => id}, _session, socket) do
     # In a real app, load current subscriptions from DB or API
@@ -30,10 +28,10 @@ defmodule HydepwnsLiveviewWeb.ResourceSubscriptionLive do
       <h1 class="text-2xl font-bold mb-4">Manage Subscriptions for Resource {@resource_id}</h1>
       <form phx-submit="save_subscriptions">
         <div class="mb-4">
-          <%= for event_type <- @event_types do %>
+          <%= for event_type <- ["resource.updated", "resource.transformed"] do %>
             <div class="mb-2">
-              <label>
-                <input type="checkbox" name="events[]" value={event_type} checked={event_type in @selected_events} />
+              <label for={"event-checkbox-#{event_type}"}>
+                <input type="checkbox" id={"event-checkbox-#{event_type}"} name="events[]" value={event_type} checked={event_type in @selected_events} data-test-id={"event-checkbox-#{event_type}"} />
                 {event_type}
               </label>
             </div>

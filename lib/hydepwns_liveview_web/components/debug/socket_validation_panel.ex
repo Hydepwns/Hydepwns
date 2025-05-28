@@ -618,18 +618,6 @@ defmodule HydepwnsLiveviewWeb.Components.Debug.SocketValidationPanel do
     Enum.sort_by(errors, fn e -> to_string(e.view_module) end, direction)
   end
 
-  # Filter assigns based on search term
-  defp filtered_assigns(assigns, "") do
-    assigns
-  end
-
-  defp filtered_assigns(assigns, filter) do
-    Enum.filter(assigns, fn {key, _value} ->
-      String.contains?(to_string(key), filter)
-    end)
-    |> Enum.into(%{})
-  end
-
   # Update error metrics with a new error
   defp update_error_metrics(socket, new_error) do
     metrics = socket.assigns.error_metrics

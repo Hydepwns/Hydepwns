@@ -94,7 +94,7 @@ IO.puts("And then iterate and apply them. The apply_all/3 logic from the old dem
 # IO.puts("\nProcessing resources:")
 # Enum.each(resources, fn resource_data -> # Changed 'resource' to 'resource_data' to avoid conflict if UserResource was used
 #   IO.puts("\nOriginal resource data:")
-#   IO.inspect(resource_data)
+#   # IO.inspect(resource_data)
 #  
 #   # Create context with username conflict checker
 #   current_context = %{ # Renamed from 'context'
@@ -105,7 +105,7 @@ IO.puts("And then iterate and apply them. The apply_all/3 logic from the old dem
 #   # case TransformationRegistry.apply_all(registry, resource_data, current_context) do # <<<< OLD API
 #   #   {:ok, transformed} ->
 #   #     IO.puts("Transformed resource:")
-#   #     IO.inspect(transformed)
+#   #     # IO.inspect(transformed)
 #      
 #   #     # Show which transformations were applied
 #   #     if Map.get(resource_data, :email) != Map.get(transformed, :email) do

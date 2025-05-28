@@ -13,7 +13,6 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.TransactionalResourceChang
   - Executing custom resource operations with events
   """
 
-  alias HydepwnsLiveview.Repo
   alias HydepwnsLiveview.Events.Core.TransactionalEventStore
   alias HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator
 

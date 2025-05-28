@@ -155,15 +155,20 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
 
     # Introduce errors in a post
     {:ok, posts} = UserResource.resolve_relationship(user, :posts)
-    [post | rest_posts] = posts
-    # Empty title
-    post = Map.put(post, :title, "")
-
-    # Update the user with the invalid data
-    user =
-      user
-      |> Map.put(:team, team)
-      |> Map.put(:posts, [post | rest_posts])
+    case posts do
+      [post | rest_posts] ->
+        # Empty title
+        post = Map.put(post, :title, "")
+        user =
+          user
+          |> Map.put(:team, team)
+          |> Map.put(:posts, [post | rest_posts])
+      [] ->
+        user =
+          user
+          |> Map.put(:team, team)
+          |> Map.put(:posts, [])
+    end
 
     socket =
       socket

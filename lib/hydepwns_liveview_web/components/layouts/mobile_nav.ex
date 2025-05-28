@@ -1,4 +1,4 @@
-defmodule HydepwnsLiveviewWeb.Components.Layout.MobileNav do
+defmodule HydepwnsLiveviewWeb.Components.Layouts.MobileNav do
   @moduledoc """
   Mobile navigation component with touch-friendly navigation controls.
 
@@ -42,6 +42,13 @@ defmodule HydepwnsLiveviewWeb.Components.Layout.MobileNav do
           />
         </svg>
         <span>Projects</span>
+      </a>
+
+      <a href="/admin/event-dashboard" data-test-id="nav-link-events" class={"mobile-nav-item #{if @current_path == "/admin/event-dashboard", do: "active"}"} aria-current={if @current_path == "/admin/event-dashboard", do: "page", else: "false"}>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+          <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+        </svg>
+        <span>Events</span>
       </a>
 
       <a href={path_to(:style_guide)} class={"mobile-nav-item #{if @current_path == path_to(:style_guide), do: "active"}"} aria-current={if @current_path == path_to(:style_guide), do: "page", else: "false"}>

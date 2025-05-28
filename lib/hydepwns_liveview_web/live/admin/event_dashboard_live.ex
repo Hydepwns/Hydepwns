@@ -23,7 +23,7 @@ defmodule HydepwnsLiveviewWeb.Admin.EventDashboardLive do
   alias HydepwnsLiveview.Events.Core.NotificationSystem
   import Phoenix.Component
 
-  alias HydepwnsLiveviewWeb.Components.UI.NotificationComponent
+  alias HydepwnsLiveviewWeb.NotificationComponent
 
   # 5 seconds
   @refresh_interval 5000
@@ -55,7 +55,7 @@ defmodule HydepwnsLiveviewWeb.Admin.EventDashboardLive do
           )
 
           # Initial notifications state
-          notifications = []
+          _notifications = []
 
           {:ok, socket}
 
@@ -291,13 +291,13 @@ defmodule HydepwnsLiveviewWeb.Admin.EventDashboardLive do
                     {metrics.errors}
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <span :if={metrics.avg_time > 500} class="event-status px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                    <span :if={metrics.avg_time > 500} class="event-status px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800" data-test-id={"event-status-" <> to_string(type)}>
                       processed
                     </span>
-                    <span :if={metrics.avg_time > 200 && metrics.avg_time <= 500} class="event-status px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                    <span :if={metrics.avg_time > 200 && metrics.avg_time <= 500} class="event-status px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800" data-test-id={"event-status-" <> to_string(type)}>
                       processed
                     </span>
-                    <span :if={metrics.avg_time <= 200} class="event-status px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                    <span :if={metrics.avg_time <= 200} class="event-status px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800" data-test-id={"event-status-" <> to_string(type)}>
                       processed
                     </span>
                   </td>
@@ -433,12 +433,6 @@ defmodule HydepwnsLiveviewWeb.Admin.EventDashboardLive do
 
   defp format_decimal(_), do: "0.00"
 
-  defp format_error_rate(rate) when is_number(rate) do
-    "#{:erlang.float_to_binary(rate * 100.0, decimals: 1)}%"
-  end
-
-  defp format_error_rate(_), do: "0.0%"
-
   defp format_time_period(seconds) when seconds >= 3600 do
     hours = Float.round(seconds / 3600, 1)
     "#{hours} hours"
@@ -460,24 +454,6 @@ defmodule HydepwnsLiveviewWeb.Admin.EventDashboardLive do
   defp backpressure_color(:warning), do: "bg-yellow-100 text-yellow-800"
   defp backpressure_color(:critical), do: "bg-red-100 text-red-800"
   defp backpressure_color(_), do: "bg-gray-100 text-gray-800"
-
-  defp format_bottleneck_type(:queue_size), do: "Queue Size"
-  defp format_bottleneck_type(:processing_time), do: "Processing Time"
-  defp format_bottleneck_type(:error_rate), do: "Error Rate"
-  defp format_bottleneck_type(_), do: "Unknown"
-
-  defp bottleneck_type_color(:queue_size), do: "bg-purple-600"
-  defp bottleneck_type_color(:processing_time), do: "bg-yellow-600"
-  defp bottleneck_type_color(:error_rate), do: "bg-red-600"
-  defp bottleneck_type_color(_), do: "bg-gray-600"
-
-  defp format_bottleneck_value(%{type: :queue_size, value: value}), do: "#{value} messages"
-
-  defp format_bottleneck_value(%{type: :processing_time, value: value}),
-    do: "#{format_decimal(value)} ms"
-
-  defp format_bottleneck_value(%{type: :error_rate, value: value}), do: format_error_rate(value)
-  defp format_bottleneck_value(_), do: "Unknown"
 
   defp format_time(nil), do: "Unknown"
 

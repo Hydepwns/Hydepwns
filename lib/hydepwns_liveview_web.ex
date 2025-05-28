@@ -40,7 +40,7 @@ defmodule HydepwnsLiveviewWeb do
     quote do
       use Phoenix.Controller,
         formats: [:html, :json],
-        layouts: [html: HydepwnsLiveviewWeb.Components.Layout.Layouts]
+        layouts: [html: HydepwnsLiveviewWeb.Layouts]
 
       import Plug.Conn
       import HydepwnsLiveviewWeb.Gettext
@@ -52,7 +52,7 @@ defmodule HydepwnsLiveviewWeb do
   def live_view do
     quote do
       use Phoenix.LiveView,
-        layout: {HydepwnsLiveviewWeb.Components.Layout.Layouts, :app}
+        layout: {HydepwnsLiveviewWeb.Layouts, :app}
 
       import HydepwnsLiveviewWeb.Gettext
       unquote(html_helpers())
@@ -80,6 +80,9 @@ defmodule HydepwnsLiveviewWeb do
   def html do
     quote do
       use Phoenix.Component
+      use Phoenix.Template,
+        root: "lib/hydepwns_liveview_web",
+        namespace: HydepwnsLiveviewWeb
 
       # Import convenience functions from controllers
       import Phoenix.Controller,
@@ -97,6 +100,7 @@ defmodule HydepwnsLiveviewWeb do
       # Core UI components and translation
       import HydepwnsLiveviewWeb.CoreComponents, except: [theme_toggle: 1]
       import HydepwnsLiveviewWeb.Gettext
+      import HydepwnsLiveviewWeb.Components.UI.ThemeToggle, only: [theme_toggle: 1]
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS

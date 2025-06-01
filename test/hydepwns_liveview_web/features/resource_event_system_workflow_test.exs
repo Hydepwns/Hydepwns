@@ -19,9 +19,11 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
   setup %{session: session} do
     {:ok, resource_fixture} = ResourceFixtures.create_test_resource(%{name: "Test Resource"})
     MockHelper.setup_mocks()
+
     MockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
       {:ok, %{"id" => "mock", "name" => "Mock Resource", "status" => "active"}}
     end)
+
     {:ok, session: visit_and_wait(session, "/resources"), resource: resource_fixture}
   end
 
@@ -39,7 +41,10 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
       |> click(button("Create Resource"))
 
       # Verify resource was created
-      Wallaby.Browser.assert_has(session, css(".alert-success", text: "Resource created successfully"))
+      Wallaby.Browser.assert_has(
+        session,
+        css(".alert-success", text: "Resource created successfully")
+      )
 
       # Navigate to events dashboard
       session
@@ -62,7 +67,10 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
       |> click(button("Save"))
 
       # Verify update success
-      Wallaby.Browser.assert_has(session, css(".alert-success", text: "Resource updated successfully"))
+      Wallaby.Browser.assert_has(
+        session,
+        css(".alert-success", text: "Resource updated successfully")
+      )
 
       # Navigate to events dashboard
       session
@@ -84,7 +92,10 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
       end)
 
       # Verify deletion success
-      Wallaby.Browser.assert_has(session, css(".alert-success", text: "Resource deleted successfully"))
+      Wallaby.Browser.assert_has(
+        session,
+        css(".alert-success", text: "Resource deleted successfully")
+      )
 
       # Navigate to events dashboard
       session
@@ -158,7 +169,10 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
       |> click(button("Save Settings"))
 
       # Verify settings saved
-      Wallaby.Browser.assert_has(session, css(".alert-success", text: "Notification settings updated"))
+      Wallaby.Browser.assert_has(
+        session,
+        css(".alert-success", text: "Notification settings updated")
+      )
 
       # Create a new resource to trigger event
       session

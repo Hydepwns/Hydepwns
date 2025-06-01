@@ -119,6 +119,7 @@ defmodule HydepwnsLiveviewWeb.ThemeControllerTest do
 
     themes = HydepwnsLiveview.ThemeSystem.list_themes()
     assert length(themes) >= 4
+
     Enum.each(themes, fn theme ->
       assert theme.id != nil
       assert theme.name != nil and theme.name != ""

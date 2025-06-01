@@ -38,7 +38,14 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
       resource: resource
     } do
       MockHelper.expect_api_call(:external_api, :fetch_data, fn id ->
-        {:ok, %{"id" => id, "name" => resource.name, "content" => resource.content, "type" => resource.type, "status" => "active"}}
+        {:ok,
+         %{
+           "id" => id,
+           "name" => resource.name,
+           "content" => resource.content,
+           "type" => resource.type,
+           "status" => "active"
+         }}
       end)
 
       # Navigate to resource
@@ -52,7 +59,10 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
       |> click(button("Save"))
 
       # Verify success message
-      Wallaby.Browser.assert_has(session, css(".alert-success", text: "Resource updated successfully"))
+      Wallaby.Browser.assert_has(
+        session,
+        css(".alert-success", text: "Resource updated successfully")
+      )
 
       # Navigate to events dashboard
       session
@@ -66,7 +76,14 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
 
     test "event processing maintains consistency", %{session: session, resource: resource} do
       MockHelper.expect_api_call(:external_api, :fetch_data, fn id ->
-        {:ok, %{"id" => id, "name" => resource.name, "content" => resource.content, "type" => resource.type, "status" => "active"}}
+        {:ok,
+         %{
+           "id" => id,
+           "name" => resource.name,
+           "content" => resource.content,
+           "type" => resource.type,
+           "status" => "active"
+         }}
       end)
 
       # Navigate to resource
@@ -97,7 +114,14 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
 
     test "event visualization shows processing status", %{session: session, resource: resource} do
       MockHelper.expect_api_call(:external_api, :fetch_data, fn id ->
-        {:ok, %{"id" => id, "name" => resource.name, "content" => resource.content, "type" => resource.type, "status" => "active"}}
+        {:ok,
+         %{
+           "id" => id,
+           "name" => resource.name,
+           "content" => resource.content,
+           "type" => resource.type,
+           "status" => "active"
+         }}
       end)
 
       # Navigate to events dashboard
@@ -117,7 +141,14 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
 
     test "event subscription management", %{session: session, resource: resource} do
       MockHelper.expect_api_call(:external_api, :fetch_data, fn id ->
-        {:ok, %{"id" => id, "name" => resource.name, "content" => resource.content, "type" => resource.type, "status" => "active"}}
+        {:ok,
+         %{
+           "id" => id,
+           "name" => resource.name,
+           "content" => resource.content,
+           "type" => resource.type,
+           "status" => "active"
+         }}
       end)
 
       # Navigate to resource
@@ -134,7 +165,11 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
       # Verify subscription status
       Wallaby.Browser.assert_has(session, css(".subscription-status", text: "Active"))
       Wallaby.Browser.assert_has(session, css(".subscription-events", text: "resource.updated"))
-      Wallaby.Browser.assert_has(session, css(".subscription-events", text: "resource.transformed"))
+
+      Wallaby.Browser.assert_has(
+        session,
+        css(".subscription-events", text: "resource.transformed")
+      )
 
       # Unsubscribe from events
       session
@@ -147,7 +182,14 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
 
     test "event processing error handling", %{session: session, resource: resource} do
       MockHelper.expect_api_call(:external_api, :fetch_data, fn id ->
-        {:ok, %{"id" => id, "name" => resource.name, "content" => resource.content, "type" => resource.type, "status" => "active"}}
+        {:ok,
+         %{
+           "id" => id,
+           "name" => resource.name,
+           "content" => resource.content,
+           "type" => resource.type,
+           "status" => "active"
+         }}
       end)
 
       # Navigate to resource

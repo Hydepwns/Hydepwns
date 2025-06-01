@@ -158,13 +158,17 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewerTest do
         ]
       }
 
-      html = render_component(&change_history_viewer/1, %{
-        resource: resource,
-        view_mode: "audit",
-        on_view_version: "view_details_event", # Custom event name for clarity
-        on_diff_versions: "diff_event", # Passed but not used by audit view
-        selected_version: 1 # V1 is selected
-      })
+      html =
+        render_component(&change_history_viewer/1, %{
+          resource: resource,
+          view_mode: "audit",
+          # Custom event name for clarity
+          on_view_version: "view_details_event",
+          # Passed but not used by audit view
+          on_diff_versions: "diff_event",
+          # V1 is selected
+          selected_version: 1
+        })
 
       # Check for version 2 entry (displayed first)
       assert html =~ "Version 2"
@@ -179,7 +183,9 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewerTest do
       assert html =~ ~s/phx-click=\"view_details_event\" phx-value-version=\"1\"/
       assert html =~ ~s/Actor: #{Map.get(@base_metadata_v1, :actor)}/
       assert html =~ ~s/<strong>Reason:<\/strong> #{Map.get(@base_metadata_v1, :reason)}/
-      assert html =~ ~s(<span class="text-red-500 line-through">nil</span> &rarr; <span class="text-green-500">&quot;A&quot;</span>)
+
+      assert html =~
+               ~s(<span class="text-red-500 line-through">nil</span> &rarr; <span class="text-green-500">&quot;A&quot;</span>)
 
       # Ensure the diff button is NOT present in audit view
       refute html =~ ~s/phx-click=\"diff_event\"/

@@ -24,6 +24,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
       status: "active",
       content: "Test content for resource"
     })
+
     :ok
   end
 
@@ -32,12 +33,18 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
     session = visit_and_wait(session, "/admin/resources")
     # Dump the HTML for debugging
     html = Wallaby.Browser.page_source(session)
-    IO.puts("\n===== RESOURCE DASHBOARD HTML =====\n" <> html <> "\n===============================\n")
+
+    IO.puts(
+      "\n===== RESOURCE DASHBOARD HTML =====\n" <> html <> "\n===============================\n"
+    )
+
     # Add Mox expectation for fetch_data
     MockHelper.setup_mocks()
+
     MockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
       {:ok, %{"id" => "mock", "name" => "Mock Resource", "status" => "active"}}
     end)
+
     {:ok, session: session}
   end
 
@@ -45,15 +52,28 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
     test "user can create a resource with validation", %{session: session} do
       # Wait for the resource type select to be present
       try do
-        Wallaby.Browser.assert_has(session, Wallaby.Query.css("[data-test-id='resource-type-select']", timeout: 2000))
+        Wallaby.Browser.assert_has(
+          session,
+          Wallaby.Query.css("[data-test-id='resource-type-select']", timeout: 2000)
+        )
       rescue
         e ->
           html = Wallaby.Browser.page_source(session)
-          IO.puts("\n===== DEBUG: resource-type-select NOT FOUND =====\n" <> html <> "\n===============================\n")
+
+          IO.puts(
+            "\n===== DEBUG: resource-type-select NOT FOUND =====\n" <>
+              html <> "\n===============================\n"
+          )
+
           reraise(e, __STACKTRACE__)
       end
+
       # Select a resource type first
-      session = session |> click(css("[data-test-id='resource-type-select']")) |> click(Query.option("user"))
+      session =
+        session
+        |> click(css("[data-test-id='resource-type-select']"))
+        |> click(Query.option("user"))
+
       # Click on "Create New Resource" button
       session
       |> click(css("[data-test-id='create-new-resource']"))
@@ -64,19 +84,36 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
 
       # Verify validation errors
       try do
-        Wallaby.Browser.assert_has(session, Wallaby.Query.css(".error-message", text: "Name can't be blank", timeout: 2000))
+        Wallaby.Browser.assert_has(
+          session,
+          Wallaby.Query.css(".error-message", text: "Name can't be blank", timeout: 2000)
+        )
       rescue
         e ->
           html = Wallaby.Browser.page_source(session)
-          IO.puts("\n===== DEBUG: Name can't be blank error NOT FOUND =====\n" <> html <> "\n===============================\n")
+
+          IO.puts(
+            "\n===== DEBUG: Name can't be blank error NOT FOUND =====\n" <>
+              html <> "\n===============================\n"
+          )
+
           reraise(e, __STACKTRACE__)
       end
+
       try do
-        Wallaby.Browser.assert_has(session, Wallaby.Query.css(".error-message", text: "Description can't be blank", timeout: 2000))
+        Wallaby.Browser.assert_has(
+          session,
+          Wallaby.Query.css(".error-message", text: "Description can't be blank", timeout: 2000)
+        )
       rescue
         e ->
           html = Wallaby.Browser.page_source(session)
-          IO.puts("\n===== DEBUG: Description can't be blank error NOT FOUND =====\n" <> html <> "\n===============================\n")
+
+          IO.puts(
+            "\n===== DEBUG: Description can't be blank error NOT FOUND =====\n" <>
+              html <> "\n===============================\n"
+          )
+
           reraise(e, __STACKTRACE__)
       end
 
@@ -90,11 +127,22 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
 
       # Verify resource was created
       try do
-        Wallaby.Browser.assert_has(session, Wallaby.Query.css("[data-test-id='flash-success']", text: "Resource created successfully", timeout: 2000))
+        Wallaby.Browser.assert_has(
+          session,
+          Wallaby.Query.css("[data-test-id='flash-success']",
+            text: "Resource created successfully",
+            timeout: 2000
+          )
+        )
       rescue
         e ->
           html = Wallaby.Browser.page_source(session)
-          IO.puts("\n===== DEBUG: flash-success NOT FOUND =====\n" <> html <> "\n===============================\n")
+
+          IO.puts(
+            "\n===== DEBUG: flash-success NOT FOUND =====\n" <>
+              html <> "\n===============================\n"
+          )
+
           reraise(e, __STACKTRACE__)
       end
 
@@ -104,42 +152,80 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
       rescue
         e ->
           html = Wallaby.Browser.page_source(session)
-          IO.puts("\n===== DEBUG: resource-name NOT FOUND =====\n" <> html <> "\n===============================\n")
+
+          IO.puts(
+            "\n===== DEBUG: resource-name NOT FOUND =====\n" <>
+              html <> "\n===============================\n"
+          )
+
           reraise(e, __STACKTRACE__)
       end
+
       try do
-        Wallaby.Browser.assert_has(session, css(".resource-description", text: "This is a test resource"))
+        Wallaby.Browser.assert_has(
+          session,
+          css(".resource-description", text: "This is a test resource")
+        )
       rescue
         e ->
           html = Wallaby.Browser.page_source(session)
-          IO.puts("\n===== DEBUG: resource-description NOT FOUND =====\n" <> html <> "\n===============================\n")
+
+          IO.puts(
+            "\n===== DEBUG: resource-description NOT FOUND =====\n" <>
+              html <> "\n===============================\n"
+          )
+
           reraise(e, __STACKTRACE__)
       end
+
       try do
         Wallaby.Browser.assert_has(session, css(".resource-type", text: "document"))
       rescue
         e ->
           html = Wallaby.Browser.page_source(session)
-          IO.puts("\n===== DEBUG: resource-type NOT FOUND =====\n" <> html <> "\n===============================\n")
+
+          IO.puts(
+            "\n===== DEBUG: resource-type NOT FOUND =====\n" <>
+              html <> "\n===============================\n"
+          )
+
           reraise(e, __STACKTRACE__)
       end
+
       try do
         Wallaby.Browser.assert_has(session, css(".resource-status", text: "active"))
       rescue
         e ->
           html = Wallaby.Browser.page_source(session)
-          IO.puts("\n===== DEBUG: resource-status NOT FOUND =====\n" <> html <> "\n===============================\n")
+
+          IO.puts(
+            "\n===== DEBUG: resource-status NOT FOUND =====\n" <>
+              html <> "\n===============================\n"
+          )
+
           reraise(e, __STACKTRACE__)
       end
 
       # Take screenshot after form submit
       Wallaby.Browser.take_screenshot(session, name: "resource-creation-after-submit")
-      IO.puts("\n===== RESOURCE CREATION HTML AFTER SUBMIT =====\n" <> Wallaby.Browser.page_source(session) <> "\n===============================\n")
+
+      IO.puts(
+        "\n===== RESOURCE CREATION HTML AFTER SUBMIT =====\n" <>
+          Wallaby.Browser.page_source(session) <> "\n===============================\n"
+      )
     end
 
     test "resource transformation is applied during creation", %{session: session} do
-      Wallaby.Browser.assert_has(session, Wallaby.Query.css("[data-test-id='resource-type-select']", timeout: 2000))
-      session = session |> click(css("[data-test-id='resource-type-select']")) |> click(Query.option("user"))
+      Wallaby.Browser.assert_has(
+        session,
+        Wallaby.Query.css("[data-test-id='resource-type-select']", timeout: 2000)
+      )
+
+      session =
+        session
+        |> click(css("[data-test-id='resource-type-select']"))
+        |> click(Query.option("user"))
+
       session
       |> click(css("[data-test-id='create-new-resource']"))
       |> fill_in(css("[data-test-id='name-input']"), with: "Transform Test")
@@ -148,7 +234,11 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
       |> click(css("[data-test-id='save-resource']"))
 
       # Verify transformation was applied
-      Wallaby.Browser.assert_has(session, css(".resource-content", text: "This is a test content"))
+      Wallaby.Browser.assert_has(
+        session,
+        css(".resource-content", text: "This is a test content")
+      )
+
       Wallaby.Browser.assert_has(session, css(".resource-html"))
 
       # Verify markdown was transformed to HTML
@@ -156,8 +246,16 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
     end
 
     test "events are generated during resource creation", %{session: session} do
-      Wallaby.Browser.assert_has(session, Wallaby.Query.css("[data-test-id='resource-type-select']", timeout: 2000))
-      session = session |> click(css("[data-test-id='resource-type-select']")) |> click(Query.option("user"))
+      Wallaby.Browser.assert_has(
+        session,
+        Wallaby.Query.css("[data-test-id='resource-type-select']", timeout: 2000)
+      )
+
+      session =
+        session
+        |> click(css("[data-test-id='resource-type-select']"))
+        |> click(Query.option("user"))
+
       session
       |> click(css("[data-test-id='create-new-resource']"))
       |> fill_in(css("[data-test-id='name-input']"), with: "Event Test")
@@ -179,8 +277,16 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
     end
 
     test "resource creation with relationships", %{session: session} do
-      Wallaby.Browser.assert_has(session, Wallaby.Query.css("[data-test-id='resource-type-select']", timeout: 2000))
-      session = session |> click(css("[data-test-id='resource-type-select']")) |> click(Query.option("user"))
+      Wallaby.Browser.assert_has(
+        session,
+        Wallaby.Query.css("[data-test-id='resource-type-select']", timeout: 2000)
+      )
+
+      session =
+        session
+        |> click(css("[data-test-id='resource-type-select']"))
+        |> click(Query.option("user"))
+
       # Create a parent resource first
       session
       |> click(css("[data-test-id='create-new-resource']"))
@@ -208,8 +314,16 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
     end
 
     test "resource creation with validation rules", %{session: session} do
-      Wallaby.Browser.assert_has(session, Wallaby.Query.css("[data-test-id='resource-type-select']", timeout: 2000))
-      session = session |> click(css("[data-test-id='resource-type-select']")) |> click(Query.option("user"))
+      Wallaby.Browser.assert_has(
+        session,
+        Wallaby.Query.css("[data-test-id='resource-type-select']", timeout: 2000)
+      )
+
+      session =
+        session
+        |> click(css("[data-test-id='resource-type-select']"))
+        |> click(Query.option("user"))
+
       # Try to create a resource with invalid data
       session
       |> click(css("[data-test-id='create-new-resource']"))
@@ -220,8 +334,15 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
       |> click(css("[data-test-id='save-resource']"))
 
       # Verify validation errors
-      Wallaby.Browser.assert_has(session, Wallaby.Query.css(".error-message", text: "Name is too short", timeout: 2000))
-      Wallaby.Browser.assert_has(session, Wallaby.Query.css(".error-message", text: "Invalid resource type", timeout: 2000))
+      Wallaby.Browser.assert_has(
+        session,
+        Wallaby.Query.css(".error-message", text: "Name is too short", timeout: 2000)
+      )
+
+      Wallaby.Browser.assert_has(
+        session,
+        Wallaby.Query.css(".error-message", text: "Invalid resource type", timeout: 2000)
+      )
 
       # Create with valid data
       session
@@ -230,7 +351,13 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
       |> click(css("[data-test-id='save-resource']"))
 
       # Verify success
-      Wallaby.Browser.assert_has(session, Wallaby.Query.css("[data-test-id='flash-success']", text: "Resource created successfully", timeout: 2000))
+      Wallaby.Browser.assert_has(
+        session,
+        Wallaby.Query.css("[data-test-id='flash-success']",
+          text: "Resource created successfully",
+          timeout: 2000
+        )
+      )
     end
   end
 end

@@ -138,7 +138,8 @@ defmodule HydepwnsLiveview.EnhancedErrorReportingTest do
             "theme" => "blue",
             "notifications" => "maybe"
           }
-        }) |> assert_live_ok()
+        })
+        |> assert_live_ok()
 
       # Create test socket
       socket =

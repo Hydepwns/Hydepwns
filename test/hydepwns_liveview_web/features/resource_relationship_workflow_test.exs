@@ -17,6 +17,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
 
   setup %{session: session} do
     unique = System.unique_integer([:positive])
+
     {:ok, parent} =
       ResourceFixtures.create_test_resource(%{name: "Parent Resource #{unique}", type: "folder"})
 
@@ -25,6 +26,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
 
     # Add Mox expectation for fetch_data
     MockHelper.setup_mocks()
+
     MockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
       {:ok, %{"id" => "mock", "name" => "Mock Resource", "status" => "active"}}
     end)
@@ -50,7 +52,11 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       |> click(button("Save"))
 
       # Verify relationship was created
-      Wallaby.Browser.assert_has(session, css(".alert-success", text: "Resource updated successfully"))
+      Wallaby.Browser.assert_has(
+        session,
+        css(".alert-success", text: "Resource updated successfully")
+      )
+
       Wallaby.Browser.assert_has(session, css(".parent-resource", text: parent.name))
 
       # Verify relationship events
@@ -107,7 +113,10 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       |> click(button("Save"))
 
       # Verify error message
-      Wallaby.Browser.assert_has(session, css(".error-message", text: "Circular relationship detected"))
+      Wallaby.Browser.assert_has(
+        session,
+        css(".error-message", text: "Circular relationship detected")
+      )
     end
 
     test "user can remove relationships", %{session: session, parent: parent, child: child} do
@@ -128,7 +137,11 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       |> click(button("Save"))
 
       # Verify relationship was removed
-      Wallaby.Browser.assert_has(session, css(".alert-success", text: "Resource updated successfully"))
+      Wallaby.Browser.assert_has(
+        session,
+        css(".alert-success", text: "Resource updated successfully")
+      )
+
       Wallaby.Browser.refute_has(session, css(".parent-resource", text: parent.name))
 
       # Verify relationship removal event
@@ -152,7 +165,10 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       |> click(button("Save"))
 
       # Verify error message
-      Wallaby.Browser.assert_has(session, css(".error-message", text: "Invalid relationship type"))
+      Wallaby.Browser.assert_has(
+        session,
+        css(".error-message", text: "Invalid relationship type")
+      )
 
       # Try to create relationship with incompatible types
       session
@@ -165,7 +181,10 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       |> click(button("Create Resource"))
 
       # Verify error message
-      Wallaby.Browser.assert_has(session, css(".error-message", text: "Incompatible resource types"))
+      Wallaby.Browser.assert_has(
+        session,
+        css(".error-message", text: "Incompatible resource types")
+      )
     end
 
     test "relationship changes trigger UI updates", %{

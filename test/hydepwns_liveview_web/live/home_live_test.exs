@@ -9,9 +9,11 @@ defmodule HydepwnsLiveviewWeb.HomeLiveTest do
 
   setup context do
     MockHelper.setup_mocks()
+
     MockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
       {:ok, %{"id" => "mock", "name" => "Mock Resource", "status" => "active"}}
     end)
+
     context
   end
 

@@ -98,11 +98,13 @@ defmodule HydepwnsLiveview.Utils.ChangeTrackerTest do
       resource_v2_data = Map.merge(resource_v1_data, changes_to_v2)
 
       # Construct a resource as if it's currently at version 2
-      resource_at_v2 = resource_v2_data
-      |> Map.put(:__change_history__, [
-        %{version: 2, before: resource_v1_data, changes: changes_to_v2, metadata: %{}},
-        %{version: 1, before: %{}, changes: resource_v1_data, metadata: %{}} # Simplified initial version
-      ])
+      resource_at_v2 =
+        resource_v2_data
+        |> Map.put(:__change_history__, [
+          %{version: 2, before: resource_v1_data, changes: changes_to_v2, metadata: %{}},
+          # Simplified initial version
+          %{version: 1, before: %{}, changes: resource_v1_data, metadata: %{}}
+        ])
 
       {:ok, diff} = ChangeTracker.diff(resource_at_v2, version1: 1, version2: 2)
 
@@ -128,14 +130,19 @@ defmodule HydepwnsLiveview.Utils.ChangeTrackerTest do
 
       changes_to_v2 = %{
         settings: %{
-          theme: "dark", # changed
-          notifications: true, # same
+          # changed
+          theme: "dark",
+          # same
+          notifications: true,
           preferences: %{
-            language: "fr" # changed
+            # changed
+            language: "fr"
           }
         },
-        tags: ["tag1", "tag3"] # changed
+        # changed
+        tags: ["tag1", "tag3"]
       }
+
       resource_v2_data = Map.merge(resource_v1_data, changes_to_v2)
 
       # Simulate tracking this change to build a resource with history
@@ -152,8 +159,12 @@ defmodule HydepwnsLiveview.Utils.ChangeTrackerTest do
       # For diffing version 1 and 2 explicitly, we need a resource that has both versions in its history correctly.
       # Let's assume an initial empty state for version 0.
       initial_empty_resource = %{id: "123"}
-      {:ok, resource_after_v1_changes} = ChangeTracker.track_change(initial_empty_resource, resource_v1_data)
-      {:ok, resource_after_v2_changes} = ChangeTracker.track_change(resource_after_v1_changes, changes_to_v2)
+
+      {:ok, resource_after_v1_changes} =
+        ChangeTracker.track_change(initial_empty_resource, resource_v1_data)
+
+      {:ok, resource_after_v2_changes} =
+        ChangeTracker.track_change(resource_after_v1_changes, changes_to_v2)
 
       # Now resource_after_v2_changes has a history like:
       # [ {v:2, before: v1_state, changes: to_v2}, {v:1, before: empty, changes: to_v1_state} ]

@@ -100,7 +100,8 @@ defmodule HydepwnsLiveviewWeb.Helpers.TocHelper do
             label: sanitize_heading_text(content)
           }
 
-        [level, _id, content] -> # Handles cases where id is nil or empty string
+        # Handles cases where id is nil or empty string
+        [level, _id, content] ->
           # If no ID is provided, generate a slug from the content
           generated_id = generate_id_from_text(content)
 
@@ -132,7 +133,9 @@ defmodule HydepwnsLiveviewWeb.Helpers.TocHelper do
       min_level_present = Enum.min_by(headings_with_prefix, & &1.level).level
       initial_parent_level = min_level_present - 1
 
-      {children, _remaining_headings} = do_build_hierarchy(headings_with_prefix, initial_parent_level)
+      {children, _remaining_headings} =
+        do_build_hierarchy(headings_with_prefix, initial_parent_level)
+
       children
     end
   end
@@ -140,7 +143,8 @@ defmodule HydepwnsLiveviewWeb.Helpers.TocHelper do
   # Recursive helper to build the hierarchy.
   # `parent_level` is the level of the parent under which we are looking for children.
   defp do_build_hierarchy([], _parent_level) do
-    {[], []} # Base case: no headings left, return empty children and empty remaining
+    # Base case: no headings left, return empty children and empty remaining
+    {[], []}
   end
 
   defp do_build_hierarchy([current_heading | rest_headings], parent_level) do

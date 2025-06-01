@@ -67,6 +67,11 @@ defmodule HydepwnsLiveviewWeb.Components.Documentation.StyleGuide do
   end
 
   def update(assigns, socket) do
-    {:ok, assign(socket, assigns)}
+    socket =
+      socket
+      |> assign(:id, assigns.id)
+      # Add more explicit assigns as needed based on expected assigns keys
+
+    {:ok, socket}
   end
 end

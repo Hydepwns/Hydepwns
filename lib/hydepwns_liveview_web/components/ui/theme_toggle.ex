@@ -92,16 +92,14 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ThemeToggle do
             <% end %>
           </span>
           <span class="theme-label">
-            <%=
-              cond do
-                theme.name == "light" -> "Light"
-                theme.name == "dark" -> "Dark"
-                theme.name == "system" -> "System"
-                String.starts_with?(to_string(theme.name), "high-contrast") -> "High contrast"
-                String.starts_with?(to_string(theme.name), "dim") -> "Dim"
-                true -> String.capitalize(to_string(theme.name))
-              end
-            %>
+            {cond do
+              theme.name == "light" -> "Light"
+              theme.name == "dark" -> "Dark"
+              theme.name == "system" -> "System"
+              String.starts_with?(to_string(theme.name), "high-contrast") -> "High contrast"
+              String.starts_with?(to_string(theme.name), "dim") -> "Dim"
+              true -> String.capitalize(to_string(theme.name))
+            end}
           </span>
         </button>
       <% end %>

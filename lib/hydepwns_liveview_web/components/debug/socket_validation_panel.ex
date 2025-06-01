@@ -68,7 +68,12 @@ defmodule HydepwnsLiveviewWeb.Components.Debug.SocketValidationPanel do
 
   @impl Phoenix.LiveComponent
   def update(assigns, socket) do
-    {:ok, assign(socket, assigns)}
+    socket =
+      socket
+      |> assign(:id, assigns.id)
+      # Add more explicit assigns as needed based on expected assigns keys
+
+    {:ok, socket}
   end
 
   # Add a pubsub subscription behavior to the component

@@ -4,7 +4,7 @@
   </.error>
   <.input field={f[:name]} type="text" label="Name" />
   <%= for {msg, _opts} <- Keyword.get_values(f.errors, :name) do %>
-    <div class="error-message"><%= msg %></div>
+    <div class="error-message">{msg}</div>
   <% end %>
   <:actions>
     <.button>Save Theme</.button>

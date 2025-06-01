@@ -57,7 +57,8 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
     assigns =
       assigns
       |> assign_new(:versions_with_diffs, fn -> prepare_versions_with_diffs(resource, history) end)
-      |> assign(:change_history, history) # change_history is used by timeline/list views
+      # change_history is used by timeline/list views
+      |> assign(:change_history, history)
       |> assign(:has_history, has_history)
 
     ~H"""
@@ -149,13 +150,17 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
         cond do
           prev_vsn <= 0 ->
             changes = version_data.changes
+
             formatted_changes =
               Enum.into(changes, %{}, fn {field, val} -> {field, %{before: nil, after: val}} end)
+
             %{changes: formatted_changes, version: vsn}
 
           true ->
             case ChangeTracker.diff(resource, version1: prev_vsn, version2: vsn) do
-              {:ok, diff_map} -> diff_map
+              {:ok, diff_map} ->
+                diff_map
+
               {:error, reason} ->
                 %{changes: %{error: "Diff error: #{inspect(reason)}"}, version: vsn}
             end
@@ -163,9 +168,11 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
 
       %{
         version: vsn,
-        timestamp: Map.get(version_data, :timestamp, Map.get(version_data.metadata, :timestamp)), # Handle both old and new metadata structures
+        # Handle both old and new metadata structures
+        timestamp: Map.get(version_data, :timestamp, Map.get(version_data.metadata, :timestamp)),
         actor: Map.get(version_data, :actor, Map.get(version_data.metadata, :actor)),
-        metadata: version_data.metadata, # Keep full metadata
+        # Keep full metadata
+        metadata: version_data.metadata,
         raw_changes: version_data.changes,
         diff: diff_to_this_version
       }
@@ -180,6 +187,7 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
   attr :change_history, :list, required: true
   attr :selected_version, :integer, default: nil
   attr :on_view_version, :string, default: nil
+
   def render_timeline_view(assigns) do
     ~H"""
     <div class="timeline mb-6">
@@ -191,7 +199,22 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
             #{if @selected_version == change.version, do: "bg-blue-500 border-blue-700 w-6 h-6", else: "bg-white border-gray-300 hover:bg-blue-100"}"}
           phx-click={@on_view_version}
           phx-value-version={change.version}
-          # Ensure index is not 0 for division by (length - 1) when length is 1
+          #
+          Ensure
+          index
+          is
+          not
+          0
+          for
+          division
+          by
+          (length
+          -
+          1)
+          when
+          length
+          is
+          1
           style={if length(@change_history) > 1, do: "margin-left: #{index * (100 / (length(@change_history) - 1))}%;", else: "margin-left: 0%;"}
           data-tooltip-id={"tooltip-#{change.version}"}
         >
@@ -216,6 +239,7 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
   attr :selected_version, :integer, default: nil
   attr :on_view_version, :string, default: nil
   attr :on_diff_versions, :string, default: nil
+
   def render_list_view(assigns) do
     ~H"""
     <div class="mb-6">
@@ -256,9 +280,12 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
     """
   end
 
-  attr :entry, :map, required: true # This is an element from versions_with_diffs
-  attr :selected_version, :integer, default: nil # Passed down for styling active version
-  attr :on_view_version, :string, default: nil    # Passed down for button actions
+  # This is an element from versions_with_diffs
+  attr :entry, :map, required: true
+  # Passed down for styling active version
+  attr :selected_version, :integer, default: nil
+  # Passed down for button actions
+  attr :on_view_version, :string, default: nil
 
   # This is the new, isolated audit row component function
   def render_audit_row(assigns) do
@@ -274,29 +301,28 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
           else: "border-gray-200"
     }>
       <div class="flex justify-between mb-2">
-        <div class="text-sm font-semibold text-gray-700">Version <%= @entry.version %></div>
-        <div class="text-sm text-gray-500"><%= format_timestamp(Map.get(@entry.metadata, :timestamp)) %></div>
+        <div class="text-sm font-semibold text-gray-700">Version {@entry.version}</div>
+        <div class="text-sm text-gray-500">{format_timestamp(Map.get(@entry.metadata, :timestamp))}</div>
       </div>
       <div class="mb-2">
         <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mr-2">
-          Actor: <%= Map.get(@entry.metadata, :actor) || "Unknown" %>
+          Actor: {Map.get(@entry.metadata, :actor) || "Unknown"}
         </span>
         <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded mr-2">
-          Source: <%= Map.get(@entry.metadata, :source) || "Unknown" %>
+          Source: {Map.get(@entry.metadata, :source) || "Unknown"}
         </span>
       </div>
       <div class="mb-3 text-sm text-gray-600">
-        <p><strong>Reason:</strong> <%= Map.get(@entry.metadata, :reason) || "No reason provided" %></p>
+        <p><strong>Reason:</strong> {Map.get(@entry.metadata, :reason) || "No reason provided"}</p>
       </div>
       <div class="details">
         <%= for {field, diff_val} <- Map.to_list(@entry.diff.changes) do %>
           <div class="field-change">
-            <strong><%= field %>:</strong>
-            <%# IO.inspect({field, diff_val}, label: "AUDIT_ROW_DIFF_VAL") %>
+            <strong>{field}:</strong>
             <%= if is_map(diff_val) && Map.has_key?(diff_val, :before) && Map.has_key?(diff_val, :after) do %>
-              <span class="text-red-500 line-through"><%= inspect(Map.get(diff_val, :before)) %></span> &rarr; <span class="text-green-500"><%= inspect(Map.get(diff_val, :after)) %></span>
+              <span class="text-red-500 line-through">{inspect(Map.get(diff_val, :before))}</span> &rarr; <span class="text-green-500">{inspect(Map.get(diff_val, :after))}</span>
             <% else %>
-              <span>Value: <%= diff_val %></span>
+              <span>Value: {diff_val}</span>
             <% end %>
           </div>
         <% end %>
@@ -318,25 +344,34 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
 
   # Utility functions for formatting
   defp format_timestamp(nil), do: "N/A"
+
   defp format_timestamp(timestamp) when is_binary(timestamp) do
     case DateTime.from_iso8601(timestamp) do
       {:ok, datetime, _} ->
         Calendar.strftime(datetime, "%Y-%m-%d %H:%M:%S %Z")
-      _ -> timestamp # Fallback to original string if parsing fails
+
+      # Fallback to original string if parsing fails
+      _ ->
+        timestamp
     end
   end
+
   defp format_timestamp(timestamp) do
-    Calendar.strftime(timestamp, "%Y-%m-%d %H:%M:%S %Z") # Assuming it's already a DateTime
+    # Assuming it's already a DateTime
+    Calendar.strftime(timestamp, "%Y-%m-%d %H:%M:%S %Z")
   end
 
   defp format_timestamp_short(nil), do: "N/A"
+
   defp format_timestamp_short(timestamp) when is_binary(timestamp) do
     case DateTime.from_iso8601(timestamp) do
       {:ok, datetime, _} -> Calendar.strftime(datetime, "%b %d, %H:%M")
       _ -> timestamp
     end
   end
-  defp format_timestamp_short(timestamp) do # Assuming DateTime
+
+  # Assuming DateTime
+  defp format_timestamp_short(timestamp) do
     Calendar.strftime(timestamp, "%b %d, %H:%M")
   end
 end

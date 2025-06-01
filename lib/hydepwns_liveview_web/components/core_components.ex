@@ -121,14 +121,12 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
       id={@id_flash}
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id_flash}")}
       role="alert"
-      class={
-        [
-          "fixed top-2 right-2 mr-2 w-80 sm:w-96 z-50 rounded-lg p-3 ring-1",
-          @kind == :info && "bg-emerald-50 text-emerald-800 ring-emerald-500 fill-cyan-900 alert-success",
-          @kind == :error && "bg-rose-50 text-rose-900 shadow-md ring-rose-500 fill-rose-900"
-        ]
-      }
-      data-test-id={@kind == :info && "flash-success" || @kind == :error && "flash-error"}
+      class={[
+        "fixed top-2 right-2 mr-2 w-80 sm:w-96 z-50 rounded-lg p-3 ring-1",
+        @kind == :info && "bg-emerald-50 text-emerald-800 ring-emerald-500 fill-cyan-900 alert-success",
+        @kind == :error && "bg-rose-50 text-rose-900 shadow-md ring-rose-500 fill-rose-900"
+      ]}
+      data-test-id={(@kind == :info && "flash-success") || (@kind == :error && "flash-error")}
     >
       <p :if={@title} class="flex items-center gap-1.5 text-sm font-semibold leading-6">
         <.icon :if={@kind == :info} name="hero-information-circle-mini" class="h-4 w-4" />
@@ -149,6 +147,7 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
   @spec flash_group(map()) :: Phoenix.LiveView.Rendered.t()
   def flash_group(assigns) do
     assigns = assign_new(assigns, :flash_group_id, fn -> "flash-group" end)
+
     ~H"""
     <div id={@flash_group_id}>
       <.flash kind={:info} title={gettext("Success!")} flash={@flash} />

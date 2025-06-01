@@ -66,6 +66,7 @@ defmodule HydepwnsLiveviewWeb.MockHelper do
         m when is_atom(m) -> m
         m -> m
       end
+
     Mox.expect(mock, fun, implementation)
   end
 

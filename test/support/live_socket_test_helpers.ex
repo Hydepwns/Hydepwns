@@ -548,6 +548,7 @@ defmodule HydepwnsLiveviewWeb.LiveSocketTestHelpers do
         [v | _] -> v
         [] -> nil
       end
+
     invalid_value =
       if valid_value != nil, do: "invalid_#{valid_value}", else: "invalid_value"
 
@@ -592,11 +593,13 @@ defmodule HydepwnsLiveviewWeb.LiveSocketTestHelpers do
     valid_map = generate_test_data(type_spec)
     # Missing a required field
     keys = Map.keys(type_spec)
+
     first_key =
       case keys do
         [k | _] -> k
         [] -> nil
       end
+
     invalid_map = if first_key, do: Map.delete(valid_map, first_key), else: valid_map
 
     [

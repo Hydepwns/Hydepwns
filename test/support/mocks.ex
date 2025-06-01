@@ -68,15 +68,16 @@ defmodule HydepwnsLiveview.Mocks do
     @impl true
     def fetch_data(id) do
       # Mocked resource with all expected fields for integration tests
-      {:ok, %{
-        "id" => id,
-        "name" => "Test Resource",
-        "description" => "A resource for testing.",
-        "type" => "test-type",
-        "status" => "active",
-        "content" => "This is the test content.",
-        "html_content" => "<b>Test HTML Content</b>"
-      }}
+      {:ok,
+       %{
+         "id" => id,
+         "name" => "Test Resource",
+         "description" => "A resource for testing.",
+         "type" => "test-type",
+         "status" => "active",
+         "content" => "This is the test content.",
+         "html_content" => "<b>Test HTML Content</b>"
+       }}
     end
 
     @impl true
@@ -102,7 +103,9 @@ defmodule HydepwnsLiveview.DefaultHTTPClient do
   @behaviour HydepwnsLiveview.Mocks.HTTPClientBehaviour
 
   defdelegate get(url, headers \\ [], opts \\ []), to: HydepwnsLiveview.Mocks.DefaultHTTPClient
-  defdelegate post(url, body, headers \\ [], opts \\ []), to: HydepwnsLiveview.Mocks.DefaultHTTPClient
+
+  defdelegate post(url, body, headers \\ [], opts \\ []),
+    to: HydepwnsLiveview.Mocks.DefaultHTTPClient
 end
 
 defmodule HydepwnsLiveview.DefaultExternalAPI do

@@ -26,6 +26,7 @@ defmodule HydepwnsLiveview.TestSupport.ResourceFixtures do
   """
   def create_test_resource(attrs \\ %{}) do
     unique_suffix = System.unique_integer([:positive]) |> Integer.to_string()
+
     attrs =
       Map.merge(
         %{

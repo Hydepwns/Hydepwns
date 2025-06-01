@@ -101,6 +101,7 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
       assert_has(session, css(".my-selector"), timeout: 2000)
   """
   def assert_has(session, query), do: Wallaby.Browser.has?(session, query)
+
   def assert_has(session, query, opts) when is_list(opts) do
     timeout = Keyword.get(opts, :timeout, 1000)
     interval = Keyword.get(opts, :interval, 100)
@@ -114,6 +115,7 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
       true
     else
       now = System.monotonic_time(:millisecond)
+
       if now - start_time < timeout do
         Process.sleep(interval)
         do_assert_has(session, query, timeout, interval, start_time)
@@ -133,6 +135,7 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
     if Code.ensure_loaded?(Mox) do
       Mox.set_mox_global()
     end
+
     :ok
   end
 end

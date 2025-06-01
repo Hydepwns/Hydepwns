@@ -5,8 +5,17 @@ defmodule HydepwnsLiveview.Utils.MapHelpersTest do
 
   describe "unwrap_data/1" do
     test "unwraps nested 'data' keys" do
-      input = %{"data" => %{"data" => %{"id" => 1, "name" => "foo"}, "extra" => "bar"}, "top" => true}
-      assert MapHelpers.unwrap_data(input) == %{"id" => 1, "name" => "foo", "extra" => "bar", "top" => true}
+      input = %{
+        "data" => %{"data" => %{"id" => 1, "name" => "foo"}, "extra" => "bar"},
+        "top" => true
+      }
+
+      assert MapHelpers.unwrap_data(input) == %{
+               "id" => 1,
+               "name" => "foo",
+               "extra" => "bar",
+               "top" => true
+             }
     end
 
     test "returns map unchanged if no 'data' key" do
@@ -29,7 +38,7 @@ defmodule HydepwnsLiveview.Utils.MapHelpersTest do
 
     test "returns non-map values unchanged" do
       assert MapHelpers.stringify_keys(42) == 42
-      assert MapHelpers.stringify_keys([a: 1]) == [a: 1]
+      assert MapHelpers.stringify_keys(a: 1) == [a: 1]
     end
   end
-end 
+end

@@ -6,7 +6,9 @@ defmodule HydepwnsLiveview.Utils.MapHelpers do
   @doc """
   Recursively unwraps nested 'data' keys in a map.
   """
-  def unwrap_data(%{"data" => data} = map) when is_map(data), do: unwrap_data(Map.merge(data, Map.drop(map, ["data"])))
+  def unwrap_data(%{"data" => data} = map) when is_map(data),
+    do: unwrap_data(Map.merge(data, Map.drop(map, ["data"])))
+
   def unwrap_data(map), do: map
 
   @doc """
@@ -21,8 +23,10 @@ defmodule HydepwnsLiveview.Utils.MapHelpers do
     end)
     |> Enum.into(%{})
   end
+
   def stringify_keys(list) when is_list(list) do
     Enum.map(list, &stringify_keys/1)
   end
+
   def stringify_keys(other), do: other
-end 
+end

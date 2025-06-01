@@ -8,4 +8,4 @@ defmodule HydepwnsLiveview.DefaultExternalAPI do
   Fetches resource data by id. Not implemented in this stub.
   """
   def fetch_data(_id), do: {:error, :not_implemented}
-end 
+end

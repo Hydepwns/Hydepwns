@@ -80,6 +80,7 @@ defmodule HydepwnsLiveviewWeb do
   def html do
     quote do
       use Phoenix.Component
+
       use Phoenix.Template,
         root: "lib/hydepwns_liveview_web",
         namespace: HydepwnsLiveviewWeb

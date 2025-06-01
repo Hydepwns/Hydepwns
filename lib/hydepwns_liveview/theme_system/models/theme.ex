@@ -34,6 +34,7 @@ defmodule HydepwnsLiveview.ThemeSystem.Models.Theme do
   """
   def changeset(theme, attrs) do
     attrs = for {k, v} <- attrs, into: %{}, do: {to_string(k), v}
+
     theme
     |> cast(attrs, [:name, :mode, :colors, :is_default, :settings])
     |> validate_required([:name, :mode])
@@ -57,6 +58,7 @@ defmodule HydepwnsLiveview.ThemeSystem.Models.Theme do
   """
   def validate_theme(params) do
     params = for {k, v} <- params, into: %{}, do: {to_string(k), v}
+
     types = %{
       name: :string,
       mode: :string,

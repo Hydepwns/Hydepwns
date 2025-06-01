@@ -19,6 +19,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
 
     # Defensive: ensure themes are present and valid
     assert length(themes) >= 4
+
     Enum.each(themes, fn theme ->
       assert theme.id != nil
       assert theme.name != nil and theme.name != ""
@@ -26,6 +27,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
     end)
 
     MockHelper.setup_mocks()
+
     MockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
       {:ok, %{"id" => "mock", "name" => "Mock Resource", "status" => "active"}}
     end)

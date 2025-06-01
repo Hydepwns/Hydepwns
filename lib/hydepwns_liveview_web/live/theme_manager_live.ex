@@ -31,25 +31,19 @@ defmodule HydepwnsLiveviewWeb.ThemeManagerLive do
           <%= for theme <- @themes do %>
             <div class="border rounded-lg p-4 shadow-sm">
               <div class="flex justify-between items-center mb-2">
-                <a
-                  href="#"
-                  data-test-id={"theme-link-#{String.downcase(String.replace(theme.name, " ", "-"))}"}
-                  phx-click="select-theme"
-                  phx-value-id={theme.id}
-                  class="text-lg font-medium hover:underline"
-                >
-                  <%= theme.name %>
+                <a href="#" data-test-id={"theme-link-#{String.downcase(String.replace(theme.name, " ", "-"))}"} phx-click="select-theme" phx-value-id={theme.id} class="text-lg font-medium hover:underline">
+                  {theme.name}
                 </a>
                 <%= if theme.is_default do %>
                   <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Default</span>
                 <% end %>
               </div>
-              <div class="text-sm mb-2">Mode: <%= theme.mode %></div>
+              <div class="text-sm mb-2">Mode: {theme.mode}</div>
               <div class="flex flex-wrap gap-2 mb-4">
                 <%= for {key, value} <- theme.colors do %>
                   <div class="flex items-center">
                     <div class="w-4 h-4 rounded mr-1" style={"background-color: #{value};"} title={value}></div>
-                    <span class="text-xs"><%= key %></span>
+                    <span class="text-xs">{key}</span>
                   </div>
                 <% end %>
               </div>

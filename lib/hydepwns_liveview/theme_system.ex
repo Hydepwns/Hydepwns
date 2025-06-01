@@ -73,6 +73,23 @@ defmodule HydepwnsLiveview.ThemeSystem do
     update_theme(theme, %{is_default: true})
   end
 
+  @spec ensure_default_theme() :: Theme.t()
+  def ensure_default_theme do
+    case get_default_theme() do
+      nil ->
+        {:ok, theme} = create_theme(%{
+          name: "Default",
+          description: "Default theme",
+          is_default: true,
+          palette: %{},
+          mode: "dark"
+        })
+        theme
+      theme ->
+        theme
+    end
+  end
+
   # Unsets default status for all themes except the given ID
   defp unset_other_defaults(except_id) do
     from(t in Theme, where: t.id != ^except_id and t.is_default == true)

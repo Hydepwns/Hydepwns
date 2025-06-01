@@ -71,6 +71,7 @@ defmodule HydepwnsLiveview.ThemeSystemTest do
       {:ok, _} = ThemeSystem.set_default_theme(light_theme_fixture)
       reloaded_light_theme = ThemeSystem.get_theme!(light_theme_fixture.id)
       default_from_db = ThemeSystem.get_default_theme()
+
       assert Map.from_struct(default_from_db)
              |> Map.update!(:colors, &atomize_keys/1)
              |> Map.update!(:settings, &atomize_keys/1)
@@ -84,6 +85,7 @@ defmodule HydepwnsLiveview.ThemeSystemTest do
       {:ok, _} = ThemeSystem.set_default_theme(dark_theme_fixture)
       reloaded_dark_theme = ThemeSystem.get_theme!(dark_theme_fixture.id)
       default_from_db = ThemeSystem.get_default_theme()
+
       assert Map.from_struct(default_from_db)
              |> Map.update!(:colors, &atomize_keys/1)
              |> Map.update!(:settings, &atomize_keys/1)
@@ -187,6 +189,7 @@ defmodule HydepwnsLiveview.ThemeSystemTest do
       # Set light theme as default
       {:ok, _} = ThemeSystem.set_default_theme(light_theme)
       reloaded_light_theme = ThemeSystem.get_theme!(light_theme.id)
+
       assert Map.from_struct(ThemeSystem.get_default_theme())
              |> Map.update!(:colors, &atomize_keys/1)
              |> Map.update!(:settings, &atomize_keys/1)

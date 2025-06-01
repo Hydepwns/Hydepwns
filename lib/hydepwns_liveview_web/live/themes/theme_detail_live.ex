@@ -8,7 +8,19 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeDetailLive do
     id = params["id"]
     theme = ThemeSystem.get_theme!(id)
     show_customize_form = params["customize"] in ["1", 1, true, "true"]
-    {:ok, assign(socket, theme: theme, show_customize_form: show_customize_form, show_accessibility_form: false, show_edit_form: false, color_changeset: Theme.changeset(theme, %{}), applied: false)}
+    default_theme = ThemeSystem.ensure_default_theme()
+    theme_class = "#{default_theme.mode}-theme"
+
+    {:ok,
+     assign(socket,
+       theme: theme,
+       show_customize_form: show_customize_form,
+       show_accessibility_form: false,
+       show_edit_form: false,
+       color_changeset: Theme.changeset(theme, %{}),
+       applied: false,
+       theme_class: theme_class
+     )}
   end
 
   @impl true
@@ -16,16 +28,15 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeDetailLive do
     ~H"""
     <div class="container mx-auto px-4 py-8">
       <h1 class="text-3xl font-bold mb-8">
-        Theme:
-        <a href={"/themes/#{@theme.id}"} class="text-blue-600 underline"><%= @theme.name %></a>
+        Theme: <a href={"/themes/#{@theme.id}"} class="text-blue-600 underline">{@theme.name}</a>
       </h1>
       <div class="mb-4">
-        <div class="text-lg font-semibold mb-2">Mode: <%= @theme.mode %></div>
+        <div class="text-lg font-semibold mb-2">Mode: {@theme.mode}</div>
         <div class="flex flex-wrap gap-2 mb-4">
           <%= for {key, value} <- @theme.colors do %>
             <div class="flex items-center">
               <div class="w-4 h-4 rounded mr-1" style={"background-color: #{value};"} title={value}></div>
-              <span class="text-xs"><%= key %></span>
+              <span class="text-xs">{key}</span>
             </div>
           <% end %>
         </div>
@@ -150,7 +161,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeDetailLive do
       <% end %>
 
       <%= if @applied do %>
-        <div class="theme-applied"><%= @theme.name %></div>
+        <div class="theme-applied">{@theme.name}</div>
       <% end %>
 
       <%= if !@show_customize_form && @theme.colors["primary"] == "#000000" && @theme.colors["secondary"] == "#FFFFFF" do %>
@@ -163,7 +174,12 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeDetailLive do
 
   @impl true
   def handle_event("edit-theme", _params, socket) do
-    {:noreply, assign(socket, show_edit_form: true, show_customize_form: false, show_accessibility_form: false)}
+    {:noreply,
+     assign(socket,
+       show_edit_form: true,
+       show_customize_form: false,
+       show_accessibility_form: false
+     )}
   end
 
   @impl true
@@ -173,7 +189,12 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeDetailLive do
 
   @impl true
   def handle_event("customize-theme", _params, socket) do
-    {:noreply, assign(socket, show_customize_form: true, show_accessibility_form: false, show_edit_form: false)}
+    {:noreply,
+     assign(socket,
+       show_customize_form: true,
+       show_accessibility_form: false,
+       show_edit_form: false
+     )}
   end
 
   @impl true
@@ -181,15 +202,17 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeDetailLive do
     theme = socket.assigns.theme
 
     # Extract color fields from params and normalize keys
-    new_colors = theme_params
-    |> Map.take(["primary_color", "secondary_color", "accent_color"])
-    |> Enum.map(fn
-      {"primary_color", v} -> {"primary", v}
-      {"secondary_color", v} -> {"secondary", v}
-      {"accent_color", v} -> {"accent", v}
-      {k, v} -> {k, v}
-    end)
-    |> Enum.into(%{})
+    new_colors =
+      theme_params
+      |> Map.take(["primary_color", "secondary_color", "accent_color"])
+      |> Enum.map(fn
+        {"primary_color", v} -> {"primary", v}
+        {"secondary_color", v} -> {"secondary", v}
+        {"accent_color", v} -> {"accent", v}
+        {k, v} -> {k, v}
+      end)
+      |> Enum.into(%{})
+
     updated_colors = Map.merge(theme.colors || %{}, new_colors)
 
     # Extract settings fields
@@ -201,19 +224,22 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeDetailLive do
       "container_padding",
       "section_margin"
     ]
-    new_settings = Enum.reduce(settings_fields, theme.settings || %{}, fn field, acc ->
-      if Map.has_key?(theme_params, field) do
-        Map.put(acc, field, theme_params[field])
-      else
-        acc
-      end
-    end)
+
+    new_settings =
+      Enum.reduce(settings_fields, theme.settings || %{}, fn field, acc ->
+        if Map.has_key?(theme_params, field) do
+          Map.put(acc, field, theme_params[field])
+        else
+          acc
+        end
+      end)
 
     attrs = %{"colors" => updated_colors, "settings" => new_settings}
 
     case ThemeSystem.update_theme(theme, attrs) do
       {:ok, updated_theme} ->
         {:noreply, assign(socket, theme: updated_theme, show_customize_form: false)}
+
       {:error, _changeset} ->
         {:noreply, assign(socket, show_customize_form: false)}
     end
@@ -222,14 +248,19 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeDetailLive do
   @impl true
   def handle_event("apply-theme", _params, socket) do
     {:noreply,
-      socket
-      |> assign(:applied, true)
-      |> put_flash(:info, "Theme applied successfully")}
+     socket
+     |> assign(:applied, true)
+     |> put_flash(:info, "Theme applied successfully")}
   end
 
   @impl true
   def handle_event("accessibility-settings", _params, socket) do
-    {:noreply, assign(socket, show_accessibility_form: true, show_edit_form: false, show_customize_form: false)}
+    {:noreply,
+     assign(socket,
+       show_accessibility_form: true,
+       show_edit_form: false,
+       show_customize_form: false
+     )}
   end
 
   @impl true
@@ -239,9 +270,16 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeDetailLive do
     reduced_motion = Map.get(theme_params, "reduced_motion") in ["on", true, 1, "1"]
     new_settings = Map.put(theme.settings || %{}, "reduced_motion", reduced_motion)
     attrs = %{"settings" => new_settings}
+
     case ThemeSystem.update_theme(theme, attrs) do
       {:ok, updated_theme} ->
-        {:noreply, assign(socket, theme: updated_theme, show_accessibility_form: false, show_customize_form: true)}
+        {:noreply,
+         assign(socket,
+           theme: updated_theme,
+           show_accessibility_form: false,
+           show_customize_form: true
+         )}
+
       {:error, _changeset} ->
         {:noreply, assign(socket, show_accessibility_form: false, show_customize_form: true)}
     end
@@ -253,20 +291,26 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeDetailLive do
     attrs = Map.take(theme_params, ["name", "mode"])
     # Handle color fields and normalize keys
     color_fields = ["primary_color", "secondary_color", "accent_color"]
-    new_colors = theme_params
-    |> Map.take(color_fields)
-    |> Enum.map(fn
-      {"primary_color", v} -> {"primary", v}
-      {"secondary_color", v} -> {"secondary", v}
-      {"accent_color", v} -> {"accent", v}
-      {k, v} -> {k, v}
-    end)
-    |> Enum.into(%{})
+
+    new_colors =
+      theme_params
+      |> Map.take(color_fields)
+      |> Enum.map(fn
+        {"primary_color", v} -> {"primary", v}
+        {"secondary_color", v} -> {"secondary", v}
+        {"accent_color", v} -> {"accent", v}
+        {k, v} -> {k, v}
+      end)
+      |> Enum.into(%{})
+
     updated_colors = Map.merge(theme.colors || %{}, new_colors)
     attrs = Map.put(attrs, "colors", updated_colors)
+
     case ThemeSystem.update_theme(theme, attrs) do
       {:ok, updated_theme} ->
-        {:noreply, assign(socket, theme: updated_theme, show_edit_form: false, show_customize_form: true)}
+        {:noreply,
+         assign(socket, theme: updated_theme, show_edit_form: false, show_customize_form: true)}
+
       {:error, _changeset} ->
         {:noreply, assign(socket, show_edit_form: false, show_customize_form: true)}
     end
@@ -276,17 +320,22 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeDetailLive do
   def handle_event("save-typography", %{"theme" => theme_params}, socket) do
     theme = socket.assigns.theme
     settings_fields = ["font_family", "font_size", "line_height"]
-    new_settings = Enum.reduce(settings_fields, theme.settings || %{}, fn field, acc ->
-      if Map.has_key?(theme_params, field) do
-        Map.put(acc, field, theme_params[field])
-      else
-        acc
-      end
-    end)
+
+    new_settings =
+      Enum.reduce(settings_fields, theme.settings || %{}, fn field, acc ->
+        if Map.has_key?(theme_params, field) do
+          Map.put(acc, field, theme_params[field])
+        else
+          acc
+        end
+      end)
+
     attrs = %{"settings" => new_settings}
+
     case ThemeSystem.update_theme(theme, attrs) do
       {:ok, updated_theme} ->
         {:noreply, assign(socket, theme: updated_theme, show_customize_form: false)}
+
       {:error, _changeset} ->
         {:noreply, assign(socket, show_customize_form: false)}
     end
@@ -296,19 +345,24 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeDetailLive do
   def handle_event("save-spacing", %{"theme" => theme_params}, socket) do
     theme = socket.assigns.theme
     settings_fields = ["spacing_unit", "container_padding", "section_margin"]
-    new_settings = Enum.reduce(settings_fields, theme.settings || %{}, fn field, acc ->
-      if Map.has_key?(theme_params, field) do
-        Map.put(acc, field, theme_params[field])
-      else
-        acc
-      end
-    end)
+
+    new_settings =
+      Enum.reduce(settings_fields, theme.settings || %{}, fn field, acc ->
+        if Map.has_key?(theme_params, field) do
+          Map.put(acc, field, theme_params[field])
+        else
+          acc
+        end
+      end)
+
     attrs = %{"settings" => new_settings}
+
     case ThemeSystem.update_theme(theme, attrs) do
       {:ok, updated_theme} ->
         {:noreply, assign(socket, theme: updated_theme, show_customize_form: false)}
+
       {:error, _changeset} ->
         {:noreply, assign(socket, show_customize_form: false)}
     end
   end
-end 
+end

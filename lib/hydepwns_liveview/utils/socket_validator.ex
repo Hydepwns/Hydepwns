@@ -32,7 +32,11 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
       # Broadcast to pub/sub for debug panel (only in dev)
       if Mix.env() == :dev do
         error_data = %{
-          key: (case missing do [h | _] -> h; _ -> nil end),
+          key:
+            case missing do
+              [h | _] -> h
+              _ -> nil
+            end,
           type: "missing_assigns",
           message: "Missing required assigns: #{inspect(missing)}",
           details: %{
@@ -94,22 +98,28 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
         Enum.with_index(value)
         |> Enum.reduce([], fn {element, index}, acc ->
           case validate_type(element, type_spec) do
-            {:ok, _} -> acc
+            {:ok, _} ->
+              acc
+
             {:error, message} ->
               # If the error is a schema or list validation, flatten it
               cond do
                 String.starts_with?(message, "schema validation failed: ") ->
                   nested_error_details = String.slice(message, 26..-1//1)
+
                   nested_error_details
                   |> String.split("; ")
                   |> Enum.map(fn sub_error -> "item at index #{index}.#{sub_error}" end)
-                  |> then(&acc ++ &1)
+                  |> then(&(acc ++ &1))
+
                 String.starts_with?(message, "list validation failed: ") ->
                   nested_error_details = String.slice(message, 22..-1//1)
+
                   nested_error_details
                   |> String.split("; ")
                   |> Enum.map(fn sub_error -> "item at index #{index}.#{sub_error}" end)
-                  |> then(&acc ++ &1)
+                  |> then(&(acc ++ &1))
+
                 true ->
                   acc ++ ["item at index #{index}: #{message}"]
               end
@@ -162,25 +172,33 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
     errors =
       Enum.reduce(schema, [], fn {key, type_spec}, acc ->
         current_path_segment = Atom.to_string(key)
+
         if Map.has_key?(value, key) do
           case validate_type(Map.get(value, key), type_spec) do
-            {:ok, _} -> acc
+            {:ok, _} ->
+              acc
+
             {:error, message} ->
               new_errors =
                 cond do
                   String.starts_with?(message, "schema validation failed: ") ->
                     nested_error_details = String.slice(message, 26..-1//1)
+
                     nested_error_details
                     |> String.split("; ")
                     |> Enum.map(fn sub_error -> "#{current_path_segment}.#{sub_error}" end)
+
                   String.starts_with?(message, "list validation failed: ") ->
                     nested_error_details = String.slice(message, 22..-1//1)
+
                     nested_error_details
                     |> String.split("; ")
                     |> Enum.map(fn sub_error -> "#{current_path_segment}.#{sub_error}" end)
+
                   true ->
                     ["#{current_path_segment}: #{message}"]
                 end
+
               acc ++ new_errors
           end
         else
@@ -202,8 +220,8 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
 
   def validate_type(nil, {:optional, _type_spec}), do: {:ok, nil}
 
-  def validate_type(value, {:optional, map_schema}) 
-    when is_map(map_schema) and not is_struct(map_schema) do
+  def validate_type(value, {:optional, map_schema})
+      when is_map(map_schema) and not is_struct(map_schema) do
     validate_type(value, {:optional, {:map, map_schema}})
   end
 
@@ -213,42 +231,71 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
 
   def validate_type(value, {:nested_list, type_spec}) when is_list(value) do
     if value == [] do
-      Logger.warning("[validate_type] Received empty outer list for nested_list type_spec: #{inspect(type_spec)}")
+      Logger.warning(
+        "[validate_type] Received empty outer list for nested_list type_spec: #{inspect(type_spec)}"
+      )
+
       # Return error for empty outer list unless type_spec is :any or :optional
       case type_spec do
-        :any -> {:ok, value}
-        {:optional, _} -> {:ok, value}
-        _ -> {:error, "outer list is empty, expected at least one sublist of type #{inspect(type_spec)}"}
+        :any ->
+          {:ok, value}
+
+        {:optional, _} ->
+          {:ok, value}
+
+        _ ->
+          {:error,
+           "outer list is empty, expected at least one sublist of type #{inspect(type_spec)}"}
       end
     else
-      outer_errors = Enum.with_index(value) |> Enum.reduce([], fn {sublist, outer_idx}, acc_outer ->
-        if is_list(sublist) do
-          if sublist == [] do
-            Logger.warning("[validate_type] Received empty sublist at index #{outer_idx} for nested_list type_spec: #{inspect(type_spec)}")
-            # Return error for empty sublist unless type_spec is :any or :optional
-            case type_spec do
-              :any -> acc_outer
-              {:optional, _} -> acc_outer
-              _ -> acc_outer ++ ["sublist at index #{outer_idx} is empty, expected at least one element of type #{inspect(type_spec)}"]
+      outer_errors =
+        Enum.with_index(value)
+        |> Enum.reduce([], fn {sublist, outer_idx}, acc_outer ->
+          if is_list(sublist) do
+            if sublist == [] do
+              Logger.warning(
+                "[validate_type] Received empty sublist at index #{outer_idx} for nested_list type_spec: #{inspect(type_spec)}"
+              )
+
+              # Return error for empty sublist unless type_spec is :any or :optional
+              case type_spec do
+                :any ->
+                  acc_outer
+
+                {:optional, _} ->
+                  acc_outer
+
+                _ ->
+                  acc_outer ++
+                    [
+                      "sublist at index #{outer_idx} is empty, expected at least one element of type #{inspect(type_spec)}"
+                    ]
+              end
+            else
+              inner_errors =
+                Enum.with_index(sublist)
+                |> Enum.reduce([], fn {element, inner_idx}, acc_inner ->
+                  case validate_type(element, type_spec) do
+                    {:ok, _} ->
+                      acc_inner
+
+                    {:error, msg} ->
+                      acc_inner ++
+                        ["sublist at index #{outer_idx}, item at index #{inner_idx}: #{msg}"]
+                  end
+                end)
+
+              acc_outer ++ inner_errors
             end
           else
-            inner_errors = Enum.with_index(sublist) |> Enum.reduce([], fn {element, inner_idx}, acc_inner ->
-              case validate_type(element, type_spec) do
-                {:ok, _} -> acc_inner
-                {:error, msg} -> acc_inner ++ ["sublist at index #{outer_idx}, item at index #{inner_idx}: #{msg}"]
-              end
-            end)
-            acc_outer ++ inner_errors
+            acc_outer ++ ["item at index #{outer_idx}: expected a list, got #{inspect(sublist)}"]
           end
-        else
-          acc_outer ++ ["item at index #{outer_idx}: expected a list, got #{inspect(sublist)}"]
-        end
-      end)
+        end)
 
       if Enum.empty?(outer_errors) do
         {:ok, value}
       else
-        {:error, "nested_list validation failed: #{Enum.join(outer_errors, "; " )}"}
+        {:error, "nested_list validation failed: #{Enum.join(outer_errors, "; ")}"}
       end
     end
   end
@@ -257,8 +304,11 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
 
   def validate_type(value, {:list_of_maps, schema}) when is_list(value) do
     if value == [] do
-      Logger.warning("[validate_type] Received empty list for list_of_maps schema: #{inspect(schema)}")
+      Logger.warning(
+        "[validate_type] Received empty list for list_of_maps schema: #{inspect(schema)}"
+      )
     end
+
     errors =
       Enum.with_index(value)
       |> Enum.reduce([], fn {map, index}, acc ->
@@ -323,7 +373,10 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
   @spec safe_assign(Phoenix.LiveView.Socket.t(), map(), list(atom())) ::
           {:ok, Phoenix.LiveView.Socket.t()} | {:error, String.t(), Phoenix.LiveView.Socket.t()}
   def safe_assign(socket, assigns, required_keys \\ []) do
-    socket = Phoenix.Component.assign(socket, assigns)
+    socket =
+      Enum.reduce(Map.to_list(assigns), socket, fn {key, value}, acc ->
+        Phoenix.Component.assign(acc, key, value)
+      end)
 
     case validate_required(socket, required_keys) do
       {:ok, socket} -> {:ok, socket}
@@ -637,7 +690,10 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
 
           Try:
           - Ensure value is from the allowed list
-          - Use a default value: `value = Enum.member?(#{inspect(expected_values)}, #{inspect(value)}) && #{inspect(value)} || #{inspect((case expected_values do [h | _] -> h; _ -> nil end))}`
+          - Use a default value: `value = Enum.member?(#{inspect(expected_values)}, #{inspect(value)}) && #{inspect(value)} || #{inspect(case expected_values do
+            [h | _] -> h
+            _ -> nil
+          end)}`
           - Convert similar values: `String.to_atom(#{inspect(value)})` or `Atom.to_string(#{inspect(value)})`
           """
 
@@ -735,6 +791,7 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
       [_, values_str] ->
         if is_binary(values_str) do
           trimmed = String.trim(values_str)
+
           if trimmed != "" do
             "{:one_of, [" <> trimmed <> "]}"
           else
@@ -743,6 +800,7 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
         else
           nil
         end
+
       _ ->
         nil
     end
@@ -754,6 +812,7 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
       [_, values_str] ->
         if is_binary(values_str) do
           trimmed = String.trim(values_str)
+
           if trimmed != "" do
             trimmed
             |> String.split(",")
@@ -765,6 +824,7 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
         else
           []
         end
+
       _ ->
         []
     end

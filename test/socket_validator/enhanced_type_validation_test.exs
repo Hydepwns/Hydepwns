@@ -447,7 +447,10 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
                )
 
       assert error_message =~ "Invalid type for"
-      assert error_message =~ "theme: expected one of [\"dark\", \"light\"], got: \"invalid-theme\""
+
+      assert error_message =~
+               "theme: expected one of [\"dark\", \"light\"], got: \"invalid-theme\""
+
       assert error_message =~ "notifications: expected boolean"
       assert error_message =~ "display: font_size: expected integer"
     end
@@ -504,7 +507,10 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
                )
 
       assert error_message =~ "Invalid type for"
-      assert error_message =~ "theme: expected one of [\"dark\", \"light\"], got: \"invalid-theme\""
+
+      assert error_message =~
+               "theme: expected one of [\"dark\", \"light\"], got: \"invalid-theme\""
+
       assert error_message =~ "notifications: expected boolean"
       assert error_message =~ "display: font_size: expected integer"
     end

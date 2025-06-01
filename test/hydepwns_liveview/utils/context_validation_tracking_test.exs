@@ -32,17 +32,31 @@ defmodule HydepwnsLiveview.Utils.ContextValidationTrackingTest do
     # Add stub implementations for update_with_tracking/2 and /3
     def update_with_tracking(resource, changes) do
       # Simulate updating the resource and tracking the change
-      current_version = resource |> Map.get(:__change_history__, [%{version: 1}]) |> List.last() |> Map.get(:version, 1)
+      current_version =
+        resource
+        |> Map.get(:__change_history__, [%{version: 1}])
+        |> List.last()
+        |> Map.get(:version, 1)
+
       new_version = current_version + 1
       updated_resource = Map.merge(resource, changes)
-      updated_resource = Map.put(updated_resource, :__change_history__, [%{version: new_version, changes: changes}])
+
+      updated_resource =
+        Map.put(updated_resource, :__change_history__, [%{version: new_version, changes: changes}])
+
       {:ok, updated_resource}
     end
 
     def update_with_tracking(resource, changes, metadata) do
       # Simulate optimistic concurrency control
       expected_version = Map.get(metadata, :expected_version)
-      current_version = resource |> Map.get(:__change_history__, [%{version: 1}]) |> List.last() |> Map.get(:version, 1)
+
+      current_version =
+        resource
+        |> Map.get(:__change_history__, [%{version: 1}])
+        |> List.last()
+        |> Map.get(:version, 1)
+
       if expected_version && expected_version != current_version do
         {:error, :stale_resource}
       else
@@ -51,15 +65,20 @@ defmodule HydepwnsLiveview.Utils.ContextValidationTrackingTest do
           # Simulate validation rules
           validation_rules = Map.get(metadata, :validation_rules, [])
           validation_context = Map.get(metadata, :validation_context, %{})
+
           errors =
             Enum.reduce_while(validation_rules, [], fn rule, acc ->
               rule_fn = __validation_rules__()[rule]
+
               case rule_fn.(Map.merge(resource, changes), validation_context) do
                 :ok -> {:cont, acc}
                 {:error, msg} -> {:halt, [msg | acc]}
               end
             end)
-          if errors == [], do: update_with_tracking(resource, changes), else: {:error, Enum.join(errors, ", ")}
+
+          if errors == [],
+            do: update_with_tracking(resource, changes),
+            else: {:error, Enum.join(errors, ", ")}
         else
           update_with_tracking(resource, changes)
         end

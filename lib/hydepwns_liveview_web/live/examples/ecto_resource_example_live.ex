@@ -29,7 +29,8 @@ defmodule HydepwnsLiveviewWeb.Examples.EctoResourceExampleLive do
       role: "editor",
       active: true
     }
-
+    default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()
+    theme_class = "#{default_theme.mode}-theme"
     # Validate the user data against the Ecto schema via the adapter
     case EctoUserResource.validate(user_data) do
       {:ok, validated_user} ->
@@ -38,15 +39,14 @@ defmodule HydepwnsLiveviewWeb.Examples.EctoResourceExampleLive do
           |> assign(:user_id, validated_user.id)
           |> assign(:user, validated_user)
           |> assign(:loading, false)
-
+          |> assign(:theme_class, theme_class)
         socket
-
       {:error, message} ->
         socket =
           socket
           |> assign(:error_message, "Failed to validate user: #{message}")
           |> assign(:loading, false)
-
+          |> assign(:theme_class, theme_class)
         socket
     end
   end

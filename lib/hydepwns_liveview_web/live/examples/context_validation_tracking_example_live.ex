@@ -105,13 +105,14 @@ defmodule HydepwnsLiveviewWeb.Examples.ContextValidationTrackingExampleLive do
         notifications: true
       }
     }
-
+    default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()
+    theme_class = "#{default_theme.mode}-theme"
     # Update the socket with the user
     socket =
       socket
       |> assign(:user, initial_user)
       |> assign(:form_data, initial_user)
-
+      |> assign(:theme_class, theme_class)
     {:ok, socket}
   end
 

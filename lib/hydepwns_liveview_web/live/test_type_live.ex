@@ -57,4 +57,4 @@ defmodule HydepwnsLiveview.TypeValidationTest.TestTypeLive do
 
   defp maybe_assign(socket, _key, nil), do: socket
   defp maybe_assign(socket, key, value), do: Phoenix.Component.assign(socket, key, value)
-end 
+end

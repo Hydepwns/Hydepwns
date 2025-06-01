@@ -33,21 +33,21 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
   def do_mount(_params, _session, socket) do
     # Get the list of available resource types from the application
     resource_modules = get_resource_modules()
-
     # Default to the first resource type if available
     default_resource_type =
       case resource_modules do
         [first | _] -> first
         _ -> nil
       end
-
+    default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()
+    theme_class = "#{default_theme.mode}-theme"
     socket =
       socket
       |> assign(:resource_modules, resource_modules)
       |> assign(:selected_resource_type, nil)
       |> assign(:resources, [])
       |> assign(:page_title, "Resource Dashboard")
-      |> assign(:theme_class, "default-theme")
+      |> assign(:theme_class, theme_class)
       |> assign(:show_toc, false)
       |> assign(:toc_items, [])
       |> assign(:images, [])
@@ -59,7 +59,6 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
       |> assign(:current_resource, nil)
       |> assign(:resource_events, [])
       |> assign(:show_filters, false)
-
     # If we have a default resource type, select it
     socket =
       if default_resource_type do
@@ -67,12 +66,10 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
       else
         socket
       end
-
     # Subscribe to resource events
     if connected?(socket) do
       EventBus.subscribe(self(), "resource:*")
     end
-
     socket
   end
 
@@ -199,6 +196,7 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
   def handle_event("new-resource", _params, socket) do
     if socket.assigns.selected_resource_type do
       changeset = socket.assigns.selected_resource_type.changeset(%{})
+
       {:noreply,
        socket
        |> assign(:view_mode, :edit)
@@ -215,6 +213,7 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
     socket = load_resource(socket, resource_id)
     resource = socket.assigns.current_resource
     changeset = socket.assigns.selected_resource_type.changeset(resource)
+
     {:noreply,
      socket
      |> assign(:view_mode, :edit)
@@ -225,10 +224,12 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
   @impl true
   def handle_event("save-resource", %{"resource" => resource_params}, socket) do
     resource_module = socket.assigns.selected_resource_type
+
     case socket.assigns.edit_mode do
       :create ->
         resource_id = "#{resource_module.resource_type()}-#{Ecto.UUID.generate()}"
         result = create_resource(resource_module, resource_id, resource_params)
+
         case result do
           {:ok, _event} ->
             {:noreply,
@@ -237,24 +238,30 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
              |> push_patch(
                to: ~p"/admin/resources?resource_type=#{resource_module.resource_type()}&view=list"
              )}
+
           {:error, %Ecto.Changeset{} = changeset} ->
             {:noreply, assign(socket, changeset: changeset)}
+
           {:error, reason} ->
             {:noreply,
              socket
              |> put_flash(:error, "Failed to create resource: #{inspect(reason)}")}
         end
+
       :update ->
         resource_id = socket.assigns.current_resource.id
         result = update_resource(resource_module, resource_id, resource_params)
+
         case result do
           {:ok, _event} ->
             {:noreply,
              socket
              |> put_flash(:info, "Resource updated successfully")
              |> push_patch(to: ~p"/admin/resources?resource_id=#{resource_id}&view=detail")}
+
           {:error, %Ecto.Changeset{} = changeset} ->
             {:noreply, assign(socket, changeset: changeset)}
+
           {:error, reason} ->
             {:noreply,
              socket
@@ -491,7 +498,7 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
                       <input type="text" id={to_string(field)} name={"resource[#{field}]"} value={Ecto.Changeset.get_field(@changeset, field) || ""} />
                     <% end %>
                     <%= if error = @changeset.errors[field] do %>
-                      <div class="error-message" data-test-id="error-message"><%= elem(error, 0) %></div>
+                      <div class="error-message" data-test-id="error-message">{elem(error, 0)}</div>
                     <% end %>
                   </div>
                 <% end %>
@@ -547,7 +554,9 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
     socket =
       if socket.assigns.selected_resource_type &&
            socket.assigns.selected_resource_type.resource_type() == "document" do
-        parent_resources = ResourceSystem.list_resources() |> Enum.filter(fn r -> r.type == "folder" end)
+        parent_resources =
+          ResourceSystem.list_resources() |> Enum.filter(fn r -> r.type == "folder" end)
+
         assign(socket, :parent_resources, parent_resources)
       else
         assign(socket, :parent_resources, nil)

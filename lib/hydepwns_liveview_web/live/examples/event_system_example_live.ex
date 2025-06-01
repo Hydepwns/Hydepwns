@@ -142,6 +142,7 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
           |> assign(:projection_state, state)
 
         {:noreply, socket}
+
       nil ->
         socket = assign(socket, :event_result, "Invalid projection index")
         {:noreply, socket}
@@ -168,6 +169,7 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
           |> assign(:event_result, "Projection rebuild initiated")
 
         {:noreply, socket}
+
       nil ->
         socket = assign(socket, :event_result, "Invalid projection index")
         {:noreply, socket}

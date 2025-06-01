@@ -13,10 +13,12 @@ defmodule HydepwnsLiveviewWeb.Live.Docs.ApiDocsLive do
 
   @impl true
   def do_mount(_params, _session, socket) do
+    default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()
+    theme_class = "#{default_theme.mode}-theme"
     socket
     |> PathHelper.assign_specific_path("/api-docs")
     |> assign(:page_title, "API Documentation")
-    |> assign(:theme_class, "dark-theme")
+    |> assign(:theme_class, theme_class)
     |> assign(:show_toc, true)
     |> assign(:toc_items, [
       {"intro", "Introduction"},

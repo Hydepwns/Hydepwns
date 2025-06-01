@@ -10,6 +10,7 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
       socket
       |> assign(:page_title, "Resource Dashboard")
       |> assign(:resources, ResourceSystem.list_resources())
+
     socket
   end
 
@@ -26,7 +27,8 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
       <ul>
         <%= for resource <- @resources do %>
           <li>
-            <.link navigate={~p"/resources/#{resource.id}"} data-test-id={"resource-link-#{resource.id}"}>{resource.name}</.link> (Type: {resource.type}, ID: {resource.id})
+            <.link navigate={~p"/resources/#{resource.id}"} data-test-id={"resource-link-#{resource.id}"}>{resource.name}</.link>
+            (Type: {resource.type}, ID: {resource.id})
             <div class="resource-actions">
               <.link navigate={~p"/resources/#{resource.id}/edit"}>Edit</.link>
               <.link navigate={~p"/resources/#{resource.id}/manage-subscriptions"}>Manage Subscriptions</.link>

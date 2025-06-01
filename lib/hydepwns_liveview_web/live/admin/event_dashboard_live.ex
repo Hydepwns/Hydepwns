@@ -30,6 +30,8 @@ defmodule HydepwnsLiveviewWeb.Admin.EventDashboardLive do
 
   @impl true
   def do_mount(_params, _session, socket) do
+    default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()
+    theme_class = "#{default_theme.mode}-theme"
     if connected?(socket) do
       # Start auto-refresh timer
       Process.send_after(self(), :refresh_metrics, @refresh_interval)
@@ -45,6 +47,7 @@ defmodule HydepwnsLiveviewWeb.Admin.EventDashboardLive do
             |> assign(:metrics, metrics)
             |> assign(:error, nil)
             |> assign(:refresh_interval, @refresh_interval)
+            |> assign(:theme_class, theme_class)
 
           # Set up alerting system - auto-refresh every minute
           EventMonitor.setup_alerting(
@@ -60,10 +63,10 @@ defmodule HydepwnsLiveviewWeb.Admin.EventDashboardLive do
           {:ok, socket}
 
         {:error, reason} ->
-          {:ok, assign(socket, :error, "Failed to load metrics: #{inspect(reason)}")}
+          {:ok, assign(socket, :error, "Failed to load metrics: #{inspect(reason)}") |> assign(:theme_class, theme_class)}
       end
     else
-      {:ok, assign(socket, :metrics, nil)}
+      {:ok, assign(socket, :metrics, nil) |> assign(:theme_class, theme_class)}
     end
   end
 

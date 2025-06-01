@@ -5,18 +5,19 @@ defmodule HydepwnsLiveviewWeb.ResourceSubscriptionLive do
   def mount(%{"id" => id}, _session, socket) do
     # In a real app, load current subscriptions from DB or API
     {:ok,
-      socket
-      |> assign(:resource_id, id)
-      |> assign(:selected_events, [])
-      |> assign(:status, nil)
-    }
+     socket
+     |> assign(:resource_id, id)
+     |> assign(:selected_events, [])
+     |> assign(:status, nil)}
   end
 
   @impl true
   def handle_event("save_subscriptions", %{"events" => events}, socket) do
     # In a real app, persist subscriptions
-    {:noreply, assign(socket, :selected_events, events) |> assign(:status, "Subscriptions updated!")}
+    {:noreply,
+     assign(socket, :selected_events, events) |> assign(:status, "Subscriptions updated!")}
   end
+
   def handle_event("save_subscriptions", _params, socket) do
     {:noreply, assign(socket, :selected_events, []) |> assign(:status, "Subscriptions updated!")}
   end
@@ -48,4 +49,4 @@ defmodule HydepwnsLiveviewWeb.ResourceSubscriptionLive do
     </div>
     """
   end
-end 
+end

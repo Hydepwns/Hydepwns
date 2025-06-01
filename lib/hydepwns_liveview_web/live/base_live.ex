@@ -115,7 +115,7 @@ defmodule HydepwnsLiveviewWeb.BaseLive do
         # Initialize history tracker for assign values in dev
         socket =
           if Mix.env() == :dev do
-            Phoenix.Component.assign_new(socket, :__validation_history__, %{})
+            Phoenix.Component.assign_new(socket, :__validation_history__, fn -> %{} end)
           else
             socket
           end

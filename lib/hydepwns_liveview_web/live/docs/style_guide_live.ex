@@ -9,13 +9,17 @@ defmodule HydepwnsLiveviewWeb.StyleGuideLive do
 
   alias HydepwnsLiveviewWeb.Components.Common.ThemeToggle
   alias HydepwnsLiveviewWeb.Helpers.PathHelper
+  alias HydepwnsLiveview.ThemeSystem
 
   @impl true
   def do_mount(_params, _session, socket) do
+    default_theme = ThemeSystem.ensure_default_theme()
+    theme_class = "#{default_theme.mode}-theme"
+
     socket
     |> PathHelper.assign_specific_path("/style-guide")
     |> assign(:page_title, "Style Guide")
-    |> assign(:theme_class, "dark-theme")
+    |> assign(:theme_class, theme_class)
     |> assign(:high_contrast_enabled, false)
     |> assign(:reduced_motion_code, """
     @media (prefers-reduced-motion: reduce) {

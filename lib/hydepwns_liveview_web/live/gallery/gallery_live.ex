@@ -30,11 +30,12 @@ defmodule HydepwnsLiveviewWeb.GalleryLive do
         description: "A fox in an office setting."
       }
     ]
-
+    default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()
+    theme_class = "#{default_theme.mode}-theme"
     socket
     |> PathHelper.assign_specific_path("/gallery")
     |> assign(:page_title, "Image Gallery")
-    |> assign(:theme_class, "dark-theme")
+    |> assign(:theme_class, theme_class)
     |> assign(:show_toc, true)
     |> assign(:toc_items, [
       {"gallery", "Image Gallery"},

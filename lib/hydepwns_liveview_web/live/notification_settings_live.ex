@@ -34,13 +34,7 @@ defmodule HydepwnsLiveviewWeb.NotificationSettingsLive do
               <p class="text-gray-500">Receive notifications via email</p>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                class="sr-only peer"
-                checked={@settings.email_notifications}
-                phx-click="toggle_setting"
-                phx-value-setting="email_notifications"
-              />
+              <input type="checkbox" class="sr-only peer" checked={@settings.email_notifications} phx-click="toggle_setting" phx-value-setting="email_notifications" />
               <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
               </div>
             </label>
@@ -52,13 +46,7 @@ defmodule HydepwnsLiveviewWeb.NotificationSettingsLive do
               <p class="text-gray-500">Receive notifications in your browser</p>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                class="sr-only peer"
-                checked={@settings.push_notifications}
-                phx-click="toggle_setting"
-                phx-value-setting="push_notifications"
-              />
+              <input type="checkbox" class="sr-only peer" checked={@settings.push_notifications} phx-click="toggle_setting" phx-value-setting="push_notifications" />
               <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
               </div>
             </label>
@@ -70,14 +58,7 @@ defmodule HydepwnsLiveviewWeb.NotificationSettingsLive do
               <p class="text-gray-500">Minimize animations and transitions</p>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                class="sr-only peer"
-                checked={@settings.reduced_motion}
-                phx-click="toggle_setting"
-                phx-value-setting="reduced_motion"
-                name="reduced_motion"
-              />
+              <input type="checkbox" class="sr-only peer" checked={@settings.reduced_motion} phx-click="toggle_setting" phx-value-setting="reduced_motion" name="reduced_motion" />
               <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
               </div>
             </label>
@@ -87,4 +68,4 @@ defmodule HydepwnsLiveviewWeb.NotificationSettingsLive do
     </div>
     """
   end
-end 
+end

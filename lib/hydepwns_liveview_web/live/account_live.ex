@@ -21,21 +21,11 @@ defmodule HydepwnsLiveviewWeb.AccountLive do
           <div class="space-y-4">
             <div>
               <label class="block text-gray-700 text-sm font-bold mb-2">Name</label>
-              <input
-                type="text"
-                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                value="John Doe"
-                disabled
-              />
+              <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="John Doe" disabled />
             </div>
             <div>
               <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
-              <input
-                type="email"
-                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                value="john@example.com"
-                disabled
-              />
+              <input type="email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="john@example.com" disabled />
             </div>
           </div>
         </div>
@@ -43,18 +33,10 @@ defmodule HydepwnsLiveviewWeb.AccountLive do
         <div class="bg-white shadow-lg rounded-lg p-6">
           <h2 class="text-xl font-semibold mb-4">Settings</h2>
           <div class="space-y-4">
-            <.link
-              navigate={~p"/account/notifications"}
-              class="block text-blue-600 hover:text-blue-800"
-              data-test-id="notification-settings-link"
-            >
+            <.link navigate={~p"/account/notifications"} class="block text-blue-600 hover:text-blue-800" data-test-id="notification-settings-link">
               Notification Settings
             </.link>
-            <.link
-              navigate={~p"/terminal"}
-              class="block text-blue-600 hover:text-blue-800"
-              data-test-id="terminal-link"
-            >
+            <.link navigate={~p"/terminal"} class="block text-blue-600 hover:text-blue-800" data-test-id="terminal-link">
               Terminal
             </.link>
           </div>
@@ -63,4 +45,4 @@ defmodule HydepwnsLiveviewWeb.AccountLive do
     </div>
     """
   end
-end 
+end

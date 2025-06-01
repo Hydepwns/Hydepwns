@@ -35,10 +35,12 @@ defmodule HydepwnsLiveviewWeb.GridPlaygroundLive do
 
   @impl true
   def do_mount(_params, _session, socket) do
+    default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()
+    theme_class = "#{default_theme.mode}-theme"
     socket
     |> PathHelper.assign_specific_path("/grid-playground")
     |> assign(:page_title, "Grid Playground")
-    |> assign(:theme_class, "dark-theme")
+    |> assign(:theme_class, theme_class)
     |> assign(:grid_columns, 40)
     |> assign(:cell_width, "1ch")
     |> assign(:cell_height, "1.5rem")

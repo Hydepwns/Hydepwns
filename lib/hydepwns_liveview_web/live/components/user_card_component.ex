@@ -18,7 +18,11 @@ defmodule HydepwnsLiveviewWeb.LiveComponents.UserCardComponent do
   Fetches the user resource if it's not already provided.
   """
   def update(assigns, socket) do
-    socket = assign(socket, assigns)
+    socket =
+      socket
+      |> assign(:id, assigns.id)
+      |> assign(:resource_id, assigns.resource_id)
+      # Add more explicit assigns as needed based on expected assigns keys
 
     resource =
       if Map.has_key?(assigns, :resource) do

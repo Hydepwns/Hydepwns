@@ -9,6 +9,7 @@ defmodule HydepwnsLiveviewWeb.ProjectsLive do
     ]
 
   alias HydepwnsLiveviewWeb.Helpers.PathHelper
+  alias HydepwnsLiveview.ThemeSystem
 
   @impl true
   def do_mount(_params, _session, socket) do
@@ -20,10 +21,13 @@ defmodule HydepwnsLiveviewWeb.ProjectsLive do
     +--------+    +---------+    +--------+
     """
 
+    default_theme = ThemeSystem.ensure_default_theme()
+    theme_class = "#{default_theme.mode}-theme"
+
     socket
     |> PathHelper.assign_specific_path("/projects")
     |> assign(:page_title, "Projects")
-    |> assign(:theme_class, "dark-theme")
+    |> assign(:theme_class, theme_class)
     |> assign(:show_toc, true)
     |> assign(:toc_items, [
       {"personal", "Personal Projects"},

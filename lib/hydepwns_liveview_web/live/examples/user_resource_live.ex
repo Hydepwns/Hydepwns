@@ -15,10 +15,13 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceLive do
   # Example mount function that assigns user data
   @impl HydepwnsLiveviewWeb.BaseLive.Behaviour
   def do_mount(_params, _session, socket) do
+    default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()
+    theme_class = "#{default_theme.mode}-theme"
     # Add example user data to the socket
     socket =
       socket
       |> assign(:page_title, "User Resource Example")
+      |> assign(:theme_class, theme_class)
       |> assign(:user, %{
         id: "user_123",
         username: "example_user",
@@ -44,8 +47,7 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceLive do
           details: "Updated profile information"
         }
       ])
-
-    socket
+    {:ok, socket}
   end
 
   def handle_event("update_role", %{"role" => role}, socket) do

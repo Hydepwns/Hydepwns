@@ -14,13 +14,16 @@ defmodule HydepwnsLiveviewWeb.ResourceShowLive do
           resource
           |> MapHelpers.unwrap_data()
           |> MapHelpers.stringify_keys()
+
         socket =
           socket
           |> assign(:page_title, "Show Resource")
           |> assign(:resource, resource)
           |> assign(:resource_not_found, false)
           |> assign_new(:flash_group_id, fn -> "resource-show-flash" end)
+
         socket
+
       {:error, _reason} ->
         socket =
           socket
@@ -28,6 +31,7 @@ defmodule HydepwnsLiveviewWeb.ResourceShowLive do
           |> assign(:resource, nil)
           |> assign(:resource_not_found, true)
           |> assign_new(:flash_group_id, fn -> "resource-show-flash" end)
+
         socket
     end
   end
@@ -49,10 +53,10 @@ defmodule HydepwnsLiveviewWeb.ResourceShowLive do
         <p class="resource-status" data-test-id="resource-status">Status: {Map.get(@resource, "status", "N/A")}</p>
         <div class="resource-content" data-test-id="resource-content">
           <% content = Map.get(@resource, "content", "N/A") %>
-          <%= content %>
+          {content}
         </div>
         <div class="resource-html" data-test-id="resource-html">
-          <div :if={Map.has_key?(@resource, "html_content") && Map.get(@resource, "html_content")}> 
+          <div :if={Map.has_key?(@resource, "html_content") && Map.get(@resource, "html_content")}>
             <h3>Rendered HTML:</h3>
             <div>{raw(Map.get(@resource, "html_content"))}</div>
           </div>

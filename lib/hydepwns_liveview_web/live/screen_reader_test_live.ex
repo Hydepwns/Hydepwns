@@ -9,10 +9,12 @@ defmodule HydepwnsLiveviewWeb.ScreenReaderTestLive do
 
   @impl true
   def do_mount(_params, _session, socket) do
+    default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()
+    theme_class = "#{default_theme.mode}-theme"
     socket
     |> PathHelper.assign_specific_path("/screen-reader-test")
     |> assign(:page_title, "Screen Reader Test")
-    |> assign(:theme_class, "dark-theme")
+    |> assign(:theme_class, theme_class)
   end
 
   @impl true

@@ -16,6 +16,7 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
   alias HydepwnsLiveviewWeb.Helpers.TocHelper
   alias HydepwnsLiveviewWeb.Helpers.PathHelper
   alias HydepwnsLiveviewWeb.Helpers.ViewportHelper
+  alias HydepwnsLiveview.ThemeSystem
   import HydepwnsLiveviewWeb.Components.UI.ThemeToggle, only: [theme_toggle: 1]
   import HydepwnsLiveviewWeb.Components.UI.DebugGrid, only: [debug_grid: 1]
   import HydepwnsLiveviewWeb.Components.UI.AccessibilityMenu, only: [accessibility_menu: 1]
@@ -48,13 +49,13 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
     # Get viewport size
     viewport_size = ViewportHelper.get_viewport_size(socket)
 
-    # Determine the current theme
-    theme = get_session_theme(socket)
+    default_theme = ThemeSystem.ensure_default_theme()
+    theme_class = "#{default_theme.mode}-theme"
 
     socket
     |> PathHelper.assign_specific_path("/")
     |> assign(:page_title, "Home")
-    |> assign(:theme_class, "#{theme}-theme")
+    |> assign(:theme_class, theme_class)
     |> assign(:show_toc, true)
     |> assign(:toc_items, [
       {"introduction", "Introduction"},
@@ -246,18 +247,6 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
       end)
 
     {:noreply, socket}
-  end
-
-  # Helper to get theme from session
-  defp get_session_theme(socket) do
-    case get_connect_params(socket) do
-      %{"theme" => theme} when theme in ["dark", "light", "dim", "synthwave"] ->
-        theme
-
-      _ ->
-        # Default theme
-        "dark"
-    end
   end
 
   @impl true

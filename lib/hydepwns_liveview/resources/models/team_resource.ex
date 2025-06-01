@@ -97,10 +97,13 @@ defmodule HydepwnsLiveview.Resources.TeamResource do
     case event.type do
       "team.created" ->
         struct(state, Map.merge(Map.from_struct(state), event.data))
+
       "team.updated" ->
         struct(state, Map.merge(Map.from_struct(state), event.data))
+
       "team.deleted" ->
         %{state | active: false}
+
       _ ->
         struct(state, Map.merge(Map.from_struct(state), event.data || %{}))
     end
@@ -113,17 +116,23 @@ defmodule HydepwnsLiveview.Resources.TeamResource do
 
   @doc """
   Validates a team resource map or struct. Returns {:ok, struct} or {:error, errors}.
-  
+
   # NOTE: Do not use this directly in LiveView forms or controllers. Use `changeset/1` for form validation.
   """
   def validate(attrs) when is_map(attrs) do
     errors = []
-    errors = if is_nil(attrs["name"]) or attrs["name"] == "", do: [{:name, "Team name cannot be empty"} | errors], else: errors
+
+    errors =
+      if is_nil(attrs["name"]) or attrs["name"] == "",
+        do: [{:name, "Team name cannot be empty"} | errors],
+        else: errors
+
     if errors == [], do: {:ok, struct(__MODULE__, attrs)}, else: {:error, errors}
   end
 
   def changeset(attrs) when is_map(attrs) do
     attrs = for {k, v} <- attrs, into: %{}, do: {to_string(k), v}
+
     types = %{
       id: :string,
       name: :string,
@@ -131,16 +140,20 @@ defmodule HydepwnsLiveview.Resources.TeamResource do
       created_at: :utc_datetime,
       active: :boolean
     }
+
     case validate(attrs) do
       {:ok, _struct} ->
         {%{}, types}
         |> Ecto.Changeset.cast(attrs, Map.keys(types))
+
       {:error, errors} ->
         changeset = {%{}, types} |> Ecto.Changeset.cast(attrs, Map.keys(types))
+
         Enum.reduce(errors, changeset, fn {field, msg}, cs ->
           Ecto.Changeset.add_error(cs, field, msg)
         end)
     end
   end
+
   def changeset(_), do: Ecto.Changeset.change(%{})
 end

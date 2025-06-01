@@ -13,7 +13,9 @@ defmodule HydepwnsLiveview.Events.EventSourcedResource do
     as: CoreEventSourcedResource
 
   # Delegate all public functions to the core implementation with matching names
-  defdelegate rebuild_from_events(events, initial_state, apply_event_fn), to: CoreEventSourcedResource
+  defdelegate rebuild_from_events(events, initial_state, apply_event_fn),
+    to: CoreEventSourcedResource
+
   defdelegate get_current_state(resource_module, id), to: CoreEventSourcedResource
 
   # Removed: defdelegate list_resources(resource_module), to: CoreEventSourcedResource

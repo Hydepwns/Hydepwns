@@ -43,5 +43,6 @@ defmodule HydepwnsLiveview.Events.EventStore do
   defdelegate get_replay_session_events(session_id), to: CoreEventStore
   defdelegate get_snapshots(resource_type, resource_id), to: CoreEventStore
 
-  defdelegate save_versioned_state(resource_type, resource_id, state, opts \\ []), to: CoreEventStore
+  defdelegate save_versioned_state(resource_type, resource_id, state, opts \\ []),
+    to: CoreEventStore
 end

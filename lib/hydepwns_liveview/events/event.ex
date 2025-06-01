@@ -16,7 +16,9 @@ defmodule HydepwnsLiveview.Events.Event do
           :ok -> {:ok, event}
           error -> error
         end
-      error -> error
+
+      error ->
+        error
     end
   end
 

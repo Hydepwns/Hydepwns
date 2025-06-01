@@ -38,7 +38,9 @@ defmodule HydepwnsLiveview.Events.Core.EventSupervisor do
       {EventStore, []},
 
       # Projection supervisor for managing projections
-      {ProjectionSupervisor, []}
+      {ProjectionSupervisor, []},
+
+      {HydepwnsLiveview.Events.Handlers.HandlerSupervisor, []}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)

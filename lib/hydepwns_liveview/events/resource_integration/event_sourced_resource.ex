@@ -609,10 +609,16 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
   * `{:error, reason}` - If the resource could not be reconstructed
   """
   def get_current_state(resource_module, id) do
-    with {:ok, events} <- HydepwnsLiveview.Events.Core.EventStore.get_events_for_resource(resource_module.resource_type(), id) do
-      state = Enum.reduce(events, resource_module.initial_state(), fn event, acc ->
-        resource_module.apply_event(event, acc)
-      end)
+    with {:ok, events} <-
+           HydepwnsLiveview.Events.Core.EventStore.get_events_for_resource(
+             resource_module.resource_type(),
+             id
+           ) do
+      state =
+        Enum.reduce(events, resource_module.initial_state(), fn event, acc ->
+          resource_module.apply_event(event, acc)
+        end)
+
       {:ok, state}
     else
       error -> error

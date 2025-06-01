@@ -103,7 +103,9 @@ defmodule HydepwnsLiveview.Utils.ResourceDSL do
             cardinality: :many,
             foreign_key: Keyword.get(through_opts, :foreign_key, nil)
           }
+
           Module.put_attribute(__MODULE__, :relationships, relationship_def)
+
         _ ->
           raise ArgumentError, "has_many_through expects opts: [through: [rel1, rel2]]"
       end
@@ -122,7 +124,9 @@ defmodule HydepwnsLiveview.Utils.ResourceDSL do
             cardinality: :one,
             foreign_key: Keyword.get(through_opts, :foreign_key, nil)
           }
+
           Module.put_attribute(__MODULE__, :relationships, relationship_def)
+
         _ ->
           raise ArgumentError, "has_one_through expects opts: [through: [rel1, rel2]]"
       end
@@ -134,6 +138,7 @@ defmodule HydepwnsLiveview.Utils.ResourceDSL do
       case opts do
         [types: allowed_types] ->
           polymorphic_name = Keyword.get(poly_opts, :polymorphic_name, name)
+
           relationship_def = %{
             name: name,
             type: :polymorphic,
@@ -141,7 +146,9 @@ defmodule HydepwnsLiveview.Utils.ResourceDSL do
             allowed_types: allowed_types,
             cardinality: Keyword.get(poly_opts, :cardinality, :one)
           }
+
           Module.put_attribute(__MODULE__, :relationships, relationship_def)
+
         _ ->
           raise ArgumentError, "polymorphic expects opts: [types: allowed_types]"
       end

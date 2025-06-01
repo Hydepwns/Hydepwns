@@ -353,6 +353,7 @@ defmodule HydepwnsLiveview.Utils.ValidationErrorReporter do
 
         # Update the tree
         %{tree | children: Map.put(children, first, updated_child)}
+
       [] ->
         # If path is empty, just add the error at the root
         existing_errors = Map.get(tree, :errors, [])

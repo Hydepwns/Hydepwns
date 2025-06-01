@@ -933,10 +933,11 @@ defmodule HydepwnsLiveview.Utils.ValidationDependencyResolver do
           updated_state
           | visited: MapSet.put(updated_state.visited, validation_id),
             temp_visited: MapSet.delete(updated_state.temp_visited, validation_id),
-            current_path: (case updated_state.current_path do
-              [_ | rest] -> rest
-              [] -> []
-            end)
+            current_path:
+              case updated_state.current_path do
+                [_ | rest] -> rest
+                [] -> []
+              end
         }
       end
     end

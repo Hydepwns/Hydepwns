@@ -111,10 +111,13 @@ defmodule HydepwnsLiveview.Resources.PostResource do
     case event.type do
       "post.created" ->
         struct(state, Map.merge(Map.from_struct(state), event.data))
+
       "post.updated" ->
         struct(state, Map.merge(Map.from_struct(state), event.data))
+
       "post.deleted" ->
         %{state | published: false}
+
       _ ->
         struct(state, Map.merge(Map.from_struct(state), event.data || %{}))
     end
@@ -127,17 +130,23 @@ defmodule HydepwnsLiveview.Resources.PostResource do
 
   @doc """
   Validates a post resource map or struct. Returns {:ok, struct} or {:error, errors}.
-  
+
   # NOTE: Do not use this directly in LiveView forms or controllers. Use `changeset/1` for form validation.
   """
   def validate(attrs) when is_map(attrs) do
     errors = []
-    errors = if is_nil(attrs["title"]) or attrs["title"] == "", do: [{:title, "Title cannot be empty"} | errors], else: errors
+
+    errors =
+      if is_nil(attrs["title"]) or attrs["title"] == "",
+        do: [{:title, "Title cannot be empty"} | errors],
+        else: errors
+
     if errors == [], do: {:ok, struct(__MODULE__, attrs)}, else: {:error, errors}
   end
 
   def changeset(attrs) when is_map(attrs) do
     attrs = for {k, v} <- attrs, into: %{}, do: {to_string(k), v}
+
     types = %{
       id: :string,
       title: :string,
@@ -148,16 +157,20 @@ defmodule HydepwnsLiveview.Resources.PostResource do
       author_id: :string,
       team_id: :string
     }
+
     case validate(attrs) do
       {:ok, _struct} ->
         {%{}, types}
         |> Ecto.Changeset.cast(attrs, Map.keys(types))
+
       {:error, errors} ->
         changeset = {%{}, types} |> Ecto.Changeset.cast(attrs, Map.keys(types))
+
         Enum.reduce(errors, changeset, fn {field, msg}, cs ->
           Ecto.Changeset.add_error(cs, field, msg)
         end)
     end
   end
+
   def changeset(_), do: Ecto.Changeset.change(%{})
 end

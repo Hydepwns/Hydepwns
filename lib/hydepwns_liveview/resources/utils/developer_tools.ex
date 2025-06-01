@@ -773,14 +773,17 @@ defmodule HydepwnsLiveview.Resources.DeveloperTools do
         |> Enum.flat_map(fn {event, index} ->
           if index < length(sorted_events) - 1 do
             case Enum.at(sorted_events, index + 1, nil) do
-              nil -> []
-              next_event -> [
-                %{
-                  source: event.id,
-                  target: next_event.id,
-                  type: "correlation"
-                }
-              ]
+              nil ->
+                []
+
+              next_event ->
+                [
+                  %{
+                    source: event.id,
+                    target: next_event.id,
+                    type: "correlation"
+                  }
+                ]
             end
           else
             []

@@ -36,6 +36,7 @@ defmodule HydepwnsLiveview.Resources.CrossResourceTracker do
 
     def changeset(change_group, attrs) do
       attrs = for {k, v} <- attrs, into: %{}, do: {to_string(k), v}
+
       change_group
       |> cast(attrs, [:name, :description, :user_id, :correlation_id, :metadata])
       |> validate_required([:name, :user_id])
@@ -63,6 +64,7 @@ defmodule HydepwnsLiveview.Resources.CrossResourceTracker do
 
     def changeset(change, attrs) do
       attrs = for {k, v} <- attrs, into: %{}, do: {to_string(k), v}
+
       change
       |> cast(attrs, [
         :resource_type,

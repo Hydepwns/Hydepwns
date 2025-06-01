@@ -434,6 +434,7 @@ defmodule HydepwnsLiveview.Resources.OrderResource do
   # Returns an Ecto.Changeset for use in LiveView forms
   def changeset(attrs) when is_map(attrs) do
     attrs = for {k, v} <- attrs, into: %{}, do: {to_string(k), v}
+
     types = %{
       status: :string,
       items: :map,
@@ -450,17 +451,25 @@ defmodule HydepwnsLiveview.Resources.OrderResource do
       fulfilled_at: :utc_datetime,
       cancelled_at: :utc_datetime
     }
+
     errors = []
-    errors = if is_nil(attrs["customer_id"]) or attrs["customer_id"] == "", do: [{:customer_id, "Customer ID can't be blank"} | errors], else: errors
+
+    errors =
+      if is_nil(attrs["customer_id"]) or attrs["customer_id"] == "",
+        do: [{:customer_id, "Customer ID can't be blank"} | errors],
+        else: errors
+
     if errors == [] do
       {%{}, types}
       |> Ecto.Changeset.cast(attrs, Map.keys(types))
     else
       changeset = {%{}, types} |> Ecto.Changeset.cast(attrs, Map.keys(types))
+
       Enum.reduce(errors, changeset, fn {field, msg}, cs ->
         Ecto.Changeset.add_error(cs, field, msg)
       end)
     end
   end
+
   def changeset(_), do: Ecto.Changeset.change(%{})
 end

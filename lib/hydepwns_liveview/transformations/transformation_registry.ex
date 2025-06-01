@@ -285,7 +285,9 @@ defmodule HydepwnsLiveview.Transformations.TransformationRegistry do
 
   defp topological_sort_visit(graph, nodes, sorted) do
     case nodes do
-      [] -> Enum.reverse(sorted)
+      [] ->
+        Enum.reverse(sorted)
+
       [node | rest] ->
         # Remove this node from the dependency lists of all other nodes
         new_graph =

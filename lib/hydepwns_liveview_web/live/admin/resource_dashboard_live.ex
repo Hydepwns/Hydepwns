@@ -59,6 +59,7 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
       |> assign(:current_resource, nil)
       |> assign(:resource_events, [])
       |> assign(:show_filters, false)
+      |> assign_new(:errors, fn -> %{} end)
     # If we have a default resource type, select it
     socket =
       if default_resource_type do
@@ -125,14 +126,20 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
 
   @impl true
   def handle_event("load-resource", %{"resource-id" => resource_id}, socket) do
-    {:noreply,
-     push_patch(socket, to: ~p"/admin/resources?resource_id=#{resource_id}&view=detail")}
+    if is_nil(resource_id) or resource_id == "" do
+      {:noreply, push_patch(socket, to: ~p"/admin/resources?view=list")}
+    else
+      {:noreply, push_patch(socket, to: ~p"/admin/resources?resource_id=#{resource_id}&view=detail")}
+    end
   end
 
   @impl true
   def handle_event("view-resource-events", %{"resource-id" => resource_id}, socket) do
-    {:noreply,
-     push_patch(socket, to: ~p"/admin/resources?resource_id=#{resource_id}&view=events")}
+    if is_nil(resource_id) or resource_id == "" do
+      {:noreply, push_patch(socket, to: ~p"/admin/resources?view=list")}
+    else
+      {:noreply, push_patch(socket, to: ~p"/admin/resources?resource_id=#{resource_id}&view=events")}
+    end
   end
 
   @impl true
@@ -142,8 +149,11 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
         do: socket.assigns.selected_resource_type.resource_type(),
         else: nil
 
-    {:noreply,
-     push_patch(socket, to: ~p"/admin/resources?resource_type=#{resource_type}&view=list")}
+    if is_nil(resource_type) or resource_type == "" do
+      {:noreply, push_patch(socket, to: ~p"/admin/resources?view=list")}
+    else
+      {:noreply, push_patch(socket, to: ~p"/admin/resources?resource_type=#{resource_type}&view=list")}
+    end
   end
 
   @impl true
@@ -240,7 +250,7 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
              )}
 
           {:error, %Ecto.Changeset{} = changeset} ->
-            {:noreply, assign(socket, changeset: changeset)}
+            {:noreply, assign(socket, changeset: changeset) |> assign_new(:errors, fn -> changeset.errors || %{} end)}
 
           {:error, reason} ->
             {:noreply,
@@ -260,7 +270,7 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
              |> push_patch(to: ~p"/admin/resources?resource_id=#{resource_id}&view=detail")}
 
           {:error, %Ecto.Changeset{} = changeset} ->
-            {:noreply, assign(socket, changeset: changeset)}
+            {:noreply, assign(socket, changeset: changeset) |> assign_new(:errors, fn -> changeset.errors || %{} end)}
 
           {:error, reason} ->
             {:noreply,
@@ -392,9 +402,11 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
                         <% end %>
                       <% end %>
                       <td class="actions">
-                        <.link navigate={~p"/admin/resources?resource_id=#{resource.id}&view=detail"} class="btn btn-sm btn-outline-primary" data-test-id={"resource-link-#{resource.id}"} data-resource-name={resource.name}>View</.link>
-                        <.link navigate={~p"/admin/resources?resource_id=#{resource.id}&view=events"} class="btn btn-sm btn-outline-info" data-test-id={"resource-events-link-#{resource.id}"} data-resource-name={resource.name}>View Events</.link>
-                        <.link navigate={~p"/admin/resources?resource_id=#{resource.id}&view=events"} class="btn btn-sm btn-outline-info" data-test-id={"resource-events-link-#{resource.id}-alt"} data-resource-name={resource.name}>Events</.link>
+                        <%= if resource.id do %>
+                          <.link navigate={~p"/admin/resources?resource_id=#{resource.id}&view=detail"} class="btn btn-sm btn-outline-primary" data-test-id={"resource-link-#{resource.id}"} data-resource-name={resource.name}>View</.link>
+                          <.link navigate={~p"/admin/resources?resource_id=#{resource.id}&view=events"} class="btn btn-sm btn-outline-info" data-test-id={"resource-events-link-#{resource.id}"} data-resource-name={resource.name}>View Events</.link>
+                          <.link navigate={~p"/admin/resources?resource_id=#{resource.id}&view=events"} class="btn btn-sm btn-outline-info" data-test-id={"resource-events-link-#{resource.id}-alt"} data-resource-name={resource.name}>Events</.link>
+                        <% end %>
                       </td>
                     </tr>
                   <% end %>
@@ -431,8 +443,10 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
                   Edit
                 </button>
                 <button class="btn btn-danger" phx-click="delete-resource" phx-value-resource-id={@current_resource.id} data-confirm="Are you sure you want to delete this resource? This action cannot be undone." data-test-id="delete-resource">Delete Resource</button>
-                <.link navigate={~p"/admin/resources?resource_id=#{@current_resource.id}&view=events"} class="btn btn-sm btn-outline-info" data-test-id="view-events-link">View Events</.link>
-                <.link navigate={~p"/admin/resources?resource_id=#{@current_resource.id}&view=events"} class="btn btn-sm btn-outline-info">Events</.link>
+                <%= if @current_resource && @current_resource.id do %>
+                  <.link navigate={~p"/admin/resources?resource_id=#{@current_resource.id}&view=events"} class="btn btn-sm btn-outline-info" data-test-id="view-events-link">View Events</.link>
+                  <.link navigate={~p"/admin/resources?resource_id=#{@current_resource.id}&view=events"} class="btn btn-sm btn-outline-info">Events</.link>
+                <% end %>
               </div>
             <% else %>
               <div class="empty-state">

@@ -1,4 +1,4 @@
-defmodule HydepwnsLiveview.TypeValidationTest.TestTypeLive do
+defmodule HydepwnsLiveviewWeb.TestTypeLive do
   use HydepwnsLiveviewWeb.BaseLive,
     required_assigns: [:string_value, :integer_value, :theme],
     type_specs: %{
@@ -14,15 +14,17 @@ defmodule HydepwnsLiveview.TypeValidationTest.TestTypeLive do
       id_or_name: {:union, [:integer, :string]}
     }
 
-  def mount(_params, session, socket) do
-    socket =
-      socket
-      |> Phoenix.Component.assign(:string_value, Map.get(session, "string_value", "default"))
-      |> Phoenix.Component.assign(:integer_value, Map.get(session, "integer_value", 42))
-      |> Phoenix.Component.assign(:theme, Map.get(session, "theme", "dark"))
-      |> assign_optional_values(session)
+  def mount(params, session, socket) do
+    super(params, session, socket)
+  end
 
-    {:ok, socket}
+  @impl HydepwnsLiveviewWeb.BaseLive.Behaviour
+  def do_mount(_params, session, socket) do
+    socket
+    |> Phoenix.Component.assign(:string_value, Map.get(session, "string_value", "default"))
+    |> Phoenix.Component.assign(:integer_value, Map.get(session, "integer_value", 42))
+    |> Phoenix.Component.assign(:theme, Map.get(session, "theme", "dark"))
+    |> assign_optional_values(session)
   end
 
   def render(assigns) do
@@ -56,5 +58,14 @@ defmodule HydepwnsLiveview.TypeValidationTest.TestTypeLive do
   end
 
   defp maybe_assign(socket, _key, nil), do: socket
+  defp maybe_assign(socket, key, value) when is_map(value), do: Phoenix.Component.assign(socket, key, atomize_keys(value))
   defp maybe_assign(socket, key, value), do: Phoenix.Component.assign(socket, key, value)
+
+  defp atomize_keys(map) when is_map(map) do
+    for {k, v} <- map, into: %{} do
+      key = if is_binary(k), do: String.to_atom(k), else: k
+      value = if is_map(v), do: atomize_keys(v), else: v
+      {key, value}
+    end
+  end
 end

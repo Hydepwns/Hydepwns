@@ -44,6 +44,11 @@ defmodule HydepwnsLiveviewWeb.ThemeController do
   Shows a single theme.
   Phoenix controller action: renders the show page for a theme by ID.
   """
+  def show(conn, %{"id" => "new"}) do
+    changeset = HydepwnsLiveview.ThemeSystem.change_theme(%Theme{})
+    render(conn, :new, changeset: changeset)
+  end
+
   def show(conn, %{"id" => id}) do
     theme = HydepwnsLiveview.ThemeSystem.get_theme!(id)
     render(conn, :show, theme: theme)
@@ -53,6 +58,11 @@ defmodule HydepwnsLiveviewWeb.ThemeController do
   Renders the form for editing an existing theme.
   Phoenix controller action: renders the edit form for a theme by ID.
   """
+  def edit(conn, %{"id" => "new"}) do
+    changeset = HydepwnsLiveview.ThemeSystem.change_theme(%Theme{})
+    render(conn, :new, changeset: changeset)
+  end
+
   def edit(conn, %{"id" => id}) do
     theme = HydepwnsLiveview.ThemeSystem.get_theme!(id)
     changeset = HydepwnsLiveview.ThemeSystem.change_theme(theme)
@@ -83,11 +93,17 @@ defmodule HydepwnsLiveviewWeb.ThemeController do
   Phoenix controller action: handles DELETE for a theme by ID.
   """
   def delete(conn, %{"id" => id}) do
-    theme = HydepwnsLiveview.ThemeSystem.get_theme!(id)
-    {:ok, _theme} = HydepwnsLiveview.ThemeSystem.delete_theme(theme)
+    if is_nil(id) or id == "" do
+      conn
+      |> put_flash(:error, "Invalid theme id.")
+      |> redirect(to: Routes.theme_path(conn, :index))
+    else
+      theme = HydepwnsLiveview.ThemeSystem.get_theme!(id)
+      {:ok, _theme} = HydepwnsLiveview.ThemeSystem.delete_theme(theme)
 
-    conn
-    |> put_flash(:info, "Theme deleted successfully.")
-    |> redirect(to: Routes.theme_path(conn, :index))
+      conn
+      |> put_flash(:info, "Theme deleted successfully.")
+      |> redirect(to: Routes.theme_path(conn, :index))
+    end
   end
 end

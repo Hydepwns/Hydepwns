@@ -10,6 +10,7 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
       socket
       |> assign(:page_title, "Resource Dashboard")
       |> assign(:resources, ResourceSystem.list_resources())
+      |> assign_new(:errors, fn -> %{} end)
 
     socket
   end

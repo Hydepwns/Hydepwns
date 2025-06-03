@@ -20,6 +20,7 @@ defmodule HydepwnsLiveviewWeb.TestErrorLive do
       <ul :if={@items && Enum.any?(@items)}>
         <li :for={item <- @items}>{item}</li>
       </ul>
+      <div phx-click="update_status" data-test-id="status-clickable-div" style="display:inline-block;cursor:pointer;">Click to update status</div>
     </div>
     """
   end

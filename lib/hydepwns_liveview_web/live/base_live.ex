@@ -181,6 +181,8 @@ defmodule HydepwnsLiveviewWeb.BaseLive do
 
       # Validate types of assigns based on type_specs
       defp validate_assign_types(socket) do
+        IO.puts("[DEBUG] validate_assign_types/1 called with assigns: #{inspect(socket.assigns)}")
+        Logger.warn("[DEBUG] validate_assign_types/1 called with assigns: #{inspect(socket.assigns)}")
         # Process assigns with type specs
         final_socket =
           Enum.reduce(__get_type_specs_map__(), socket, fn {key, type_spec}, acc_socket ->
@@ -197,6 +199,8 @@ defmodule HydepwnsLiveviewWeb.BaseLive do
                   acc_socket_with_history
 
                 {:error, simple_error_message, _socket_from_validator} ->
+                  IO.puts("[DEBUG] Validation error for key: #{inspect(key)}")
+                  Logger.warn("[DEBUG] Validation error for key: #{inspect(key)}")
                   view_module = acc_socket_with_history.assigns.view || __MODULE__
 
                   # Determine runtime validation behavior

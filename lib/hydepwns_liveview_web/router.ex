@@ -83,6 +83,13 @@ defmodule HydepwnsLiveviewWeb.Router do
 
     live "/account", AccountLive, :index
     live "/account/notifications", NotificationSettingsLive, :index
+
+    # Test-only route for type validation tests
+    if Mix.env() == :test do
+      live_session :test_types, on_mount: [] do
+        live "/test-types", TestTypeLive
+      end
+    end
   end
 
   # Development-only routes
@@ -95,13 +102,6 @@ defmodule HydepwnsLiveviewWeb.Router do
 
       live_dashboard "/dashboard", metrics: HydepwnsLiveviewWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
-    end
-  end
-
-  # Test-only route for type validation tests
-  if Mix.env() == :test do
-    scope "/", HydepwnsLiveviewWeb do
-      live "/test-types", HydepwnsLiveview.TypeValidationTest.TestTypeLive
     end
   end
 end

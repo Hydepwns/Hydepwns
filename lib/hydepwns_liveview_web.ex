@@ -98,6 +98,7 @@ defmodule HydepwnsLiveviewWeb do
     quote do
       # HTML escaping functionality
       import Phoenix.HTML
+      import Phoenix.HTML.Form
       # Core UI components and translation
       import HydepwnsLiveviewWeb.CoreComponents, except: [theme_toggle: 1]
       import HydepwnsLiveviewWeb.Gettext

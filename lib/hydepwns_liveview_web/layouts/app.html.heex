@@ -4,6 +4,13 @@
     <title>App Layout</title>
   </head>
   <body>
+    <nav>
+      <ul>
+        <li>
+          <a href={~p"/style-guide"} class={if Map.get(assigns, :current_path) == "/style-guide", do: "active"}>Style Guide</a>
+        </li>
+      </ul>
+    </nav>
     {@inner_content}
   </body>
 </html>

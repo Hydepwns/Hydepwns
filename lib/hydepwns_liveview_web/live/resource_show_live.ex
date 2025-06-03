@@ -38,6 +38,7 @@ defmodule HydepwnsLiveviewWeb.ResourceShowLive do
 
   @impl true
   def render(assigns) do
+    resource = if assigns[:resource], do: HydepwnsLiveview.Utils.MapHelpers.stringify_keys(assigns.resource), else: nil
     ~H"""
     <.flash_group flash={@flash} flash_group_id="resource-show-flash-group" />
     <div>
@@ -46,27 +47,27 @@ defmodule HydepwnsLiveviewWeb.ResourceShowLive do
         <p>Sorry, the requested resource could not be found.</p>
         <div data-test-id="error-message">Unable to load resource</div>
       </div>
-      <div :if={!@resource_not_found && @resource}>
-        <h1 class="resource-name" data-test-id="resource-name">{Map.get(@resource, "name", "N/A")} (#{Map.get(@resource, "id", "N/A")})</h1>
-        <p class="resource-description">Description: {Map.get(@resource, "description", "N/A")}</p>
-        <p class="resource-type">Type: {Map.get(@resource, "type", "N/A")}</p>
-        <p class="resource-status" data-test-id="resource-status">Status: {Map.get(@resource, "status", "N/A")}</p>
+      <div :if={!@resource_not_found && resource}>
+        <h1 class="resource-name" data-test-id="resource-name">{Map.get(resource, "name", "N/A")} (#{Map.get(resource, "id", "N/A")})</h1>
+        <p class="resource-description">Description: {Map.get(resource, "description", "N/A")}</p>
+        <p class="resource-type">Type: {Map.get(resource, "type", "N/A")}</p>
+        <p class="resource-status" data-test-id="resource-status">Status: {Map.get(resource, "status", "N/A")}</p>
         <div class="resource-content" data-test-id="resource-content">
-          <% content = Map.get(@resource, "content", "N/A") %>
+          <% content = Map.get(resource, "content", "N/A") %>
           {content}
         </div>
         <div class="resource-html" data-test-id="resource-html">
-          <div :if={Map.has_key?(@resource, "html_content") && Map.get(@resource, "html_content")}>
+          <div :if={Map.has_key?(resource, "html_content") && Map.get(resource, "html_content")}>
             <h3>Rendered HTML:</h3>
-            <div>{raw(Map.get(@resource, "html_content"))}</div>
+            <div>{raw(Map.get(resource, "html_content"))}</div>
           </div>
         </div>
 
         <div class="resource-relationships"></div>
 
-        <.link navigate={~p"/resources/#{Map.get(@resource, "id")}/edit"}>Edit Resource</.link>
-        <.link navigate={~p"/admin/event-dashboard?resource_id=#{Map.get(@resource, "id")}"}>View Events</.link>
-        <.link navigate={~p"/resources/#{Map.get(@resource, "id")}/manage-subscriptions"}>Manage Subscriptions</.link>
+        <.link navigate={~p"/resources/#{Map.get(resource, "id")}/edit"}>Edit Resource</.link>
+        <.link navigate={~p"/admin/event-dashboard?resource_id=#{Map.get(resource, "id")}"}>View Events</.link>
+        <.link navigate={~p"/resources/#{Map.get(resource, "id")}/manage-subscriptions"}>Manage Subscriptions</.link>
       </div>
       <br />
       <.link navigate={~p"/resources"}>Back to Resources</.link>

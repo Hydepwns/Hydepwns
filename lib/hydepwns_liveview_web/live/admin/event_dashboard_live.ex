@@ -60,13 +60,13 @@ defmodule HydepwnsLiveviewWeb.Admin.EventDashboardLive do
           # Initial notifications state
           _notifications = []
 
-          {:ok, socket}
+          socket
 
         {:error, reason} ->
-          {:ok, assign(socket, :error, "Failed to load metrics: #{inspect(reason)}") |> assign(:theme_class, theme_class)}
+          assign(socket, :error, "Failed to load metrics: #{inspect(reason)}") |> assign(:theme_class, theme_class)
       end
     else
-      {:ok, assign(socket, :metrics, nil) |> assign(:theme_class, theme_class)}
+      assign(socket, :metrics, nil) |> assign(:theme_class, theme_class)
     end
   end
 

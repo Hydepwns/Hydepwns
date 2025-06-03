@@ -563,7 +563,7 @@ defmodule HydepwnsLiveviewWeb.Components.Debug.SocketValidationPanel do
       user_id: 123,
       theme: "dark",
       items: ["Item 1", "Item 2", "Item 3"],
-      user: %{name: "Test User", role: "admin"},
+      user: %{id: 1, name: "Test User", role: "admin"},
       count: 42,
       active: true
     }

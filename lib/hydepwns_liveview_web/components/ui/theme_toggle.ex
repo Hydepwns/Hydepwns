@@ -53,9 +53,9 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ThemeToggle do
       case HydepwnsLiveview.ThemeSystem.list_themes() do
         [] ->
           [
-            %{name: "light", mode: "light", is_default: true},
-            %{name: "dark", mode: "dark", is_default: false},
-            %{name: "system", mode: "system", is_default: false}
+            %{id: "light", name: "light", mode: "light", is_default: true},
+            %{id: "dark", name: "dark", mode: "dark", is_default: false},
+            %{id: "system", name: "system", mode: "system", is_default: false}
           ]
 
         db_themes ->
@@ -73,8 +73,22 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ThemeToggle do
           phx-click="change_theme"
           phx-value-theme={theme.name}
           phx-hook="ThemeToggle"
-          aria-label={"#{String.capitalize(theme.name)} theme"}
-          title={"#{String.capitalize(theme.name)} theme"}
+          aria-label={cond do
+            theme.name == "light" -> "Light theme"
+            theme.name == "dark" -> "Dark theme"
+            theme.name == "system" -> "System theme"
+            String.starts_with?(to_string(theme.name), "high-contrast") -> "High contrast theme"
+            String.starts_with?(to_string(theme.name), "dim") -> "Dim theme"
+            true -> "#{String.capitalize(to_string(theme.name))} theme"
+          end}
+          title={cond do
+            theme.name == "light" -> "Light theme"
+            theme.name == "dark" -> "Dark theme"
+            theme.name == "system" -> "System theme"
+            String.starts_with?(to_string(theme.name), "high-contrast") -> "High contrast theme"
+            String.starts_with?(to_string(theme.name), "dim") -> "Dim theme"
+            true -> "#{String.capitalize(to_string(theme.name))} theme"
+          end}
           aria-pressed={if theme.is_default, do: "true", else: "false"}
           type="button"
           class={"theme-button #{theme.name}-button"}
@@ -93,12 +107,12 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ThemeToggle do
           </span>
           <span class="theme-label">
             {cond do
-              theme.name == "light" -> "Light"
-              theme.name == "dark" -> "Dark"
-              theme.name == "system" -> "System"
-              String.starts_with?(to_string(theme.name), "high-contrast") -> "High contrast"
-              String.starts_with?(to_string(theme.name), "dim") -> "Dim"
-              true -> String.capitalize(to_string(theme.name))
+              theme.name == "light" -> "Light theme"
+              theme.name == "dark" -> "Dark theme"
+              theme.name == "system" -> "System theme"
+              String.starts_with?(to_string(theme.name), "high-contrast") -> "High contrast theme"
+              String.starts_with?(to_string(theme.name), "dim") -> "Dim theme"
+              true -> "#{String.capitalize(to_string(theme.name))} theme"
             end}
           </span>
         </button>

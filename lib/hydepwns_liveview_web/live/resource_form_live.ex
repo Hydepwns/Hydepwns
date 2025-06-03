@@ -17,7 +17,8 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
        status: "active",
        parent_id: nil
      })
-     |> assign(:parent_resources, ResourceSystem.list_resources())}
+     |> assign(:parent_resources, ResourceSystem.list_resources())
+     |> assign_new(:errors, fn -> %{} end)}
   end
 
   @impl true
@@ -25,11 +26,11 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
     case ResourceSystem.create_resource(resource_params) do
       {:ok, resource} ->
         Event.create("resource.created", %{resource: resource})
-
+        to_path = if is_nil(resource.id) or resource.id == "", do: ~p"/resources", else: ~p"/resources/#{resource.id}"
         {:noreply,
          socket
          |> put_flash(:info, "Resource created successfully")
-         |> redirect(to: ~p"/resources")}
+         |> redirect(to: to_path)}
 
       {:error, errors} ->
         # errors is a list of {field, message}
@@ -46,11 +47,13 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
 
   @impl true
   def render(assigns) do
+    assigns = Map.put_new(assigns, :errors, %{})
+    resource = HydepwnsLiveview.Utils.MapHelpers.stringify_keys(assigns.resource)
     ~H"""
     <div class="container mx-auto px-4 py-8">
       <h1 class="text-3xl font-bold mb-8">Create New Resource</h1>
 
-      <.form :let={_f} for={@resource} phx-submit="save" class="max-w-lg mx-auto bg-white shadow-lg rounded-lg p-6">
+      <.form :let={_f} for={resource} phx-submit="save" class="max-w-lg mx-auto bg-white shadow-lg rounded-lg p-6">
         <div class="mb-4">
           <label class="block text-gray-700 text-sm font-bold mb-2" for="resource_name">
             Name

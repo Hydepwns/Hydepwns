@@ -261,7 +261,7 @@ defmodule HydepwnsLiveviewWeb.StyleGuideLive do
           <h3>High Contrast Mode</h3>
           <p>A high contrast mode is available for users who need increased contrast.</p>
           <button class="high-contrast-toggle" phx-click="toggle_high_contrast">
-            Enable High Contrast
+            {if @high_contrast_enabled, do: "Disable High Contrast", else: "Enable High Contrast"}
           </button>
 
           <h3>Accessible Links</h3>

@@ -5,7 +5,7 @@ defmodule HydepwnsLiveview.Utils.ChangeTrackerTest do
   describe "track_change/3" do
     test "tracks changes to a resource" do
       resource = %{
-        id: "123",
+        id: "test-id",
         name: "Original Name",
         email: "original@example.com",
         active: true,
@@ -49,7 +49,7 @@ defmodule HydepwnsLiveview.Utils.ChangeTrackerTest do
 
     test "supports selective field tracking" do
       resource = %{
-        id: "123",
+        id: "test-id",
         name: "Original Name",
         email: "original@example.com",
         role: "user"

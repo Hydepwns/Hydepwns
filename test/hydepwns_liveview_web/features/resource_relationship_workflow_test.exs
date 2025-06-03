@@ -19,10 +19,18 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
     unique = System.unique_integer([:positive])
 
     {:ok, parent} =
-      ResourceFixtures.create_test_resource(%{name: "Parent Resource #{unique}", type: "folder"})
+      ResourceFixtures.create_test_resource(%{
+        id: "parent-#{unique}",
+        name: "Parent Resource #{unique}",
+        type: "folder"
+      })
 
     {:ok, child} =
-      ResourceFixtures.create_test_resource(%{name: "Child Resource #{unique}", type: "document"})
+      ResourceFixtures.create_test_resource(%{
+        id: "child-#{unique}",
+        name: "Child Resource #{unique}",
+        type: "document"
+      })
 
     # Add Mox expectation for fetch_data
     MockHelper.setup_mocks()

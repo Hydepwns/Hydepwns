@@ -17,7 +17,10 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
   alias HydepwnsLiveviewWeb.MockHelper
 
   setup %{session: session} do
-    {:ok, resource_fixture} = ResourceFixtures.create_test_resource(%{name: "Test Resource"})
+    {:ok, resource_fixture} = ResourceFixtures.create_test_resource(%{
+      id: "test-resource-id",
+      name: "Test Resource"
+    })
     MockHelper.setup_mocks()
 
     MockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
@@ -200,7 +203,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
         HydepwnsLiveview.Events.ResourceEventGenerator.resource_created(
           HydepwnsLiveview.Resources.TestResource,
           "live-update-test",
-          %{name: "Live Update Test"}
+          %{id: "live-update-test", name: "Live Update Test"}
         )
 
       # Verify the UI updates automatically (with small wait for update)

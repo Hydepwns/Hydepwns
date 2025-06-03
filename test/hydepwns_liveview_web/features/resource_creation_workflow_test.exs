@@ -18,6 +18,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
   setup do
     # Create a resource directly for the dashboard
     HydepwnsLiveview.Resources.ResourceSystem.create_resource(%{
+      id: "test-user-id",
       name: "Test User",
       description: "A test user resource",
       type: "document",
@@ -93,8 +94,8 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
           html = Wallaby.Browser.page_source(session)
 
           IO.puts(
-            "\n===== DEBUG: Name can't be blank error NOT FOUND =====\n" <>
-              html <> "\n===============================\n"
+            "\n ===== DEBUG: Name can't be blank error NOT FOUND ===== \n" <>
+              html <> "\n ================================ \n"
           )
 
           reraise(e, __STACKTRACE__)
@@ -110,8 +111,8 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
           html = Wallaby.Browser.page_source(session)
 
           IO.puts(
-            "\n===== DEBUG: Description can't be blank error NOT FOUND =====\n" <>
-              html <> "\n===============================\n"
+            "\n ===== DEBUG: Description can't be blank error NOT FOUND ===== \n" <>
+              html <> "\n ================================ \n"
           )
 
           reraise(e, __STACKTRACE__)
@@ -139,8 +140,8 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
           html = Wallaby.Browser.page_source(session)
 
           IO.puts(
-            "\n===== DEBUG: flash-success NOT FOUND =====\n" <>
-              html <> "\n===============================\n"
+            "\n ===== DEBUG: flash-success NOT FOUND ===== \n" <>
+              html <> "\n ================================ \n"
           )
 
           reraise(e, __STACKTRACE__)
@@ -154,8 +155,8 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
           html = Wallaby.Browser.page_source(session)
 
           IO.puts(
-            "\n===== DEBUG: resource-name NOT FOUND =====\n" <>
-              html <> "\n===============================\n"
+            "\n ===== DEBUG: resource-name NOT FOUND ===== \n" <>
+              html <> "\n ================================ \n"
           )
 
           reraise(e, __STACKTRACE__)
@@ -185,8 +186,8 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
           html = Wallaby.Browser.page_source(session)
 
           IO.puts(
-            "\n===== DEBUG: resource-type NOT FOUND =====\n" <>
-              html <> "\n===============================\n"
+            "\n ===== DEBUG: resource-type NOT FOUND ===== \n" <>
+              html <> "\n ================================ \n"
           )
 
           reraise(e, __STACKTRACE__)
@@ -199,8 +200,8 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
           html = Wallaby.Browser.page_source(session)
 
           IO.puts(
-            "\n===== DEBUG: resource-status NOT FOUND =====\n" <>
-              html <> "\n===============================\n"
+            "\n ===== DEBUG: resource-status NOT FOUND ===== \n" <>
+              html <> "\n ================================ \n"
           )
 
           reraise(e, __STACKTRACE__)
@@ -210,8 +211,8 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
       Wallaby.Browser.take_screenshot(session, name: "resource-creation-after-submit")
 
       IO.puts(
-        "\n===== RESOURCE CREATION HTML AFTER SUBMIT =====\n" <>
-          Wallaby.Browser.page_source(session) <> "\n===============================\n"
+        "\n ===== RESOURCE CREATION HTML AFTER SUBMIT ===== \n" <>
+          Wallaby.Browser.page_source(session) <> "\n ================================ \n"
       )
     end
 

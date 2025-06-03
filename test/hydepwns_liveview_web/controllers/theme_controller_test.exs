@@ -11,25 +11,32 @@ defmodule HydepwnsLiveviewWeb.ThemeControllerTest do
 
   @create_attrs %{
     name: "some name",
-    type: "light",
-    primary_color: "#4A90E2",
-    secondary_color: "#50E3C2",
-    font_family: "monospace",
-    font_size: "14px"
+    mode: "light",
+    colors: %{
+      primary: "#4A90E2",
+      secondary: "#50E3C2"
+    },
+    settings: %{
+      font_family: "monospace",
+      font_size: "14px"
+    }
   }
   @update_attrs %{
     name: "some updated name",
-    type: "dark",
-    primary_color: "#000000",
-    secondary_color: "#FFFFFF",
-    font_family: "sans-serif",
-    font_size: "16px"
+    mode: "dark",
+    colors: %{
+      primary: "#000000",
+      secondary: "#FFFFFF"
+    },
+    settings: %{
+      font_family: "sans-serif",
+      font_size: "16px"
+    }
   }
-  @invalid_attrs %{name: nil, type: nil}
+  @invalid_attrs %{name: nil, mode: nil}
 
   def fixture(:theme) do
-    ensure_theme_exists(@create_attrs)
-    theme = HydepwnsLiveview.ThemeSystem.get_theme_by_name(@create_attrs.name)
+    {:ok, theme} = HydepwnsLiveview.ThemeSystem.create_theme(@create_attrs)
     theme
   end
 
@@ -68,8 +75,11 @@ defmodule HydepwnsLiveviewWeb.ThemeControllerTest do
     setup [:create_theme]
 
     test "renders form for editing chosen theme", %{conn: conn, theme: theme} do
+      assert is_map(theme) and Map.has_key?(theme, :id) and not is_nil(theme.id), "Test setup error: theme is nil or missing id"
       conn = get(conn, ~p"/themes/#{theme}/edit")
-      assert html_response(conn, 200) =~ "Edit Theme"
+      body = html_response(conn, 200)
+      IO.puts("\n--- Edit Theme Response Body ---\n" <> body <> "\n--- END ---\n")
+      assert body =~ "Edit Theme"
     end
   end
 
@@ -77,6 +87,7 @@ defmodule HydepwnsLiveviewWeb.ThemeControllerTest do
     setup [:create_theme]
 
     test "redirects when data is valid", %{conn: conn, theme: theme} do
+      assert is_map(theme) and Map.has_key?(theme, :id) and not is_nil(theme.id), "Test setup error: theme is nil or missing id"
       conn = put(conn, ~p"/themes/#{theme}", theme: @update_attrs)
       assert redirected_to(conn) == ~p"/themes/#{theme}"
 
@@ -85,6 +96,7 @@ defmodule HydepwnsLiveviewWeb.ThemeControllerTest do
     end
 
     test "renders errors when data is invalid", %{conn: conn, theme: theme} do
+      assert is_map(theme) and Map.has_key?(theme, :id) and not is_nil(theme.id), "Test setup error: theme is nil or missing id"
       conn = put(conn, ~p"/themes/#{theme}", theme: @invalid_attrs)
       assert html_response(conn, 200) =~ "Edit Theme"
     end
@@ -94,6 +106,7 @@ defmodule HydepwnsLiveviewWeb.ThemeControllerTest do
     setup [:create_theme]
 
     test "deletes chosen theme", %{conn: conn, theme: theme} do
+      assert is_map(theme) and Map.has_key?(theme, :id) and not is_nil(theme.id), "Test setup error: theme is nil or missing id"
       conn = delete(conn, ~p"/themes/#{theme}")
       assert redirected_to(conn) == ~p"/themes"
 

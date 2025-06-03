@@ -50,8 +50,8 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
 
     @tag :external_api_integration
     test "allows user to update resource data", %{conn: conn} do
-      # Set up expectations for initial data fetch
-      MockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
+      # Set up expectations for initial data fetch (expect 2 calls: initial load and after update)
+      expect(HydepwnsLiveview.MockExternalAPI, :fetch_data, 2, fn _id ->
         {:ok, %{"id" => "123", "name" => "Test Resource", "status" => "active"}}
       end)
 

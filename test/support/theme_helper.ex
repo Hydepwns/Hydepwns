@@ -7,6 +7,7 @@ defmodule ThemeHelper do
   alias HydepwnsLiveview.ThemeSystem
 
   @default_theme %{
+    "id" => "default",
     "name" => "Default Theme",
     "mode" => "light",
     "colors" => %{"primary" => "#3b82f6", "background" => "#ffffff", "text" => "#1f2937"},
@@ -21,12 +22,19 @@ defmodule ThemeHelper do
 
   @doc """
   Ensures at least one theme exists in the DB. Creates a default theme if none exist.
+  Returns the created or found theme struct.
   """
   def ensure_theme_exists(attrs \\ %{}) do
-    if ThemeSystem.list_themes() == [] do
-      ThemeSystem.create_theme(Map.merge(@default_theme, attrs))
+    themes = ThemeSystem.list_themes()
+    cond do
+      themes == [] ->
+        {:ok, theme} = ThemeSystem.create_theme(Map.merge(@default_theme, attrs))
+        theme
+      Map.has_key?(attrs, :name) or Map.has_key?(attrs, "name") ->
+        name = Map.get(attrs, :name) || Map.get(attrs, "name")
+        ThemeSystem.get_theme_by_name(name) || List.first(themes)
+      true ->
+        List.first(themes)
     end
-
-    :ok
   end
 end

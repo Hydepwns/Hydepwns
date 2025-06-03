@@ -22,6 +22,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
 
     {:ok, resource} =
       ResourceFixtures.create_test_resource(%{
+        id: "test-resource-id",
         name: "Test Resource",
         type: "document",
         content: "Initial content"

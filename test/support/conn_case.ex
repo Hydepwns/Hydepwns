@@ -35,7 +35,7 @@ defmodule HydepwnsLiveviewWeb.ConnCase do
         # Configure test routes
         Application.put_env(:hydepwns_liveview, HydepwnsLiveviewWeb.Router,
           live_routes: [
-            {"/test-types", HydepwnsLiveview.TypeValidationTest.TestTypeLive},
+            {"/test-types", HydepwnsLiveviewWeb.TestTypeLive},
             {"/", HydepwnsLiveviewWeb.HomeLive}
           ]
         )

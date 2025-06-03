@@ -221,6 +221,7 @@ defmodule HydepwnsLiveview.ThemeSystemTest do
 
     test "validate_theme/1 validates theme parameters" do
       valid_params = %{
+        id: "valid-theme-id",
         name: "valid-theme",
         mode: "light",
         colors: %{},
@@ -233,6 +234,7 @@ defmodule HydepwnsLiveview.ThemeSystemTest do
       assert valid_changeset.errors == []
 
       invalid_params = %{
+        id: "invalid-theme-id",
         name: nil,
         mode: "invalid-mode",
         colors: %{},

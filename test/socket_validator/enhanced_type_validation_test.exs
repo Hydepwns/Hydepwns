@@ -11,8 +11,8 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
           nested_strings: [["a", "b"], ["c", "d"]],
           nested_mixed: [["a", 1], ["b", 2]],
           nested_complex: [
-            [%{name: "user1"}, %{name: "user2"}],
-            [%{name: "user3"}, %{name: "user4"}]
+            [%{name: "user1", id: "id1"}, %{name: "user2", id: "id2"}],
+            [%{name: "user3", id: "id3"}, %{name: "user4", id: "id4"}]
           ]
         )
 
@@ -55,10 +55,11 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
             name: "Test User",
             tags: ["tag1", "tag2"],
             friends: [
-              %{name: "Friend 1", age: 30},
-              %{name: "Friend 2", age: 25}
+              %{name: "Friend 1", age: 30, id: "f1"},
+              %{name: "Friend 2", age: 25, id: "f2"}
             ],
-            scores: [98, 87, 92]
+            scores: [98, 87, 92],
+            id: "user-id"
           },
           # Invalid structure with wrong types
           invalid_data: %{
@@ -67,11 +68,12 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
             tags: ["tag1", 123],
             friends: [
               # Age should be integer
-              %{name: "Friend 1", age: "thirty"},
-              %{name: "Friend 2", age: 25}
+              %{name: "Friend 1", age: "thirty", id: "f1"},
+              %{name: "Friend 2", age: 25, id: "f2"}
             ],
             # Should be all integers
-            scores: [98, "87", 92]
+            scores: [98, "87", 92],
+            id: "user-id"
           }
         )
 
@@ -116,22 +118,26 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
                   %{
                     name: "Frontend",
                     members: [
-                      %{name: "Alice", role: "lead"},
-                      %{name: "Bob", role: "developer"}
+                      %{name: "Alice", role: "lead", id: "a"},
+                      %{name: "Bob", role: "developer", id: "b"}
                     ],
-                    projects: ["ProjectX", "ProjectY"]
+                    projects: ["ProjectX", "ProjectY"],
+                    id: "frontend"
                   },
                   %{
                     name: "Backend",
                     members: [
-                      %{name: "Charlie", role: "lead"},
-                      %{name: "Dave", role: "developer"}
+                      %{name: "Charlie", role: "lead", id: "c"},
+                      %{name: "Dave", role: "developer", id: "d"}
                     ],
-                    projects: ["ServiceA", "ServiceB"]
+                    projects: ["ServiceA", "ServiceB"],
+                    id: "backend"
                   }
-                ]
+                ],
+                id: "eng"
               }
-            ]
+            ],
+            id: "org-id"
           }
         )
 
@@ -235,13 +241,15 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
           # User can be either a map with name/email or just a string ID
           user_as_map: %{
             name: "Test User",
-            email: "test@example.com"
+            email: "test@example.com",
+            id: "user-id"
           },
           user_as_string: "user123",
 
           # Invalid user (missing email in map)
           invalid_user: %{
-            name: "Invalid User"
+            name: "Invalid User",
+            id: "user-id"
             # Missing email
           },
 
@@ -690,12 +698,14 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
             settings: %{
               theme: "dark",
               notifications: true
-            }
+            },
+            id: "user-id"
           },
           # Partial user missing optional fields
           partial_user: %{
             name: "User Two",
-            age: 25
+            age: 25,
+            id: "user-id"
             # No email or settings
           }
         )
@@ -732,7 +742,8 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
               theme: "custom",
               # Should be boolean
               notifications: "yes"
-            }
+            },
+            id: "user-id"
           }
         )
 

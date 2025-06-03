@@ -118,20 +118,18 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
       {:ok, view, html} = live(conn, "/themes")
       # Only check Current Themes section
       current_themes_html = html |> Floki.find(".mb-8 .grid") |> Floki.raw_html()
-      assert current_themes_html =~ dark_theme.name
+      # Assert the theme link for the dark theme is present
+      assert Floki.find(current_themes_html, ~s{a[data-test-id="theme-link-#{dark_theme.id}"]}) != []
 
       # Delete the theme
       view
       |> element("button[data-action='delete'][data-id='#{dark_theme.id}']")
       |> render_click()
 
-      # Defensive: ensure at least one theme exists after deletion
-      ensure_theme_exists()
-
-      # Verify theme is removed from Current Themes
+      # Verify theme link is removed from Current Themes
       html = render(view)
       current_themes_html = html |> Floki.find(".mb-8 .grid") |> Floki.raw_html()
-      refute current_themes_html =~ dark_theme.name
+      refute Floki.find(current_themes_html, ~s{a[data-test-id="theme-link-#{dark_theme.id}"]}) != []
     end
 
     test "validates theme creation", %{conn: conn} do
@@ -208,12 +206,14 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
       |> render_click()
 
       view
-      |> form("#theme-form", attrs)
+      |> form("#edit-theme-form", attrs)
       |> render_submit()
 
-      # Verify the theme mode was updated
+      # Verify the theme mode was updated by checking the data-mode attribute on the main container
       html = render(view)
-      assert html =~ ~s{data-mode="dark"}
+      [mode_div | _] = Floki.find(html, ~s([data-mode]))
+      mode_value = Floki.attribute(mode_div, "data-mode")
+      assert mode_value == ["dark"]
     end
   end
 end

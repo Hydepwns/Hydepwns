@@ -36,7 +36,7 @@ defmodule HydepwnsLiveview.ThemeSystem.FixturesTest do
     test "light_theme_fixture/1 creates a light theme with correct defaults" do
       {:ok, theme} = light_theme_fixture()
 
-      assert theme.name =~ ~r/light--\d+/
+      assert theme.name == "light"
       assert theme.mode == "light"
       assert theme.is_default == true
       assert theme.colors[:background] == "#ffffff"
@@ -46,7 +46,7 @@ defmodule HydepwnsLiveview.ThemeSystem.FixturesTest do
     test "dark_theme_fixture/1 creates a dark theme with correct defaults" do
       {:ok, theme} = dark_theme_fixture()
 
-      assert theme.name =~ ~r/dark--\d+/
+      assert theme.name == "dark"
       assert theme.mode == "dark"
       assert theme.is_default == false
       assert theme.colors[:background] == "#111827"
@@ -57,7 +57,7 @@ defmodule HydepwnsLiveview.ThemeSystem.FixturesTest do
     test "system_theme_fixture/1 creates a system theme with system values" do
       {:ok, theme} = system_theme_fixture()
 
-      assert theme.name =~ ~r/system--\d+/
+      assert theme.name == "system"
       assert theme.mode == "system"
       assert theme.colors[:background] == "system"
       assert theme.colors[:text] == "system"
@@ -67,7 +67,7 @@ defmodule HydepwnsLiveview.ThemeSystem.FixturesTest do
     test "dim_theme_fixture/1 creates a dim theme with correct defaults" do
       {:ok, theme} = dim_theme_fixture()
 
-      assert theme.name =~ ~r/dim--\d+/
+      assert theme.name == "dim"
       assert theme.mode == "dim"
       assert theme.colors[:background] == "#1f2937"
       assert theme.colors[:text] == "#e5e7eb"

@@ -43,7 +43,7 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewerTest do
         }
       ]
 
-      resource = %{__change_history__: history}
+      resource = %{__change_history__: history, id: "test-id"}
 
       html =
         render_component(&change_history_viewer/1, %{resource: resource, view_mode: "timeline"})
@@ -63,7 +63,7 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewerTest do
         }
       ]
 
-      resource = %{__change_history__: history}
+      resource = %{__change_history__: history, id: "test-id"}
 
       html =
         render_component(&change_history_viewer/1, %{resource: resource, view_mode: "list"})
@@ -88,7 +88,7 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewerTest do
         }
       ]
 
-      resource = %{__change_history__: history}
+      resource = %{__change_history__: history, id: "test-id"}
 
       html =
         render_component(&change_history_viewer/1, %{resource: resource, view_mode: "audit"})
@@ -131,7 +131,7 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewerTest do
         }
       ]
 
-      resource = %{__change_history__: history}
+      resource = %{__change_history__: history, id: "test-id"}
 
       html =
         render_component(&change_history_viewer/1, %{
@@ -155,7 +155,8 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewerTest do
           # Note: prepare_versions_with_diffs reverses history, so v1 is last in display
           %{version: 1, changes: %{name: "A"}, before: %{}, metadata: @base_metadata_v1},
           %{version: 2, changes: %{name: "B"}, before: %{name: "A"}, metadata: @base_metadata_v2}
-        ]
+        ],
+        id: "test-id"
       }
 
       html =

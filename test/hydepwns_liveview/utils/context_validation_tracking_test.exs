@@ -90,7 +90,7 @@ defmodule HydepwnsLiveview.Utils.ContextValidationTrackingTest do
     test "uses context-aware validation when context_validation is true" do
       # Create a test resource
       resource = %{
-        id: "123",
+        id: "test-id",
         name: "Test User",
         email: "user@example.com",
         role: "user",
@@ -120,7 +120,7 @@ defmodule HydepwnsLiveview.Utils.ContextValidationTrackingTest do
     test "falls back to relationship validation when context_validation is false" do
       # Create a test resource
       resource = %{
-        id: "123",
+        id: "test-id",
         name: "Test User",
         email: "user@example.com",
         role: "user",
@@ -145,7 +145,7 @@ defmodule HydepwnsLiveview.Utils.ContextValidationTrackingTest do
     test "combines context validation with optimistic concurrency control" do
       # Create a test resource with history
       resource = %{
-        id: "123",
+        id: "test-id",
         name: "Test User",
         email: "user@example.com",
         role: "user",

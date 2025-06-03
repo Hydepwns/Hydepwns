@@ -1,8 +1,22 @@
 <.header>
-  Edit Theme {@theme.id}
+  Edit Theme {@theme.id || "new"}
   <:subtitle>Use this form to manage theme records in your database.</:subtitle>
 </.header>
 
-<.theme_form changeset={@changeset} action={~p"/themes/#{@theme}"} />
+<%= form_for @changeset, Routes.theme_path(@conn, :update, @theme), [as: :theme, method: :put], fn f -> %>
+  <%= if @changeset.action do %>
+    <div class="error-message mb-4">Oops, something went wrong! Please check the errors below.</div>
+  <% end %>
+  <div class="mb-4">
+    <%= label f, :name, class: "block text-sm font-medium text-gray-700" %>
+    <%= text_input f, :name, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" %>
+    <%= for {msg, _opts} <- Keyword.get_values(@changeset.errors, :name) do %>
+      <div class="error-message text-red-600 text-xs mt-1"><%= msg %></div>
+    <% end %>
+  </div>
+  <div class="flex items-center justify-between">
+    <button type="submit" class="btn btn-primary">Save Theme</button>
+  </div>
+<% end %>
 
 <.back navigate={~p"/themes"}>Back to themes</.back>

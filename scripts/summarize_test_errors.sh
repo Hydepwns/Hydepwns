@@ -1,32 +1,41 @@
-#!/bin/sh
-# Summarize test errors and warnings from a test run.
+#!/bin/bash
+# Summarize real test failures from a test run.
 # Usage: ./scripts/summarize_test_errors.sh
 
-TMP_DIR=tmp
-INPUT_FILE=$TMP_DIR/test_output.txt
-OUTPUT_FILE=$TMP_DIR/test_error_summary.txt
-ERROR_FILE=$TMP_DIR/test_errors.txt
+# Directory for storing test output
+TMP_DIR="tmp"
+# File to store raw test output
+INPUT_FILE="$TMP_DIR/test_output.txt"
+# File to store the summarized errors
+OUTPUT_FILE="$TMP_DIR/test_error_summary.txt"
 
 # Ensure tmp directory exists
 mkdir -p "$TMP_DIR"
 
-# Remove old output files to ensure fresh results
-echo "Removing old test output files..."
-rm -f "$INPUT_FILE" "$ERROR_FILE"
-
 # Run the test suite and capture all output directly for inspection
 echo "Running mix test..."
 if mix test > "$INPUT_FILE" 2>&1; then
-  echo "mix test completed successfully."
+  echo "All tests passed!" > "$OUTPUT_FILE"
 else
-  echo "mix test failed. Full output in $INPUT_FILE"
+  echo "mix test failed. Full output in $INPUT_FILE" > "$OUTPUT_FILE"
+  echo "--- Real Test Failure Summary ---" >> "$OUTPUT_FILE"
+
+  # Extract real test failures
+  # 1) test ... (Module)
+  grep -nE '^\s*[0-9]+\) test ' "$INPUT_FILE" | while read -r line; do
+    line_num=$(echo "$line" | cut -d: -f1)
+    test_header=$(echo "$line" | cut -d: -f2-)
+    # Get the next 10 lines after the failure header for context (failure message, assertion, stacktrace)
+    context=$(sed -n "$((line_num+1)),$((line_num+10))p" "$INPUT_FILE")
+    echo "$test_header" >> "$OUTPUT_FILE"
+    echo "$context" | grep -E 'Assertion with|stacktrace:|\(test/' >> "$OUTPUT_FILE"
+    echo "" >> "$OUTPUT_FILE"
+  done
+
+  # If no real failures found, say so
+  if ! grep -qE '^\s*[0-9]+\) test ' "$INPUT_FILE"; then
+    echo "No real test failures found. (Possible non-assertion error or script bug)" >> "$OUTPUT_FILE"
+  fi
 fi
 
-# Extract errors and warnings from the full output
-# The original grep might be too broad or too narrow for this specific Mox issue.
-# Let's be more targeted for now or just look at INPUT_FILE manually.
-echo "Filtering $INPUT_FILE for errors and warnings..."
-grep -E -i "(compilation error|undefinedfunctionerror|mox.__using__|error|warning|failed|== Compilation error)" "$INPUT_FILE" > "$ERROR_FILE"
-
-cat "$ERROR_FILE"
-echo "Full summary in $ERROR_FILE" 
+echo "Full summary in $OUTPUT_FILE"

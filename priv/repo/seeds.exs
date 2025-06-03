@@ -18,6 +18,7 @@ HydepwnsLiveview.Repo.delete_all(Theme)
 
 # Create default themes
 light_theme = %{
+  id: "light",
   name: "light",
   mode: "light",
   is_default: true,
@@ -31,6 +32,7 @@ light_theme = %{
 }
 
 dark_theme = %{
+  id: "dark",
   name: "dark",
   mode: "dark",
   is_default: false,
@@ -44,6 +46,7 @@ dark_theme = %{
 }
 
 system_theme = %{
+  id: "system",
   name: "system",
   mode: "system",
   is_default: false,

@@ -213,7 +213,7 @@ defmodule HydepwnsLiveview.Utils.RelationshipResolver do
   # Handle different relationship definition formats
   defp relationship_name_from_def(%{name: name}), do: name
   defp relationship_name_from_def({name, _type, _resource, _opts}), do: name
-  defp relationship_name_from_def(_), do: nil
+  defp relationship_name_from_def(_def), do: nil
 
   # Implements the actual relationship resolution logic
   defp do_resolve_relationship(resource, relationship, opts) do
@@ -283,10 +283,10 @@ defmodule HydepwnsLiveview.Utils.RelationshipResolver do
   # Loads a belongs_to relationship
   defp load_belongs_to_relationship(resource, relationship, opts) do
     cache = Keyword.get(opts, :cache, true)
-
+    
     # Get the foreign key value
-    _foreign_key = relationship.foreign_key || :"#{relationship.name}_id"
-    foreign_key_value = Map.get(resource, _foreign_key)
+    foreign_key = relationship.foreign_key
+    foreign_key_value = Map.get(resource, foreign_key)
 
     if is_nil(foreign_key_value) do
       # No related entity if foreign key is nil

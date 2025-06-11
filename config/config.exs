@@ -38,8 +38,8 @@ config :esbuild,
   version: "0.17.11",
   hydepwns_liveview: [
     args:
-      ~w(js/app.js --bundle --target=es2017 --outdir=../assets/js --external:/fonts/* --external:/images/*),
-    cd: Path.expand("../assets/js", __DIR__),
+      ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
+    cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]
 
@@ -47,8 +47,8 @@ config :esbuild,
 config :dart_sass,
   version: "1.61.0",
   default: [
-    args: ~w(css/app.scss ../assets/css/app.css),
-    cd: Path.expand("../assets/css", __DIR__)
+    args: ~w(css/app.css ../priv/static/assets/css/app.css),
+    cd: Path.expand("../assets", __DIR__)
   ]
 
 # Configures Elixir's Logger

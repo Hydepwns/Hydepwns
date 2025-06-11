@@ -73,7 +73,7 @@ defmodule HydepwnsLiveviewWeb.Components.MonoGrid do
   | 0.1.0   | Initial implementation |
   """
   use Phoenix.Component
-  use PhoenixHTMLHelpers
+  alias Phoenix.HTML.Tag
 
   # Default grid properties
   @default_cols 80
@@ -263,7 +263,7 @@ defmodule HydepwnsLiveviewWeb.Components.MonoGrid do
     assigns = assign(assigns, :attrs_map, attrs_map)
 
     ~H"""
-    {PhoenixHTMLHelpers.Tag.content_tag(@tag, render_slot(@inner_block), @attrs_map)}
+    {Tag.content_tag(@tag, render_slot(@inner_block), @attrs_map)}
     """
   end
 

@@ -15,16 +15,6 @@ config :hydepwns_liveview, HydepwnsLiveview.Repo,
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
 
-config :raxol, Raxol.Repo,
-  username: System.get_env("TEST_DB_USERNAME") || "postgres",
-  password: System.get_env("TEST_DB_PASSWORD") || "",
-  hostname: System.get_env("TEST_DB_HOST") || "localhost",
-  database:
-    System.get_env("RAXOL_TEST_DB_NAME") ||
-      "raxol_test#{System.get_env("MIX_TEST_PARTITION")}",
-  pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: System.schedulers_online() * 2
-
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
 config :hydepwns_liveview, HydepwnsLiveviewWeb.Endpoint,

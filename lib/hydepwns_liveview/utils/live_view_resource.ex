@@ -79,8 +79,6 @@ defmodule HydepwnsLiveview.Utils.LiveViewResource do
   """
 
   alias HydepwnsLiveview.Utils.ChangeTracker
-  alias HydepwnsLiveview.Utils.RelationshipResolver
-  alias HydepwnsLiveview.Utils.TransformationPipeline
 
   @doc """
   Defines the behavior required for a LiveViewResource.
@@ -324,7 +322,7 @@ defmodule HydepwnsLiveview.Utils.LiveViewResource do
       end
 
       # Helper to ensure the resource has a __resource_module__ attribute
-      defp ensure_resource_module(resource) do
+      defp ensure_resource_module(resource) when is_map(resource) do
         if Map.has_key?(resource, :__resource_module__) do
           resource
         else

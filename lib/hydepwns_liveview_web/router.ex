@@ -32,20 +32,22 @@ defmodule HydepwnsLiveviewWeb.Router do
     live "/grid-playground", GridPlaygroundLive, :index
     live "/gallery", GalleryLive, :index
     live "/themes", Themes.ThemeManagerLive, :index
-    live "/themes/:id", Themes.ThemeDetailLive
+    # live "/themes/:id", Themes.ThemeDetailLive # TODO: Resolve route conflict with ThemeController.show
 
     # Resource Management
     live "/resources", ResourceDashboardLive, :index
     live "/resources/new", ResourceFormLive, :new
     live "/resources/:id", ResourceShowLive, :show
     # Reuse form for editing
-    live "/resources/:id/edit", ResourceFormLive, :edit
+    live "/resources/:id/edit", ResourceFormLive, :load_for_editing
     live "/resources/:id/manage-subscriptions", ResourceSubscriptionLive, :manage_subscriptions
-    live "/resources/:id/events", ResourceEventLive, :index
+    live "/resources/:id/events", ResourceEventSystemLive, :index
     live "/resources/:id/subscriptions", ResourceSubscriptionLive, :index
+    live "/terminal", TerminalLive
+    live "/events", ResourceEventSystemLive, :index
 
     # Theme system routes
-    resources "/themes", ThemeController, except: [:index]
+    resources "/themes", ThemeController
 
     # Playground routes
     scope "/playground", Live.Playground, as: :playground do
@@ -54,7 +56,7 @@ defmodule HydepwnsLiveviewWeb.Router do
 
     # Examples routes
     scope "/examples", Examples, as: :examples do
-      live "/type-validation", TypeValidationExample, :index
+#      live "/type-validation", TypeValidationExample, :index
       live "/resource-assigns", UserResourceLive, :index
       live "/user-resource", UserResourceExampleLive, :index
       live "/ecto-resource", EctoResourceExampleLive, :index
@@ -72,8 +74,8 @@ defmodule HydepwnsLiveviewWeb.Router do
     # Service worker
     get "/service-worker.js", ServiceWorkerController, :index
 
-    # Add a test route for validation testing
-    live "/test", TestErrorLive
+    # Add a test route for validation testing (temporarily removed)
+    live "/test", HydepwnsLiveviewWeb.TestErrorLive, :index, as: :test_error
 
     # Admin routes
     scope "/admin", Admin, as: :admin do

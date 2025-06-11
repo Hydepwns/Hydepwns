@@ -21,7 +21,7 @@ defmodule HydepwnsLiveviewWeb do
 
   def router do
     quote do
-      use Phoenix.Router, helpers: false
+      use Phoenix.Router
 
       # Import common connection and controller functions to use in pipelines
       import Plug.Conn
@@ -51,8 +51,8 @@ defmodule HydepwnsLiveviewWeb do
 
   def live_view do
     quote do
-      use Phoenix.LiveView,
-        layout: {HydepwnsLiveviewWeb.Layouts, :app}
+      opts = [layout: {HydepwnsLiveviewWeb.Layouts, :app}]
+      use Phoenix.LiveView, opts
 
       import HydepwnsLiveviewWeb.Gettext
       unquote(html_helpers())

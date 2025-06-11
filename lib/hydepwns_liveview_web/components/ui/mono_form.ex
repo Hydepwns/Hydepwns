@@ -8,7 +8,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoForm do
   with the rest of the monospace styled application.
   """
   use Phoenix.Component
-  import Phoenix.HTML.Form
+  import Phoenix.HTML.Form, only: [normalize_value: 2]
 
   @doc """
   Renders a monospace form.

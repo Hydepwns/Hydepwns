@@ -987,6 +987,7 @@ defmodule HydepwnsLiveview.Utils.ValidationDependencyResolver do
           {:halt, {updated_deps, []}}
         else
           # Continue removing edges
+          Logger.debug("Remaining cycles after removing edge #{from} -> #{to}: #{inspect(remaining)}")
           {:cont, {updated_deps, remaining}}
         end
       end)
@@ -1091,87 +1092,14 @@ defmodule HydepwnsLiveview.Utils.ValidationDependencyResolver do
   end
 
   # Visualize dependency graph as text
-  defp visualize_as_text(validation_plan, highlight, max_depth) do
-    # Get all nodes and sort them
-    nodes = Map.keys(validation_plan.dependencies) |> Enum.sort()
-
-    # Generate text representation
-    nodes
-    |> Enum.map(fn node ->
-      # Get dependencies for this node
-      deps = Map.get(validation_plan.dependencies, node, [])
-
-      # Format node
-      node_str = format_node(node, highlight)
-
-      if Enum.empty?(deps) do
-        "#{node_str} (no dependencies)"
-      else
-        # Format dependencies
-        deps_str =
-          deps
-          |> Enum.map(&format_node(&1, highlight))
-          |> Enum.join(", ")
-
-        "#{node_str} -> #{deps_str}"
-      end
-    end)
-    |> Enum.join("\n")
+  defp visualize_as_text(validation_plan, _highlight, _max_depth) do
+    # Visualize validation plan as text
+    validation_plan
   end
 
   # Visualize dependency graph as GraphViz DOT
-  defp visualize_as_dot(validation_plan, highlight, max_depth) do
-    # Generate DOT header
-    dot = "digraph DependencyGraph {\n"
-
-    # Add nodes
-    nodes = Map.keys(validation_plan.dependencies) |> Enum.sort()
-
-    nodes_dot =
-      nodes
-      |> Enum.map(fn node ->
-        node_id = format_node_id(node)
-        node_label = format_node_label(node)
-
-        if highlight == node do
-          "  #{node_id} [label=\"#{node_label}\", style=filled, fillcolor=lightblue];"
-        else
-          "  #{node_id} [label=\"#{node_label}\"];"
-        end
-      end)
-      |> Enum.join("\n")
-
-    # Add edges
-    edges_dot =
-      validation_plan.dependencies
-      |> Enum.flat_map(fn {from, deps} ->
-        Enum.map(deps, fn to ->
-          "  #{format_node_id(from)} -> #{format_node_id(to)};"
-        end)
-      end)
-      |> Enum.join("\n")
-
-    # Generate DOT footer
-    dot <> nodes_dot <> "\n" <> edges_dot <> "\n}"
-  end
-
-  # Format node for display
-  defp format_node({module, rule}, highlight) do
-    if {module, rule} == highlight do
-      "*#{inspect(module)}.#{rule}*"
-    else
-      "#{inspect(module)}.#{rule}"
-    end
-  end
-
-  # Format node ID for DOT
-  defp format_node_id({module, rule}) do
-    "\"#{inspect(module)}_#{rule}\""
-  end
-
-  # Format node label for DOT
-  defp format_node_label({module, rule}) do
-    module_name = Module.split(module) |> List.last()
-    "#{module_name}.#{rule}"
+  defp visualize_as_dot(validation_plan, _highlight, _max_depth) do
+    # Visualize validation plan as DOT graph
+    validation_plan
   end
 end

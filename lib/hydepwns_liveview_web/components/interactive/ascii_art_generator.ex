@@ -1,6 +1,5 @@
 defmodule HydepwnsLiveviewWeb.Components.Interactive.AsciiArtGenerator do
   use Phoenix.LiveComponent
-  use PhoenixHTMLHelpers
 
   @moduledoc """
   A component for generating ASCII art with various templates and customization options.

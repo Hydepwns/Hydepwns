@@ -168,8 +168,8 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
   Renders a simple form with slots for fields and actions.
   """
   @spec simple_form(map()) :: Phoenix.LiveView.Rendered.t()
-  attr :rest, :global, default: %{}
   def simple_form(assigns) do
+    assigns = assign_new(assigns, :rest, fn -> %{} end)
     ~H"""
     <.form :let={f} for={@for} as={@as} {@rest}>
       <div class="mt-10 space-y-8 bg-white">

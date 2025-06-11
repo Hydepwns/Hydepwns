@@ -346,14 +346,13 @@ defmodule HydepwnsLiveview.Utils.ContextValidation do
 
   # Prepare the context for a related resource
   defp prepare_related_context(context, parent, relationship, child) do
-    # Add parent and relationship information to the context
-    Map.merge(context, %{
-      parent_resource: parent,
-      parent_resource_module: Map.get(parent, :__resource_module__),
-      relationship: relationship,
-      relationship_name: relationship.name,
-      relationship_type: relationship.type
+    # Add relationship metadata to the context
+    context = Map.put(context, :relationship, %{
+      name: relationship,
+      parent: parent,
+      child: child
     })
+    context
   end
 
   # Filter relationships based on include_only and exclude_relationships
@@ -473,5 +472,40 @@ defmodule HydepwnsLiveview.Utils.ContextValidation do
         # This might not be ideal for memory usage, but ensures uniqueness
         resource
     end
+  end
+  defp validate_rule(rule, context) do
+    # Validate that the rule is a valid validation rule
+    with {:ok, rule_fn} <- validate_rule_function(rule),
+         {:ok, _} <- validate_rule_context(rule_fn, context) do
+      {:ok, rule_fn}
+    else
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  # Helper to validate that the rule is a valid function
+  defp validate_rule_function(rule) when is_function(rule, 1) or is_function(rule, 2) do
+    {:ok, rule}
+  end
+  defp validate_rule_function(_rule), do: {:error, "Invalid rule function"}
+
+  # Helper to validate that the rule can handle the given context
+  defp validate_rule_context(rule_fn, context) when is_function(rule_fn, 2) do
+    try do
+      case rule_fn.(context, context) do
+        :ok -> :ok
+        {:error, reason} -> {:error, reason}
+        _ -> {:error, "Invalid rule return value"}
+      end
+    rescue
+      e -> {:error, "Rule execution failed: #{inspect(e)}"}
+    end
+  end
+  defp validate_rule_context(rule_fn, _context) when is_function(rule_fn, 1) do
+    # Rule doesn't accept context, but that's okay
+    {:ok, rule_fn}
+  end
+  defp validate_rule_context(_rule_fn, _context) do
+    {:error, "Invalid validation rule: must be a function that takes 1 or 2 arguments"}
   end
 end

@@ -69,7 +69,7 @@ defmodule HydepwnsLiveview.Utils.AshAdapter do
   the resource based on the primary key value.
   """
   @impl ResourceAdapter
-  def load(resource, id) when is_atom(resource) do
+  def load(resource, _id) when is_atom(resource) do
     # In a real implementation, we would use Ash.get to load the data
     # For now, we'll return an error
     {:error, "AshAdapter.load/2 is not yet implemented"}

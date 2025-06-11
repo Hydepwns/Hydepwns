@@ -35,8 +35,60 @@ defmodule HydepwnsLiveview.ThemeSystem.Models.Theme do
   def changeset(theme, attrs) do
     attrs = for {k, v} <- attrs, into: %{}, do: {to_string(k), v}
 
+    # Handle both flattened and nested color fields
+    colors = cond do
+      # If colors are provided as a nested map, use them directly
+      Map.has_key?(attrs, "colors") && is_map(attrs["colors"]) ->
+        attrs["colors"]
+      # Otherwise, try to build from flattened fields
+      true ->
+        %{
+          "primary" => attrs["primary_color"] || attrs["colors"]["primary"],
+          "secondary" => attrs["secondary_color"] || attrs["colors"]["secondary"],
+          "accent" => attrs["accent_color"] || attrs["colors"]["accent"],
+          "background" => attrs["background_color"] || attrs["colors"]["background"],
+          "text" => attrs["text_color"] || attrs["colors"]["text"],
+          "border" => attrs["border_color"] || attrs["colors"]["border"],
+          "error" => attrs["error_color"] || attrs["colors"]["error"],
+          "success" => attrs["success_color"] || attrs["colors"]["success"],
+          "warning" => attrs["warning_color"] || attrs["colors"]["warning"],
+          "info" => attrs["info_color"] || attrs["colors"]["info"]
+        }
+    end
+
+    # Handle both flattened and nested settings fields
+    settings = cond do
+      # If settings are provided as a nested map, use them directly
+      Map.has_key?(attrs, "settings") && is_map(attrs["settings"]) ->
+        attrs["settings"]
+      # Otherwise, try to build from flattened fields
+      true ->
+        %{
+          "font_family" => attrs["font_family"] || attrs["settings"]["font_family"],
+          "font_size" => attrs["font_size"] || attrs["settings"]["font_size"],
+          "line_height" => attrs["line_height"] || attrs["settings"]["line_height"],
+          "spacing_unit" => attrs["spacing_unit"] || attrs["settings"]["spacing_unit"],
+          "contrast" => attrs["contrast"] || attrs["settings"]["contrast"],
+          "animations" => attrs["animations"] || attrs["settings"]["animations"],
+          "reduced_motion" => attrs["reduced_motion"] || attrs["settings"]["reduced_motion"]
+        }
+    end
+
+    # Remove nil values
+    colors = Map.filter(colors, fn {_k, v} -> v != nil end)
+    settings = Map.filter(settings, fn {_k, v} -> v != nil end)
+
+    # Merge with existing values
+    colors = Map.merge(theme.colors || %{}, colors)
+    settings = Map.merge(theme.settings || %{}, settings)
+
+    attrs = Map.merge(attrs, %{
+      "colors" => colors,
+      "settings" => settings
+    })
+
     theme
-    |> cast(attrs, [:name, :mode, :colors, :is_default, :settings])
+    |> cast(attrs, [:id, :name, :mode, :colors, :is_default, :settings])
     |> validate_required([:name, :mode])
     |> validate_inclusion(:mode, ["light", "dark", "dim", "system"])
     |> unique_constraint(:name)
@@ -60,6 +112,7 @@ defmodule HydepwnsLiveview.ThemeSystem.Models.Theme do
     params = for {k, v} <- params, into: %{}, do: {to_string(k), v}
 
     types = %{
+      id: :integer,
       name: :string,
       mode: :string,
       colors: :map,

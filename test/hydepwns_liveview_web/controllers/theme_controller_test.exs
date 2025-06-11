@@ -14,24 +14,46 @@ defmodule HydepwnsLiveviewWeb.ThemeControllerTest do
     mode: "light",
     colors: %{
       primary: "#4A90E2",
-      secondary: "#50E3C2"
+      secondary: "#50E3C2",
+      accent: "#F59E0B",
+      background: "#FFFFFF",
+      text: "#1F2937",
+      border: "#E5E7EB",
+      error: "#EF4444",
+      success: "#22C55E",
+      warning: "#F59E0B",
+      info: "#3B82F6"
     },
     settings: %{
-      font_family: "monospace",
-      font_size: "14px"
-    }
+      font_size: "medium",
+      line_height: "normal",
+      contrast: "normal",
+      animations: true
+    },
+    is_default: false
   }
   @update_attrs %{
     name: "some updated name",
     mode: "dark",
     colors: %{
       primary: "#000000",
-      secondary: "#FFFFFF"
+      secondary: "#FFFFFF",
+      accent: "#F59E0B",
+      background: "#111827",
+      text: "#F9FAFB",
+      border: "#374151",
+      error: "#F87171",
+      success: "#4ADE80",
+      warning: "#FBBF24",
+      info: "#60A5FA"
     },
     settings: %{
-      font_family: "sans-serif",
-      font_size: "16px"
-    }
+      font_size: "large",
+      line_height: "wide",
+      contrast: "high",
+      animations: false
+    },
+    is_default: true
   }
   @invalid_attrs %{name: nil, mode: nil}
 
@@ -98,7 +120,7 @@ defmodule HydepwnsLiveviewWeb.ThemeControllerTest do
     test "renders errors when data is invalid", %{conn: conn, theme: theme} do
       assert is_map(theme) and Map.has_key?(theme, :id) and not is_nil(theme.id), "Test setup error: theme is nil or missing id"
       conn = put(conn, ~p"/themes/#{theme}", theme: @invalid_attrs)
-      assert html_response(conn, 200) =~ "Edit Theme"
+      assert html_response(conn, 422) =~ "Edit Theme"
     end
   end
 

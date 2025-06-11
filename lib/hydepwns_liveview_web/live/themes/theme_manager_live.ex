@@ -9,7 +9,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
   @impl true
   def do_mount(_params, _session, socket) do
     default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()
-    theme_class = "#{default_theme.mode}-theme"
+    _theme_class = "#{default_theme.mode}-theme"
     themes = HydepwnsLiveview.ThemeSystem.list_themes()
     # Filter out any invalid themes (id nil or name empty)
     themes =
@@ -171,7 +171,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
       ~S"""
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <%= for theme <- @themes do %>
-            <div class="border rounded-lg p-4 shadow-sm theme-item">
+            <div class="border rounded-lg p-4 shadow-sm theme-item" data-default={theme.is_default}>
               <a href="/themes/<%= theme.id %>" class="block text-lg font-semibold text-blue-600 underline mb-2" data-test-id={theme.name == "Test Theme" && "theme-link-test-theme" || "theme-link-#{theme.id}")>
                 <%= theme.name %>
               </a>
@@ -187,9 +187,10 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
                 <% end %>
               </div>
               <div class="flex gap-2 mt-2">
-                <button class="px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Edit</button>
-                <button class="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600">Delete Theme</button>
-                <button class="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600">Apply Theme</button>
+                <button phx-click="edit" phx-value-id={theme.id} class="px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600" data-action="edit" data-id={theme.id}>Edit</button>
+                <button phx-click="delete" phx-value-id={theme.id} class="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600" data-action="delete" data-id={theme.id}>Delete Theme</button>
+                <button phx-click="apply" phx-value-id={theme.id} class="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600" data-action="apply" data-id={theme.id}>Apply Theme</button>
+                <button phx-click="set_default" phx-value-id={theme.id} class="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600" data-action="set_default" data-id={theme.id} disabled={theme.is_default}>Set Default</button>
               </div>
             </div>
           <% end %>
@@ -201,53 +202,15 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
 
   @impl true
   def render(assigns) do
-    assigns =
-      assigns
-      |> Map.put_new(:themes, [])
-      |> Map.put_new(:applied_theme, nil)
-      |> Map.put_new(:editing_theme, nil)
-
-    theme_debug = Enum.map(assigns.themes, fn t -> %{id: t.id, name: t.name} end)
-    File.write!("tmp/theme_names_debug.txt", inspect(theme_debug, pretty: true))
-    # Write anchor tags for each theme to a debug file
-    anchor_tags =
-      Enum.map(assigns.themes, fn t -> ~s(<a href="/themes/#{t.id}">#{t.name}</a>) end)
-      |> Enum.join("\n")
-
-    File.write!("tmp/theme_anchors_debug.html", anchor_tags)
-
-    theme_list_html =
-      try do
-        theme_list_eex(assigns.themes, assigns.applied_theme)
-      rescue
-        e ->
-          File.write!(
-            "tmp/theme_list_eex_error.txt",
-            "EEx error: #{inspect(e)}\nAssigns: #{inspect(assigns, pretty: true)}"
-          )
-
-          "<div class=\"error\">Theme list render error</div>"
-      end
-
-    File.write!("tmp/theme_list_rendered.html", theme_list_html)
-
     ~H"""
-    <div data-mode={@theme_mode}>
-      <%= for theme <- @themes do %>
-        <a href={"/themes/#{theme.id}"}>{theme.name}</a>
-      <% end %>
-    </div>
     <div class="container mx-auto px-4 py-8">
-      <%= if @applied_theme do %>
-        <div class="theme-applied">{@applied_theme.name}</div>
-      <% end %>
       <h1 class="text-3xl font-bold mb-8">Theme Manager</h1>
+
       <div class="mb-8">
         <h2 class="text-xl font-semibold mb-4">Current Themes</h2>
-        <button type="button" onclick="document.getElementById('theme-form').scrollIntoView({ behavior: 'smooth' });" class="inline-block mb-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" data-test-id="scroll-to-create-theme">Scroll to Create Theme Form</button>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <%= for theme <- @themes do %>
-            <div class="border rounded-lg p-4 shadow-sm theme-item" data-default={if theme.is_default, do: "true", else: "false"}>
+            <div class="border rounded-lg p-4 shadow-sm theme-item" data-default={theme.is_default}>
               <a href={"/themes/#{theme.id}"} class="block text-lg font-semibold text-blue-600 underline mb-2" data-test-id={(theme.name == "Test Theme" && "theme-link-test-theme") || "theme-link-#{theme.id}"}>
                 {theme.name}
               </a>
@@ -263,140 +226,72 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
                 <% end %>
               </div>
               <div class="flex gap-2 mt-2">
-                <button phx-click="edit-theme" phx-value-id={theme.id} class="px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600" data-action="edit" data-id={theme.id}>Edit</button>
-                <button phx-click="delete-theme" phx-value-id={theme.id} class="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600" data-action="delete" data-id={theme.id}>Delete Theme</button>
-                <button phx-click="apply-theme" phx-value-id={theme.id} class="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600" data-action="apply" data-id={theme.id}>Apply Theme</button>
-                <button phx-click="set-default" phx-value-id={theme.id} class="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600" data-action="set-default" data-id={theme.id} disabled={theme.is_default}>Set Default</button>
+                <button phx-click="edit" phx-value-id={theme.id} class="px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600" data-action="edit" data-id={theme.id}>Edit</button>
+                <button phx-click="delete" phx-value-id={theme.id} class="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600" data-action="delete" data-id={theme.id}>Delete Theme</button>
+                <button phx-click="apply" phx-value-id={theme.id} class="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600" data-action="apply" data-id={theme.id}>Apply Theme</button>
+                <button phx-click="set_default" phx-value-id={theme.id} class="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600" data-action="set_default" data-id={theme.id} disabled={theme.is_default}>Set Default</button>
               </div>
             </div>
           <% end %>
         </div>
       </div>
-      <%= if @editing_theme do %>
-        <div class="mb-8">
-          <h2 class="text-xl font-semibold mb-4">Edit Theme</h2>
-          <.form for={@changeset} phx-submit="update" id="edit-theme-form">
-            <div class="mb-4">
-              <label class="block text-sm font-medium mb-1">Name</label>
-              <input type="text" name="theme[name]" class="w-full px-3 py-2 border rounded" value={@editing_theme.name} required />
-            </div>
-            <div class="mb-4">
-              <label class="block text-sm font-medium mb-1">Mode</label>
-              <input type="text" name="theme[mode]" class="w-full px-3 py-2 border rounded" value={@editing_theme.mode} required />
-              <%= if error = @changeset.errors[:mode] do %>
-                <div class="error-message">{elem(error, 0)}</div>
-              <% end %>
-            </div>
-            <div class="mb-4">
-              <label class="block text-sm font-medium mb-1">Primary Color</label>
-              <input type="text" name="theme[primary_color]" class="w-full px-3 py-2 border rounded" value={@editing_theme.colors["primary"] || ""} />
-              <%= if error = @changeset.errors[:primary_color] do %>
-                <div class="error-message">{elem(error, 0)}</div>
-              <% end %>
-            </div>
-            <div class="mb-4">
-              <label class="block text-sm font-medium mb-1">Secondary Color</label>
-              <input type="text" name="theme[secondary_color]" class="w-full px-3 py-2 border rounded" value={@editing_theme.colors["secondary"] || ""} />
-              <%= if error = @changeset.errors[:secondary_color] do %>
-                <div class="error-message">{elem(error, 0)}</div>
-              <% end %>
-            </div>
-            <div class="mb-4">
-              <label class="block text-sm font-medium mb-1">Accent Color</label>
-              <input type="text" name="theme[accent_color]" class="w-full px-3 py-2 border rounded" value={@editing_theme.colors["accent"] || ""} />
-              <%= if error = @changeset.errors[:accent_color] do %>
-                <div class="error-message">{elem(error, 0)}</div>
-              <% end %>
-            </div>
-            <div>
-              <button type="submit" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">
-                Update Theme
-              </button>
-            </div>
-          </.form>
-        </div>
-      <% end %>
+
       <div class="mb-8">
         <h2 class="text-xl font-semibold mb-4">Add New Theme</h2>
-        <.form for={@changeset} phx-submit="save" id="theme-form">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label class="block text-sm font-medium mb-1">Name</label>
-              <input type="text" name="theme[name]" class="w-full px-3 py-2 border rounded" required />
-              <%= if error = @changeset.errors[:name] do %>
-                <div class="error-message">{elem(error, 0)}</div>
-              <% end %>
+        <.simple_form :let={f} for={@changeset} as={:theme} phx-submit="save">
+          <.error :if={@changeset.action}>
+            Oops, something went wrong! Please check the errors below.
+          </.error>
+          <:inner_block_simple_form :let={f}>
+            <.input field={f[:name]} id="theme_name" type="text" label="Name" name="theme[name]" required data-test-id="theme-name-input" />
+            <.input field={f[:mode]} id="theme_mode" type="select" label="Mode" options={[{"Light", "light"}, {"Dark", "dark"}, {"Dim", "dim"}, {"System", "system"}]} name="theme[mode]" required data-test-id="theme-mode-select" />
+            
+            <div class="space-y-4">
+              <h3 class="text-lg font-medium">Colors</h3>
+              <.input field={f[:primary_color]} id="theme_primary_color" type="text" label="Primary Color" name="theme[primary_color]" data-test-id="theme-primary-color" />
+              <.input field={f[:secondary_color]} id="theme_secondary_color" type="text" label="Secondary Color" name="theme[secondary_color]" data-test-id="theme-secondary-color" />
+              <.input field={f[:accent_color]} id="theme_accent_color" type="text" label="Accent Color" name="theme[accent_color]" data-test-id="theme-accent-color" />
+              <.input field={f[:background_color]} id="theme_background_color" type="text" label="Background Color" name="theme[background_color]" data-test-id="theme-background-color" />
+              <.input field={f[:text_color]} id="theme_text_color" type="text" label="Text Color" name="theme[text_color]" data-test-id="theme-text-color" />
+              <.input field={f[:border_color]} id="theme_border_color" type="text" label="Border Color" name="theme[border_color]" data-test-id="theme-border-color" />
+              <.input field={f[:error_color]} id="theme_error_color" type="text" label="Error Color" name="theme[error_color]" data-test-id="theme-error-color" />
+              <.input field={f[:success_color]} id="theme_success_color" type="text" label="Success Color" name="theme[success_color]" data-test-id="theme-success-color" />
+              <.input field={f[:warning_color]} id="theme_warning_color" type="text" label="Warning Color" name="theme[warning_color]" data-test-id="theme-warning-color" />
+              <.input field={f[:info_color]} id="theme_info_color" type="text" label="Info Color" name="theme[info_color]" data-test-id="theme-info-color" />
             </div>
-            <div>
-              <label class="block text-sm font-medium mb-1">Mode</label>
-              <select name="theme[mode]" class="w-full px-3 py-2 border rounded">
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-                <option value="system">System</option>
-              </select>
-              <%= if error = @changeset.errors[:mode] do %>
-                <div class="error-message">{elem(error, 0)}</div>
-              <% end %>
+
+            <div class="space-y-4 mt-6">
+              <h3 class="text-lg font-medium">Typography</h3>
+              <.input field={f[:font_family]} id="theme_font_family" type="text" label="Font Family" name="theme[font_family]" data-test-id="theme-font-family" />
+              <.input field={f[:font_size]} id="theme_font_size" type="select" label="Font Size" options={[{"Small", "small"}, {"Medium", "medium"}, {"Large", "large"}]} name="theme[font_size]" data-test-id="theme-font-size" />
+              <.input field={f[:line_height]} id="theme_line_height" type="select" label="Line Height" options={[{"Normal", "normal"}, {"Wide", "wide"}]} name="theme[line_height]" data-test-id="theme-line-height" />
             </div>
-          </div>
-          <div class="mb-4">
-            <label class="block text-sm font-medium mb-1">Colors</label>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div>
-                <label class="block text-xs mb-1">Primary</label>
-                <input type="color" name="theme[colors][primary]" class="w-full" value="#3b82f6" />
-                <input type="text" name="theme[primary_color]" class="w-full mt-1" value="#3b82f6" placeholder="Primary color (hex)" />
-                <%= if error = @changeset.errors[:primary] do %>
-                  <div class="error-message">{elem(error, 0)}</div>
-                <% end %>
-              </div>
-              <div>
-                <label class="block text-xs mb-1">Secondary</label>
-                <input type="color" name="theme[colors][secondary]" class="w-full" value="#10b981" />
-                <%= if error = @changeset.errors[:secondary] do %>
-                  <div class="error-message">{elem(error, 0)}</div>
-                <% end %>
-              </div>
-              <div>
-                <label class="block text-xs mb-1">Accent</label>
-                <input type="color" name="theme[colors][accent]" class="w-full" value="#f59e0b" />
-                <%= if error = @changeset.errors[:accent] do %>
-                  <div class="error-message">{elem(error, 0)}</div>
-                <% end %>
-              </div>
-              <div>
-                <label class="block text-xs mb-1">Background</label>
-                <input type="color" name="theme[colors][background]" class="w-full" value="#ffffff" />
-                <%= if error = @changeset.errors[:background] do %>
-                  <div class="error-message">{elem(error, 0)}</div>
-                <% end %>
-              </div>
-              <div>
-                <label class="block text-xs mb-1">Text</label>
-                <input type="color" name="theme[colors][text]" class="w-full" value="#1f2937" />
-                <%= if error = @changeset.errors[:text] do %>
-                  <div class="error-message">{elem(error, 0)}</div>
-                <% end %>
-              </div>
+
+            <div class="space-y-4 mt-6">
+              <h3 class="text-lg font-medium">Spacing</h3>
+              <.input field={f[:spacing_unit]} id="theme_spacing_unit" type="text" label="Spacing Unit" name="theme[spacing_unit]" data-test-id="theme-spacing-unit" />
             </div>
-          </div>
-          <div class="mb-4">
-            <label class="flex items-center">
-              <input type="checkbox" name="theme[is_default]" class="mr-2" />
-              <span class="text-sm">Set as default theme</span>
-            </label>
-          </div>
-          <div>
-            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" data-test-id="create-theme">
-              Create Theme
-            </button>
-          </div>
-        </.form>
+
+            <div class="space-y-4 mt-6">
+              <h3 class="text-lg font-medium">Accessibility</h3>
+              <.input field={f[:contrast]} id="theme_contrast" type="select" label="Contrast" options={[{"Normal", "normal"}, {"Medium", "medium"}, {"High", "high"}]} name="theme[contrast]" data-test-id="theme-contrast" />
+              <.input field={f[:animations]} id="theme_animations" type="checkbox" label="Enable Animations" name="theme[animations]" data-test-id="theme-animations" />
+              <.input field={f[:reduced_motion]} id="theme_reduced_motion" type="checkbox" label="Reduced Motion" name="theme[reduced_motion]" data-test-id="theme-reduced-motion" />
+            </div>
+
+            <.input field={f[:is_default]} id="theme_is_default" type="checkbox" label="Set as Default Theme" name="theme[is_default]" data-test-id="theme-is-default" />
+          </:inner_block_simple_form>
+          <:actions>
+            <.button type="submit" data-test-id="save-theme-button">Save Theme</.button>
+            <.button phx-click="cancel" class="button" data-test-id="cancel-theme-button">Cancel</.button>
+          </:actions>
+        </.simple_form>
       </div>
+
       <div class="mt-8">
         <h2 class="text-xl font-semibold mb-4">Theme Preview</h2>
         <div class="border rounded-lg p-4 shadow-sm">
-          <.theme_toggle id="theme-toggle-live" />
+          <.theme_toggle />
         </div>
       </div>
     </div>
@@ -417,196 +312,47 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
       |> Map.put("colors", colors)
 
     case HydepwnsLiveview.ThemeSystem.create_theme(theme_params) do
-      {:ok, new_theme} ->
+      {:ok, _theme} ->
         themes = HydepwnsLiveview.ThemeSystem.list_themes()
-        # Determine if this theme should be the applied theme for mode
-        theme_mode =
-          cond do
-            length(themes) == 1 ->
-              new_theme.mode
 
-            Map.get(theme_params, "is_default") in [true, "true", 1, "1", "on"] ->
-              new_theme.mode
+        socket =
+          socket
+          |> assign(:themes, themes)
+          |> assign(:changeset, HydepwnsLiveview.ThemeSystem.change_theme(%Theme{}))
+          |> put_flash(:info, "Theme created successfully.")
 
-            socket.assigns.applied_theme && socket.assigns.applied_theme.id == new_theme.id ->
-              new_theme.mode
-
-            true ->
-              socket.assigns.theme_mode || "light"
-          end
-
-        {:noreply,
-         socket
-         |> assign(:themes, themes)
-         |> assign(:changeset, HydepwnsLiveview.ThemeSystem.change_theme(%Theme{}))
-         |> assign_new(:errors, fn -> [] end)
-         |> assign(:applied_theme, nil)
-         |> assign(:theme_mode, theme_mode)
-         |> put_flash(:info, "Theme created successfully.")}
+        {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, changeset: changeset) |> assign_new(:errors, fn -> [] end)}
+        {:noreply, assign(socket, changeset: changeset)}
     end
   end
 
   @impl true
-  def handle_event("set-default", %{"id" => id}, socket) do
+  def handle_event("set_default", %{"id" => id}, socket) do
     theme = HydepwnsLiveview.ThemeSystem.get_theme!(id)
     {:ok, _} = HydepwnsLiveview.ThemeSystem.update_theme(theme, %{is_default: true})
     themes = HydepwnsLiveview.ThemeSystem.list_themes()
-
-    # Find the new default theme after update
-    new_default_theme = Enum.find(themes, &(&1.is_default))
-    theme_mode =
-      case new_default_theme do
-        %{mode: mode} when is_binary(mode) -> mode
-        _ -> "light"
-      end
-
-    {:noreply, assign(socket, :themes, themes) |> assign(:theme_mode, theme_mode)}
+    {:noreply, assign(socket, :themes, themes)}
   end
 
   @impl true
-  def handle_event("delete-theme", %{"id" => id}, socket) do
-    if Mix.env() in [:dev, :test] do
-      # Immediately delete in test/dev for test compatibility
-      theme = HydepwnsLiveview.ThemeSystem.get_theme!(id)
-      {:ok, _} = HydepwnsLiveview.ThemeSystem.delete_theme(theme)
-      themes = HydepwnsLiveview.ThemeSystem.list_themes()
-
-      applied_theme =
-        if socket.assigns.applied_theme && socket.assigns.applied_theme.id == theme.id do
-          nil
-        else
-          socket.assigns.applied_theme
-        end
-
-      {:noreply,
-       socket
-       |> assign(:themes, themes)
-       |> assign(:applied_theme, applied_theme)
-       |> assign(:confirm_delete_id, nil)
-       |> put_flash(:info, "Theme deleted successfully")}
-    else
-      {:noreply, assign(socket, :confirm_delete_id, String.to_integer(id))}
-    end
-  end
-
-  @impl true
-  def handle_event("confirm-delete-theme", %{"id" => id}, socket) do
+  def handle_event("delete", %{"id" => id}, socket) do
     theme = HydepwnsLiveview.ThemeSystem.get_theme!(id)
     {:ok, _} = HydepwnsLiveview.ThemeSystem.delete_theme(theme)
     themes = HydepwnsLiveview.ThemeSystem.list_themes()
-
-    applied_theme =
-      if socket.assigns.applied_theme && socket.assigns.applied_theme.id == theme.id do
-        nil
-      else
-        socket.assigns.applied_theme
-      end
-
-    {:noreply,
-     socket
-     |> assign(:themes, themes)
-     |> assign(:applied_theme, applied_theme)
-     |> assign(:confirm_delete_id, nil)
-     |> put_flash(:info, "Theme deleted successfully")}
+    {:noreply, assign(socket, :themes, themes)}
   end
 
   @impl true
-  def handle_event("cancel-delete-theme", _params, socket) do
-    {:noreply, assign(socket, :confirm_delete_id, nil)}
-  end
-
-  @impl true
-  def handle_event("edit-theme", %{"id" => id}, socket) do
-    theme = Enum.find(socket.assigns.themes, &("#{&1.id}" == id))
-
-    changeset =
-      if theme do
-        HydepwnsLiveview.ThemeSystem.change_theme(theme)
-      else
-        HydepwnsLiveview.ThemeSystem.change_theme(%Theme{})
-      end
-
-    theme_mode =
-      case theme do
-        %{mode: mode} when is_binary(mode) -> mode
-        _ -> "light"
-      end
-
-    {:noreply, assign(socket, changeset: changeset, editing_theme: theme, theme_mode: theme_mode) |> assign_new(:errors, fn -> [] end)}
-  end
-
-  @impl true
-  def handle_event("change_theme", %{"theme" => theme_name}, socket) do
-    socket =
-      socket
-      |> assign(:user_theme, theme_name)
-      |> push_event("set_theme_cookie", %{theme: theme_name})
-
-    {:noreply, socket}
-  end
-
-  @impl true
-  def handle_event("apply-theme", %{"id" => id}, socket) do
+  def handle_event("apply", %{"id" => id}, socket) do
     theme = HydepwnsLiveview.ThemeSystem.get_theme!(id)
-    themes = HydepwnsLiveview.ThemeSystem.list_themes()
-
-    socket =
-      socket
-      |> put_flash(:info, "Theme applied successfully")
-      |> assign(:applied_theme, theme)
-      |> assign(:themes, themes)
-      |> assign(:theme_mode, theme.mode)
-      |> assign(:user_theme, theme.name)
-      |> push_event("set_theme_cookie", %{theme: theme.name})
-
-    {:noreply, socket}
+    {:noreply, assign(socket, :applied_theme, theme)}
   end
 
   @impl true
-  def handle_event("customize-theme", %{"id" => id}, socket) do
-    theme = HydepwnsLiveview.ThemeSystem.get_theme!(id)
-
-    socket =
-      socket
-      |> assign(:current_theme, theme)
-      |> put_flash(:info, "Customize theme stub for theme #{id}")
-
-    {:noreply, socket}
-  end
-
-  @impl true
-  def handle_event("update", %{"theme" => theme_params}, socket) do
-    theme = HydepwnsLiveview.ThemeSystem.get_theme!(socket.assigns.editing_theme.id)
-
-    colors =
-      (theme_params["colors"] || %{})
-      |> Enum.map(fn {k, v} -> {String.to_atom(k), v} end)
-      |> Map.new()
-
-    theme_params =
-      theme_params
-      |> Map.put("colors", colors)
-
-    case HydepwnsLiveview.ThemeSystem.update_theme(theme, theme_params) do
-      {:ok, updated_theme} ->
-        themes = HydepwnsLiveview.ThemeSystem.list_themes()
-
-        {:noreply,
-         socket
-         |> assign(:themes, themes)
-         |> assign(:changeset, HydepwnsLiveview.ThemeSystem.change_theme(%Theme{}))
-         |> assign_new(:errors, fn -> [] end)
-         |> assign(:applied_theme, nil)
-         |> assign(:editing_theme, nil)
-         |> assign(:theme_mode, updated_theme.mode)
-         |> put_flash(:info, "Theme updated successfully.")}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, changeset: changeset) |> assign_new(:errors, fn -> [] end)}
-    end
+  def handle_event("edit", %{"id" => id}, socket) do
+    {:noreply, push_patch(socket, to: "/themes/#{id}/edit")}
   end
 
   @impl true

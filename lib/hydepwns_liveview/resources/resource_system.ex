@@ -57,6 +57,10 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
         end
 
       _ ->
+        # For unknown types, create a basic resource struct
+        resource_module = get_resource_module(resource)
+        resource = struct(resource_module, resource)
+        resource = Map.put(resource, :__resource_module__, resource_module)
         Agent.update(@agent_name, &Map.put(&1, id, resource))
         {:ok, resource}
     end
@@ -67,13 +71,17 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
   """
   def list_resources do
     Agent.get(@agent_name, &Map.values(&1))
+    |> Enum.map(&ensure_struct/1)
   end
 
   @doc """
   Gets a resource by id.
   """
   def get_resource(id) do
-    Agent.get(@agent_name, &Map.get(&1, id))
+    case Agent.get(@agent_name, &Map.get(&1, id)) do
+      nil -> {:error, :not_found}
+      resource -> {:ok, ensure_struct(resource)}
+    end
   end
 
   @doc """
@@ -81,19 +89,20 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
   """
   def update_resource(id, attrs) do
     Agent.get_and_update(@agent_name, fn state ->
-      case Map.get(state, id) do
+      resource = Map.get(state, id)
+
+      case resource do
         nil ->
           {{:error, :not_found}, state}
-
-        resource ->
-          updated =
-            if is_struct(resource) do
-              struct(resource, Map.merge(Map.from_struct(resource), attrs))
-            else
-              Map.merge(resource, attrs)
-            end
-
+        resource_data ->
+          # Convert string keys to atom keys in attrs
+          attrs = for {k, v} <- attrs, into: %{}, do: {String.to_atom(k), v}
+          updated = Map.merge(resource_data, attrs)
           updated = Map.put(updated, :id, id)
+          
+          # Ensure the resource is a struct
+          updated = ensure_struct(updated)
+          
           {{:ok, updated}, Map.put(state, id, updated)}
       end
     end)
@@ -126,5 +135,37 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
       restart: :permanent,
       shutdown: 500
     }
+  end
+
+  # Private functions
+
+  defp get_resource_module(resource) do
+    case Map.get(resource, :type) do
+      "document" -> HydepwnsLiveview.Resources.DocumentResource
+      "folder" -> HydepwnsLiveview.Resources.FolderResource
+      "image" -> HydepwnsLiveview.Resources.ImageResource
+      "video" -> HydepwnsLiveview.Resources.VideoResource
+      _ -> HydepwnsLiveview.Resources.DocumentResource
+    end
+  end
+
+  defp ensure_struct(resource) do
+    cond do
+      # If it's already a struct with __resource_module__, return as is
+      is_map(resource) && Map.has_key?(resource, :__resource_module__) ->
+        resource
+
+      # If it's a map with string keys, convert to atom keys and create struct
+      is_map(resource) ->
+        resource_module = get_resource_module(resource)
+        atom_keys = for {k, v} <- resource, into: %{}, do: {String.to_atom(k), v}
+        struct(resource_module, atom_keys)
+        |> Map.put(:__resource_module__, resource_module)
+
+      # If it's already a struct, just ensure it has __resource_module__
+      true ->
+        resource_module = get_resource_module(resource)
+        Map.put(resource, :__resource_module__, resource_module)
+    end
   end
 end

@@ -11,8 +11,6 @@ defmodule HydepwnsLiveview.Resources.PerformanceOptimizer do
   """
 
   require Logger
-  alias HydepwnsLiveview.Repo, as: Repo
-  alias HydepwnsLiveview.Events.EventStore, as: EventStore
   alias HydepwnsLiveview.Resources.CacheServer
 
   # ETS table name for resource cache
@@ -566,10 +564,62 @@ defmodule HydepwnsLiveview.Resources.PerformanceOptimizer do
     end
   end
 
-  defp alert_performance_issue(resource_type, issue_type, message) do
-    # In a real implementation, this would send alerts through various channels
-    # (email, Slack, etc.)
-    Logger.warning("Performance alert for #{resource_type} - #{issue_type}: #{message}")
+  @doc """
+  Alerts on performance issues.
+
+  ## Parameters
+  * `operation` - The operation that had performance issues
+  * `duration` - Duration of the operation in milliseconds
+  * `threshold` - Threshold that was exceeded
+  * `opts` - Alert options
+    * `:log_level` - Log level to use (default: :warning)
+    * `:notify` - Whether to send notifications (default: true)
+    * `:context` - Additional context for the alert
+
+  ## Returns
+  * `:ok` - The alert was handled
+  * `{:error, reason}` - The alert handling failed
+  """
+  def alert_performance_issue(operation, duration, threshold, opts \\ %{}) do
+    log_level = Map.get(opts, :log_level, :warning)
+    notify = Map.get(opts, :notify, true)
+    context = Map.get(opts, :context, %{})
+
+    # Log the performance issue
+    Logger.log(log_level, fn ->
+      %{
+        operation: operation,
+        duration: duration,
+        threshold: threshold,
+        exceeded_by: duration - threshold,
+        context: context
+      }
+    end)
+
+    # Send notifications if enabled
+    if notify do
+      send_performance_alert(operation, duration, threshold, context)
+    end
+
+    :ok
+  end
+
+  @doc """
+  Sends a performance alert.
+
+  ## Parameters
+  * `operation` - The operation that had performance issues
+  * `duration` - Duration of the operation in milliseconds
+  * `threshold` - Threshold that was exceeded
+  * `context` - Additional context for the alert
+
+  ## Returns
+  * `:ok` - The alert was sent
+  * `{:error, reason}` - The alert failed to send
+  """
+  def send_performance_alert(operation, duration, threshold, context) do
+    Logger.warning("Performance alert: Operation '#{operation}' took #{duration}ms (threshold: #{threshold}ms) in context: #{inspect(context)}")
+    :ok
   end
 
   # Helper to get cache config for a cache_name (ETS table)

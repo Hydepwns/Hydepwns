@@ -32,7 +32,7 @@ defmodule HydepwnsLiveview.TestSupport.ResourceFixtures do
         %{
           name: "Test Resource #{unique_suffix}",
           type: "document",
-          content: "Test content"
+          content: %{text: "Test content"}
         },
         attrs
       )

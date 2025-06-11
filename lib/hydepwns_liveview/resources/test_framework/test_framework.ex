@@ -11,7 +11,6 @@ defmodule HydepwnsLiveview.Resources.TestFramework do
   - Randomized event generation for testing
   """
 
-  alias HydepwnsLiveview.Events.Event, as: ResourceEvent
   alias HydepwnsLiveview.Events.Core.Event, as: CoreEvent
 
   @doc """
@@ -70,11 +69,12 @@ defmodule HydepwnsLiveview.Resources.TestFramework do
               )
         }
 
-      {:error, _reason} ->
+      {:error, reason} ->
         # Record error
         %{
           context
-          | errors: ["Command failed: #{inspect(_reason)}" | context.errors]
+          | status: :error,
+            errors: ["Command failed: #{inspect(reason)}" | context.errors]
         }
     end
   end
@@ -121,11 +121,8 @@ defmodule HydepwnsLiveview.Resources.TestFramework do
         context
 
       {:error, reason} ->
-        # State doesn't match expectations
-        %{
-          context
-          | errors: ["State doesn't match expectations" | context.errors]
-        }
+        Logger.error("Failed to update state: #{inspect(reason)}")
+        {:error, reason}
 
       other ->
         # Unknown validation result

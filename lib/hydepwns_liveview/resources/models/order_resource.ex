@@ -10,6 +10,7 @@ defmodule HydepwnsLiveview.Resources.OrderResource do
 
   # Add alias for ResourceEventGenerator if it doesn't exist
   alias HydepwnsLiveview.Events.ResourceEventGenerator
+  alias HydepwnsLiveview.Events.Core.Event
 
   @doc """
   Returns the initial state for a new order.

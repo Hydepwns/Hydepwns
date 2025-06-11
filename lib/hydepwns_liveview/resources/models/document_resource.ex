@@ -3,15 +3,21 @@ defmodule HydepwnsLiveview.Resources.DocumentResource do
   Defines the Document resource for LiveViews and tests.
   """
 
-  defstruct [
-    :id,
-    :name,
-    :type,
-    :content,
-    :description,
-    :parent_id,
-    :__resource_module__
-  ]
+  use Ecto.Schema
+  import Ecto.Changeset
+
+  @primary_key {:id, :string, []}
+  @derive {Phoenix.Param, key: :id}
+  schema "document_resources" do
+    field :name, :string
+    field :type, :string
+    field :content, :map
+    field :parent_id, :string
+    field :description, :string
+    field :status, :string
+
+    timestamps()
+  end
 
   @doc """
   Returns the initial state for a document resource as a struct.
@@ -21,10 +27,10 @@ defmodule HydepwnsLiveview.Resources.DocumentResource do
       id: nil,
       name: nil,
       type: "document",
-      content: nil,
-      description: nil,
+      content: %{text: ""},
       parent_id: nil,
-      __resource_module__: __MODULE__
+      description: nil,
+      status: "active"
     }
   end
 
@@ -40,7 +46,7 @@ defmodule HydepwnsLiveview.Resources.DocumentResource do
         struct(state, Map.merge(Map.from_struct(state), event.data))
 
       "document.deleted" ->
-        %{state | content: nil}
+        %{state | content: %{text: ""}}
 
       _ ->
         struct(state, Map.merge(Map.from_struct(state), event.data || %{}))
@@ -48,72 +54,29 @@ defmodule HydepwnsLiveview.Resources.DocumentResource do
   end
 
   @doc """
-  Validates a document resource map or struct. Returns {:ok, struct} or {:error, errors}.
-
-  # NOTE: Do not use this directly in LiveView forms or controllers. Use `changeset/1` for form validation.
+  Creates a changeset for a document resource.
+  Can be used for both creating new resources and updating existing ones.
+  `attrs` should be the parameters to apply.
+  `document_struct` is the resource struct, typically `%DocumentResource{}` for new,
+  or an existing struct for updates.
   """
-  def validate(attrs) when is_map(attrs) do
-    errors = []
-
-    errors =
-      if is_nil(attrs["name"]) or attrs["name"] == "",
-        do: [{:name, "Name can't be blank"} | errors],
-        else: errors
-
-    errors =
-      if attrs["name"] && String.length(attrs["name"]) < 3,
-        do: [{:name, "Name is too short"} | errors],
-        else: errors
-
-    errors =
-      if is_nil(attrs["type"]) or attrs["type"] == "",
-        do: [{:type, "Type can't be blank"} | errors],
-        else: errors
-
-    errors =
-      if attrs["type"] && attrs["type"] not in ["document", "folder"],
-        do: [{:type, "Invalid resource type"} | errors],
-        else: errors
-
-    errors =
-      if is_nil(attrs["content"]) or attrs["content"] == "",
-        do: [{:content, "Content can't be blank"} | errors],
-        else: errors
-
-    errors =
-      if attrs["parent_id"] && !is_binary(attrs["parent_id"]),
-        do: [{:parent_id, "Parent ID must be a string or nil"} | errors],
-        else: errors
-
-    if errors == [], do: {:ok, struct(__MODULE__, attrs)}, else: {:error, errors}
+  def changeset(document_struct \\ initial_state(), attrs) do
+    document_struct
+    |> cast(attrs, [:id, :name, :type, :content, :description, :parent_id, :status])
+    |> validate_required([:id, :name, :type])
+    |> validate_length(:name, min: 3)
+    |> validate_inclusion(:type, ["document"])
+    |> put_change(:status, Map.get(attrs, :status, "active"))
+    |> put_change(:description, Map.get(attrs, :description, ""))
+    |> validate_content_type()
   end
 
-  # Returns an Ecto.Changeset for use in LiveView forms
-  def changeset(attrs) when is_map(attrs) do
-    attrs = for {k, v} <- attrs, into: %{}, do: {to_string(k), v}
-
-    types = %{
-      id: :string,
-      name: :string,
-      type: :string,
-      content: :string,
-      description: :string,
-      parent_id: :string
-    }
-
-    case validate(attrs) do
-      {:ok, _struct} ->
-        {%{}, types}
-        |> Ecto.Changeset.cast(attrs, Map.keys(types))
-
-      {:error, errors} ->
-        changeset = {%{}, types} |> Ecto.Changeset.cast(attrs, Map.keys(types))
-
-        Enum.reduce(errors, changeset, fn {field, msg}, cs ->
-          Ecto.Changeset.add_error(cs, field, msg)
-        end)
+  defp validate_content_type(changeset) do
+    case get_change(changeset, :content) do
+      nil -> changeset
+      content when is_map(content) -> changeset
+      content when is_binary(content) -> put_change(changeset, :content, %{text: content})
+      _ -> add_error(changeset, :content, "must be a map or string")
     end
   end
-
-  def changeset(_), do: Ecto.Changeset.change(%{})
 end

@@ -8,6 +8,8 @@ defmodule HydepwnsLiveview.Resources.Examples.UserResource do
 
   use HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource, snapshot_interval: 50
 
+  alias HydepwnsLiveview.Events.Core.Event
+
   @doc """
   Returns the initial state for a user resource.
 

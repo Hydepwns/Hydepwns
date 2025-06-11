@@ -15,8 +15,6 @@ defmodule HydepwnsLiveview.Resources.DeveloperTools do
   alias HydepwnsLiveview.Events.Core.Event
   alias HydepwnsLiveview.Events.Core.EventStore
   alias HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource
-  alias HydepwnsLiveview.Events.Core.EventMonitor
-  alias HydepwnsLiveview.Repo
 
   @spec start_debug_session(module(), any(), keyword()) :: {:ok, String.t()} | {:error, any()}
   @doc """
@@ -628,6 +626,23 @@ defmodule HydepwnsLiveview.Resources.DeveloperTools do
     {:ok, documentation}
   end
 
+  @doc """
+  Handles debug events for development purposes.
+
+  ## Parameters
+  * `event` - The event to debug
+  * `session_id` - The session ID for the debug session
+  * `pid` - The process ID of the debugger
+
+  ## Returns
+  * `:ok` - The event was handled
+  * `{:error, reason}` - The event handling failed
+  """
+  def handle_debug_event(event, session_id, pid) do
+    Logger.debug("Debug event received for session #{session_id} from process #{inspect(pid)}: #{inspect(event)}")
+    :ok
+  end
+
   # Private helper functions
 
   defp subscribe_to_resource_events(_resource_type, _resource_id, _session_id) do
@@ -640,38 +655,6 @@ defmodule HydepwnsLiveview.Resources.DeveloperTools do
     HydepwnsLiveview.Events.EventBus.subscribe(self(), :all)
 
     :ok
-  end
-
-  defp handle_debug_event(event, session_id, pid) do
-    # Get current session
-    case Process.get({:debug_session, session_id}) do
-      nil ->
-        # Session no longer exists
-        :ok
-
-      session ->
-        # Check for breakpoints
-        should_break =
-          Enum.any?(session.breakpoints, fn breakpoint ->
-            event.type == breakpoint.event_type &&
-              (breakpoint.condition == nil || breakpoint.condition.(event))
-          end)
-
-        # Add event to session
-        updated_session =
-          Map.update!(session, :events, fn events ->
-            [event | events]
-          end)
-
-        Process.put({:debug_session, session_id}, updated_session)
-
-        # Notify if breakpoint hit
-        if should_break do
-          send(pid, {:debug_breakpoint, session_id, event})
-        end
-
-        :ok
-    end
   end
 
   defp compute_state_diff(state1, state2) do

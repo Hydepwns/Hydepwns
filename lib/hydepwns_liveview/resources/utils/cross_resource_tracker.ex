@@ -12,7 +12,6 @@ defmodule HydepwnsLiveview.Resources.CrossResourceTracker do
 
   require Logger
   alias HydepwnsLiveview.Events.Core.Event
-  alias HydepwnsLiveview.Events.Core.EventBus
   alias HydepwnsLiveview.Events.Core.TransactionalEventStore
   alias HydepwnsLiveview.Repo
   import Ecto.Query

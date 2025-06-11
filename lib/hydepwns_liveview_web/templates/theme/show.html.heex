@@ -1,0 +1,39 @@
+<.header>
+  Theme {@theme.id || "new"}
+  <:subtitle>This is a theme record from your database.</:subtitle>
+  <:actions>
+    <.link href={~p"/themes/#{@theme}/edit"}>
+      <.button>Edit theme</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Name">{@theme.name}</:item>
+  <:item title="Mode">{@theme.mode}</:item>
+  <:item title="Colors">
+    <div class="space-y-2">
+      <div><strong>Primary:</strong> {@theme.colors["primary"]}</div>
+      <div><strong>Secondary:</strong> {@theme.colors["secondary"]}</div>
+      <div><strong>Accent:</strong> {@theme.colors["accent"]}</div>
+      <div><strong>Background:</strong> {@theme.colors["background"]}</div>
+      <div><strong>Text:</strong> {@theme.colors["text"]}</div>
+      <div><strong>Border:</strong> {@theme.colors["border"]}</div>
+      <div><strong>Error:</strong> {@theme.colors["error"]}</div>
+      <div><strong>Success:</strong> {@theme.colors["success"]}</div>
+      <div><strong>Warning:</strong> {@theme.colors["warning"]}</div>
+      <div><strong>Info:</strong> {@theme.colors["info"]}</div>
+    </div>
+  </:item>
+  <:item title="Settings">
+    <div class="space-y-2">
+      <div><strong>Font Size:</strong> {@theme.settings["font_size"]}</div>
+      <div><strong>Line Height:</strong> {@theme.settings["line_height"]}</div>
+      <div><strong>Contrast:</strong> {@theme.settings["contrast"]}</div>
+      <div><strong>Animations:</strong> {@theme.settings["animations"]}</div>
+    </div>
+  </:item>
+  <:item title="Default Theme">{@theme.is_default}</:item>
+</.list>
+
+<.back navigate={~p"/themes"}>Back to themes</.back>

@@ -17,8 +17,8 @@ defmodule HydepwnsLiveview.Events.Projections.ProjectionSupervisor do
   @doc """
   Starts the projection supervisor.
   """
-  def start_link(init_arg) do
-    Supervisor.start_link(__MODULE__, init_arg, name: __MODULE__)
+  def start_link(opts \\ []) do
+    Supervisor.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
   @impl true
@@ -53,7 +53,7 @@ defmodule HydepwnsLiveview.Events.Projections.ProjectionSupervisor do
   * `:subscribe` - Whether to subscribe to events (default: true)
   """
   def start_projection(projection_module, opts \\ []) do
-    name = Keyword.get(opts, :name)
+    _name = Keyword.get(opts, :name)
 
     child_spec = %{
       id: {ProjectionProcess, projection_module},

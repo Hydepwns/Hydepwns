@@ -17,7 +17,6 @@ defmodule HydepwnsLiveview.Events.Core.TransactionalEventStore do
   alias HydepwnsLiveview.Repo
   alias HydepwnsLiveview.Events.Core.Event
   alias HydepwnsLiveview.Events.Core.EventStore
-  alias HydepwnsLiveview.Events.Core.EventBus
 
   @doc """
   Executes a function in a transaction, storing events on success.

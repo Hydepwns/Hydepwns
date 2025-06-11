@@ -9,7 +9,6 @@ defmodule HydepwnsLiveview.Events.Core.TestEvents do
   require Logger
 
   alias HydepwnsLiveview.Events.Event
-  alias HydepwnsLiveview.Events.EventBus
 
   @doc """
   Generates a set of test data for the specified number of users.

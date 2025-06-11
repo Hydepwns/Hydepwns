@@ -3,8 +3,6 @@ defmodule HydepwnsLiveview.Events.Event do
   Event module for handling resource events.
   """
 
-  alias HydepwnsLiveview.Events.EventBus
-
   @doc """
   Creates a new event with the given type and data.
   """
@@ -20,10 +18,5 @@ defmodule HydepwnsLiveview.Events.Event do
       error ->
         error
     end
-  end
-
-  defp generate_event_id do
-    :crypto.strong_rand_bytes(16)
-    |> Base.encode16(case: :lower)
   end
 end

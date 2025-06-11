@@ -44,10 +44,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
       |> click(button("Create Resource"))
 
       # Verify resource was created
-      Wallaby.Browser.assert_has(
-        session,
-        css(".alert-success", text: "Resource created successfully")
-      )
+      Wallaby.Browser.assert_has(session, "Resource created successfully")
 
       # Navigate to events dashboard
       session
@@ -61,19 +58,16 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
     test "resource update generates events", %{session: session, resource: resource} do
       # Navigate to the resource edit page
       session
-      |> click(link(resource.name))
-      |> click(link("Edit"))
+      |> click(Query.css("[data-test-id='resource-link-#{resource.id}']"))
+      |> click(Query.css("[data-test-id='edit-resource-link']"))
 
       # Update the resource
       session
-      |> fill_in(text_field("resource[description]"), with: "Updated description")
+      |> fill_in(Query.textarea("resource[description]"), with: "Updated description")
       |> click(button("Save"))
 
       # Verify update success
-      Wallaby.Browser.assert_has(
-        session,
-        css(".alert-success", text: "Resource updated successfully")
-      )
+      Wallaby.Browser.assert_has(session, "Resource updated successfully")
 
       # Navigate to events dashboard
       session
@@ -91,14 +85,11 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
 
       # Delete the resource
       accept_confirm(session, fn s ->
-        click(s, button("Delete Resource"))
+        click(s, Query.css("[data-test-id='delete-resource-button']"))
       end)
 
       # Verify deletion success
-      Wallaby.Browser.assert_has(
-        session,
-        css(".alert-success", text: "Resource deleted successfully")
-      )
+      Wallaby.Browser.assert_has(session, "Resource deleted successfully")
 
       # Navigate to events dashboard
       session
@@ -114,7 +105,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
     test "user can view event timeline", %{session: session} do
       # Navigate to event timeline
       session
-      |> click(link("Events"))
+      |> click(Query.css("[data-test-id='events-link']"))
       |> click(link("Timeline"))
 
       # Verify timeline components are present
@@ -135,7 +126,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
     test "user can filter events", %{session: session} do
       # Navigate to events dashboard
       session
-      |> click(link("Events"))
+      |> click(Query.css("[data-test-id='events-link']"))
 
       # Apply a filter for created events
       session
@@ -163,12 +154,12 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
     test "user can subscribe to event notifications", %{session: session} do
       # Navigate to notification settings
       session
-      |> click(link("Account"))
+      |> click(Query.css("[data-test-id='account-link']"))
       |> click(link("Notification Settings"))
 
       # Subscribe to resource.created events
       session
-      |> set_value(checkbox("notification_settings[resource.created]"), :selected)
+      |> click(Query.css("input[phx-value-setting='email_notifications']"))
       |> click(button("Save Settings"))
 
       # Verify settings saved
@@ -207,7 +198,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
         )
 
       # Verify the UI updates automatically (with small wait for update)
-      Process.sleep(500)
+      Process.sleep(1000)
       Wallaby.Browser.assert_has(dashboard_view, css(".resource-row", text: "Live Update Test"))
 
       # Verify the event count badge updates

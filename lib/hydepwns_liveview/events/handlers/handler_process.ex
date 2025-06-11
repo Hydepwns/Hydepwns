@@ -31,6 +31,28 @@ defmodule HydepwnsLiveview.Events.Handlers.HandlerProcess do
     GenServer.start_link(__MODULE__, {handler_module, opts}, gen_server_opts)
   end
 
+  @doc """
+  Gets the handler module for a process.
+
+  ## Parameters
+  * `pid` - The process ID of the handler
+
+  ## Returns
+  * `{:ok, handler_module}` - The handler module
+  * `{:error, reason}` - Failed to get the handler module
+  """
+  def get_handler_module(pid) do
+    GenServer.call(pid, :get_handler_module)
+  end
+
+  @doc """
+  Handles a message by delegating to the handler implementation.
+  Returns {:ok, result} on success or {:error, reason} on failure.
+  """
+  def handle_message(pid, message) do
+    GenServer.call(pid, {:handle_message, message})
+  end
+
   @impl true
   def init({handler_module, opts}) do
     Process.flag(:trap_exit, true)
@@ -186,6 +208,7 @@ defmodule HydepwnsLiveview.Events.Handlers.HandlerProcess do
 
   # Initialize the handler
   defp initialize_handler(handler_module) do
+    IO.inspect(handler_module, label: "[HandlerProcess initialize_handler - handler_module]")
     if function_exported?(handler_module, :init, 0) do
       try do
         apply(handler_module, :init, [])

@@ -9,7 +9,6 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
   - Monitor performance metrics for the event system
   """
 
-  alias HydepwnsLiveview.Events.Event
   alias HydepwnsLiveview.Events.EventStore
 
   @doc """

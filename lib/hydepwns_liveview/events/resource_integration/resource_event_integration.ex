@@ -124,25 +124,85 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventIntegration d
   * `command` - The command to execute
   * `params`
   """
-  def execute_command(resource_module, id, command, params) do
-    # Implementation of execute_command function
+  def execute_command(_resource_module, _id, _command, _params) do
+    # Implementation
   end
 
   @doc """
-  Returns true if the resource module is event-sourced, false otherwise.
+  Checks if a resource is event sourced.
+
+  ## Parameters
+  * `resource_module` - The resource module to check
+
+  ## Returns
+  * `true` if the resource is event sourced
+  * `false` otherwise
   """
-  @spec is_event_sourced_resource?(module()) :: boolean()
-  defp is_event_sourced_resource?(_resource_module), do: false
+  defp is_event_sourced_resource?(resource_module) do
+    with {:module, _} <- Code.ensure_loaded(resource_module),
+         true <- function_exported?(resource_module, :__using__, 1) do
+      # Check if the module uses EventSourcedResource
+      resource_module.__info__(:attributes)
+      |> Enum.any?(fn {key, value} ->
+        key == :__using__ && Enum.any?(value, fn
+          {HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource, _} -> true
+          _ -> false
+        end)
+      end)
+    else
+      _ -> false
+    end
+  end
 
   @doc """
-  Gets the resource by ID or returns the resource if already loaded.
+  Gets a resource by module and id.
+
+  ## Parameters
+  * `resource_module` - The resource module
+  * `id_or_resource` - The resource ID or the resource itself
+
+  ## Returns
+  * `{:ok, resource}` - The resource was found
+  * `{:error, reason}` - The resource was not found or an error occurred
   """
-  @spec get_resource(module(), any()) :: {:ok, any()} | {:error, any()}
-  defp get_resource(_resource_module, resource_or_id), do: {:ok, resource_or_id}
+  defp get_resource(resource_module, id_or_resource) do
+    # If we already have a resource, just return it
+    if is_map(id_or_resource) do
+      {:ok, id_or_resource}
+    else
+      # Otherwise, try to get the resource by ID
+      case resource_module.get(id_or_resource) do
+        {:ok, resource} -> {:ok, resource}
+        {:error, reason} -> {:error, reason}
+        nil -> {:error, :not_found}
+        resource when is_map(resource) -> {:ok, resource}
+      end
+    end
+  end
 
   @doc """
-  Extracts the ID from a resource or returns the ID if already provided.
+  Gets the id of a resource.
+
+  ## Parameters
+  * `resource` - The resource to get the ID from
+
+  ## Returns
+  * The resource ID
+
+  ## Raises
+  * `KeyError` if the resource has no ID
   """
-  @spec get_id(any()) :: any()
-  defp get_id(id_or_resource), do: id_or_resource
+  defp get_id(resource) when is_map(resource) do
+    cond do
+      Map.has_key?(resource, :id) -> resource.id
+      Map.has_key?(resource, "id") -> resource["id"]
+      Map.has_key?(resource, :uuid) -> resource.uuid
+      Map.has_key?(resource, "uuid") -> resource["uuid"]
+      true ->
+        raise KeyError, "Resource must have an :id, 'id', :uuid, or 'uuid' key. Got keys: #{inspect(Map.keys(resource))}"
+    end
+  end
+
+  defp get_id(id) when is_binary(id), do: id
+  defp get_id(id) when is_integer(id), do: id
 end

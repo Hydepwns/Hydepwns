@@ -15,7 +15,6 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
   use GenServer
 
   alias HydepwnsLiveview.Events.Core.EventStore
-  alias HydepwnsLiveview.Events.Core.EventBus
   alias HydepwnsLiveview.Events.Core.Event
   alias HydepwnsLiveview.Events.Core.NotificationSystem
   alias HydepwnsLiveview.Telemetry

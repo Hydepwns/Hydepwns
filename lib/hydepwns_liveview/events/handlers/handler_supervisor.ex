@@ -44,18 +44,30 @@ defmodule HydepwnsLiveview.Events.Handlers.HandlerSupervisor do
   * `{:error, reason}` - The handler failed to start
   """
   def start_handler(handler_module, opts \\ []) do
-    # Set up options for the handler process
+    # Set up GenServer options for the HandlerProcess itself, e.g., its registered name.
+    # These are distinct from the `opts` for the `handler_module` it will manage.
     name_opts =
       case Keyword.get(opts, :name) do
-        nil -> []
-        name -> [name: name]
+        nil -> [] # No specific name for the HandlerProcess GenServer
+        name -> [name: name] # Register HandlerProcess GenServer with this name
       end
 
-    # Start the handler process under this supervisor
-    DynamicSupervisor.start_child(
-      __MODULE__,
-      {HandlerProcess, [handler_module, opts, name_opts]}
-    )
+    # Ensure a unique ID for the child spec. 
+    # Use the :name from opts (which becomes the GenServer name for HandlerProcess) 
+    # or the handler_module itself if no name is provided in opts.
+    child_id = Keyword.get(opts, :name, handler_module)
+
+    spec = %{
+      id: child_id,
+      start: {HandlerProcess, :start_link, [handler_module, opts, name_opts]},
+      # `handler_module` is the actual handler like LoggingHandler.
+      # `opts` are the business-logic options for `handler_module` (e.g., event_types it handles).
+      # `name_opts` are the GenServer options for the `HandlerProcess` that wraps `handler_module` (e.g., its registered name).
+      type: :worker, # HandlerProcess is a GenServer, so it's a worker
+      restart: :permanent # Or :transient or :temporary as appropriate
+    }
+
+    DynamicSupervisor.start_child(__MODULE__, spec)
   end
 
   @doc """
@@ -132,6 +144,17 @@ defmodule HydepwnsLiveview.Events.Handlers.HandlerSupervisor do
           :exit, reason -> {:error, reason}
         end
     end
+  end
+
+  @doc """
+  Gets the count of running handlers.
+
+  ## Returns
+
+  * `{:ok, count}` - The number of running handlers
+  """
+  def count_handlers do
+    {:ok, DynamicSupervisor.count_children(__MODULE__)}
   end
 
   # Private functions

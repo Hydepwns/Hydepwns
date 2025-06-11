@@ -16,7 +16,6 @@ defmodule HydepwnsLiveview.Events.Projections.ProjectionProcess do
 
   alias HydepwnsLiveview.Events.EventBus
   alias HydepwnsLiveview.Events.EventStore
-  alias HydepwnsLiveview.Events.ProjectionRegistry
 
   # Client API
 

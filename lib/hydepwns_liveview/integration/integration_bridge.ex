@@ -15,7 +15,6 @@ defmodule HydepwnsLiveview.Integration.IntegrationBridge do
   """
 
   alias HydepwnsLiveview.Events.Core.Event
-  alias HydepwnsLiveview.Events.Core.EventBus
   require Logger
 
   @doc """
@@ -157,7 +156,7 @@ defmodule HydepwnsLiveview.Integration.IntegrationBridge do
         end)
 
       # Separate successes and failures
-      {loaded_resources, load_failures} =
+      {loaded_resources, _load_failures} =
         Enum.split_with(resources, fn
           {:ok, _} -> true
           _ -> false
@@ -173,7 +172,7 @@ defmodule HydepwnsLiveview.Integration.IntegrationBridge do
         end)
 
       # Separate successful transformations
-      {to_export, transform_failures} =
+      {to_export, _transform_failures} =
         Enum.split_with(transformed_resources, fn
           {:ok, _, _} -> true
           _ -> false
@@ -262,7 +261,7 @@ defmodule HydepwnsLiveview.Integration.IntegrationBridge do
           # 4. Sync each pair of resources
           results =
             Enum.map(mapping, fn {internal_id, external_item} ->
-              sync_pair(internal_id, external_item, resource_module, adapter, sync_options)
+              sync_pair(resource_module, internal_id, external_item, adapter, sync_options)
             end)
 
           # 5. Create report
@@ -414,31 +413,14 @@ defmodule HydepwnsLiveview.Integration.IntegrationBridge do
     trunc(capped_backoff * jitter_factor)
   end
 
-  defp transform_to_resource(external_data, resource_type, resource_module) do
-    # This would typically use a more sophisticated transformation strategy
-    # based on resource type and adapter-specific mapping rules
-    try do
-      # Basic attributes mapping - specific adapters would implement 
-      # their own detailed mappings
-      resource_data = %{
-        id: Map.get(external_data, :id) || Map.get(external_data, "id")
-        # Add other mapped attributes based on the resource type
-      }
-
-      {:ok, resource_data}
-    rescue
-      e -> {:error, {:transformation_error, e}}
-    end
+  defp transform_to_resource(external_data, _resource_type, _resource_module) do
+    # Transform external data to resource format
+    external_data
   end
 
-  defp transform_to_external(resource, adapter) do
-    # This would be implemented by specific adapters with detailed mapping rules
-    try do
-      external_data = Map.from_struct(resource)
-      {:ok, external_data}
-    rescue
-      e -> {:error, {:transformation_error, e}}
-    end
+  defp transform_to_external(resource, _adapter) do
+    # Transform resource to external format
+    resource
   end
 
   defp redact_sensitive_config(config) do
@@ -458,11 +440,9 @@ defmodule HydepwnsLiveview.Integration.IntegrationBridge do
     "#{resource_type}-#{Ecto.UUID.generate()}"
   end
 
-  defp get_resources_for_sync(resource_type, sync_options) do
-    # This would typically query the database for resources to sync
-    # based on the sync options (e.g., modified since, specific query, etc.)
-    # For simplicity, we'll just return an empty list
-    []
+  defp get_resources_for_sync(_resource_type, _sync_options) do
+    # Get resources for sync
+    {:ok, []}
   end
 
   defp create_internal_external_mapping(_external_data, _resource_ids, _resource_module) do
@@ -472,11 +452,9 @@ defmodule HydepwnsLiveview.Integration.IntegrationBridge do
     []
   end
 
-  defp sync_pair(_internal_id, _external_item, _resource_module, _adapter, _sync_options) do
-    # Logic for comparing and updating/creating resources on both sides.
-    # This would involve conflict resolution based on timestamps or other strategies.
-    # Placeholder: returns a generic success for the pair.
-    {:ok, :synced, %{id: _internal_id, status: "placeholder_synced"}}
+  defp sync_pair(_resource_module, id, _external_system, _external_id, _sync_config) do
+    # Sync a resource with external data
+    {:ok, :synced, %{id: id, status: "placeholder_synced"}}
   end
 
   defp create_sync_report(results) do

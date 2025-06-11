@@ -1,5 +1,6 @@
 defmodule HydepwnsLiveviewWeb.ThemeController do
   use HydepwnsLiveviewWeb, :controller
+  plug :put_view, HydepwnsLiveviewWeb.ThemeView
 
   alias HydepwnsLiveview.ThemeSystem.Models.Theme
 
@@ -29,14 +30,13 @@ defmodule HydepwnsLiveviewWeb.ThemeController do
     case HydepwnsLiveview.ThemeSystem.create_theme(theme_params) do
       {:ok, theme} ->
         conn
-        |> put_status(:created)
-        |> render(:show, theme: theme)
+        |> put_flash(:info, "Theme created successfully.")
+        |> redirect(to: ~p"/themes/#{theme}")
 
       {:error, changeset} ->
         conn
-        |> put_status(:unprocessable_entity)
-        |> put_view(json: HydepwnsLiveviewWeb.ErrorJSON)
-        |> render(:error, changeset: changeset)
+        |> put_flash(:error, "Failed to create theme. Please check the errors below.")
+        |> render(:new, changeset: changeset)
     end
   end
 
@@ -44,11 +44,6 @@ defmodule HydepwnsLiveviewWeb.ThemeController do
   Shows a single theme.
   Phoenix controller action: renders the show page for a theme by ID.
   """
-  def show(conn, %{"id" => "new"}) do
-    changeset = HydepwnsLiveview.ThemeSystem.change_theme(%Theme{})
-    render(conn, :new, changeset: changeset)
-  end
-
   def show(conn, %{"id" => id}) do
     theme = HydepwnsLiveview.ThemeSystem.get_theme!(id)
     render(conn, :show, theme: theme)
@@ -58,11 +53,6 @@ defmodule HydepwnsLiveviewWeb.ThemeController do
   Renders the form for editing an existing theme.
   Phoenix controller action: renders the edit form for a theme by ID.
   """
-  def edit(conn, %{"id" => "new"}) do
-    changeset = HydepwnsLiveview.ThemeSystem.change_theme(%Theme{})
-    render(conn, :new, changeset: changeset)
-  end
-
   def edit(conn, %{"id" => id}) do
     theme = HydepwnsLiveview.ThemeSystem.get_theme!(id)
     changeset = HydepwnsLiveview.ThemeSystem.change_theme(theme)
@@ -78,13 +68,15 @@ defmodule HydepwnsLiveviewWeb.ThemeController do
 
     case HydepwnsLiveview.ThemeSystem.update_theme(theme, theme_params) do
       {:ok, theme} ->
-        render(conn, :show, theme: theme)
+        conn
+        |> put_flash(:info, "Theme updated successfully.")
+        |> redirect(to: ~p"/themes/#{theme}")
 
       {:error, changeset} ->
         conn
         |> put_status(:unprocessable_entity)
-        |> put_view(json: HydepwnsLiveviewWeb.ErrorJSON)
-        |> render(:error, changeset: changeset)
+        |> put_flash(:error, "Failed to update theme. Please check the errors below.")
+        |> render(:edit, theme: theme, changeset: changeset)
     end
   end
 
@@ -96,14 +88,14 @@ defmodule HydepwnsLiveviewWeb.ThemeController do
     if is_nil(id) or id == "" do
       conn
       |> put_flash(:error, "Invalid theme id.")
-      |> redirect(to: Routes.theme_path(conn, :index))
+      |> redirect(to: ~p"/themes")
     else
       theme = HydepwnsLiveview.ThemeSystem.get_theme!(id)
       {:ok, _theme} = HydepwnsLiveview.ThemeSystem.delete_theme(theme)
 
       conn
       |> put_flash(:info, "Theme deleted successfully.")
-      |> redirect(to: Routes.theme_path(conn, :index))
+      |> redirect(to: ~p"/themes")
     end
   end
 end

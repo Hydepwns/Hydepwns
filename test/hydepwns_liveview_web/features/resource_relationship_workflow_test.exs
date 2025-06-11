@@ -57,7 +57,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       session
       |> click(Query.select("resource[parent_id]"))
       |> click(Query.option(parent.name))
-      |> click(button("Save"))
+      |> click(Query.css("[data-test-id='save-resource']"))
 
       # Verify relationship was created
       Wallaby.Browser.assert_has(
@@ -110,7 +110,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       |> click(link("Edit"))
       |> click(Query.select("resource[parent_id]"))
       |> click(Query.option(parent.name))
-      |> click(button("Save"))
+      |> click(Query.css("[data-test-id='save-resource']"))
 
       # Try to make parent a child of child (circular)
       session
@@ -118,7 +118,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       |> click(link("Edit"))
       |> click(Query.select("resource[parent_id]"))
       |> click(Query.option(child.name))
-      |> click(button("Save"))
+      |> click(Query.css("[data-test-id='save-resource']"))
 
       # Verify error message
       Wallaby.Browser.assert_has(
@@ -134,7 +134,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       |> click(link("Edit"))
       |> click(Query.select("resource[parent_id]"))
       |> click(Query.option(parent.name))
-      |> click(button("Save"))
+      |> click(Query.css("[data-test-id='save-resource']"))
 
       # Remove the relationship
       session
@@ -142,7 +142,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       |> click(link("Edit"))
       |> click(Query.select("resource[parent_id]"))
       |> click(Query.option(""))
-      |> click(button("Save"))
+      |> click(Query.css("[data-test-id='save-resource']"))
 
       # Verify relationship was removed
       Wallaby.Browser.assert_has(
@@ -170,7 +170,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       # Self-reference
       |> click(Query.select("resource[parent_id]"))
       |> click(Query.option(child.name))
-      |> click(button("Save"))
+      |> click(Query.css("[data-test-id='save-resource']"))
 
       # Verify error message
       Wallaby.Browser.assert_has(
@@ -186,7 +186,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       # Document can't be parent of folder
       |> click(Query.select("resource[parent_id]"))
       |> click(Query.option(child.name))
-      |> click(button("Create Resource"))
+      |> click(Query.css("[data-test-id='save-resource']"))
 
       # Verify error message
       Wallaby.Browser.assert_has(

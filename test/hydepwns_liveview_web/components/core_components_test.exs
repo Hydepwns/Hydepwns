@@ -103,11 +103,12 @@ defmodule HydepwnsLiveviewWeb.CoreComponentsTest do
 
   describe "simple_form/1" do
     test "renders a simple form" do
+      form_struct = Phoenix.HTML.FormData.to_form(%{}, as: :test_form)
+
       html =
         render_component(&CoreComponents.simple_form/1, %{
-          for: %{},
+          for: form_struct,
           as: nil,
-          rest: [],
           inner_block_simple_form: [%{inner_block: fn _, f -> "Form Field" end}],
           actions: [%{inner_block: fn _, f -> "Submit" end}]
         })

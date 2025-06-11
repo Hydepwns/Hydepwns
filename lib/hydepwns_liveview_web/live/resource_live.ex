@@ -121,8 +121,8 @@ defmodule HydepwnsLiveviewWeb.ResourceLive do
 
   @impl true
   def render(assigns) do
-    resources = Enum.map(assigns.resources, &HydepwnsLiveview.Utils.MapHelpers.stringify_keys/1)
-    resource = if assigns[:resource], do: HydepwnsLiveview.Utils.MapHelpers.stringify_keys(assigns.resource), else: nil
+    assigns = assign(assigns, :stringified_resources, Enum.map(assigns.resources, &HydepwnsLiveview.Utils.MapHelpers.stringify_keys/1))
+    assigns = assign(assigns, :stringified_resource, if(assigns[:resource], do: HydepwnsLiveview.Utils.MapHelpers.stringify_keys(assigns.resource), else: nil))
 
     ~H"""
     <div class="container mx-auto px-4 py-8">
@@ -135,7 +135,7 @@ defmodule HydepwnsLiveviewWeb.ResourceLive do
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <%= for resource <- resources do %>
+          <%= for resource <- @stringified_resources do %>
             <div class="border rounded-lg p-4 shadow-sm">
               <h2 class="text-xl font-semibold mb-2">{resource.name}</h2>
               <p class="text-gray-600 mb-4">{resource.description}</p>
@@ -162,13 +162,13 @@ defmodule HydepwnsLiveviewWeb.ResourceLive do
 
       <div :if={@live_action == :show} class="space-y-8">
         <div class="flex justify-between items-center">
-          <h1 class="text-3xl font-bold">{@resource.name}</h1>
+          <h1 class="text-3xl font-bold">{@stringified_resource.name}</h1>
           <div class="flex gap-4">
-            <%= if @resource && @resource.id do %>
-              <.link navigate={~p"/resources/#{@resource.id}/edit"} class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded">
+            <%= if @stringified_resource && @stringified_resource.id do %>
+              <.link navigate={~p"/resources/#{@stringified_resource.id}/edit"} class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded">
                 Edit
               </.link>
-              <button phx-click="delete_resource" phx-value-id={@resource.id} data-confirm="Are you sure you want to delete this resource?" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
+              <button phx-click="delete_resource" phx-value-id={@stringified_resource.id} data-confirm="Are you sure you want to delete this resource?" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
                 Delete Resource
               </button>
             <% end %>
@@ -176,47 +176,45 @@ defmodule HydepwnsLiveviewWeb.ResourceLive do
         </div>
 
         <div class="bg-white shadow-lg rounded-lg p-6">
-          <div class="space-y-4">
-            <div>
-              <h2 class="text-xl font-semibold mb-2">Description</h2>
-              <p class="text-gray-600">{@resource.description}</p>
+          <div>
+            <h2 class="text-xl font-semibold mb-2">Description</h2>
+            <p class="text-gray-600">{@stringified_resource.description}</p>
+          </div>
+
+          <div>
+            <h2 class="text-xl font-semibold mb-2">Type</h2>
+            <p class="text-gray-600">{@stringified_resource.type}</p>
+          </div>
+
+          <div>
+            <h2 class="text-xl font-semibold mb-2">Status</h2>
+            <p class="text-gray-600">{@stringified_resource.status}</p>
+          </div>
+
+          <%= if @parent_resource && @parent_resource.id do %>
+            <div class="relationship-row parent-resource">
+              <h2 class="text-xl font-semibold mb-2">Parent Resource</h2>
+              <.link navigate={~p"/resources/#{@parent_resource.id}"} class="text-blue-600 hover:text-blue-800">
+                {@parent_resource.name}
+              </.link>
             </div>
+          <% end %>
 
+          <div :if={@child_resources && @child_resources != []}>
+            <h2 class="text-xl font-semibold mb-2">Child Resources</h2>
             <div>
-              <h2 class="text-xl font-semibold mb-2">Type</h2>
-              <p class="text-gray-600">{@resource.type}</p>
-            </div>
-
-            <div>
-              <h2 class="text-xl font-semibold mb-2">Status</h2>
-              <p class="text-gray-600">{@resource.status}</p>
-            </div>
-
-            <%= if @parent_resource && @parent_resource.id do %>
-              <div class="relationship-row parent-resource">
-                <h2 class="text-xl font-semibold mb-2">Parent Resource</h2>
-                <.link navigate={~p"/resources/#{@parent_resource.id}"} class="text-blue-600 hover:text-blue-800">
-                  {@parent_resource.name}
-                </.link>
-              </div>
-            <% end %>
-
-            <div :if={@child_resources && @child_resources != []}>
-              <h2 class="text-xl font-semibold mb-2">Child Resources</h2>
-              <div>
-                <%= for child <- @child_resources do %>
-                  <%= if child.id do %>
-                    <div class="child-resource">
-                      <.link navigate={~p"/resources/#{child.id}"} class="text-blue-600 hover:text-blue-800">
-                        {child.name}
-                      </.link>
-                    </div>
-                  <% end %>
+              <%= for child <- @child_resources do %>
+                <%= if child.id do %>
+                  <div class="child-resource">
+                    <.link navigate={~p"/resources/#{child.id}"} class="text-blue-600 hover:text-blue-800">
+                      {child.name}
+                    </.link>
+                  </div>
                 <% end %>
-              </div>
-              <div class="relationship-count">
-                {length(@child_resources)}
-              </div>
+              <% end %>
+            </div>
+            <div class="relationship-count">
+              {length(@child_resources)}
             </div>
           </div>
         </div>
@@ -224,8 +222,8 @@ defmodule HydepwnsLiveviewWeb.ResourceLive do
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div class="bg-white shadow-lg rounded-lg p-6">
             <h2 class="text-xl font-semibold mb-4">Events</h2>
-            <%= if @resource && @resource.id do %>
-              <.link navigate={~p"/resources/#{@resource.id}/events"} class="text-blue-600 hover:text-blue-800">
+            <%= if @stringified_resource && @stringified_resource.id do %>
+              <.link navigate={~p"/resources/#{@stringified_resource.id}/events"} class="text-blue-600 hover:text-blue-800">
                 View All Events
               </.link>
             <% end %>
@@ -233,8 +231,8 @@ defmodule HydepwnsLiveviewWeb.ResourceLive do
 
           <div class="bg-white shadow-lg rounded-lg p-6">
             <h2 class="text-xl font-semibold mb-4">Subscriptions</h2>
-            <%= if @resource && @resource.id do %>
-              <.link navigate={~p"/resources/#{@resource.id}/subscriptions"} class="text-blue-600 hover:text-blue-800">
+            <%= if @stringified_resource && @stringified_resource.id do %>
+              <.link navigate={~p"/resources/#{@stringified_resource.id}/subscriptions"} class="text-blue-600 hover:text-blue-800">
                 Manage Subscriptions
               </.link>
             <% end %>

@@ -35,60 +35,24 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
   end
 
   def handle_event("validate_user", _params, socket) do
-    user = socket.assigns.user
-
-    case UserResource.validate_deep(user) do
-      {:ok, _results} ->
-        socket =
-          socket
-          |> assign(:validation_status, "success")
-          |> assign(:validation_errors, %{})
-
-        {:noreply, socket}
-
-      {:error, errors} ->
-        # Create an error report for visualization
-        socket =
-          socket
-          |> assign(:validation_status, "error")
-          |> assign(:validation_errors, errors)
-
-        {:noreply, socket}
+    _user = socket.assigns.user
+    case UserResource.validate_deep(_user) do
+      :ok -> {:noreply, assign(socket, :validation_result, "Valid")}
+      {:error, errors} -> {:noreply, assign(socket, :validation_result, "Invalid: #{inspect(errors)}")}
     end
   end
 
-  def handle_event("validate_with_context", _params, socket) do
-    user = socket.assigns.user
-
-    # Create a validation context
-    context = %{
-      allowed_roles: ["admin", "editor", "viewer"],
-      max_team_size: 5,
-      allow_admin_posts: true
-    }
-
-    case UserResource.validate_deep(user, context: context) do
-      {:ok, _results} ->
-        socket =
-          socket
-          |> assign(:validation_status, "success")
-          |> assign(:validation_errors, %{})
-
-        {:noreply, socket}
-
-      {:error, errors} ->
-        # Create an error report for visualization
-        socket =
-          socket
-          |> assign(:validation_status, "error")
-          |> assign(:validation_errors, errors)
-
-        {:noreply, socket}
+  def handle_event("validate_user_with_context", _params, socket) do
+    _user = socket.assigns.user
+    context = %{current_user: socket.assigns.current_user}
+    case UserResource.validate_deep(_user, context: context) do
+      :ok -> {:noreply, assign(socket, :validation_result, "Valid with context")}
+      {:error, errors} -> {:noreply, assign(socket, :validation_result, "Invalid with context: #{inspect(errors)}")}
     end
   end
 
   def handle_event("validate_with_dependencies", _params, socket) do
-    user = socket.assigns.user
+    _user = socket.assigns.user
 
     # First, resolve validation dependencies
     case UserResource.resolve_validation_dependencies() do
@@ -96,7 +60,7 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
         socket = assign(socket, :validation_plan, validation_plan)
 
         # Execute the validation plan
-        case UserResource.execute_validation_plan(validation_plan, user) do
+        case UserResource.execute_validation_plan(validation_plan, _user) do
           {:ok, _results} ->
             socket =
               socket
@@ -134,17 +98,17 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
   end
 
   def handle_event("introduce_errors", _params, socket) do
-    user = socket.assigns.user
+    _user = socket.assigns.user
 
     # Introduce validation errors
-    user =
-      user
+    _user =
+      _user
       |> Map.put(:email, "invalid-email")
       # Invalid role
       |> Map.put(:role, "superadmin")
 
     # Introduce errors in the team
-    {:ok, team} = UserResource.resolve_relationship(user, :team)
+    {:ok, team} = UserResource.resolve_relationship(_user, :team)
 
     team =
       team
@@ -154,28 +118,28 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
       |> Map.put(:max_members, 2)
 
     # Introduce errors in a post
-    {:ok, posts} = UserResource.resolve_relationship(user, :posts)
+    {:ok, posts} = UserResource.resolve_relationship(_user, :posts)
 
     case posts do
       [post | rest_posts] ->
         # Empty title
         post = Map.put(post, :title, "")
 
-        user =
-          user
+        _user =
+          _user
           |> Map.put(:team, team)
           |> Map.put(:posts, [post | rest_posts])
 
       [] ->
-        user =
-          user
+        _user =
+          _user
           |> Map.put(:team, team)
           |> Map.put(:posts, [])
     end
 
     socket =
       socket
-      |> assign(:user, user)
+      |> assign(:user, _user)
       |> assign(:validation_status, nil)
       |> assign(:validation_errors, %{})
 
@@ -281,7 +245,7 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
             <button phx-click="validate_user" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
               Simple Validation
             </button>
-            <button phx-click="validate_with_context" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+            <button phx-click="validate_user_with_context" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
               Context Validation
             </button>
             <button phx-click="validate_with_dependencies" class="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600">

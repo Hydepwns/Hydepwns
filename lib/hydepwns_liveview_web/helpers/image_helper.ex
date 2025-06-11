@@ -3,6 +3,7 @@ defmodule HydepwnsLiveviewWeb.ImageHelper do
   Helper functions for optimizing image loading and rendering.
   Provides functionality for serving WebP images with fallbacks.
   """
+  alias Phoenix.HTML.Tag # Add alias for Phoenix.HTML.Tag
 
   @doc """
   Generates an HTML picture element with WebP and fallback sources.
@@ -37,14 +38,14 @@ defmodule HydepwnsLiveviewWeb.ImageHelper do
       webp_static_path = static_image_path(webp_path)
 
       # Generate picture tag with WebP and fallback
-      PhoenixHTMLHelpers.Tag.content_tag(:picture, [
-        PhoenixHTMLHelpers.Tag.tag(:source, srcset: webp_static_path, type: "image/webp"),
-        PhoenixHTMLHelpers.Tag.tag(:source, srcset: original_static_path),
-        PhoenixHTMLHelpers.Tag.tag(:img, Keyword.merge([src: original_static_path], attrs))
+      Tag.content_tag(:picture, [
+        Tag.tag(:source, srcset: webp_static_path, type: "image/webp"),
+        Tag.tag(:source, srcset: original_static_path),
+        Tag.tag(:img, Keyword.merge([src: original_static_path], attrs))
       ])
     else
       # If WebP doesn't exist, just use the original image
-      PhoenixHTMLHelpers.Tag.tag(:img, Keyword.merge([src: original_static_path], attrs))
+      Tag.tag(:img, Keyword.merge([src: original_static_path], attrs))
     end
   end
 

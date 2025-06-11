@@ -8,6 +8,8 @@ defmodule HydepwnsLiveviewWeb.ResponsiveImageHelper do
   appropriate image based on screen size, pixel density, and network conditions.
   """
 
+  alias Phoenix.HTML.Tag
+
   # Default sizes attribute to use if not specified
   @default_sizes "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
 
@@ -69,18 +71,18 @@ defmodule HydepwnsLiveviewWeb.ResponsiveImageHelper do
       original_static_path = HydepwnsLiveviewWeb.Endpoint.static_path(image_path)
 
       # Generate picture tag with multiple sources
-      PhoenixHTMLHelpers.Tag.content_tag(:picture, [
-        PhoenixHTMLHelpers.Tag.tag(:source,
+      Tag.content_tag(:picture, [
+        Tag.tag(:source,
           type: "image/webp",
           srcset: webp_srcset,
           sizes: sizes
         ),
-        PhoenixHTMLHelpers.Tag.tag(:source,
+        Tag.tag(:source,
           type: fallback_content_type(fallback_ext),
           srcset: fallback_srcset,
           sizes: sizes
         ),
-        PhoenixHTMLHelpers.Tag.tag(
+        Tag.tag(
           :img,
           Keyword.merge(
             [src: original_static_path, alt: alt, class: class] ++ loading_attr,

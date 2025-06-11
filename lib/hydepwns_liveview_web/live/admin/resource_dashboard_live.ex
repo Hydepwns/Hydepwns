@@ -609,19 +609,6 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
     Calendar.strftime(dt, "%Y-%m-%d %H:%M:%S")
   end
 
-  defp humanize(atom) when is_atom(atom) do
-    atom
-    |> Atom.to_string()
-    |> String.replace("_", " ")
-    |> String.capitalize()
-  end
-
-  defp humanize(string) when is_binary(string) do
-    string
-    |> String.replace("_", " ")
-    |> String.capitalize()
-  end
-
   # Helper functions for resource creation and update
 
   defp create_resource(resource_module, resource_id, params) do

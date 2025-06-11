@@ -192,6 +192,26 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
   end
 
   @impl Phoenix.LiveView
+  def handle_event("transform", _params, socket) do
+    context = %{
+      current_user: socket.assigns.current_user
+    }
+    socket
+    |> assign(:transformation_context, context)
+    {:noreply, socket}
+  end
+
+  @impl Phoenix.LiveView
+  def handle_event("transform_with_context", _params, socket) do
+    context = %{
+      current_user: socket.assigns.current_user
+    }
+    socket
+    |> assign(:transformation_context, context)
+    {:noreply, socket}
+  end
+
+  @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
     <div class="transformation-example">

@@ -6,8 +6,8 @@ defmodule HydepwnsLiveviewWeb.TestErrorLive do
       count: :integer,
       items: {:list, :string},
       settings: {:map, %{theme: {:one_of, ["dark", "light"]}, notifications: :boolean}},
-      status: {:one_of, ["active", "inactive", "pending"]},
-      callback: :function
+      status: {:one_of, ["active", "inactive", "pending"]}
+      # callback: :function  # Temporarily commented out for testing
     }
 
   def render(assigns) do
@@ -25,7 +25,7 @@ defmodule HydepwnsLiveviewWeb.TestErrorLive do
     """
   end
 
-  def do_mount(_params, session, socket) do
+  def mount(_params, session, socket) do
     socket
     |> Phoenix.Component.assign(:user_id, Map.get(session, "user_id", ""))
     |> Phoenix.Component.assign(:count, Map.get(session, "count", 0))

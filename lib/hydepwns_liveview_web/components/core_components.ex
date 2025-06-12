@@ -84,21 +84,36 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
   @spec modal(map()) :: Phoenix.LiveView.Rendered.t()
   def modal(assigns) do
     ~H"""
-    <div id={@id} phx-mounted={@show && show_modal(@id)} phx-remove={hide_modal(@id)} data-cancel={JS.exec(@on_cancel, "phx-remove")} class="relative z-50 hidden">
-      <div id={"#{@id}-bg"} class="bg-zinc-50/90 fixed inset-0 transition-opacity" aria-hidden="true" />
-      <div class="fixed inset-0 overflow-y-auto" aria-labelledby={"#{@id}-title"} aria-describedby={"#{@id}-description"} role="dialog" aria-modal="true" tabindex="0">
+    <div
+      id={@id}
+      phx-mounted={@show && show_modal(@id)}
+      phx-remove={hide_modal(@id)}
+      data-cancel={JS.exec(@on_cancel, "phx-remove")}
+      class="relative z-50 hidden"
+    >
+      <div id={"#{@id}-bg"} class="bg-gray-500/75 transition-opacity fixed inset-0" aria-hidden="true" />
+      <div
+        class="fixed inset-0 overflow-y-auto"
+        aria-labelledby={"#{@id}-title"}
+        aria-describedby={"#{@id}-description"}
+        role="dialog"
+        aria-modal="true"
+        tabindex="0"
+      >
         <div class="flex min-h-full items-center justify-center">
-          <div class="w-full max-w-3xl p-4 sm:p-6 lg:py-8">
-            <.focus_wrap id={"#{@id}-container"} phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")} phx-key="escape" phx-click-away={JS.exec("data-cancel", to: "##{@id}")} class="shadow-zinc-700/10 ring-zinc-700/10 relative hidden rounded-2xl bg-white p-14 shadow-lg ring-1 transition">
-              <div class="absolute top-6 right-5">
-                <button phx-click={JS.exec("data-cancel", to: "##{@id}")} type="button" class="-m-3 flex-none p-3 opacity-20 hover:opacity-40" aria-label={gettext("close")}>
-                  <.icon name="hero-x-mark-solid" class="h-5 w-5" />
-                </button>
+          <div class="w-full max-w-3xl overflow-hidden bg-white shadow-2xl sm:rounded-lg">
+            <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+              <div class="sm:flex sm:items-start">
+                <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                  <h3 class="text-lg font-semibold leading-6 text-zinc-800" id={"#{@id}-title"}>
+                    <%= @title %>
+                  </h3>
+                  <div class="mt-2" id={"#{@id}-description"}>
+                    <%= render_slot(@inner_block) %>
+                  </div>
+                </div>
               </div>
-              <div id={"#{@id}-content"}>
-                {render_slot(@inner_block)}
-              </div>
-            </.focus_wrap>
+            </div>
           </div>
         </div>
       </div>
@@ -165,167 +180,10 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
   end
 
   @doc """
-  Renders a simple form with slots for fields and actions.
-  """
-  @spec simple_form(map()) :: Phoenix.LiveView.Rendered.t()
-  def simple_form(assigns) do
-    assigns = assign_new(assigns, :rest, fn -> %{} end)
-    ~H"""
-    <.form :let={f} for={@for} as={@as} {@rest}>
-      <div class="mt-10 space-y-8 bg-white">
-        {render_slot(@inner_block_simple_form, f)}
-        <div :for={action <- @actions} class="mt-2 flex items-center justify-between gap-6">
-          {render_slot(action, f)}
-        </div>
-      </div>
-    </.form>
-    """
-  end
-
-  @doc """
-  Renders a styled button with slot content.
-  """
-  @spec button(map()) :: Phoenix.LiveView.Rendered.t()
-  def button(assigns) do
-    ~H"""
-    <button
-      type={@type}
-      class={[
-        "mono-button",
-        @class
-      ]}
-      {@rest}
-    >
-      {render_slot(@inner_block_button)}
-    </button>
-    """
-  end
-
-  @doc """
-  Renders an input field from a Phoenix.HTML.FormField struct.
-  """
-  def input(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
-    errors = if Phoenix.Component.used_input?(field), do: field.errors, else: []
-
-    assigns
-    |> assign(field: nil, id: assigns.id || field.id)
-    |> assign(:errors, Enum.map(errors, &translate_error(&1)))
-    |> assign_new(:name, fn -> if assigns.multiple, do: field.name <> "[]", else: field.name end)
-    |> assign_new(:value, fn -> field.value end)
-    |> input()
-  end
-
-  @doc false
-  def input(%{type: "checkbox"} = assigns) do
-    assigns =
-      assign_new(assigns, :checked, fn ->
-        Phoenix.HTML.Form.normalize_value("checkbox", assigns[:value])
-      end)
-
-    ~H"""
-    <div>
-      <label class="flex items-center gap-4 text-sm leading-6 text-zinc-600">
-        <input type="hidden" name={@name} value="false" disabled={@rest[:disabled]} />
-        <input type="checkbox" id={@id} name={@name} value="true" checked={@checked} class="rounded border-zinc-300 text-zinc-900 focus:ring-0" {@rest} />
-        {@label}
-      </label>
-      <.error :for={msg <- @errors}>{msg}</.error>
-    </div>
-    """
-  end
-
-  @doc false
-  def input(%{type: "select"} = assigns) do
-    ~H"""
-    <div>
-      <.label for={@id}>{@label}</.label>
-      <select id={@id} name={@name} class="mt-2 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm" multiple={@multiple} {@rest}>
-        <option :if={@prompt} value="">{@prompt}</option>
-        {Phoenix.HTML.Form.options_for_select(@options, @value)}
-      </select>
-      <.error :for={msg <- @errors}>{msg}</.error>
-    </div>
-    """
-  end
-
-  @doc false
-  def input(%{type: "textarea"} = assigns) do
-    ~H"""
-    <div>
-      <.label for={@id}>{@label}</.label>
-      <textarea
-        id={@id}
-        name={@name}
-        class={[
-          "mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6 min-h-[6rem]",
-          @errors == [] && "border-zinc-300 focus:border-zinc-400",
-          @errors != [] && "border-rose-400 focus:border-rose-400"
-        ]}
-        {@rest}
-      >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
-      <.error :for={msg <- @errors}>{msg}</.error>
-    </div>
-    """
-  end
-
-  @doc """
-  Renders a generic input field.
-  """
-  def input(assigns) do
-    ~H"""
-    <div>
-      <.label for={@id}>{@label}</.label>
-      <input
-        type={@type_input}
-        name={@name}
-        id={@id}
-        value={Phoenix.HTML.Form.normalize_value(@type_input, @value)}
-        class={[
-          "mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6",
-          @errors == [] && "border-zinc-300 focus:border-zinc-400",
-          @errors != [] && "border-rose-400 focus:border-rose-400"
-        ]}
-        {@rest}
-      />
-      <.error :for={msg <- @errors}>{msg}</.error>
-    </div>
-    """
-  end
-
-  @doc """
-  Renders a label for a form field.
-  """
-  @spec label(map()) :: Phoenix.LiveView.Rendered.t()
-  def label(assigns) do
-    ~H"""
-    <label for={@for} class="block text-sm font-semibold leading-6 text-zinc-800">
-      {render_slot(@inner_block)}
-    </label>
-    """
-  end
-
-  @doc """
-  Renders an error message for a form field.
-  """
-  @spec error(map()) :: Phoenix.LiveView.Rendered.t()
-  def error(assigns) do
-    ~H"""
-    <p class="mt-3 flex gap-3 text-sm leading-6 text-rose-600">
-      <.icon name="hero-exclamation-circle-mini" class="mt-0.5 h-5 w-5 flex-none" />
-      {render_slot(@inner_block)}
-    </p>
-    """
-  end
-
-  @doc """
   Renders a header with optional subtitle and actions.
   """
   @spec header(map()) :: Phoenix.LiveView.Rendered.t()
   def header(assigns) do
-    assigns = Map.put_new(assigns, :actions_header, [])
-    assigns = Map.put_new(assigns, :class, "")
-    assigns = Map.put_new(assigns, :subtitle, [])
-
     ~H"""
     <header class={[@actions_header != [] && "flex items-center justify-between gap-6", @class]}>
       <div>
@@ -591,6 +449,45 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
         </tr>
       </table>
     </header>
+    """
+  end
+
+  @doc """
+  Renders a button.
+  """
+  attr :type, :string, default: "button"
+  attr :class, :string, default: nil
+  attr :rest, :global
+  slot :inner_block, required: true
+
+  def button(assigns) do
+    ~H"""
+    <button
+      type={@type}
+      class={[
+        "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+        "disabled:pointer-events-none disabled:opacity-50",
+        @class
+      ]}
+      {@rest}
+    >
+      <%= render_slot(@inner_block) %>
+    </button>
+    """
+  end
+
+  @doc """
+  Renders an error message.
+  """
+  attr :for, :any, default: nil
+  slot :inner_block, required: true
+
+  def error(assigns) do
+    ~H"""
+    <span class="block mt-2 text-sm text-red-600">
+      <%= render_slot(@inner_block) %>
+    </span>
     """
   end
 end

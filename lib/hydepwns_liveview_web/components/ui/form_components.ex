@@ -1,6 +1,9 @@
 defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
   @moduledoc """
   Provides form UI components.
+
+  This module serves as the single source of truth for form components in the application.
+  It provides standardized form elements with consistent behavior and styling.
   """
   use Phoenix.Component
   use Gettext, backend: HydepwnsLiveviewWeb.Gettext
@@ -23,7 +26,6 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
   """
   attr :for, :any, required: true, doc: "the datastructure for the form"
   attr :as, :any, default: nil, doc: "the server side parameter to collect all input under"
-
   attr :rest, :global,
     include: ~w(autocomplete name rel action enctype method novalidate target multipart),
     doc: "the arbitrary HTML attributes to apply to the form tag"
@@ -45,36 +47,6 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
   end
 
   @doc """
-  Renders a button.
-
-  ## Examples
-
-      <.button>Send!</.button>
-      <.button phx-click="go" class="ml-2">Send!</.button>
-  """
-  attr :type, :string, default: nil
-  attr :class, :string, default: nil
-  attr :rest, :global, include: ~w(disabled form name value)
-
-  slot :inner_block, required: true
-
-  def button(assigns) do
-    ~H"""
-    <button
-      type={@type}
-      class={[
-        "phx-submit-loading:opacity-75 rounded-lg bg-zinc-900 hover:bg-zinc-700 py-2 px-3",
-        "text-sm font-semibold leading-6 text-white active:text-white/80",
-        @class
-      ]}
-      {@rest}
-    >
-      {render_slot(@inner_block)}
-    </button>
-    """
-  end
-
-  @doc """
   Renders an input with label and error messages.
 
   A `Phoenix.HTML.FormField` may be passed as argument,
@@ -86,9 +58,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
   This function accepts all HTML input types, considering that:
 
     * You may also set `type="select"` to render a `<select>` tag
-
     * `type="checkbox"` is used exclusively to render boolean values
-
     * For live file uploads, see `Phoenix.Component.live_file_input/1`
 
   See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input
@@ -228,10 +198,26 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
 
   def error(assigns) do
     ~H"""
-    <p class="mt-3 flex gap-3 text-sm leading-6 text-rose-600 phx-no-feedback:hidden">
+    <p class="mt-3 flex gap-3 text-sm leading-6 text-rose-600">
       <.icon name="hero-exclamation-circle-mini" class="mt-0.5 h-5 w-5 flex-none" />
       {render_slot(@inner_block)}
     </p>
+    """
+  end
+
+  @doc """
+  Renders a button with the provided assigns.
+  """
+  attr :type, :string, default: "button"
+  attr :class, :string, default: "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+  attr :rest, :global
+  slot :inner_block, required: true
+
+  def button(assigns) do
+    ~H"""
+    <button type={@type} class={@class} {@rest}>
+      <%= render_slot(@inner_block) %>
+    </button>
     """
   end
 

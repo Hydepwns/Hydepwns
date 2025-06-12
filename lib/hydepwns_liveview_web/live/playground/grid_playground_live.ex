@@ -1,18 +1,5 @@
-defmodule HydepwnsLiveviewWeb.GridPlaygroundLive do
-  use HydepwnsLiveviewWeb.BaseLive,
-    required_assigns: [
-      :page_title,
-      :theme_class,
-      :grid_columns,
-      :cell_width,
-      :cell_height,
-      :debug_mode,
-      :container_type,
-      :grid_content,
-      :show_code,
-      :generated_code,
-      :example_layouts
-    ]
+defmodule HydepwnsLiveviewWeb.Live.Playground.GridPlaygroundLive do
+  use HydepwnsLiveviewWeb, :live_view
 
   import HydepwnsLiveviewWeb.Components.MonoGrid
   import Phoenix.HTML, only: [raw: 1]
@@ -34,7 +21,7 @@ defmodule HydepwnsLiveviewWeb.GridPlaygroundLive do
   """
 
   @impl true
-  def do_mount(_params, _session, socket) do
+  def mount(_params, _session, socket) do
     default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()
     theme_class = "#{default_theme.mode}-theme"
     socket
@@ -55,6 +42,17 @@ defmodule HydepwnsLiveviewWeb.GridPlaygroundLive do
       {"chart", "Chart Layout", chart_layout()},
       {"layout", "Page Layout", page_layout()}
     ])
+    |> assign(:grid_config, %{
+      columns: 12,
+      rows: 12,
+      cell_size: 40,
+      gap: 4,
+      show_grid: true,
+      show_numbers: true,
+      show_guides: true
+    })
+
+    {:ok, socket}
   end
 
   @impl true
@@ -117,95 +115,97 @@ defmodule HydepwnsLiveviewWeb.GridPlaygroundLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <section>
-      <h2>MonoGrid Playground</h2>
-      <p>
-        Experiment with the monospace grid system to create perfectly aligned ASCII art,
-        tables, and layouts. Adjust the parameters and see the changes in real-time.
-      </p>
+    <div class="relative h-screen w-screen bg-gray-900 text-white flex flex-col items-center justify-center space-y-4">
+      <section>
+        <h2>MonoGrid Playground</h2>
+        <p>
+          Experiment with the monospace grid system to create perfectly aligned ASCII art,
+          tables, and layouts. Adjust the parameters and see the changes in real-time.
+        </p>
 
-      <div class="grid-playground">
-        <div class="playground-controls">
-          <form phx-change="update_grid" class="grid-controls-form">
-            <div class="control-group">
-              <label for="grid-columns">Columns:</label>
-              <input type="number" id="grid-columns" name="grid_columns" value={@grid_columns} min="1" max="120" />
+        <div class="grid-playground">
+          <div class="playground-controls">
+            <form phx-change="update_grid" class="grid-controls-form">
+              <div class="control-group">
+                <label for="grid-columns">Columns:</label>
+                <input type="number" id="grid-columns" name="grid_columns" value={@grid_columns} min="1" max="120" />
+              </div>
+
+              <div class="control-group">
+                <label for="cell-width">Cell Width:</label>
+                <select id="cell-width" name="cell_width">
+                  <option value="1ch" selected={@cell_width == "1ch"}>1ch (Default)</option>
+                  <option value="0.9ch" selected={@cell_width == "0.9ch"}>0.9ch</option>
+                  <option value="0.8ch" selected={@cell_width == "0.8ch"}>0.8ch</option>
+                  <option value="1.1ch" selected={@cell_width == "1.1ch"}>1.1ch</option>
+                  <option value="1.2ch" selected={@cell_width == "1.2ch"}>1.2ch</option>
+                </select>
+              </div>
+
+              <div class="control-group">
+                <label for="cell-height">Cell Height:</label>
+                <select id="cell-height" name="cell_height">
+                  <option value="1.5rem" selected={@cell_height == "1.5rem"}>1.5rem (Default)</option>
+                  <option value="1.2rem" selected={@cell_height == "1.2rem"}>1.2rem</option>
+                  <option value="1.8rem" selected={@cell_height == "1.8rem"}>1.8rem</option>
+                  <option value="2rem" selected={@cell_height == "2rem"}>2rem</option>
+                </select>
+              </div>
+
+              <div class="control-group">
+                <label for="container-type">Container:</label>
+                <select id="container-type" name="container_type">
+                  <option value="div" selected={@container_type == "div"}>div (Default)</option>
+                  <option value="pre" selected={@container_type == "pre"}>pre</option>
+                  <option value="code" selected={@container_type == "code"}>code</option>
+                </select>
+              </div>
+
+              <div class="control-group checkbox">
+                <label for="debug-mode">
+                  <input type="checkbox" id="debug-mode" name="debug_mode" value="true" checked={@debug_mode} /> Debug Mode
+                </label>
+              </div>
+            </form>
+
+            <div class="example-selector">
+              <h4>Example Layouts</h4>
+              <div class="example-buttons">
+                <button :for={{id, name, _} <- @example_layouts} phx-click="load_example" phx-value-example={id} class="example-button">
+                  {name}
+                </button>
+                <button phx-click="reset_grid" class="reset-button">Reset</button>
+              </div>
             </div>
 
-            <div class="control-group">
-              <label for="cell-width">Cell Width:</label>
-              <select id="cell-width" name="cell_width">
-                <option value="1ch" selected={@cell_width == "1ch"}>1ch (Default)</option>
-                <option value="0.9ch" selected={@cell_width == "0.9ch"}>0.9ch</option>
-                <option value="0.8ch" selected={@cell_width == "0.8ch"}>0.8ch</option>
-                <option value="1.1ch" selected={@cell_width == "1.1ch"}>1.1ch</option>
-                <option value="1.2ch" selected={@cell_width == "1.2ch"}>1.2ch</option>
-              </select>
+            <div class="content-editor">
+              <h4>Grid Content</h4>
+              <textarea class="grid-content-editor" phx-debounce="300" phx-change="update_content" name="grid_content" rows="10" aria-label="Grid content editor">{@grid_content}</textarea>
+            </div>
+          </div>
+
+          <div class="playground-preview">
+            <h3>Preview</h3>
+            <div class="grid-preview">
+              <.mono_grid id="grid-playground-preview" cols={@grid_columns} cell_width={@cell_width} cell_height={@cell_height} debug={@debug_mode} container={String.to_atom(@container_type)} phx-hook="MonoGrid">
+                {raw(@grid_content)}
+              </.mono_grid>
             </div>
 
-            <div class="control-group">
-              <label for="cell-height">Cell Height:</label>
-              <select id="cell-height" name="cell_height">
-                <option value="1.5rem" selected={@cell_height == "1.5rem"}>1.5rem (Default)</option>
-                <option value="1.2rem" selected={@cell_height == "1.2rem"}>1.2rem</option>
-                <option value="1.8rem" selected={@cell_height == "1.8rem"}>1.8rem</option>
-                <option value="2rem" selected={@cell_height == "2rem"}>2rem</option>
-              </select>
-            </div>
-
-            <div class="control-group">
-              <label for="container-type">Container:</label>
-              <select id="container-type" name="container_type">
-                <option value="div" selected={@container_type == "div"}>div (Default)</option>
-                <option value="pre" selected={@container_type == "pre"}>pre</option>
-                <option value="code" selected={@container_type == "code"}>code</option>
-              </select>
-            </div>
-
-            <div class="control-group checkbox">
-              <label for="debug-mode">
-                <input type="checkbox" id="debug-mode" name="debug_mode" value="true" checked={@debug_mode} /> Debug Mode
-              </label>
-            </div>
-          </form>
-
-          <div class="example-selector">
-            <h4>Example Layouts</h4>
-            <div class="example-buttons">
-              <button :for={{id, name, _} <- @example_layouts} phx-click="load_example" phx-value-example={id} class="example-button">
-                {name}
+            <div class="code-section">
+              <button phx-click="toggle_code" class="code-toggle-button">
+                {if @show_code, do: "Hide Code", else: "Show Code"}
               </button>
-              <button phx-click="reset_grid" class="reset-button">Reset</button>
-            </div>
-          </div>
 
-          <div class="content-editor">
-            <h4>Grid Content</h4>
-            <textarea class="grid-content-editor" phx-debounce="300" phx-change="update_content" name="grid_content" rows="10" aria-label="Grid content editor">{@grid_content}</textarea>
-          </div>
-        </div>
-
-        <div class="playground-preview">
-          <h3>Preview</h3>
-          <div class="grid-preview">
-            <.mono_grid id="grid-playground-preview" cols={@grid_columns} cell_width={@cell_width} cell_height={@cell_height} debug={@debug_mode} container={String.to_atom(@container_type)} phx-hook="MonoGrid">
-              {raw(@grid_content)}
-            </.mono_grid>
-          </div>
-
-          <div class="code-section">
-            <button phx-click="toggle_code" class="code-toggle-button">
-              {if @show_code, do: "Hide Code", else: "Show Code"}
-            </button>
-
-            <div :if={@show_code} class="generated-code">
-              <h4>Generated Code</h4>
-              <pre class="code-preview"><code class="language-elixir">{generated_code(@grid_columns, @cell_width, @cell_height, @debug_mode, String.to_atom(@container_type))}</code></pre>
+              <div :if={@show_code} class="generated-code">
+                <h4>Generated Code</h4>
+                <pre class="code-preview"><code class="language-elixir">{generated_code(@grid_columns, @cell_width, @cell_height, @debug_mode, String.to_atom(@container_type))}</code></pre>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
     """
   end
 

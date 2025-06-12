@@ -1,18 +1,15 @@
-defmodule HydepwnsLiveviewWeb.Live.Docs.ApiDocsLive do
-  use HydepwnsLiveviewWeb.BaseLive,
-    required_assigns: [
-      :page_title,
-      :theme_class,
-      :show_toc,
-      :toc_items
-    ]
+defmodule HydepwnsLiveviewWeb.ApiDocsLive do
+  use HydepwnsLiveviewWeb.BaseLive, layout: {HydepwnsLiveviewWeb.Layouts, :app}
+  import Phoenix.Component
 
   alias HydepwnsLiveviewWeb.Components.Documentation.ApiDocs
   import ApiDocs
   alias HydepwnsLiveviewWeb.Helpers.PathHelper
 
-  @impl true
-  def do_mount(_params, _session, socket) do
+  @behaviour Phoenix.LiveView
+
+  @impl Phoenix.LiveView
+  def mount(_params, _session, socket) do
     default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()
     theme_class = "#{default_theme.mode}-theme"
     socket
@@ -27,14 +24,17 @@ defmodule HydepwnsLiveviewWeb.Live.Docs.ApiDocsLive do
       {"ui-components", "UI Components"},
       {"theme-components", "Theme Components"}
     ])
+    |> assign(:docs, load_docs())
+
+    {:ok, socket}
   end
 
-  @impl true
+  @impl Phoenix.LiveView
   def handle_params(_params, _url, socket) do
     {:noreply, PathHelper.assign_specific_path(socket, "/api-docs")}
   end
 
-  @impl true
+  @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
     <section>
@@ -118,5 +118,58 @@ defmodule HydepwnsLiveviewWeb.Live.Docs.ApiDocsLive do
       </.api_docs_section>
     </section>
     """
+  end
+
+  defp load_docs do
+    [
+      %{
+        title: "Getting Started",
+        content: """
+        # Getting Started
+
+        Welcome to the API documentation. This guide will help you get started with our API.
+
+        ## Authentication
+
+        All API requests require authentication using an API key. You can get your API key from the dashboard.
+
+        ## Base URL
+
+        All API requests should be made to:
+
+        ```
+        https://api.example.com/v1
+        ```
+
+        ## Rate Limiting
+
+        API requests are limited to 1000 requests per hour per API key.
+        """
+      },
+      %{
+        title: "Resources",
+        content: """
+        # Resources
+
+        ## Users
+
+        ### List Users
+
+        ```http
+        GET /users
+        ```
+
+        Returns a list of users.
+
+        ### Get User
+
+        ```http
+        GET /users/:id
+        ```
+
+        Returns a single user by ID.
+        """
+      }
+    ]
   end
 end

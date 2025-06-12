@@ -8,8 +8,10 @@ defmodule HydepwnsLiveviewWeb.ResourceLiveTest do
   # Define a test module that uses ResourceLive
   defmodule TestResourceLive do
     use HydepwnsLiveviewWeb.ResourceLive
+    import HydepwnsLiveview.Utils.ResourceAssigns
+    require HydepwnsLiveview.Utils.ResourceAssigns
 
-    assigns do
+    assigns_resource do
       attribute(:page_title, :string, default: "Test Resource")
 
       attribute :user, :map do

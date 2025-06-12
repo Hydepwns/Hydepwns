@@ -1,77 +1,27 @@
 defmodule HydepwnsLiveviewWeb.HomeLive do
-  use HydepwnsLiveviewWeb.BaseLive,
-    required_assigns: [
-      :page_title,
-      :theme_class,
-      :show_toc,
-      :toc_items,
-      :toc_data,
-      :current_section,
-      :animation_speed_class,
-      :current_path,
-      :viewport_size,
-      :screen_reader_announcements
-    ]
+  use HydepwnsLiveviewWeb, :live_view
 
-  alias HydepwnsLiveviewWeb.Helpers.TocHelper
-  alias HydepwnsLiveviewWeb.Helpers.PathHelper
-  alias HydepwnsLiveviewWeb.Helpers.ViewportHelper
   alias HydepwnsLiveview.ThemeSystem
+  alias HydepwnsLiveview.Content
   import HydepwnsLiveviewWeb.Components.UI.ThemeToggle, only: [theme_toggle: 1]
   import HydepwnsLiveviewWeb.Components.UI.DebugGrid, only: [debug_grid: 1]
   import HydepwnsLiveviewWeb.Components.UI.AccessibilityMenu, only: [accessibility_menu: 1]
 
   @impl true
-  def do_mount(_params, _session, socket) do
-    # Initial page content for TOC generation
-    page_content = """
-    <h2 id="introduction">Introduction</h2>
-    <p>Welcome to the Hydepwns monospace interface demonstration...</p>
-    <h3 id="background">Background</h3>
-    <p>The design is inspired by terminal UIs and uses monospace fonts...</p>
-    <h2 id="features">Features</h2>
-    <p>Explore the unique features of the Hydepwns monospace interface...</p>
-    <h3 id="terminal">Terminal Integration</h3>
-    <p>Full terminal emulation with customizable themes and commands...</p>
-    <h2 id="animations">Animations</h2>
-    <p>Monospace interfaces can be enhanced with subtle animations...</p>
-    <h3 id="typewriter">Typewriter Effect</h3>
-    <p>The typewriter effect types out text character by character...</p>
-    <h3 id="char-fade">Character Fade</h3>
-    <p>Characters can fade in individually for a matrix-like effect...</p>
-    <h3 id="grid-fade">Grid Fade</h3>
-    <p>Elements can fade in cell by cell in a grid pattern...</p>
-    """
-
-    # Generate TOC from page content
-    toc_data = TocHelper.generate_toc(page_content)
-
-    # Get viewport size
-    viewport_size = ViewportHelper.get_viewport_size(socket)
-
+  def mount(_params, _session, socket) do
     default_theme = ThemeSystem.ensure_default_theme()
     theme_class = "#{default_theme.mode}-theme"
+    toc_data = Content.get_toc_data()
 
-    socket
-    |> PathHelper.assign_specific_path("/")
-    |> assign(:page_title, "Home")
-    |> assign(:theme_class, theme_class)
-    |> assign(:show_toc, true)
-    |> assign(:toc_items, [
-      {"introduction", "Introduction"},
-      {"features", "Features"},
-      {"terminal", "Terminal Integration"},
-      {"animations", "Animations"},
-      {"typewriter", "Typewriter Effect"},
-      {"char-fade", "Character Fade"},
-      {"grid-fade", "Grid Fade"}
-    ])
-    |> assign(:toc_data, toc_data)
-    |> assign(:current_section, nil)
-    |> assign(:animation_speed_class, "normal-speed")
-    |> assign(:current_path, "/")
-    |> assign(:viewport_size, viewport_size)
-    |> assign(:screen_reader_announcements, [])
+    socket =
+      socket
+      |> assign(:page_title, "Home")
+      |> assign(:theme_class, theme_class)
+      |> assign(:show_toc, true)
+      |> assign(:toc_items, toc_data)
+      |> assign(:current_section, nil)
+
+    {:ok, socket}
   end
 
   @impl true

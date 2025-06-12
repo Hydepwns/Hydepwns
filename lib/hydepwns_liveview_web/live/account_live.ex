@@ -1,6 +1,7 @@
-defmodule HydepwnsLiveviewWeb.AccountLive do
-  use HydepwnsLiveviewWeb.BaseLive,
-    layout: {HydepwnsLiveviewWeb.Layouts, :app}
+defmodule HydepwnsLiveviewWeb.Live.AccountLive do
+  use HydepwnsLiveviewWeb, :live_view
+
+  on_mount {HydepwnsLiveviewWeb.UserAuth, :mount_current_user}
 
   @impl true
   def mount(_params, _session, socket) do

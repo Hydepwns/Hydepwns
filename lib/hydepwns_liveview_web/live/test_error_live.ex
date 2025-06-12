@@ -1,14 +1,20 @@
 defmodule HydepwnsLiveviewWeb.TestErrorLive do
-  use HydepwnsLiveviewWeb.BaseLive,
-    required_assigns: [:user_id, :count, :settings],
-    type_specs: %{
-      user_id: :string,
-      count: :integer,
-      items: {:list, :string},
-      settings: {:map, %{theme: {:one_of, ["dark", "light"]}, notifications: :boolean}},
-      status: {:one_of, ["active", "inactive", "pending"]}
-      # callback: :function  # Temporarily commented out for testing
-    }
+  use HydepwnsLiveviewWeb, :live_view
+
+  def mount(_params, session, socket) do
+    socket =
+      socket
+      |> Phoenix.Component.assign(:user_id, Map.get(session, "user_id", ""))
+      |> Phoenix.Component.assign(:count, Map.get(session, "count", 0))
+      |> Phoenix.Component.assign(:status, Map.get(session, "status", "active"))
+      |> Phoenix.Component.assign(
+        :settings,
+        Map.get(session, "settings", %{theme: "dark", notifications: true})
+      )
+      |> Phoenix.Component.assign(:items, Map.get(session, "items", []))
+
+    {:ok, socket}
+  end
 
   def render(assigns) do
     ~H"""
@@ -23,18 +29,6 @@ defmodule HydepwnsLiveviewWeb.TestErrorLive do
       <div phx-click="update_status" data-test-id="status-clickable-div" style="display:inline-block;cursor:pointer;">Click to update status</div>
     </div>
     """
-  end
-
-  def mount(_params, session, socket) do
-    socket
-    |> Phoenix.Component.assign(:user_id, Map.get(session, "user_id", ""))
-    |> Phoenix.Component.assign(:count, Map.get(session, "count", 0))
-    |> Phoenix.Component.assign(:status, Map.get(session, "status", "active"))
-    |> Phoenix.Component.assign(
-      :settings,
-      Map.get(session, "settings", %{theme: "dark", notifications: true})
-    )
-    |> Phoenix.Component.assign(:items, Map.get(session, "items", []))
   end
 
   def handle_event("update_count", %{"count" => count}, socket) do

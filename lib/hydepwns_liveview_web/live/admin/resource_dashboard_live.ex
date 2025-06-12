@@ -10,27 +10,13 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
   - Relationship management
   """
 
-  use HydepwnsLiveviewWeb.BaseLive,
-    required_assigns: [
-      :page_title,
-      :theme_class,
-      :show_toc,
-      :toc_items,
-      :images
-    ]
+  use HydepwnsLiveviewWeb, :live_view
 
   alias HydepwnsLiveview.Events.EventBus, as: EventBus
   alias HydepwnsLiveview.Resources.ResourceSystem
 
   @impl true
-  def mount(params, session, socket) do
-    # Pattern match on the tuple returned by super
-    {:ok, socket} = super(params, session, socket)
-    {:ok, socket}
-  end
-
-  @impl true
-  def do_mount(_params, _session, socket) do
+  def mount(_params, _session, socket) do
     # Get the list of available resource types from the application
     resource_modules = get_resource_modules()
     # Default to the first resource type if available
@@ -71,7 +57,7 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
     if connected?(socket) do
       EventBus.subscribe(self(), "resource:*")
     end
-    socket
+    {:ok, socket}
   end
 
   @impl true

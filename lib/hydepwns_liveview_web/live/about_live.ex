@@ -1,39 +1,24 @@
 defmodule HydepwnsLiveviewWeb.AboutLive do
-  use HydepwnsLiveviewWeb.BaseLive,
-    required_assigns: [
-      :page_title,
-      :theme_class,
-      :show_toc,
-      :toc_items,
-      :code_example
-    ]
-
-  alias HydepwnsLiveviewWeb.Helpers.PathHelper
-  alias HydepwnsLiveview.ThemeSystem
+  use HydepwnsLiveviewWeb, :live_view
+  alias HydepwnsLiveview.About
 
   @impl true
-  def do_mount(_params, _session, socket) do
-    code_example = """
-    git clone https://github.com/hydepwns/hydepwns.git
-    cd hydepwns
-    mix deps.get
-    mix phx.server
-    """
+  def mount(_params, _session, socket) do
+    theme_class = "dark-theme"
+    code_example = About.get_code_example()
 
-    default_theme = ThemeSystem.ensure_default_theme()
-    theme_class = "#{default_theme.mode}-theme"
+    socket =
+      socket
+      |> assign(:page_title, "About")
+      |> assign(:theme_class, theme_class)
+      |> assign(:show_toc, true)
+      |> assign(:toc_items, [
+        %{id: "about-me", label: "About Me", level: 2},
+        %{id: "code-example", label: "Code Example", level: 2}
+      ])
+      |> assign(:code_example, code_example)
 
-    socket
-    |> PathHelper.assign_specific_path("/about")
-    |> assign(:page_title, "About")
-    |> assign(:theme_class, theme_class)
-    |> assign(:show_toc, true)
-    |> assign(:toc_items, [
-      {"philosophy", "Philosophy"},
-      {"tech-stack", "Technology Stack"},
-      {"contribute", "Contribute"}
-    ])
-    |> assign(:code_example, code_example)
+    {:ok, socket}
   end
 
   @impl true

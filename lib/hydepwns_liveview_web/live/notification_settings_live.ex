@@ -1,11 +1,10 @@
 defmodule HydepwnsLiveviewWeb.NotificationSettingsLive do
-  use HydepwnsLiveviewWeb.BaseLive,
-    layout: {HydepwnsLiveviewWeb.Layouts, :app}
+  use HydepwnsLiveviewWeb, :live_view
+  import Phoenix.Component
 
   @impl true
   def mount(params, session, socket) do
-    # Defer to BaseLive's mount, which will call do_mount
-    super(params, session, socket)
+    do_mount(params, session, socket)
   end
 
   @impl true

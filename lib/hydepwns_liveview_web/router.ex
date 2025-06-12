@@ -32,7 +32,20 @@ defmodule HydepwnsLiveviewWeb.Router do
     live "/grid-playground", GridPlaygroundLive, :index
     live "/gallery", GalleryLive, :index
     live "/themes", Themes.ThemeManagerLive, :index
-    # live "/themes/:id", Themes.ThemeDetailLive # TODO: Resolve route conflict with ThemeController.show
+
+    # User routes
+    live "/users", UserLive, :index
+    live "/users/log_in", UserSessionLive, :new
+    live "/users/register", UserRegistrationLive, :new
+    live "/users/settings", UserSettingsLive, :edit
+    live "/users/profile", UserProfileLive, :edit
+    live "/users/:id", UserShowLive, :show
+    live "/users/:id/edit", UserShowLive, :edit
+
+    # Bridge routes
+    live "/bridges/new", BridgeFormLive, :new
+    live "/bridges/:id", BridgeShowLive, :show
+    live "/bridges/:id/edit", BridgeFormLive, :edit
 
     # Resource Management
     live "/resources", ResourceDashboardLive, :index

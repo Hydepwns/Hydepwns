@@ -1,45 +1,29 @@
 defmodule HydepwnsLiveviewWeb.ProjectsLive do
-  use HydepwnsLiveviewWeb.BaseLive,
-    required_assigns: [
-      :page_title,
-      :theme_class,
-      :show_toc,
-      :toc_items,
-      :diagram
-    ]
-
-  alias HydepwnsLiveviewWeb.Helpers.PathHelper
-  alias HydepwnsLiveview.ThemeSystem
+  use HydepwnsLiveviewWeb, :live_view
+  alias HydepwnsLiveview.Projects
 
   @impl true
-  def do_mount(_params, _session, socket) do
-    diagram = """
-    +--------+    +---------+    +--------+
-    |        |    |         |    |        |
-    | DROO   |--->|  DOT    |--->|  FOO   |
-    |        |    |         |    |        |
-    +--------+    +---------+    +--------+
-    """
+  def mount(_params, _session, socket) do
+    theme_class = "dark-theme"
+    diagram = Projects.get_project_diagram()
 
-    default_theme = ThemeSystem.ensure_default_theme()
-    theme_class = "#{default_theme.mode}-theme"
+    socket =
+      socket
+      |> assign(:page_title, "Projects")
+      |> assign(:theme_class, theme_class)
+      |> assign(:show_toc, true)
+      |> assign(:toc_items, [
+        %{id: "project-diagram", label: "Project Diagram", level: 2}
+      ])
+      |> assign(:diagram, diagram)
 
-    socket
-    |> PathHelper.assign_specific_path("/projects")
-    |> assign(:page_title, "Projects")
-    |> assign(:theme_class, theme_class)
-    |> assign(:show_toc, true)
-    |> assign(:toc_items, [
-      {"personal", "Personal Projects"},
-      {"open-source", "Open Source"},
-      {"experiments", "Experiments"}
-    ])
-    |> assign(:diagram, diagram)
+    {:ok, socket}
   end
 
   @impl true
   def render(assigns) do
     ~H"""
+    <h1>Projects</h1>
     <h2>PROJECTS</h2>
     <p>
       A collection of projects built with the monospace aesthetic in mind.

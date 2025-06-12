@@ -7,6 +7,8 @@ defmodule HydepwnsLiveview.Resources do
   alias HydepwnsLiveview.Resources.DocumentResource
   alias HydepwnsLiveview.Resources.RelationshipManager
   alias HydepwnsLiveview.Resources.ResourceSystem
+  alias HydepwnsLiveview.Repo
+  alias HydepwnsLiveview.Resources.Resource
 
   @doc """
   Gets a resource by id.
@@ -98,5 +100,20 @@ defmodule HydepwnsLiveview.Resources do
     child = get_resource!(child_id)
     update_resource(child, %{parent_id: nil})
     {:ok, struct(DocumentResource, %{parent_id: parent_id, id: child_id})}
+  end
+
+  @doc """
+  Retrieves a resource by ID.
+  """
+  def get_resource(id) do
+    Repo.get(Resource, id)
+  end
+
+  @doc """
+  Executes a validation plan for a user resource.
+  """
+  def execute_validation_plan(user_resource, _plan) do
+    # TODO: Implement validation plan execution
+    {:ok, user_resource}
   end
 end

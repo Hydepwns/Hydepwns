@@ -90,6 +90,20 @@ defmodule HydepwnsLiveview.ThemeSystem do
     end
   end
 
+  @spec get_current_theme() :: {:ok, Theme.t()} | {:error, :no_theme}
+  def get_current_theme do
+    case Process.get(:current_theme) do
+      nil -> {:error, :no_theme}
+      theme -> {:ok, theme}
+    end
+  end
+
+  @spec apply_theme(Theme.t()) :: {:ok, Theme.t()} | {:error, :invalid_theme}
+  def apply_theme(%Theme{} = theme) do
+    Process.put(:current_theme, theme)
+    {:ok, theme}
+  end
+
   # Unsets default status for all themes except the given ID
   defp unset_other_defaults(except_id) do
     from(t in Theme, where: t.id != ^except_id and t.is_default == true)

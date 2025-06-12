@@ -10,42 +10,75 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceExampleLive do
 
   alias HydepwnsLiveview.Utils.LiveViewAPI
   alias HydepwnsLiveview.Resources.UserResource
+  alias HydepwnsLiveview.Resources
+  alias HydepwnsLiveview.Resources.Resource
 
-  assigns do
-    attribute(:page_title, :any, required: true)
-    attribute(:theme_class, :any, required: true)
-    attribute(:show_toc, :any, required: true)
-    attribute(:toc_items, :any, required: true)
-    attribute(:images, :any, required: true)
+  # Valid roles that can be assigned to users
+  @valid_roles ["admin", "editor", "viewer"]
+  # Valid themes that can be applied
+  @valid_themes ["light", "dark", "system"]
 
-    # Define attributes for user data that is managed by this LiveView
-    # These were previously implicitly assigned in mount or via UserResource
-    attribute(:user_id, :string)
-    attribute(:username, :string)
-    attribute(:email, :string)
-    # Add role as an attribute
-    attribute(:role, :string)
-
-    # Define settings as a nested attribute, matching its usage
-    attribute :settings, :map do
-      # :string or {:one_of, [...]}, using :any for now
-      attribute(:theme, :any)
-      attribute(:notifications, :boolean)
-    end
-
-    # For conditional rendering
-    attribute(:show_admin_panel, :boolean)
-  end
-
-  def do_mount(_params, _session, socket) do
+  @impl true
+  def mount(_params, _session, socket) do
     socket =
       socket
+      |> assign(:page_title, "User Resource Example")
+      |> assign(:theme_class, "")
+      |> assign(:show_toc, false)
+      |> assign(:toc_items, [])
+      |> assign(:images, [])
       |> assign(:user_id, "123")
       |> assign(:username, "example_user")
       |> assign(:email, "user@example.com")
+      |> assign(:role, "viewer")
+      |> assign(:settings, %{theme: "light", notifications: false})
+      |> assign(:show_admin_panel, false)
       |> load_user_from_resource()
 
     {:ok, socket}
+  end
+
+  @impl true
+  def handle_params(params, _url, socket) do
+    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  end
+
+  defp apply_action(socket, :index, _params) do
+    socket
+    |> assign(:page_title, "User Resource Example")
+    |> assign(:resources, Resources.list_resources())
+  end
+
+  defp apply_action(socket, :show, %{"id" => id}) do
+    case Resources.get_resource(id) do
+      nil ->
+        socket
+        |> put_flash(:error, "Resource not found")
+        |> redirect(to: ~p"/resources")
+      resource ->
+        socket
+        |> assign(:page_title, "User Resource Details")
+        |> assign(:resource, resource)
+    end
+  end
+
+  defp apply_action(socket, :edit, %{"id" => id}) do
+    case Resources.get_resource(id) do
+      nil ->
+        socket
+        |> put_flash(:error, "Resource not found")
+        |> redirect(to: ~p"/resources")
+      resource ->
+        socket
+        |> assign(:page_title, "Edit User Resource")
+        |> assign(:resource, resource)
+    end
+  end
+
+  defp apply_action(socket, :new, _params) do
+    socket
+    |> assign(:page_title, "New User Resource")
+    |> assign(:resource, %Resource{})
   end
 
   def render(assigns) do
@@ -97,39 +130,46 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceExampleLive do
     """
   end
 
+  @impl true
   def handle_event("update_role", %{"role" => role}, socket) do
-    # Use the update_resource method from ResourceLive
-    case update_resource(socket, :role, role) do
-      {:ok, socket} ->
-        # Update admin panel visibility based on role
-        socket =
-          if role == "admin" do
-            assign(socket, :show_admin_panel, true)
-          else
-            assign(socket, :show_admin_panel, false)
-          end
-
-        {:noreply, socket}
-
-      {:error, message, socket} ->
-        {:noreply, put_flash(socket, :error, message)}
+    with :ok <- validate_role(role),
+         {:ok, socket} <- update_resource(socket, :role, role) do
+      {:noreply, put_flash(socket, :info, "Role updated successfully")}
+    else
+      {:error, :invalid_role} ->
+        {:noreply, put_flash(socket, :error, "Invalid role. Must be one of: #{Enum.join(@valid_roles, ", ")}")}
+      {:error, reason} ->
+        {:noreply, put_flash(socket, :error, "Failed to update role: #{inspect(reason)}")}
     end
   end
 
+  @impl true
   def handle_event("update_theme", %{"theme" => theme}, socket) do
-    # Use the LiveViewAPI to update nested settings
-    {:ok, socket} = LiveViewAPI.update(socket, :settings, %{theme: theme})
-    {:noreply, socket}
+    with :ok <- validate_theme(theme),
+         {:ok, socket} <- update_resource(socket, :theme, theme) do
+      {:noreply, put_flash(socket, :info, "Theme updated successfully")}
+    else
+      {:error, :invalid_theme} ->
+        {:noreply, put_flash(socket, :error, "Invalid theme. Must be one of: #{Enum.join(@valid_themes, ", ")}")}
+      {:error, reason} ->
+        {:noreply, put_flash(socket, :error, "Failed to update theme: #{inspect(reason)}")}
+    end
   end
 
+  @impl true
   def handle_event("toggle_notifications", _, socket) do
-    # Get the current notifications setting
     current_setting = get_resource(socket, :settings).notifications
-
-    # Update the notifications setting
-    {:ok, socket} = LiveViewAPI.update(socket, :settings, %{notifications: !current_setting})
-    {:noreply, socket}
+    case update_resource(socket, :settings, %{notifications: !current_setting}) do
+      {:ok, socket} ->
+        message = if !current_setting, do: "Notifications enabled", else: "Notifications disabled"
+        {:noreply, put_flash(socket, :info, message)}
+      {:error, reason} ->
+        {:noreply, put_flash(socket, :error, "Failed to update notifications: #{inspect(reason)}")}
+    end
   end
+
+  @impl true
+  def handle_event(_event, _params, socket), do: {:noreply, socket}
 
   # Private helper function to load user from UserResource
   defp load_user_from_resource(socket) do
@@ -147,9 +187,18 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceExampleLive do
         # Update the show_admin_panel based on role
         assign(socket, :show_admin_panel, socket.assigns.role == "admin")
 
-      {:error, _message, socket} ->
-        # Just return the socket as is
+      {:error, reason, socket} ->
+        # Log the error and return the socket
+        require Logger
+        Logger.error("Failed to load user resource: #{inspect(reason)}")
         socket
     end
   end
+
+  # Validation functions
+  defp validate_role(role) when role in @valid_roles, do: :ok
+  defp validate_role(_), do: {:error, :invalid_role}
+
+  defp validate_theme(theme) when theme in @valid_themes, do: :ok
+  defp validate_theme(_), do: {:error, :invalid_theme}
 end

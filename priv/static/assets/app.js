@@ -2,6 +2,7 @@
   var __defProp = Object.defineProperty;
   var __defProps = Object.defineProperties;
   var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
+  var __getOwnPropNames = Object.getOwnPropertyNames;
   var __getOwnPropSymbols = Object.getOwnPropertySymbols;
   var __hasOwnProp = Object.prototype.hasOwnProperty;
   var __propIsEnum = Object.prototype.propertyIsEnumerable;
@@ -18,6 +19,214 @@
     return a;
   };
   var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
+  var __esm = (fn, res) => function __init() {
+    return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+  };
+  var __export = (target, all) => {
+    for (var name in all)
+      __defProp(target, name, { get: all[name], enumerable: true });
+  };
+
+  // js/components/accessibility_menu_toggle.js
+  var accessibility_menu_toggle_exports = {};
+  __export(accessibility_menu_toggle_exports, {
+    AccessibilityMenuToggleComponent: () => AccessibilityMenuToggleComponent
+  });
+  var AccessibilityMenuToggleComponent;
+  var init_accessibility_menu_toggle = __esm({
+    "js/components/accessibility_menu_toggle.js"() {
+      AccessibilityMenuToggleComponent = class {
+        constructor(options) {
+          this.options = options;
+        }
+        mount() {
+          return this;
+        }
+        destroy() {
+        }
+      };
+    }
+  });
+
+  // js/components/copyable_code.js
+  var copyable_code_exports = {};
+  __export(copyable_code_exports, {
+    CopyableCodeComponent: () => CopyableCodeComponent
+  });
+  var CopyableCodeComponent;
+  var init_copyable_code = __esm({
+    "js/components/copyable_code.js"() {
+      CopyableCodeComponent = class {
+        constructor(options) {
+          this.options = options;
+        }
+        mount() {
+          return this;
+        }
+        destroy() {
+        }
+      };
+    }
+  });
+
+  // js/components/info_box.js
+  var info_box_exports = {};
+  __export(info_box_exports, {
+    InfoBoxComponent: () => InfoBoxComponent
+  });
+  var InfoBoxComponent;
+  var init_info_box = __esm({
+    "js/components/info_box.js"() {
+      InfoBoxComponent = class {
+        constructor(options) {
+          this.options = options;
+        }
+        mount() {
+          return this;
+        }
+        destroy() {
+        }
+      };
+    }
+  });
+
+  // js/components/keyboard_navigation.js
+  var keyboard_navigation_exports = {};
+  __export(keyboard_navigation_exports, {
+    KeyboardNavigationComponent: () => KeyboardNavigationComponent
+  });
+  var KeyboardNavigationComponent;
+  var init_keyboard_navigation = __esm({
+    "js/components/keyboard_navigation.js"() {
+      KeyboardNavigationComponent = class {
+        constructor(options) {
+          this.options = options;
+        }
+        mount() {
+          return this;
+        }
+        destroy() {
+        }
+      };
+    }
+  });
+
+  // js/utils/viewport_detector.js
+  var viewport_detector_exports = {};
+  __export(viewport_detector_exports, {
+    ViewportDetectorComponent: () => ViewportDetectorComponent
+  });
+  var ViewportDetectorComponent;
+  var init_viewport_detector = __esm({
+    "js/utils/viewport_detector.js"() {
+      ViewportDetectorComponent = class {
+        constructor(options) {
+          this.options = options;
+        }
+        mount() {
+          return this;
+        }
+        destroy() {
+        }
+      };
+    }
+  });
+
+  // js/components/mono_tabs.js
+  var mono_tabs_exports = {};
+  __export(mono_tabs_exports, {
+    MonoTabsComponent: () => MonoTabsComponent
+  });
+  var MonoTabsComponent;
+  var init_mono_tabs = __esm({
+    "js/components/mono_tabs.js"() {
+      MonoTabsComponent = class {
+        constructor(options) {
+          this.options = options;
+        }
+        mount() {
+          return this;
+        }
+        destroy() {
+        }
+      };
+    }
+  });
+
+  // js/components/notifications.js
+  var notifications_exports = {};
+  __export(notifications_exports, {
+    NotificationsComponent: () => NotificationsComponent
+  });
+  var NotificationsComponent;
+  var init_notifications = __esm({
+    "js/components/notifications.js"() {
+      NotificationsComponent = class {
+        constructor(options) {
+          this.options = options;
+        }
+        mount() {
+          return this;
+        }
+        destroy() {
+        }
+      };
+    }
+  });
+
+  // js/components/toast.js
+  var toast_exports = {};
+  __export(toast_exports, {
+    ToastComponent: () => ToastComponent
+  });
+  var ToastComponent;
+  var init_toast = __esm({
+    "js/components/toast.js"() {
+      ToastComponent = class {
+        constructor(options) {
+          this.options = options;
+        }
+        mount() {
+          return this;
+        }
+        destroy() {
+        }
+      };
+    }
+  });
+
+  // js/component_loader.js
+  var componentRegistry = {
+    // Selector to find on page: function to dynamically import the component
+    "[data-action='toggle-accessibility-menu']": () => Promise.resolve().then(() => (init_accessibility_menu_toggle(), accessibility_menu_toggle_exports)),
+    "[data-action='copy-code']": () => Promise.resolve().then(() => (init_copyable_code(), copyable_code_exports)),
+    "[data-action='toggle-info-box']": () => Promise.resolve().then(() => (init_info_box(), info_box_exports)),
+    // These are general and should be loaded on any page with a body
+    "body": [
+      () => Promise.resolve().then(() => (init_keyboard_navigation(), keyboard_navigation_exports)),
+      () => Promise.resolve().then(() => (init_viewport_detector(), viewport_detector_exports))
+    ],
+    "[data-tab]": () => Promise.resolve().then(() => (init_mono_tabs(), mono_tabs_exports)),
+    "[data-action='dismiss-notification']": () => Promise.resolve().then(() => (init_notifications(), notifications_exports)),
+    "[data-action='dismiss-toast']": () => Promise.resolve().then(() => (init_toast(), toast_exports))
+  };
+  var loadedComponents = /* @__PURE__ */ new Set();
+  function loadComponents() {
+    Object.entries(componentRegistry).forEach(([selector, loaders]) => {
+      if (document.querySelector(selector)) {
+        const loaderArray = Array.isArray(loaders) ? loaders : [loaders];
+        loaderArray.forEach((loader) => {
+          const loaderKey = loader.toString();
+          if (!loadedComponents.has(loaderKey)) {
+            loader();
+            loadedComponents.add(loaderKey);
+          }
+        });
+      }
+    });
+  }
+  document.addEventListener("DOMContentLoaded", loadComponents);
+  window.addEventListener("phx:page-loading-stop", loadComponents);
 
   // js/theme_hooks.js
   var ThemeHooks = {

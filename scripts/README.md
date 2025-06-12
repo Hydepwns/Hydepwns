@@ -17,8 +17,8 @@ Scripts related to building and compiling assets:
 
 Scripts for managing and optimizing assets:
 
-- `assets/image_optimizer.js` - Optimizes images for web delivery
-- `assets/responsive_image_generator.js` - Generates responsive image variants
+- `assets/optimizers/image_optimizer.js` - Optimizes images for web delivery
+- `assets/generators/responsive_image_variants.js` - Generates responsive image variants
 
 ### Documentation Tools
 

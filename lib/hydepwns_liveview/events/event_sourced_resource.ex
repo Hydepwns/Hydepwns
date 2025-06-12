@@ -24,12 +24,4 @@ defmodule HydepwnsLiveview.Events.EventSourcedResource do
   #   to: CoreEventSourcedResource
 
   # Removed: defdelegate set_snapshot_interval(resource_module, interval), to: CoreEventSourcedResource
-
-  # Maintain compatibility with the older function signature 
-  # (if it was used with module as the first parameter)
-  def rebuild_from_events(_resource_module, _initial_state, _events) do
-    # In a real implementation, this would rebuild the resource state from events
-    # For now, we'll just return :ok
-    :ok
-  end
 end

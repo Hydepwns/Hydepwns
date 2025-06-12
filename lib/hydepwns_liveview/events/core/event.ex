@@ -39,6 +39,36 @@ defmodule HydepwnsLiveview.Events.Core.Event do
         }
 
   @doc """
+  Creates a changeset for an event.
+
+  ## Parameters
+
+  * `event` - The event struct or changeset
+  * `attrs` - Map of event attributes to change
+
+  ## Returns
+
+  * `changeset` - The changeset for the event
+  """
+  def changeset(event, attrs) do
+    event
+    |> cast(attrs, [
+      :type,
+      :resource_id,
+      :resource_type,
+      :data,
+      :metadata,
+      :correlation_id,
+      :causation_id,
+      :timestamp
+    ])
+    |> validate_required([:type, :resource_id, :resource_type, :timestamp])
+    |> validate_length(:type, min: 3)
+    |> validate_length(:resource_id, min: 1)
+    |> validate_length(:resource_type, min: 1)
+  end
+
+  @doc """
   Creates a new event struct.
 
   ## Parameters

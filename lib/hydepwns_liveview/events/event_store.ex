@@ -10,6 +10,8 @@ defmodule HydepwnsLiveview.Events.EventStore do
   """
 
   alias HydepwnsLiveview.Events.Core.EventStore, as: CoreEventStore
+  alias HydepwnsLiveview.Repo
+  alias HydepwnsLiveview.Events.Event
 
   defdelegate start_link(opts), to: CoreEventStore
   defdelegate child_spec(opts), to: CoreEventStore
@@ -45,4 +47,17 @@ defmodule HydepwnsLiveview.Events.EventStore do
 
   defdelegate save_versioned_state(resource_type, resource_id, state, opts \\ []),
     to: CoreEventStore
+
+  @doc """
+  Stores an event in the event store.
+  """
+  def store_event(event_type, event_data) do
+    %Event{}
+    |> Event.changeset(%{
+      type: event_type,
+      data: event_data,
+      timestamp: DateTime.utc_now()
+    })
+    |> Repo.insert()
+  end
 end

@@ -6,51 +6,16 @@ defmodule HydepwnsLiveviewWeb.Examples.EctoResourceExampleLive do
   an Ecto schema through the adapter system.
   """
 
-  use HydepwnsLiveviewWeb.BaseLive,
-    required_assigns: [
-      :page_title,
-      :theme_class,
-      :user_id,
-      :user,
-      :loading,
-      :error_message,
-      :success_message
-    ]
+  use HydepwnsLiveviewWeb, :live_view
 
   alias HydepwnsLiveview.Resources.EctoUserResource
 
-  def do_mount(_params, _session, socket) do
-    # In a real application, we'd load the user from the database
-    # but here we'll simulate it with a fake user
-    user_data = %{
-      id: "123",
-      name: "Example User",
-      email: "user@example.com",
-      role: "editor",
-      active: true
-    }
-    default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()
-    theme_class = "#{default_theme.mode}-theme"
-    # Validate the user data against the Ecto schema via the adapter
-    case EctoUserResource.validate(user_data) do
-      {:ok, validated_user} ->
-        socket =
-          socket
-          |> assign(:user_id, validated_user.id)
-          |> assign(:user, validated_user)
-          |> assign(:loading, false)
-          |> assign(:theme_class, theme_class)
-        socket
-      {:error, message} ->
-        socket =
-          socket
-          |> assign(:error_message, "Failed to validate user: #{message}")
-          |> assign(:loading, false)
-          |> assign(:theme_class, theme_class)
-        socket
-    end
+  @impl true
+  def mount(_params, _session, socket) do
+    {:ok, assign(socket, :user, EctoUserResource.new())}
   end
 
+  @impl true
   def render(assigns) do
     ~H"""
     <div class="ecto-resource-example">

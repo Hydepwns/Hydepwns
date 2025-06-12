@@ -1,4 +1,7 @@
 defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
+  use HydepwnsLiveviewWeb, :live_view
+  import Phoenix.Component
+
   @moduledoc """
   LiveView for demonstrating the Resource Event System.
 
@@ -32,37 +35,28 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
 
   require Logger
 
-  alias HydepwnsLiveview.Events.Event, as: Event
+  alias HydepwnsLiveview.Events.Core.Event
   alias HydepwnsLiveview.Events.EventStore, as: EventStore
   alias HydepwnsLiveview.Events.TestEvents, as: TestEvents
   alias HydepwnsLiveview.Events.ProjectionSupervisor, as: ProjectionSupervisor
-  alias HydepwnsLiveview.Events.HandlerSupervisor, as: HandlerSupervisor
 
   @impl true
-  def do_mount(_params, _session, socket) do
-    # Get initial data
-    {:ok, events} = EventStore.get_events(%{limit: 10, sort: [timestamp: :desc]})
-    {:ok, projections} = ProjectionSupervisor.list_projections()
-    {:ok, handlers} = HandlerSupervisor.list_handlers()
+  def mount(_params, _session, socket) do
+    theme_class = "dark-theme"
+    events = Event.list_events()
+    projections = [UserActivityProjection]
 
-    # Set up the socket
     socket =
       socket
       |> assign(:page_title, "Event System Example")
+      |> assign(:theme_class, theme_class)
       |> assign(:events, events)
       |> assign(:projections, projections)
-      |> assign(:handlers, handlers)
       |> assign(:active_tab, "events")
-      |> assign(:user_count, 5)
-      |> assign(:event_type, "user.login")
-      |> assign(:resource_id, "test-user-1")
-      |> assign(:resource_type, "user")
-      |> assign(:event_data, "{}")
-      |> assign(:event_result, nil)
       |> assign(:selected_projection, nil)
       |> assign(:projection_state, nil)
 
-    socket
+    {:ok, socket}
   end
 
   @impl true

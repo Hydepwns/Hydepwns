@@ -3,51 +3,13 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceLive do
   Example LiveView module demonstrating resource-oriented socket assigns.
   """
 
-  use HydepwnsLiveviewWeb.BaseLive,
-    required_assigns: [
-      :page_title,
-      :theme_class,
-      :show_toc,
-      :toc_items,
-      :images
-    ]
+  use HydepwnsLiveviewWeb, :live_view
 
-  # Example mount function that assigns user data
-  @impl HydepwnsLiveviewWeb.BaseLive.Behaviour
-  def do_mount(_params, _session, socket) do
-    default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()
-    theme_class = "#{default_theme.mode}-theme"
-    # Add example user data to the socket
-    socket =
-      socket
-      |> assign(:page_title, "User Resource Example")
-      |> assign(:theme_class, theme_class)
-      |> assign(:user, %{
-        id: "user_123",
-        username: "example_user",
-        name: "Example User",
-        role: "user",
-        email: "user@example.com",
-        settings: %{
-          theme: "dark",
-          notifications: true,
-          language: "en"
-        }
-      })
-      |> assign(:permissions, ["read:profile", "edit:profile", "read:dashboard"])
-      |> assign(:activity, [
-        %{
-          action: "login",
-          timestamp: DateTime.utc_now() |> DateTime.to_string(),
-          details: "Logged in from 192.168.1.1"
-        },
-        %{
-          action: "update_profile",
-          timestamp: DateTime.add(DateTime.utc_now(), -3600) |> DateTime.to_string(),
-          details: "Updated profile information"
-        }
-      ])
-    {:ok, socket}
+  alias HydepwnsLiveview.Resources.EctoUserResource
+
+  @impl true
+  def mount(_params, _session, socket) do
+    {:ok, assign(socket, :user, EctoUserResource.new())}
   end
 
   def handle_event("update_role", %{"role" => role}, socket) do
@@ -88,78 +50,81 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceLive do
     {:noreply, assign(socket, :permissions, updated_permissions)}
   end
 
+  @impl true
   def render(assigns) do
     ~H"""
-    <div class="resource-example">
-      <h1>{@page_title}</h1>
+    <div class="container mx-auto">
+      <div class="resource-example">
+        <h1>{@page_title}</h1>
 
-      <div class="user-profile">
-        <h2>User Profile</h2>
-        <div class="profile-details">
-          <div><strong>Username:</strong> {@user.username}</div>
-          <div><strong>Name:</strong> {@user.name}</div>
-          <div><strong>Role:</strong> {@user.role}</div>
-          <div><strong>Email:</strong> {@user.email || "Not provided"}</div>
-        </div>
+        <div class="user-profile">
+          <h2>User Profile</h2>
+          <div class="profile-details">
+            <div><strong>Username:</strong> {@user.username}</div>
+            <div><strong>Name:</strong> {@user.name}</div>
+            <div><strong>Role:</strong> {@user.role}</div>
+            <div><strong>Email:</strong> {@user.email || "Not provided"}</div>
+          </div>
 
-        <div class="user-settings">
-          <h3>User Settings</h3>
-          <div><strong>Theme:</strong> {@user.settings.theme}</div>
-          <div><strong>Notifications:</strong> {if @user.settings.notifications, do: "Enabled", else: "Disabled"}</div>
-          <div><strong>Language:</strong> {@user.settings.language}</div>
-        </div>
-      </div>
-
-      <div class="user-permissions">
-        <h3>Permissions</h3>
-        <ul>
-          <%= for permission <- @permissions do %>
-            <li>{permission}</li>
-          <% end %>
-        </ul>
-      </div>
-
-      <div class="user-activity">
-        <h3>Activity History</h3>
-        <ul class="activity-list">
-          <%= for activity <- @activity do %>
-            <li>
-              <strong>{activity.action}</strong>
-              - <span class="timestamp">{activity.timestamp}</span>
-              <%= if activity.details do %>
-                <p class="details">{activity.details}</p>
-              <% end %>
-            </li>
-          <% end %>
-        </ul>
-      </div>
-
-      <div class="actions">
-        <h3>Actions</h3>
-
-        <div class="action-group">
-          <h4>Change Role</h4>
-          <div class="buttons">
-            <button phx-click="update_role" phx-value-role="admin">Set as Admin</button>
-            <button phx-click="update_role" phx-value-role="user">Set as User</button>
-            <button phx-click="update_role" phx-value-role="guest">Set as Guest</button>
+          <div class="user-settings">
+            <h3>User Settings</h3>
+            <div><strong>Theme:</strong> {@user.settings.theme}</div>
+            <div><strong>Notifications:</strong> {if @user.settings.notifications, do: "Enabled", else: "Disabled"}</div>
+            <div><strong>Language:</strong> {@user.settings.language}</div>
           </div>
         </div>
 
-        <div class="action-group">
-          <h4>Change Theme</h4>
-          <div class="buttons">
-            <button phx-click="update_theme" phx-value-theme="dark">Dark Theme</button>
-            <button phx-click="update_theme" phx-value-theme="light">Light Theme</button>
-            <button phx-click="update_theme" phx-value-theme="system">System Theme</button>
-          </div>
+        <div class="user-permissions">
+          <h3>Permissions</h3>
+          <ul>
+            <%= for permission <- @permissions do %>
+              <li>{permission}</li>
+            <% end %>
+          </ul>
         </div>
 
-        <div class="action-group">
-          <h4>Add Permission</h4>
-          <div class="buttons">
-            <button phx-click="add_permission" phx-value-permission="read:admin">Add Admin Read</button>
-            <button phx-click="add_permission" phx-value-permission="write:admin">Add Admin Write</button>
+        <div class="user-activity">
+          <h3>Activity History</h3>
+          <ul class="activity-list">
+            <%= for activity <- @activity do %>
+              <li>
+                <strong>{activity.action}</strong>
+                - <span class="timestamp">{activity.timestamp}</span>
+                <%= if activity.details do %>
+                  <p class="details">{activity.details}</p>
+                <% end %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+
+        <div class="actions">
+          <h3>Actions</h3>
+
+          <div class="action-group">
+            <h4>Change Role</h4>
+            <div class="buttons">
+              <button phx-click="update_role" phx-value-role="admin">Set as Admin</button>
+              <button phx-click="update_role" phx-value-role="user">Set as User</button>
+              <button phx-click="update_role" phx-value-role="guest">Set as Guest</button>
+            </div>
+          </div>
+
+          <div class="action-group">
+            <h4>Change Theme</h4>
+            <div class="buttons">
+              <button phx-click="update_theme" phx-value-theme="dark">Dark Theme</button>
+              <button phx-click="update_theme" phx-value-theme="light">Light Theme</button>
+              <button phx-click="update_theme" phx-value-theme="system">System Theme</button>
+            </div>
+          </div>
+
+          <div class="action-group">
+            <h4>Add Permission</h4>
+            <div class="buttons">
+              <button phx-click="add_permission" phx-value-permission="read:admin">Add Admin Read</button>
+              <button phx-click="add_permission" phx-value-permission="write:admin">Add Admin Write</button>
+            </div>
           </div>
         </div>
       </div>

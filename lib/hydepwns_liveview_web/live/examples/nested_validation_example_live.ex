@@ -8,20 +8,12 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
   - Visualize validation errors in a hierarchical structure
   """
 
-  use HydepwnsLiveviewWeb.BaseLive,
-    required_assigns: [
-      :page_title,
-      :theme_class,
-      :show_toc,
-      :toc_items,
-      :images
-    ]
+  use HydepwnsLiveviewWeb, :live_view
 
   alias HydepwnsLiveview.Resources.UserResource
-  alias HydepwnsLiveview.Resources.TeamResource
-  alias HydepwnsLiveview.Resources.PostResource
 
-  def do_mount(_params, _session, socket) do
+  @impl true
+  def mount(_params, _session, socket) do
     # Create a sample user with a team and posts
     user = create_sample_user()
 
@@ -31,28 +23,28 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
       |> assign(:validation_status, nil)
       |> assign(:validation_errors, %{})
 
-    socket
+    {:ok, socket}
   end
 
   def handle_event("validate_user", _params, socket) do
-    _user = socket.assigns.user
-    case UserResource.validate_deep(_user) do
+    user = socket.assigns.user
+    case UserResource.validate_deep(user) do
       :ok -> {:noreply, assign(socket, :validation_result, "Valid")}
       {:error, errors} -> {:noreply, assign(socket, :validation_result, "Invalid: #{inspect(errors)}")}
     end
   end
 
   def handle_event("validate_user_with_context", _params, socket) do
-    _user = socket.assigns.user
+    user = socket.assigns.user
     context = %{current_user: socket.assigns.current_user}
-    case UserResource.validate_deep(_user, context: context) do
+    case UserResource.validate_deep(user, context: context) do
       :ok -> {:noreply, assign(socket, :validation_result, "Valid with context")}
       {:error, errors} -> {:noreply, assign(socket, :validation_result, "Invalid with context: #{inspect(errors)}")}
     end
   end
 
   def handle_event("validate_with_dependencies", _params, socket) do
-    _user = socket.assigns.user
+    user = socket.assigns.user
 
     # First, resolve validation dependencies
     case UserResource.resolve_validation_dependencies() do
@@ -60,7 +52,7 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
         socket = assign(socket, :validation_plan, validation_plan)
 
         # Execute the validation plan
-        case UserResource.execute_validation_plan(validation_plan, _user) do
+        case UserResource.execute_validation_plan(validation_plan, user) do
           {:ok, _results} ->
             socket =
               socket
@@ -98,17 +90,17 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
   end
 
   def handle_event("introduce_errors", _params, socket) do
-    _user = socket.assigns.user
+    user = socket.assigns.user
 
     # Introduce validation errors
-    _user =
-      _user
+    user =
+      user
       |> Map.put(:email, "invalid-email")
       # Invalid role
       |> Map.put(:role, "superadmin")
 
     # Introduce errors in the team
-    {:ok, team} = UserResource.resolve_relationship(_user, :team)
+    {:ok, team} = UserResource.resolve_relationship(user, :team)
 
     team =
       team
@@ -118,32 +110,29 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
       |> Map.put(:max_members, 2)
 
     # Introduce errors in a post
-    {:ok, posts} = UserResource.resolve_relationship(_user, :posts)
+    {:ok, posts} = UserResource.resolve_relationship(user, :posts)
 
     case posts do
       [post | rest_posts] ->
         # Empty title
         post = Map.put(post, :title, "")
 
-        _user =
-          _user
-          |> Map.put(:team, team)
-          |> Map.put(:posts, [post | rest_posts])
+        user
+        |> Map.put(:team, team)
+        |> Map.put(:posts, [post | rest_posts])
 
       [] ->
-        _user =
-          _user
-          |> Map.put(:team, team)
-          |> Map.put(:posts, [])
+        user
+        |> Map.put(:team, team)
+        |> Map.put(:posts, [])
     end
-
-    socket =
+    |> then(fn updated_user ->
       socket
-      |> assign(:user, _user)
+      |> assign(:user, updated_user)
       |> assign(:validation_status, nil)
       |> assign(:validation_errors, %{})
-
-    {:noreply, socket}
+    end)
+    |> then(fn socket -> {:noreply, socket} end)
   end
 
   def handle_event("reset_user", _params, socket) do
@@ -170,7 +159,7 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
   defp create_sample_user do
     # Create a team
     team = %{
-      __resource_module__: TeamResource,
+      __resource_module__: HydepwnsLiveview.Resources.TeamResource,
       id: "team-1",
       name: "Engineering",
       max_members: 10,
@@ -184,14 +173,14 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
     # Create posts
     posts = [
       %{
-        __resource_module__: PostResource,
+        __resource_module__: HydepwnsLiveview.Resources.PostResource,
         id: "post-1",
         title: "Introduction to Phoenix",
         content: "Phoenix is a web framework for Elixir...",
         published: true
       },
       %{
-        __resource_module__: PostResource,
+        __resource_module__: HydepwnsLiveview.Resources.PostResource,
         id: "post-2",
         title: "LiveView Basics",
         content: "Phoenix LiveView is a library for building real-time user interfaces...",
@@ -201,7 +190,7 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
 
     # Create user with relationships
     %{
-      __resource_module__: UserResource,
+      __resource_module__: HydepwnsLiveview.Resources.UserResource,
       id: "user-1",
       name: "John Doe",
       email: "john@example.com",
@@ -218,6 +207,7 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
     }
   end
 
+  @impl true
   def render(assigns) do
     ~H"""
     <div class="nested-validation-example p-6">

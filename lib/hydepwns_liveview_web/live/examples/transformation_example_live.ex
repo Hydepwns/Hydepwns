@@ -130,22 +130,22 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
       )
 
     case result do
-      {:ok, transformed_resource, _context} ->
+      {:ok, transformed_resource, context} ->
         socket =
           socket
           |> assign(:resource, transformed_resource)
           |> assign(:transformation_result, :success)
-          |> assign(:transformation_context, _context)
+          |> assign(:transformation_context, context)
           |> assign(:execution_error, nil)
 
         {:noreply, socket}
 
-      {:error, resource, _context} ->
+      {:error, resource, context} ->
         socket =
           socket
           |> assign(:resource, resource)
           |> assign(:transformation_result, :error)
-          |> assign(:transformation_context, _context)
+          |> assign(:transformation_context, context)
           |> assign(:execution_error, nil)
 
         {:noreply, socket}
@@ -196,9 +196,10 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
     context = %{
       current_user: socket.assigns.current_user
     }
-    socket
-    |> assign(:transformation_context, context)
-    {:noreply, socket}
+
+    {:noreply,
+     socket
+     |> assign(:transformation_context, context)}
   end
 
   @impl Phoenix.LiveView

@@ -6,14 +6,7 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationMetricsLive do
   including execution times, success rates, and resource/operation statistics.
   """
 
-  use HydepwnsLiveviewWeb.BaseLive,
-    required_assigns: [
-      :page_title,
-      :theme_class,
-      :show_toc,
-      :toc_items,
-      :images
-    ]
+  use HydepwnsLiveviewWeb, :live_view
 
   alias HydepwnsLiveview.Transformations.TransformationMetrics
   alias HydepwnsLiveviewWeb.Components.TransformationMetricsComponent
@@ -21,8 +14,8 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationMetricsLive do
   # 5 seconds
   @refresh_interval 5_000
 
-  @impl HydepwnsLiveviewWeb.BaseLive.Behaviour
-  def do_mount(_params, _session, socket) do
+  @impl true
+  def mount(_params, _session, socket) do
     if connected?(socket) do
       # Set up automatic refresh for metrics
       :timer.send_interval(@refresh_interval, self(), :refresh_metrics)
@@ -40,6 +33,7 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationMetricsLive do
     {:noreply, socket}
   end
 
+  @impl true
   def render(assigns) do
     ~H"""
     <div class="metrics-page">

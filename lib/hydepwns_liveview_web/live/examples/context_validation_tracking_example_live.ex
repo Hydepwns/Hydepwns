@@ -70,25 +70,6 @@ defmodule HydepwnsLiveviewWeb.Examples.ContextValidationTrackingExampleLive do
     end
   end
 
-  # Use the assigns DSL
-  assigns do
-    attribute(:user, :map)
-    attribute(:change_history, {:list, :map}, default: [])
-    attribute(:selected_version, :integer, default: nil)
-    attribute(:versioned_user, :map, default: nil)
-    attribute(:diff, :map, default: nil)
-    attribute(:form_data, :map, default: %{})
-    attribute(:error_message, :string)
-    attribute(:success_message, :string)
-    attribute(:view_mode, :string, default: "timeline")
-
-    attribute(:validation_context, :map,
-      default: %{allowed_roles: ["user", "admin", "editor"], admin_mode: false}
-    )
-
-    attribute(:admin_mode, :boolean, default: false)
-  end
-
   # Called by ResourceLive's do_mount after setting defaults
   def do_mount(_params, _session, socket) do
     # Create an initial user resource
@@ -107,15 +88,25 @@ defmodule HydepwnsLiveviewWeb.Examples.ContextValidationTrackingExampleLive do
     }
     default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()
     theme_class = "#{default_theme.mode}-theme"
-    # Update the socket with the user
+    # Update the socket with the user and default values
     socket =
       socket
       |> assign(:user, initial_user)
       |> assign(:form_data, initial_user)
       |> assign(:theme_class, theme_class)
+      |> assign(:change_history, [])
+      |> assign(:selected_version, nil)
+      |> assign(:versioned_user, nil)
+      |> assign(:diff, nil)
+      |> assign(:error_message, nil)
+      |> assign(:success_message, nil)
+      |> assign(:view_mode, "timeline")
+      |> assign(:validation_context, %{allowed_roles: ["user", "admin", "editor"], admin_mode: false})
+      |> assign(:admin_mode, false)
     {:ok, socket}
   end
 
+  @impl true
   def render(assigns) do
     ~H"""
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

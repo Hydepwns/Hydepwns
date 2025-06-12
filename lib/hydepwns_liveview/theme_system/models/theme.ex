@@ -35,7 +35,7 @@ defmodule HydepwnsLiveview.ThemeSystem.Models.Theme do
   def changeset(theme, attrs) do
     attrs = for {k, v} <- attrs, into: %{}, do: {to_string(k), v}
 
-    # Handle both flattened and nested color fields
+    # Extract colors from attrs
     colors = cond do
       # If colors are provided as a nested map, use them directly
       Map.has_key?(attrs, "colors") && is_map(attrs["colors"]) ->
@@ -43,20 +43,20 @@ defmodule HydepwnsLiveview.ThemeSystem.Models.Theme do
       # Otherwise, try to build from flattened fields
       true ->
         %{
-          "primary" => attrs["primary_color"] || attrs["colors"]["primary"],
-          "secondary" => attrs["secondary_color"] || attrs["colors"]["secondary"],
-          "accent" => attrs["accent_color"] || attrs["colors"]["accent"],
-          "background" => attrs["background_color"] || attrs["colors"]["background"],
-          "text" => attrs["text_color"] || attrs["colors"]["text"],
-          "border" => attrs["border_color"] || attrs["colors"]["border"],
-          "error" => attrs["error_color"] || attrs["colors"]["error"],
-          "success" => attrs["success_color"] || attrs["colors"]["success"],
-          "warning" => attrs["warning_color"] || attrs["colors"]["warning"],
-          "info" => attrs["info_color"] || attrs["colors"]["info"]
+          "primary" => attrs["primary"] || attrs["colors"]["primary"],
+          "secondary" => attrs["secondary"] || attrs["colors"]["secondary"],
+          "accent" => attrs["accent"] || attrs["colors"]["accent"],
+          "background" => attrs["background"] || attrs["colors"]["background"],
+          "text" => attrs["text"] || attrs["colors"]["text"],
+          "border" => attrs["border"] || attrs["colors"]["border"],
+          "error" => attrs["error"] || attrs["colors"]["error"],
+          "success" => attrs["success"] || attrs["colors"]["success"],
+          "warning" => attrs["warning"] || attrs["colors"]["warning"],
+          "info" => attrs["info"] || attrs["colors"]["info"]
         }
     end
 
-    # Handle both flattened and nested settings fields
+    # Extract settings from attrs
     settings = cond do
       # If settings are provided as a nested map, use them directly
       Map.has_key?(attrs, "settings") && is_map(attrs["settings"]) ->

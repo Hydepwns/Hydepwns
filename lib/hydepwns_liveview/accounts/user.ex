@@ -12,11 +12,12 @@ defmodule HydepwnsLiveview.Accounts.User do
     field :password, :string, virtual: true
     field :password_confirmation, :string, virtual: true
     field :password_hash, :string
-    field :role, :string, default: "viewer"
+    field :role, :string, default: "user"
     field :active, :boolean, default: true
     field :email_confirmed_at, :naive_datetime
     field :password_reset_token, :string
     field :password_reset_sent_at, :naive_datetime
+    field :confirmed_at, :naive_datetime
 
     timestamps()
   end
@@ -25,13 +26,14 @@ defmodule HydepwnsLiveview.Accounts.User do
   Changeset for user creation/updates.
   """
   def changeset(user, attrs) do
-    attrs = for {k, v} <- attrs, into: %{}, do: {to_string(k), v}
-
     user
-    |> cast(attrs, [:name, :email, :role, :active])
-    |> validate_required([:name, :email])
-    |> validate_format(:email, ~r/@/)
+    |> cast(attrs, [:name, :email, :password, :role, :active])
+    |> validate_required([:name, :email, :password])
+    |> validate_format(:email, ~r/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
+    |> validate_length(:password, min: 6)
     |> validate_inclusion(:role, ["admin", "editor", "viewer"])
+    |> unique_constraint(:email)
+    |> put_password_hash()
   end
 
   @doc """

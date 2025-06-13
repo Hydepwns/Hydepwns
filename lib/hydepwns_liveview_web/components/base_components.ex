@@ -43,7 +43,7 @@ defmodule HydepwnsLiveviewWeb.Components.BaseComponents do
     """
   end
 
-  # Common modal-related helpers (extract from both existing components)
+  # Common modal-related helpers
   @doc """
   Renders a modal container div with fade-out transition on removal.
   The inner content is rendered via the inner_block slot.
@@ -83,38 +83,10 @@ defmodule HydepwnsLiveviewWeb.Components.BaseComponents do
     |> JS.hide(to: "##{id}-container", transition: "fade-out-scale")
   end
 
-  # Move shared helper functions, attributes, and base components here
-  # For example:
-
   # Shared utility functions
   @doc """
   Generates a unique DOM id with the given prefix using a UUID.
   """
   @spec generate_id(String.t()) :: String.t()
   def generate_id(prefix), do: "#{prefix}-#{Ecto.UUID.generate()}"
-
-  # Add other shared component patterns here
-
-  # -- COMMON FORM ELEMENTS --
-  # Move basic form elements here from both core and form components
-  @doc """
-  Renders a wrapper div for form inputs with optional class.
-  The inner content is rendered via the inner_block slot.
-  """
-  @spec input_wrapper(map()) :: Phoenix.LiveView.Rendered.t()
-  def input_wrapper(assigns) do
-    ~H"""
-    <div class={["input-wrapper", @class]}>
-      {render_slot(@inner_block)}
-    </div>
-    """
-  end
-
-  # Define a bare-bones version of commonly shared components here
-
-  # -- COMMON UI UTILITIES --
-  # Keep the JS-related functions
-
-  # -- COMMON UTILITIES --
-  # Add other general utility functions here
 end

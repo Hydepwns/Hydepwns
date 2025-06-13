@@ -110,8 +110,8 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
       <div :if={@diff} class="diff-view mb-6">
         <h4 class="text-lg font-semibold mb-2">Showing diff</h4>
         <div class="diff-details bg-gray-100 p-3 rounded">
-          <div :for={{key, values} <- @diff.changes} class="diff-item mb-4 border-b pb-2">
-            <div class="diff-key font-bold mb-1">{Atom.to_string(key)}</div>
+          <div :for={{_key, values} <- @diff.changes} class="diff-item mb-4 border-b pb-2">
+            <div class="diff-key font-bold mb-1">{Atom.to_string(_key)}</div>
             <div class="diff-values grid grid-cols-2 gap-4">
               <div class="diff-old">
                 <span class="text-red-500">- {inspect(values.before)}</span>
@@ -122,14 +122,14 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
             </div>
             <div :if={values[:nested_diff] && map_size(values.nested_diff) > 0} class="mt-2 pl-4 border-l-2 border-gray-300">
               <div class="text-sm font-medium mb-1">Nested Changes:</div>
-              <div :for={{nested_key, nested_values} <- values.nested_diff} class="diff-item mb-2">
-                <div class="diff-key font-medium text-sm">{Atom.to_string(nested_key)}</div>
+              <div :for={{_nested_key, _nested_values} <- values.nested_diff} class="diff-item mb-2">
+                <div class="diff-key font-medium text-sm">{Atom.to_string(_nested_key)}</div>
                 <div class="diff-values grid grid-cols-2 gap-4 text-sm">
                   <div class="diff-old">
-                    <span class="text-red-500">- {inspect(nested_values.before)}</span>
+                    <span class="text-red-500">- {inspect(_nested_values.before)}</span>
                   </div>
                   <div class="diff-new">
-                    <span class="text-green-500">+ {inspect(nested_values.after)}</span>
+                    <span class="text-green-500">+ {inspect(_nested_values.after)}</span>
                   </div>
                 </div>
               </div>
@@ -227,7 +227,7 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
         </div>
       </div>
       <div class="timeline-labels flex justify-between w-full mt-2">
-        <div :for={change <- @change_history} class="text-xs text-gray-500">
+        <div :for={_change <- @change_history} class="text-xs text-gray-500">
           {format_timestamp_short(Map.get(change.metadata, :timestamp))}
         </div>
       </div>
@@ -262,7 +262,7 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
             <td class="table-cell">{Map.get(change_item.metadata, :reason) || "No reason provided"}</td>
             <td class="table-cell">
               <ul class="list-disc pl-5">
-                <li :for={{key, _value} <- change_item.changes}>{Atom.to_string(key)}</li>
+                <li :for={{_key, _value} <- change_item.changes}>{Atom.to_string(_key)}</li>
               </ul>
             </td>
             <td class="table-cell">
@@ -316,9 +316,9 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
         <p><strong>Reason:</strong> {Map.get(@entry.metadata, :reason) || "No reason provided"}</p>
       </div>
       <div class="details">
-        <%= for {field, diff_val} <- Map.to_list(@entry.diff.changes) do %>
+        <%= for {_field, diff_val} <- Map.to_list(@entry.diff.changes) do %>
           <div class="field-change">
-            <strong>{field}:</strong>
+            <strong>{_field}:</strong>
             <%= if is_map(diff_val) && Map.has_key?(diff_val, :before) && Map.has_key?(diff_val, :after) do %>
               <span class="text-red-500 line-through">{inspect(Map.get(diff_val, :before))}</span> &rarr; <span class="text-green-500">{inspect(Map.get(diff_val, :after))}</span>
             <% else %>
@@ -329,8 +329,8 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
       </div>
       <div class="metadata-details mt-2 pt-2 border-t border-gray-200">
         <div class="text-sm font-medium mb-1">Full Metadata:</div>
-        <div :for={{key, value} <- @entry.metadata} class="text-xs text-gray-500">
-          <span class="font-semibold">{Atom.to_string(key)}:</span> {inspect(value)}
+        <div :for={{_key, _value} <- @entry.metadata} class="text-xs text-gray-500">
+          <span class="font-semibold">{Atom.to_string(_key)}:</span> {inspect(_value)}
         </div>
       </div>
       <div :if={@on_view_version} class="actions mt-3">

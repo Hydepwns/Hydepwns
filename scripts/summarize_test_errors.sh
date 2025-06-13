@@ -22,6 +22,16 @@ fi
 
 # If mix test failed
 echo "mix test failed. Full output in $INPUT_FILE" > "$OUTPUT_FILE" # Overwrite previous content
+
+# Summarize warnings
+echo "--- Warnings Summary ---" >> "$OUTPUT_FILE"
+grep -E '\[warning\]|warning:' "$INPUT_FILE" >> "$OUTPUT_FILE" || echo "No warnings found." >> "$OUTPUT_FILE"
+
+# Summarize compilation errors
+echo "--- Compilation Errors Summary ---" >> "$OUTPUT_FILE"
+grep -E '\[error\]|error:|^\*\* \(CompileError\)' "$INPUT_FILE" >> "$OUTPUT_FILE" || echo "No compilation errors found." >> "$OUTPUT_FILE"
+
+# Summarize test failures
 echo "--- Test Failures Summary ---" >> "$OUTPUT_FILE"
 
 failure_pattern='^\s*[0-9]+\) test ' # Pattern for lines like "  1) test..."

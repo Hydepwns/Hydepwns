@@ -7,11 +7,8 @@ defmodule HydepwnsLiveviewWeb.UserSettingsLive do
 
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveview.Accounts.User
-
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [simple_form: 1, input: 1]
-  import HydepwnsLiveviewWeb.CoreComponents
-
-  @behaviour Phoenix.LiveView
+  alias HydepwnsLiveviewWeb.UserAuth
+  import HydepwnsLiveviewWeb.Components.Common.CoreComponents
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
@@ -44,12 +41,12 @@ defmodule HydepwnsLiveviewWeb.UserSettingsLive do
 
   @impl Phoenix.LiveView
   def handle_event("save", %{"user" => user_params}, socket) do
-    case Accounts.update_user_settings(socket.assigns.user, user_params) do
+    case Accounts.update_user(socket.assigns.user, user_params) do
       {:ok, _user} ->
         {:noreply,
          socket
-         |> put_flash(:info, "Settings updated successfully")
-         |> push_redirect(to: ~p"/users/#{socket.assigns.user}")}
+         |> put_flash(:info, "User updated successfully")
+         |> push_navigate(to: ~p"/users/#{socket.assigns.user}")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :changeset, changeset)}

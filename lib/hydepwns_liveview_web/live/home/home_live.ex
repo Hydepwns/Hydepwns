@@ -3,7 +3,7 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
 
   alias HydepwnsLiveview.ThemeSystem
   alias HydepwnsLiveview.Content
-  import HydepwnsLiveviewWeb.Components.UI.ThemeToggle, only: [theme_toggle: 1]
+  import HydepwnsLiveviewWeb.Components.Common.ThemeToggle, only: [theme_toggle: 1]
   import HydepwnsLiveviewWeb.Components.UI.DebugGrid, only: [debug_grid: 1]
   import HydepwnsLiveviewWeb.Components.UI.AccessibilityMenu, only: [accessibility_menu: 1]
 

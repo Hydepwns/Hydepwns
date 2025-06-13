@@ -5,13 +5,11 @@ defmodule HydepwnsLiveviewWeb.UserSessionLive do
 
   use HydepwnsLiveviewWeb, :live_view
 
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1]
-  import HydepwnsLiveviewWeb.CoreComponents
+  import HydepwnsLiveviewWeb.Components.Common.CoreComponents
 
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveview.Accounts.User
-
-  @behaviour Phoenix.LiveView
+  alias HydepwnsLiveviewWeb.UserAuth
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
@@ -44,15 +42,18 @@ defmodule HydepwnsLiveviewWeb.UserSessionLive do
 
   @impl Phoenix.LiveView
   def handle_event("save", %{"user" => user_params}, socket) do
-    case Accounts.authenticate_user(user_params) do
+    case UserAuth.log_in_user(socket, user_params) do
       {:ok, user} ->
         {:noreply,
          socket
          |> put_flash(:info, "Welcome back!")
-         |> push_redirect(to: ~p"/users/#{user}")}
+         |> push_navigate(to: ~p"/users/#{user}")}
 
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, :changeset, changeset)}
+      {:error, _reason} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Invalid email or password")
+         |> assign(:changeset, UserAuth.change_user_session(%{}))}
     end
   end
 

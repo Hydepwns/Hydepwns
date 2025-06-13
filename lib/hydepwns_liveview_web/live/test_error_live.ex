@@ -32,15 +32,36 @@ defmodule HydepwnsLiveviewWeb.TestErrorLive do
   end
 
   def handle_event("update_count", %{"count" => count}, socket) do
-    {:noreply, Phoenix.Component.assign(socket, :count, count)}
+    case Integer.parse(count) do
+      {count_int, _} when count_int >= 0 ->
+        {:noreply, Phoenix.Component.assign(socket, :count, count_int)}
+      _ ->
+        {:noreply, put_flash(socket, :error, "Count must be a non-negative integer")}
+    end
   end
 
   def handle_event("update_status", %{"status" => status}, socket) do
-    {:noreply, Phoenix.Component.assign(socket, :status, status)}
+    valid_statuses = ["active", "inactive", "pending"]
+    if status in valid_statuses do
+      {:noreply, Phoenix.Component.assign(socket, :status, status)}
+    else
+      {:noreply, put_flash(socket, :error, "Invalid status. Must be one of: #{Enum.join(valid_statuses, ", ")}")}
+    end
   end
 
   def handle_event("update_settings", %{"theme" => theme}, socket) do
-    settings = %{theme: theme, notifications: "yes"}
-    {:noreply, Phoenix.Component.assign(socket, :settings, settings)}
+    valid_themes = ["light", "dark", "system"]
+    if theme in valid_themes do
+      settings = %{theme: theme, notifications: true}
+      {:noreply, Phoenix.Component.assign(socket, :settings, settings)}
+    else
+      {:noreply, put_flash(socket, :error, "Invalid theme. Must be one of: #{Enum.join(valid_themes, ", ")}")}
+    end
+  end
+
+  def handle_event(event, params, socket) do
+    require Logger
+    Logger.warning("Unhandled event in TestErrorLive: #{inspect(event)} with params: #{inspect(params)}")
+    {:noreply, put_flash(socket, :warning, "Unhandled event: #{event}")}
   end
 end

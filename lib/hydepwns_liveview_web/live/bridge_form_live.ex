@@ -1,56 +1,55 @@
 defmodule HydepwnsLiveviewWeb.BridgeFormLive do
   use HydepwnsLiveviewWeb, :live_view
 
-  alias HydepwnsLiveview.Bridge
-  alias HydepwnsLiveview.Bridge.Models.Bridge
+  alias HydepwnsLiveview.Bridges
+  alias HydepwnsLiveview.Bridges.Bridge
+  alias HydepwnsLiveviewWeb.UserAuth
 
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [simple_form: 1, input: 1, button: 1]
-
-  @impl true
+  @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, :changeset, Bridge.changeset(%Bridge{}, %{}))}
+    {:ok, assign(socket, page_title: "Bridge Form")}
   end
 
-  @impl true
-  def handle_event("validate", %{"bridge" => bridge_params}, socket) do
-    changeset =
-      socket.assigns.changeset.data
-      |> Bridge.changeset(bridge_params)
-      |> Map.put(:action, :validate)
-
-    {:noreply, assign(socket, :changeset, changeset)}
-  end
-
-  @impl true
-  def handle_event("save", %{"bridge" => bridge_params}, socket) do
-    case Bridge.create_bridge(bridge_params) do
-      {:ok, bridge} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "Bridge created successfully")
-         |> redirect(to: ~p"/bridges/#{bridge}")}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, :changeset, changeset)}
-    end
-  end
-
-  @impl true
+  @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
-    <div>
-      <.header>
-        Bridge Form
-        <:subtitle>Create or edit a bridge.</:subtitle>
-      </.header>
+    <div class="container mx-auto px-4 py-8">
+      <%= HydepwnsLiveviewWeb.Components.Common.HeaderComponent.header(assigns) %>
 
-      <.simple_form for={@changeset} id="bridge-form" phx-change="validate" phx-submit="save">
-        <.input field={@changeset[:name]} type="text" label="Name" />
-        <.input field={@changeset[:description]} type="textarea" label="Description" />
-        <:actions>
-          <.button phx-disable-with="Saving...">Save Bridge</.button>
-        </:actions>
-      </.simple_form>
+      <div class="bg-white shadow rounded-lg p-6">
+        <div class="space-y-6">
+          <div>
+            <h3 class="text-lg font-medium">Bridge Form</h3>
+            <.form
+              :let={f}
+              for={%{}}
+              id="bridge-form"
+              phx-submit="save"
+            >
+              <div class="space-y-4">
+                <div>
+                  <.label for={f[:name].id}>Name</.label>
+                  <.input field={f[:name]} type="text" required />
+                </div>
+
+    <div>
+                  <.label for={f[:type].id}>Type</.label>
+                  <.input field={f[:type]} type="select" options={[Type1: "type1", Type2: "type2"]} required />
+                </div>
+
+                <div class="flex justify-end space-x-4">
+                  <.link navigate={~p"/bridges"} class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                    Cancel
+                  </.link>
+                  <.button type="submit" phx-disable-with="Saving...">
+                    Save Bridge
+                  </.button>
+                </div>
+              </div>
+            </.form>
+          </div>
+        </div>
+      </div>
     </div>
     """
   end

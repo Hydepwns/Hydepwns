@@ -31,7 +31,9 @@ defmodule HydepwnsLiveview.Application do
           {Phoenix.PubSub, name: HydepwnsLiveview.PubSub},
           {Finch, name: HydepwnsLiveview.Finch},
           HydepwnsLiveviewWeb.Endpoint,
-          HydepwnsLiveviewWeb.Presence
+          HydepwnsLiveviewWeb.Presence,
+          HydepwnsLiveview.Events.ReminderWorker,
+          {SignalProtocol, name: SignalProtocol}
         ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
@@ -44,6 +46,9 @@ defmodule HydepwnsLiveview.Application do
 
     # After startup, register default event handlers
     register_default_event_handlers()
+
+    # Initialize Signal Protocol
+    :ok = SignalProtocol.init()
 
     result
   end

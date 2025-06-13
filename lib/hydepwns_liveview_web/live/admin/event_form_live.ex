@@ -1,4 +1,4 @@
-defmodule HydepwnsLiveviewWeb.EventFormLive do
+defmodule HydepwnsLiveviewWeb.Admin.EventFormLive do
   @moduledoc """
   LiveView for creating and editing events in the admin dashboard.
   """
@@ -7,11 +7,10 @@ defmodule HydepwnsLiveviewWeb.EventFormLive do
 
   alias HydepwnsLiveview.Events
   alias HydepwnsLiveview.Events.Event
+  alias HydepwnsLiveview.Events.EventForm
 
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1]
-  import HydepwnsLiveviewWeb.CoreComponents
-
-  @behaviour Phoenix.LiveView
+  import HydepwnsLiveviewWeb.Components.Common.CoreComponents
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
@@ -59,7 +58,7 @@ defmodule HydepwnsLiveviewWeb.EventFormLive do
         {:noreply,
          socket
          |> put_flash(:info, "Event updated successfully")
-         |> push_redirect(to: ~p"/admin/events")}
+         |> push_navigate(to: ~p"/admin/events")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :changeset, changeset)}
@@ -72,7 +71,7 @@ defmodule HydepwnsLiveviewWeb.EventFormLive do
         {:noreply,
          socket
          |> put_flash(:info, "Event created successfully")
-         |> push_redirect(to: ~p"/admin/events")}
+         |> push_navigate(to: ~p"/admin/events")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, changeset: changeset)}
@@ -118,9 +117,9 @@ defmodule HydepwnsLiveviewWeb.EventFormLive do
             <.link navigate={~p"/admin/events"} class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
               Cancel
             </.link>
-            <.button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-              Save
-            </.button>
+            <HydepwnsLiveviewWeb.Components.UI.FormComponents.button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+              Save Event
+            </HydepwnsLiveviewWeb.Components.UI.FormComponents.button>
           </div>
         </.form>
       </div>

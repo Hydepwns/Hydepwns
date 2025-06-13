@@ -58,16 +58,16 @@ defmodule HydepwnsLiveviewWeb.MockHelper do
   end)
   ```
   """
-  def expect_api_call(mock, fun, implementation) do
+  def expect_api_call(service, action, callback) when is_function(callback) do
     mock =
-      case mock do
+      case service do
         :external_api -> HydepwnsLiveview.MockExternalAPI
         :http_client -> HydepwnsLiveview.MockHTTPClient
         m when is_atom(m) -> m
         m -> m
       end
 
-    Mox.expect(mock, fun, implementation)
+    Mox.expect(mock, action, callback)
   end
 
   @doc """
@@ -78,17 +78,5 @@ defmodule HydepwnsLiveviewWeb.MockHelper do
   def verify_all_mocks do
     verify!(HydepwnsLiveview.MockHTTPClient)
     verify!(HydepwnsLiveview.MockExternalAPI)
-  end
-
-  def expect_api_call(:external_api, :fetch_data, callback) when is_function(callback, 1) do
-    expect(HydepwnsLiveview.MockExternalAPI, :fetch_data, fn id ->
-      callback.(id)
-    end)
-  end
-
-  def expect_api_call(:external_api, :update_resource, callback) when is_function(callback, 2) do
-    expect(HydepwnsLiveview.MockExternalAPI, :update_resource, fn id, data ->
-      callback.(id, data)
-    end)
   end
 end

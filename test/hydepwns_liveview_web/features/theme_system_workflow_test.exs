@@ -1,6 +1,14 @@
 defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
-  use HydepwnsLiveviewWeb.WallabyCase, async: false
-  setup :set_mox_global
+  use HydepwnsLiveviewWeb.ConnCase, async: false
+  use HydepwnsLiveviewWeb.WallabyCase
+  @moduletag :liveview
+  import Phoenix.LiveViewTest
+  import HydepwnsLiveview.ThemeSystemFixtures
+  import HydepwnsLiveview.ThemeHelper
+  import Wallaby.Query
+  import Wallaby.Browser
+
+  alias HydepwnsLiveviewWeb.MockHelper
 
   @moduledoc """
   End-to-end tests for the Theme System workflow.
@@ -15,7 +23,6 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
   """
 
   alias HydepwnsLiveview.TestSupport.ThemeFixtures
-  import ThemeHelper
   alias HydepwnsLiveviewWeb.MockHelper
 
   setup %{session: session} = context do
@@ -136,7 +143,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       end
 
       session
-      |> click(link("Edit"))
+      |> click(Wallaby.Query.link("Edit"))
 
       # Update theme
       session
@@ -306,7 +313,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
 
       for component <- components do
         session
-        |> click(link(component))
+        |> click(Wallaby.Query.link(component))
         |> Wallaby.Browser.assert_has(css(".theme-applied", text: theme.name))
       end
     end
@@ -393,7 +400,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
 
         session
         |> click(button("Apply Theme"))
-        |> click(link("Second Theme"))
+        |> click(Wallaby.Query.link("Second Theme"))
         |> click(button("Apply Theme"))
       end
 

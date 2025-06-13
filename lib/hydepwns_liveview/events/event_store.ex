@@ -60,4 +60,25 @@ defmodule HydepwnsLiveview.Events.EventStore do
     })
     |> Repo.insert()
   end
+
+  @doc """
+  Gets events for a resource at a specific point in time.
+  """
+  def get_events_for_resource_at(resource_type, resource_id, timestamp) do
+    CoreEventStore.get_events_for_resource_at(resource_type, resource_id, timestamp)
+  end
+
+  @doc """
+  Updates a replay session status.
+  """
+  def update_replay_session_status(session_id, status) do
+    CoreEventStore.update_replay_session_status(session_id, status)
+  end
+
+  @doc """
+  Updates a replay session status with metadata.
+  """
+  def update_replay_session_status(session_id, status, metadata) do
+    CoreEventStore.update_replay_session_status(session_id, status, metadata)
+  end
 end

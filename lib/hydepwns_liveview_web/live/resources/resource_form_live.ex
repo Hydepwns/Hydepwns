@@ -6,9 +6,11 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
   use HydepwnsLiveviewWeb, :live_view
 
   alias HydepwnsLiveview.Resources
-  alias HydepwnsLiveview.Resources.Resource
+  alias HydepwnsLiveview.ResourceSystem.Models.Resource
+  import Phoenix.HTML.Form
 
-  @behaviour Phoenix.LiveView
+  import HydepwnsLiveviewWeb.Components.Common.CoreComponents
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
@@ -57,7 +59,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
         {:noreply,
          socket
          |> put_flash(:info, "Resource updated successfully")
-         |> push_redirect(to: ~p"/resources")}
+         |> push_navigate(to: ~p"/resources")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :changeset, changeset)}
@@ -70,7 +72,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
         {:noreply,
          socket
          |> put_flash(:info, "Resource created successfully")
-         |> push_redirect(to: ~p"/resources")}
+         |> push_navigate(to: ~p"/resources")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, changeset: changeset)}
@@ -89,48 +91,96 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
         id="resource-form"
         phx-change="validate"
         phx-submit="save"
+        data-test-id="resource-form"
       >
         <div class="bg-white shadow rounded-lg p-6">
           <div class="space-y-6">
             <div>
-              <.label for={f[:title].id}>Title</.label>
-              <.input field={f[:title]} type="text" />
-              <.error :for={msg <- Keyword.get_values(f[:title].errors, :title)}>
+              <HydepwnsLiveviewWeb.Components.UI.FormComponents.label for={f[:name].id}>Name</HydepwnsLiveviewWeb.Components.UI.FormComponents.label>
+              <.input
+                field={f[:name]}
+                type="text"
+                id="name"
+                data-test-id="name-input"
+                required
+              />
+              <.error :for={msg <- Keyword.get_values(f[:name].errors, :name)} data-test-id="error-message">
                 <%= msg %>
               </.error>
             </div>
 
             <div>
-              <.label for={f[:type].id}>Type</.label>
-              <.input field={f[:type]} type="select" options={[Article: "article", Video: "video", Document: "document"]} />
-              <.error :for={msg <- Keyword.get_values(f[:type].errors, :type)}>
+              <HydepwnsLiveviewWeb.Components.UI.FormComponents.label for={f[:type].id}>Type</HydepwnsLiveviewWeb.Components.UI.FormComponents.label>
+              <.input
+                field={f[:type]}
+                type="select"
+                id="type"
+                data-test-id="type-input"
+                options={[Folder: "folder", Document: "document"]}
+                required
+              />
+              <.error :for={msg <- Keyword.get_values(f[:type].errors, :type)} data-test-id="error-message">
                 <%= msg %>
               </.error>
             </div>
 
             <div>
-              <.label for={f[:description].id}>Description</.label>
-              <.input field={f[:description]} type="textarea" />
-              <.error :for={msg <- Keyword.get_values(f[:description].errors, :description)}>
+              <HydepwnsLiveviewWeb.Components.UI.FormComponents.label for={f[:parent_id].id}>Parent Resource</HydepwnsLiveviewWeb.Components.UI.FormComponents.label>
+              <.input
+                field={f[:parent_id]}
+                type="select"
+                id="parent_id"
+                data-test-id="parent-id-select"
+                options={Resources.list_resources() |> Enum.map(&{&1.name, &1.id})}
+              />
+              <.error :for={msg <- Keyword.get_values(f[:parent_id].errors, :parent_id)} data-test-id="error-message">
                 <%= msg %>
               </.error>
             </div>
 
             <div>
-              <.label for={f[:status].id}>Status</.label>
-              <.input field={f[:status]} type="select" options={[Draft: "draft", Published: "published", Archived: "archived"]} />
-              <.error :for={msg <- Keyword.get_values(f[:status].errors, :status)}>
+              <HydepwnsLiveviewWeb.Components.UI.FormComponents.label for={f[:description].id}>Description</HydepwnsLiveviewWeb.Components.UI.FormComponents.label>
+              <.input
+                field={f[:description]}
+                type="textarea"
+                id="description"
+                data-test-id="description-input"
+              />
+              <.error :for={msg <- Keyword.get_values(f[:description].errors, :description)} data-test-id="error-message">
                 <%= msg %>
               </.error>
             </div>
 
-            <div class="flex justify-end">
-              <.link navigate={~p"/resources"} class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded mr-2">
+            <div>
+              <HydepwnsLiveviewWeb.Components.UI.FormComponents.label for={f[:status].id}>Status</HydepwnsLiveviewWeb.Components.UI.FormComponents.label>
+              <.input
+                field={f[:status]}
+                type="select"
+                id="status"
+                data-test-id="status-input"
+                options={[Active: "active", Inactive: "inactive"]}
+                required
+              />
+              <.error :for={msg <- Keyword.get_values(f[:status].errors, :status)} data-test-id="error-message">
+                <%= msg %>
+              </.error>
+            </div>
+
+            <div class="flex justify-end space-x-4">
+              <.link
+                navigate={~p"/resources"}
+                class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+                data-test-id="cancel-resource-button"
+              >
                 Cancel
               </.link>
-              <.button type="submit" phx-disable-with="Saving...">
+              <HydepwnsLiveviewWeb.Components.UI.FormComponents.button
+                type="submit"
+                phx-disable-with="Saving..."
+                data-test-id="save-resource"
+              >
                 Save Resource
-              </.button>
+              </HydepwnsLiveviewWeb.Components.UI.FormComponents.button>
             </div>
           </div>
         </div>

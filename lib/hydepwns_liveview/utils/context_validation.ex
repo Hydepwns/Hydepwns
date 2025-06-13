@@ -492,7 +492,8 @@ defmodule HydepwnsLiveview.Utils.ContextValidation do
   # Helper to validate that the rule can handle the given context
   defp validate_rule_context(rule_fn, context) when is_function(rule_fn, 2) do
     try do
-      case rule_fn.(context, context) do
+      # Test the rule with a dummy value and the context
+      case rule_fn.(%{}, context) do
         :ok -> :ok
         {:error, reason} -> {:error, reason}
         _ -> {:error, "Invalid rule return value"}

@@ -240,19 +240,19 @@ defmodule HydepwnsLiveview.Transformations.TransformationRegistry do
     end)
   end
 
-  # Check if a transformation's resource type matches the target resource type
-  defp matches_resource_type?(:any, _), do: true
+  # Match exact types first, then :any, then fallback
   defp matches_resource_type?(type, type), do: true
+  defp matches_resource_type?(:any, _), do: true
   defp matches_resource_type?(_type, _target), do: false
 
-  # Check if a transformation's operation matches the target operation
-  defp matches_operation?(:any, _), do: true
+  # Match exact operations first, then :any, then fallback
   defp matches_operation?(op, op), do: true
+  defp matches_operation?(:any, _), do: true
   defp matches_operation?(_op, _target), do: false
 
-  # Check if a transformation's phase matches the target phase
-  defp matches_phase?(:any, _), do: true
+  # Match exact phases first, then :any, then fallback
   defp matches_phase?(phase, phase), do: true
+  defp matches_phase?(:any, _), do: true
   defp matches_phase?(_phase, _target), do: false
 
   # Build a dependency graph for topological sorting

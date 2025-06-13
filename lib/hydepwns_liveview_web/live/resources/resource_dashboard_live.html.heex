@@ -1,0 +1,91 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="flex justify-between items-center mb-8">
+    <h1 class="text-3xl font-bold">Resource Dashboard</h1>
+    <div class="space-x-4">
+      <a href="/events" class="text-blue-600 hover:text-blue-800" data-test-id="events-link">Events</a>
+      <a href="/account" class="text-blue-600 hover:text-blue-800" data-test-id="account-link">Account</a>
+    </div>
+  </div>
+
+  <!-- Debug output -->
+  <div class="bg-gray-100 p-4 mb-4 rounded">
+    <p class="text-sm text-gray-600">Debug Info:</p>
+    <p class="text-sm text-gray-600">Number of resources: <%= length(@resources) %></p>
+    <p class="text-sm text-gray-600">Resource IDs: <%= Enum.map_join(@resources, ", ", & &1.id) %></p>
+    <p class="text-sm text-gray-600">Full Resources: <%= inspect(@resources, pretty: true) %></p>
+    <p class="text-sm text-gray-600">Full Relationships: <%= inspect(@relationships, pretty: true) %></p>
+  </div>
+
+  <div class="mb-8">
+    <div class="flex justify-between items-center mb-4">
+      <div class="flex space-x-4">
+        <select phx-change="filter" class="form-select" data-test-id="resource-type-select">
+          <option value="">All Types</option>
+          <option value="article">Articles</option>
+          <option value="video">Videos</option>
+          <option value="document">Documents</option>
+        </select>
+      </div>
+      <a href="/resources/new" class="btn btn-primary" data-test-id="create-resource-link">Create New Resource</a>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 gap-6">
+    <div class="bg-white shadow rounded-lg p-6">
+      <h2 class="text-xl font-semibold mb-4">Resources</h2>
+      <div class="overflow-x-auto">
+        <table class="min-w-full">
+          <thead>
+            <tr class="bg-gray-50">
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <%= for resource <- @resources do %>
+              <tr class="resource-row" data-test-id={"resource-row-#{resource.id}"}>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <a href={"/resources/#{resource.id}"} class="text-blue-600 hover:text-blue-800" data-test-id={"resource-link-#{resource.id}"}>
+                    <%= resource.name %>
+                  </a>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap"><%= resource.type %></td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class={"px-2 inline-flex text-xs leading-5 font-semibold rounded-full #{resource_status_class(resource.status)}"}>
+                    <%= resource.status %>
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap"><%= Calendar.strftime(resource.inserted_at, "%Y-%m-%d") %></td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <a href={"/resources/#{resource.id}/edit"} class="text-indigo-600 hover:text-indigo-900">Edit</a>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="bg-white shadow rounded-lg p-6">
+      <h2 class="text-xl font-semibold mb-4">Resource Relationships</h2>
+      <div class="space-y-4">
+        <%= for {parent, child} <- @relationships do %>
+          <div class="flex items-center space-x-4 relationship-row" data-test-id={"relationship-row-#{parent.id}-#{child.id}"}>
+            <div class="flex-1">
+              <div class="text-sm font-medium text-gray-900"><%= parent.name %></div>
+              <div class="text-sm text-gray-500">Parent</div>
+            </div>
+            <div class="text-gray-400">→</div>
+            <div class="flex-1">
+              <div class="text-sm font-medium text-gray-900"><%= child.name %></div>
+              <div class="text-sm text-gray-500">Child</div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div> 

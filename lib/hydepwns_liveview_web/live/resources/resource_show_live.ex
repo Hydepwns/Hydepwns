@@ -1,177 +1,114 @@
 defmodule HydepwnsLiveviewWeb.ResourceShowLive do
-  use HydepwnsLiveviewWeb, :verified_routes
-  use HydepwnsLiveviewWeb.BaseLive,
-    layout: {HydepwnsLiveviewWeb.Layouts, :app}
-  import Phoenix.LiveView
-  import Phoenix.Component
+  use HydepwnsLiveviewWeb, :live_view
 
   alias HydepwnsLiveview.Resources
+  alias HydepwnsLiveview.Resources.Resource
 
-  @behaviour Phoenix.LiveView
-
-  @impl Phoenix.LiveView
-  def mount(params, session, socket) do
-    do_mount(params, session, socket)
-  end
-
-  @impl Phoenix.LiveView
-  def do_mount(%{"id" => id}, _session, socket) do
-    case Resources.get_resource(id) do
-      {:ok, resource} ->
-        parent_resource = if resource.parent_id, do: Resources.get_resource!(resource.parent_id), else: nil
-        child_resources = Resources.list_child_resources(id)
-
-        socket
-        |> assign(
-          page_title: resource.name,
-          resource: resource,
-          parent_resource: parent_resource,
-          child_resources: child_resources,
-          error: nil
-        )
-
-      {:error, _reason} ->
-        socket
-        |> assign(
-          page_title: "Resource Not Found",
-          resource: nil,
-          parent_resource: nil,
-          child_resources: [],
-          error: "Unable to load resource"
-        )
+  @impl true
+  def mount(%{"id" => id}, _session, socket) do
+    if connected?(socket) do
+      resource = Resources.get_resource!(id)
+      {:ok, assign(socket, resource: resource)}
+    else
+      {:ok, assign(socket, resource: nil)}
     end
   end
 
-  @impl Phoenix.LiveView
-  def handle_event("delete", _params, socket) do
-    case Resources.delete_resource(socket.assigns.resource.id) do
-      :ok ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "Resource deleted successfully")
-         |> push_navigate(to: path(socket, ~p"/resources"))}
-
-      {:error, _} ->
-        {:noreply,
-         socket
-         |> put_flash(:error, "Failed to delete resource")
-         |> push_navigate(to: path(socket, ~p"/resources"))}
-    end
-  end
-
-  @impl Phoenix.LiveView
+  @impl true
   def render(assigns) do
     ~H"""
     <div class="container mx-auto px-4 py-8">
-      <%= if @error do %>
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert" data-test-id="error-message">
-          <span class="block sm:inline"><%= @error %></span>
-        </div>
-      <% else %>
-        <div class="flex justify-between items-center mb-6">
-          <h1 class="text-2xl font-bold" data-test-id="resource-name"><%= @resource.name %></h1>
-          <div class="flex gap-4">
-            <.link
-              navigate={path(@socket, ~p"/resources/#{@resource.id}/edit")}
-              class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-              data-test-id="edit-resource-link"
-            >
-              Edit
-            </.link>
-            <button
-              phx-click="delete"
-              class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
-              data-confirm="Are you sure you want to delete this resource?"
-              data-test-id="delete-resource-button"
-            >
-              Delete
-            </button>
-            <.link
-              navigate={path(@socket, ~p"/resources/#{@resource.id}/events")}
-              class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
-              data-test-id="events-link"
-            >
-              Events
-            </.link>
-            <.link
-              navigate={path(@socket, ~p"/resources/#{@resource.id}/subscriptions")}
-              class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
-              data-test-id="subscriptions-link"
-            >
-              Subscriptions
-            </.link>
-            <.link
-              navigate={path(@socket, ~p"/account")}
-              class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
-              data-test-id="account-link"
-            >
-              Account
-            </.link>
-          </div>
+      <div class="max-w-4xl mx-auto">
+        <div class="mb-6">
+          <.link navigate={~p"/resources"} class="text-blue-600 hover:text-blue-800" data-test-id="back-to-resources">
+            ← Back to Resources
+          </.link>
         </div>
 
-        <div class="bg-white rounded-lg shadow p-6">
-          <div class="mb-6">
-            <h2 class="text-xl font-semibold mb-2">Details</h2>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <p class="text-gray-600">Type</p>
-                <p class="font-medium"><%= @resource.type %></p>
-              </div>
-              <div>
-                <p class="text-gray-600">Status</p>
-                <p class="font-medium" data-test-id="resource-status"><%= @resource.status %></p>
-              </div>
+        <div class="bg-white shadow rounded-lg p-6">
+          <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold" data-test-id="resource-name"><%= @resource.name %></h1>
+            <div class="space-x-4">
+              <.link navigate={~p"/resources/#{@resource}/edit"} class="text-blue-600 hover:text-blue-800" data-test-id="edit-resource-link">
+                Edit
+              </.link>
+              <.link phx-click="delete" phx-value-id={@resource.id} data-confirm="Are you sure?" class="text-red-600 hover:text-red-800" data-test-id="delete-resource-button">
+                Delete
+              </.link>
             </div>
           </div>
 
-          <div class="mb-6">
-            <h2 class="text-xl font-semibold mb-4">Content</h2>
-            <div class="bg-gray-50 p-4 rounded">
-              <p>
-                <%= if @resource.content && @resource.content.text do %>
-                  <%= @resource.content.text %>
-                <% end %>
-              </p>
+          <div class="space-y-6">
+            <div>
+              <h3 class="text-lg font-medium mb-2">Details</h3>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <p class="text-gray-600" data-test-id="resource-description"><%= @resource.description %></p>
+                </div>
+                <div>
+                  <p class="text-gray-600" data-test-id="resource-type">Type: <%= @resource.type %></p>
+                  <p class="text-gray-600" data-test-id="resource-status">Status: <%= @resource.status %></p>
+                </div>
+              </div>
             </div>
-          </div>
 
-          <%= if @parent_resource do %>
-            <div class="mb-6">
-              <h2 class="text-xl font-semibold mb-4">Parent Resource</h2>
-              <div class="relationship-row">
-                <.link
-                  navigate={path(@socket, ~p"/resources/#{@parent_resource.id}")}
-                  class="text-blue-600 hover:text-blue-800"
-                  data-test-id={"parent-resource-link-#{@parent_resource.id}"}
-                >
-                  <%= @parent_resource.name %>
+            <div>
+              <h3 class="text-lg font-medium mb-2">Relationships</h3>
+              <div class="space-y-4">
+                <div class="relationship-row" data-test-id="parent-relationship-row">
+                  <h4 class="font-medium">Parent Resource</h4>
+                  <%= if @resource.parent do %>
+                    <.link navigate={~p"/resources/#{@resource.parent}"} class="text-blue-600 hover:text-blue-800" data-test-id="parent-resource-link">
+                      <%= @resource.parent.name %>
+                    </.link>
+                  <% else %>
+                    <p class="text-gray-500">No parent resource</p>
+                  <% end %>
+                </div>
+
+                <div class="relationship-row" data-test-id="children-relationship-row">
+                  <h4 class="font-medium">Child Resources</h4>
+                  <%= if Enum.any?(@resource.children) do %>
+                    <div class="space-y-2">
+                      <%= for child <- @resource.children do %>
+                        <.link navigate={~p"/resources/#{child}"} class="text-blue-600 hover:text-blue-800 block" data-test-id="child-resource-link">
+                          <%= child.name %>
+                        </.link>
+                      <% end %>
+                    </div>
+                  <% else %>
+                    <p class="text-gray-500">No child resources</p>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-lg font-medium mb-2">Actions</h3>
+              <div class="space-x-4">
+                <.link navigate={~p"/resources/#{@resource}/events"} class="text-blue-600 hover:text-blue-800" data-test-id="events-link">
+                  View Events
+                </.link>
+                <.link navigate={~p"/resources/#{@resource}/subscriptions"} class="text-blue-600 hover:text-blue-800" data-test-id="subscriptions-link">
+                  View Subscriptions
                 </.link>
               </div>
             </div>
-          <% end %>
-
-          <%= if @child_resources != [] do %>
-            <div class="mb-6">
-              <h2 class="text-xl font-semibold mb-4">Child Resources</h2>
-              <div class="space-y-2">
-                <%= for child <- @child_resources do %>
-                  <div class="relationship-row">
-                    <.link
-                      navigate={path(@socket, ~p"/resources/#{child.id}")}
-                      class="block text-blue-600 hover:text-blue-800"
-                      data-test-id={"child-resource-link-#{child.id}"}
-                    >
-                      <%= child.name %>
-                    </.link>
-                  </div>
-                <% end %>
-              </div>
-            </div>
-          <% end %>
+          </div>
         </div>
-      <% end %>
+      </div>
     </div>
     """
+  end
+
+  @impl true
+  def handle_event("delete", %{"id" => id}, socket) do
+    resource = Resources.get_resource!(id)
+    {:ok, _} = Resources.delete_resource(resource)
+
+    {:noreply,
+     socket
+     |> put_flash(:info, "Resource deleted successfully")
+     |> push_navigate(to: ~p"/resources")}
   end
 end

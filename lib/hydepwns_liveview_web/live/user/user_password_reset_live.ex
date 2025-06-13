@@ -3,8 +3,10 @@ defmodule HydepwnsLiveviewWeb.UserPasswordResetLive do
 
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveview.Accounts.User
+  alias HydepwnsLiveviewWeb.UserAuth
 
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [simple_form: 1, input: 1, button: 1, error: 1]
+  import HydepwnsLiveviewWeb.Components.UI.LayoutComponents, only: [header: 1]
+  import HydepwnsLiveviewWeb.Components.Common.CoreComponents, only: [button: 1]
 
   @impl true
   def mount(_params, _session, socket) do
@@ -39,21 +41,28 @@ defmodule HydepwnsLiveviewWeb.UserPasswordResetLive do
   def render(assigns) do
     ~H"""
     <div>
-      <.header>
-        Reset Password
-        <:subtitle>Enter your new password.</:subtitle>
+      <.header title="Reset password">
+        <:subtitle>We'll send a password reset link to your inbox</:subtitle>
+        <:actions_header>
+          <.link navigate={~p"/users/register"} class="button button-secondary">
+            Register
+          </.link>
+          <.link navigate={~p"/users/log_in"} class="button button-secondary">
+            Log in
+          </.link>
+        </:actions_header>
       </.header>
 
       <.simple_form for={@changeset} id="password-reset-form" phx-change="validate" phx-submit="save">
-        <.error :if={@changeset.action}>
+        <HydepwnsLiveviewWeb.Components.UI.FormComponents.error :if={@changeset.action}>
           Oops, something went wrong! Please check the errors below.
-        </.error>
+        </HydepwnsLiveviewWeb.Components.UI.FormComponents.error>
 
         <.input field={@changeset[:password]} type="password" label="New Password" required />
         <.input field={@changeset[:password_confirmation]} type="password" label="Confirm New Password" required />
 
         <:actions>
-          <.button phx-disable-with="Resetting password...">Reset Password</.button>
+          <HydepwnsLiveviewWeb.Components.UI.FormComponents.button phx-disable-with="Resetting password...">Reset Password</HydepwnsLiveviewWeb.Components.UI.FormComponents.button>
         </:actions>
       </.simple_form>
     </div>

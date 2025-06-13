@@ -27,8 +27,13 @@ defmodule HydepwnsLiveview.DataCase do
     end
   end
 
-  setup tags do
-    HydepwnsLiveview.DataCase.setup_sandbox(tags)
+  setup(_tags) do
+    # Start a sandboxed connection
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(HydepwnsLiveview.Repo)
+
+    # Set the mode to manual for explicit control
+    Ecto.Adapters.SQL.Sandbox.mode(HydepwnsLiveview.Repo, {:shared, self()})
+
     :ok
   end
 

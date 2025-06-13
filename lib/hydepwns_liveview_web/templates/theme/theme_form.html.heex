@@ -4,51 +4,26 @@
   </.error>
   <:inner_block_simple_form>
     <.input field={@changeset[:name]} type="text" label="Name" required data-test-id="theme-name-input" />
-    <.input field={@changeset[:mode]} type="select" label="Mode" options={[{"Light", "light"}, {"Dark", "dark"}, {"Dim", "dim"}, {"System", "system"}]} required data-test-id="theme-mode-select" />
+    <.input field={@changeset[:mode]} type="select" label="Mode" options={[{"Light", "light"}, {"Dark", "dark"}]} required data-test-id="theme-mode-select" />
     
     <div class="space-y-4">
       <h3 class="text-lg font-medium">Colors</h3>
-      <.input field={@changeset[:primary_color]} type="text" label="Primary Color" data-test-id="theme-primary-color" />
-      <.input field={@changeset[:secondary_color]} type="text" label="Secondary Color" data-test-id="theme-secondary-color" />
-      <.input field={@changeset[:accent_color]} type="text" label="Accent Color" data-test-id="theme-accent-color" />
-      <.input field={@changeset[:background_color]} type="text" label="Background Color" data-test-id="theme-background-color" />
-      <.input field={@changeset[:text_color]} type="text" label="Text Color" data-test-id="theme-text-color" />
-      <.input field={@changeset[:border_color]} type="text" label="Border Color" data-test-id="theme-border-color" />
-      <.input field={@changeset[:error_color]} type="text" label="Error Color" data-test-id="theme-error-color" />
-      <.input field={@changeset[:success_color]} type="text" label="Success Color" data-test-id="theme-success-color" />
-      <.input field={@changeset[:warning_color]} type="text" label="Warning Color" data-test-id="theme-warning-color" />
-      <.input field={@changeset[:info_color]} type="text" label="Info Color" data-test-id="theme-info-color" />
+      <.input field={@changeset[:primary_color]} type="text" label="Primary Color" value={get_in(@changeset.data, [:primary_color]) || "#3B82F6"} required data-test-id="theme-primary-color" />
+      <.input field={@changeset[:secondary_color]} type="text" label="Secondary Color" value={get_in(@changeset.data, [:secondary_color]) || "#10B981"} required data-test-id="theme-secondary-color" />
+      <.input field={@changeset[:background_color]} type="text" label="Background Color" value={get_in(@changeset.data, [:background_color]) || "#1F2937"} required data-test-id="theme-background-color" />
+      <.input field={@changeset[:text_color]} type="text" label="Text Color" value={get_in(@changeset.data, [:text_color]) || "#F9FAFB"} required data-test-id="theme-text-color" />
     </div>
 
-    <div class="space-y-4 mt-6">
-      <h3 class="text-lg font-medium">Typography</h3>
-      <.input field={@changeset[:font_family]} type="text" label="Font Family" data-test-id="theme-font-family" />
-      <.input field={@changeset[:font_size]} type="select" label="Font Size" options={[{"Small", "small"}, {"Medium", "medium"}, {"Large", "large"}]} data-test-id="theme-font-size" />
-      <.input field={@changeset[:line_height]} type="select" label="Line Height" options={[{"Normal", "normal"}, {"Wide", "wide"}]} data-test-id="theme-line-height" />
+    <div class="space-y-4">
+      <h3 class="text-lg font-medium">Settings</h3>
+      <.input field={@changeset[:settings][:font_size]} type="select" label="Font Size" options={[{"Small", "small"}, {"Medium", "medium"}, {"Large", "large"}]} value={get_in(@changeset.data, [:settings, :font_size]) || "medium"} data-test-id="theme-font-size" />
+      <.input field={@changeset[:settings][:line_height]} type="select" label="Line Height" options={[{"Narrow", "narrow"}, {"Normal", "normal"}, {"Wide", "wide"}]} value={get_in(@changeset.data, [:settings, :line_height]) || "normal"} data-test-id="theme-line-height" />
+      <.input field={@changeset[:settings][:contrast]} type="select" label="Contrast" options={[{"Low", "low"}, {"Normal", "normal"}, {"High", "high"}]} value={get_in(@changeset.data, [:settings, :contrast]) || "normal"} data-test-id="theme-contrast" />
+      <.input field={@changeset[:settings][:animations]} type="checkbox" label="Enable Animations" value={get_in(@changeset.data, [:settings, :animations]) || true} data-test-id="theme-animations" />
     </div>
 
-    <div class="space-y-4 mt-6">
-      <h3 class="text-lg font-medium">Spacing</h3>
-      <.input field={@changeset[:spacing_unit]} type="text" label="Spacing Unit" data-test-id="theme-spacing-unit" />
-    </div>
-
-    <div class="space-y-4 mt-6">
-      <h3 class="text-lg font-medium">Accessibility</h3>
-      <.input field={@changeset[:contrast]} type="select" label="Contrast" options={[{"Normal", "normal"}, {"Medium", "medium"}, {"High", "high"}]} data-test-id="theme-contrast" />
-      <.input field={@changeset[:animations]} type="checkbox" label="Enable Animations" data-test-id="theme-animations" />
-      <.input field={@changeset[:reduced_motion]} type="checkbox" label="Reduced Motion" data-test-id="theme-reduced-motion" />
-    </div>
-
-    <.input field={@changeset[:is_default]} type="checkbox" label="Set as Default Theme" data-test-id="theme-is-default" />
+    <:actions>
+      <.button type="submit" data-test-id="save-theme">Save Theme</.button>
+    </:actions>
   </:inner_block_simple_form>
-  <:actions>
-    <div class="flex justify-between">
-      <.button type="submit" data-test-id="save-theme-button">Save Theme</.button>
-      <.button phx-click="apply" data-test-id="apply-theme-button">Apply Theme</.button>
-    <.button phx-click="apply" data-test-id="apply-theme-button">Apply Theme</.button>
-    <.button type="submit" data-test-id="save-theme-button">Save Theme</.button>
-    <.link navigate={~p"/themes"} class="button" data-test-id="cancel-theme-button">Cancel</.link>
-    <.button phx-click="delete" class="button button--danger" data-test-id="delete-theme-button">Delete Theme</.button>
-    <.button phx-click="accessibility_settings" class="button" data-test-id="accessibility-settings-button">Accessibility Settings</.button>
-  </:actions>
 </.simple_form>

@@ -9,8 +9,8 @@ defmodule HydepwnsLiveview.ResourceSystemFixtures do
   Creates a test resource with the given attributes.
   """
   def resource_fixture(attrs \\ %{}) do
-    {:ok, resource} = ResourceSystem.create_resource(attrs)
-    resource
+    attrs = Map.put_new(attrs, :content, %{text: "Test content"})
+    ResourceSystem.create_resource(attrs)
   end
 end
 
@@ -30,15 +30,17 @@ defmodule HydepwnsLiveview.TestSupport.ResourceFixtures do
     attrs =
       Map.merge(
         %{
+          id: unique_suffix,
           name: "Test Resource #{unique_suffix}",
           type: "document",
-          content: %{text: "Test content"}
+          content: %{text: "Test content"},
+          status: "active",
+          description: ""
         },
         attrs
       )
 
-    resource = ResourceSystemFixtures.resource_fixture(attrs)
-    {:ok, resource}
+    ResourceSystemFixtures.resource_fixture(attrs)
   end
 
   @doc """

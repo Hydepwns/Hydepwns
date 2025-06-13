@@ -3,22 +3,32 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
 
   alias HydepwnsLiveview.ThemeSystem
   alias HydepwnsLiveview.ThemeSystem.Models.Theme
+  alias HydepwnsLiveviewWeb.Helpers.PathHelper
+  import HydepwnsLiveviewWeb.Components.Common.ThemeToggle, only: [theme_toggle: 1]
+  import HydepwnsLiveviewWeb.Components.Common.HeaderComponent, only: [header: 1]
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [simple_form: 1]
 
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [button: 1]
-
-  @impl true
+  @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, :themes, ThemeSystem.list_themes())}
+    default_theme = ThemeSystem.ensure_default_theme()
+    theme_class = "#{default_theme.mode}-theme"
+    {:ok, assign(socket, 
+      themes: ThemeSystem.list_themes(), 
+      theme_class: theme_class, 
+      default_theme: default_theme.mode,
+      page_title: "Theme Manager"
+    )}
   end
 
-  @impl true
+  @impl Phoenix.LiveView
   def handle_params(params, _url, socket) do
-    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+    themes = ThemeSystem.list_themes()
+    {:noreply, assign(socket, :themes, themes)}
   end
 
   defp apply_action(socket, :index, _params) do
     socket
-    |> assign(:page_title, "Themes")
+    |> assign(:page_title, "Theme Manager")
     |> assign(:theme, nil)
   end
 
@@ -56,37 +66,65 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
   end
 
   @impl true
+  def handle_event("change_theme", %{"theme" => theme}, socket) do
+    theme_class = "#{theme}-theme"
+    {:noreply, assign(socket, :theme_class, theme_class)}
+  end
+
+  @impl true
+  def handle_event("save", %{"theme" => theme_params}, socket) do
+    case socket.assigns.theme do
+      nil ->
+        {:ok, _theme} = ThemeSystem.create_theme(theme_params)
+        {:noreply, assign(socket, :themes, ThemeSystem.list_themes())}
+      theme ->
+        {:ok, _theme} = ThemeSystem.update_theme(theme, theme_params)
+        {:noreply, assign(socket, :themes, ThemeSystem.list_themes())}
+    end
+  end
+
+  @impl true
   def handle_info({:theme_updated, _theme}, socket) do
     {:noreply, assign(socket, :themes, ThemeSystem.list_themes())}
   end
 
-  @impl true
+  @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
-    <div>
-      <.header>
-        Themes
-        <:actions>
-          <.link patch={~p"/themes/new"}>
-            <.button>New Theme</.button>
-          </.link>
-        </:actions>
-      </.header>
+    <div class="container mx-auto px-4 py-8" data-mode={@theme_class}>
+      <%= HydepwnsLiveviewWeb.Components.Common.HeaderComponent.header(assigns) %>
 
-      <.table id="themes" rows={@themes}>
-        <:col :let={theme} label="Name"><%= theme.name %></:col>
-        <:col :let={theme} label="Description"><%= theme.description %></:col>
-        <:action :let={theme}>
-          <div class="flex gap-2">
-            <.link patch={~p"/themes/#{theme}/edit"}>
-              <.button>Edit</.button>
-            </.link>
-            <.button phx-click="apply" phx-value-id={theme.id}>Apply</.button>
-            <.button phx-click="customize" phx-value-id={theme.id}>Customize</.button>
-            <.button phx-click="delete" phx-value-id={theme.id} data-confirm="Are you sure?">Delete</.button>
-          </div>
-        </:action>
-      </.table>
+      <div class="mt-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <%= for theme <- @themes do %>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6" data-test-id={"theme-card-#{theme.id}"}>
+              <div class="flex justify-between items-start mb-4">
+                <h3 class="text-lg font-medium" data-test-id={"theme-name-#{theme.id}"}><%= theme.name %></h3>
+                <div class="flex space-x-2">
+                  <.link navigate={~p"/themes/#{theme}/edit"} data-test-id={"edit-theme-#{theme.id}"}>
+                    <.button>Edit</.button>
+                  </.link>
+                  <button phx-click="delete" phx-value-id={theme.id} data-test-id={"delete-theme-#{theme.id}"}>
+                    <.button>Delete</.button>
+                  </button>
+                </div>
+              </div>
+              <div class="space-y-2">
+                <div><strong>Mode:</strong> <%= theme.mode %></div>
+                <div><strong>Primary:</strong> <span style={"color: #{theme.primary_color}"}><%= theme.primary_color %></span></div>
+                <div><strong>Secondary:</strong> <span style={"color: #{theme.secondary_color}"}><%= theme.secondary_color %></span></div>
+                <div><strong>Background:</strong> <span style={"color: #{theme.background_color}"}><%= theme.background_color %></span></div>
+                <div><strong>Text:</strong> <span style={"color: #{theme.text_color}"}><%= theme.text_color %></span></div>
+              </div>
+              <div class="mt-4">
+                <button phx-click="apply" phx-value-id={theme.id} data-test-id={"apply-theme-#{theme.id}"}>
+                  <.button>Apply Theme</.button>
+                </button>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
     </div>
     """
   end

@@ -16,7 +16,7 @@ defmodule HydepwnsLiveview.Utils.ResourceAssigns do
 
   ```elixir
   defmodule MyAppWeb.UserLive do
-    use HydepwnsLiveviewWeb.ResourceLive
+    use HydepwnsLiveviewWeb.Resources.ResourceLive
     
     assigns_resource do
       attributes do
@@ -204,6 +204,15 @@ defmodule HydepwnsLiveview.Utils.ResourceAssigns do
       |> Enum.map(fn {name, _type, opts} -> {name, Keyword.get(opts, :default)} end)
       |> Enum.into(%{})
 
+    # Generate the __apply_resource_defaults__/1 function
+    apply_defaults_function =
+      quote do
+        def __apply_resource_defaults__(socket) do
+          defaults = unquote(Macro.escape(default_values))
+          Phoenix.Component.assign(socket, defaults)
+        end
+      end
+
     # Generate accessor functions for each attribute
     accessors =
       Enum.map(attributes, fn {name, _type, opts} ->
@@ -233,7 +242,7 @@ defmodule HydepwnsLiveview.Utils.ResourceAssigns do
 
     # Combine everything and generate the code
     quote do
-      use HydepwnsLiveviewWeb.BaseLive,
+      use HydepwnsLiveviewWeb.Resources.ResourceLive,
         required_assigns: unquote(required_assigns),
         type_specs: unquote(Macro.escape(type_specs))
 
@@ -242,6 +251,9 @@ defmodule HydepwnsLiveview.Utils.ResourceAssigns do
 
       # Generate initialization function
       unquote(init_function)
+
+      # Generate apply defaults function
+      unquote(apply_defaults_function)
 
       # Override do_mount to include default values
       def do_mount(params, session, socket) do

@@ -16,8 +16,6 @@ defmodule HydepwnsLiveviewWeb.Admin.EventDashboardLive do
   # 5 seconds
   @refresh_interval 5000
 
-  @behaviour Phoenix.LiveView
-
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
     default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()

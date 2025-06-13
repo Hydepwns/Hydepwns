@@ -20,8 +20,10 @@ defmodule HydepwnsLiveviewWeb.Router do
   scope "/", HydepwnsLiveviewWeb do
     pipe_through :browser
 
-    # get "/", PageController, :home
-    # get "/favicon.ico", PageController, :favicon
+    # Static assets
+    get "/favicon.ico", PageController, :favicon
+    get "/images/favicon-32x32.png", PageController, :favicon_32
+    get "/images/favicon-16x16.png", PageController, :favicon_16
 
     live "/", HomeLive, :index
     live "/about", AboutLive, :index
@@ -52,12 +54,11 @@ defmodule HydepwnsLiveviewWeb.Router do
     live "/resources/new", ResourceFormLive, :new
     live "/resources/:id", ResourceShowLive, :show
     # Reuse form for editing
-    live "/resources/:id/edit", ResourceFormLive, :load_for_editing
+    live "/resources/:id/edit", ResourceFormLive, :edit
     live "/resources/:id/manage-subscriptions", ResourceSubscriptionLive, :manage_subscriptions
     live "/resources/:id/events", ResourceEventSystemLive, :index
     live "/resources/:id/subscriptions", ResourceSubscriptionLive, :index
     live "/terminal", TerminalLive
-    live "/events", ResourceEventSystemLive, :index
 
     # Theme system routes
     resources "/themes", ThemeController
@@ -69,7 +70,7 @@ defmodule HydepwnsLiveviewWeb.Router do
 
     # Examples routes
     scope "/examples", Examples, as: :examples do
-#      live "/type-validation", TypeValidationExample, :index
+      live "/type-validation", TypeValidationExample, :index
       live "/resource-assigns", UserResourceLive, :index
       live "/user-resource", UserResourceExampleLive, :index
       live "/ecto-resource", EctoResourceExampleLive, :index
@@ -94,6 +95,10 @@ defmodule HydepwnsLiveviewWeb.Router do
     scope "/admin", Admin, as: :admin do
       live "/event-dashboard", EventDashboardLive, :index
       live "/resources", ResourceDashboardLive, :index
+      live "/events", EventLive, :index
+      live "/events/new", EventFormLive, :new
+      live "/events/:id", EventShowLive, :show
+      live "/events/:id/edit", EventFormLive, :edit
     end
 
     live "/account", AccountLive, :index
@@ -105,6 +110,15 @@ defmodule HydepwnsLiveviewWeb.Router do
         live "/test-types", TestTypeLive
       end
     end
+
+    # New event routes
+    live "/events", Event.EventIndexLive
+    live "/events/new", Event.EventFormLive, :new
+    live "/events/:id/edit", Event.EventFormLive, :edit
+    live "/events/:id/settings/new", Event.EventSettingsLive, :new
+    live "/events/:id/settings/:settings_id/edit", Event.EventSettingsLive, :edit
+    live "/events/:id/reminders/new", Event.EventReminderLive, :new
+    live "/events/:id/reminders/:reminder_id/edit", Event.EventReminderLive, :edit
   end
 
   # Development-only routes

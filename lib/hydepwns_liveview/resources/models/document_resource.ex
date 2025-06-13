@@ -11,7 +11,7 @@ defmodule HydepwnsLiveview.Resources.DocumentResource do
   schema "document_resources" do
     field :name, :string
     field :type, :string
-    field :content, :map
+    field :content, :map, default: %{text: ""}
     field :parent_id, :string
     field :description, :string
     field :status, :string
@@ -68,15 +68,19 @@ defmodule HydepwnsLiveview.Resources.DocumentResource do
     |> validate_inclusion(:type, ["document"])
     |> put_change(:status, Map.get(attrs, :status, "active"))
     |> put_change(:description, Map.get(attrs, :description, ""))
-    |> validate_content_type()
+    |> validate_content()
   end
 
-  defp validate_content_type(changeset) do
+  defp validate_content(changeset) do
     case get_change(changeset, :content) do
-      nil -> changeset
-      content when is_map(content) -> changeset
-      content when is_binary(content) -> put_change(changeset, :content, %{text: content})
-      _ -> add_error(changeset, :content, "must be a map or string")
+      nil -> 
+        put_change(changeset, :content, %{text: ""})
+      content when is_map(content) -> 
+        changeset
+      content when is_binary(content) -> 
+        put_change(changeset, :content, %{text: content})
+      _ -> 
+        add_error(changeset, :content, "must be a map or string")
     end
   end
 end

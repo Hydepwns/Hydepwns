@@ -37,59 +37,45 @@ defmodule HydepwnsLiveviewWeb.Components.Common.DebugHelpers do
   end
 
   # Helper to get type of a value (human readable)
-  def type_of_value(value) do
-    cond do
-      is_binary(value) -> "String"
-      is_integer(value) -> "Integer"
-      is_float(value) -> "Float"
-      is_boolean(value) -> "Boolean"
-      is_atom(value) -> "Atom"
-      is_map(value) -> "Map"
-      is_list(value) -> "List"
-      is_tuple(value) -> "Tuple"
-      is_function(value) -> "Function"
-      is_pid(value) -> "PID"
-      is_nil(value) -> "nil"
-      true -> "Unknown"
-    end
-  end
-
-  # Helper to get the type of a value as a string (for validation status)
   def get_type(nil), do: "nil"
   def get_type(value) when is_binary(value), do: "string"
   def get_type(value) when is_integer(value), do: "integer"
   def get_type(value) when is_float(value), do: "float"
   def get_type(value) when is_boolean(value), do: "boolean"
+  def get_type(value) when is_atom(value), do: "atom"
   def get_type(value) when is_map(value), do: "map"
   def get_type(value) when is_list(value), do: "list"
-  def get_type(value) when is_atom(value), do: "atom"
+  def get_type(value) when is_tuple(value), do: "tuple"
   def get_type(value) when is_function(value), do: "function"
+  def get_type(value) when is_pid(value), do: "pid"
   def get_type(_), do: "unknown"
 
   # Helper to create a preview of a value
   def truncate_preview(nil), do: "nil"
-
   def truncate_preview(value) when is_binary(value) do
-    if String.length(value) > 30 do
-      String.slice(value, 0, 27) <> "..."
-    else
+    if String.length(value) <= 50 do
       value
+    else
+      String.slice(value, 0, 47) <> "..."
     end
   end
-
-  def truncate_preview(value) when is_list(value) do
-    case length(value) do
-      0 -> "[]"
-      n -> "[...] (#{n} items)"
-    end
-  end
-
   def truncate_preview(value) when is_map(value) do
-    case map_size(value) do
-      0 -> "{}"
-      n -> "{...} (#{n} keys)"
-    end
+    "Map with #{map_size(value)} keys"
   end
-
-  def truncate_preview(value), do: inspect(value, limit: 10)
+  def truncate_preview(value) when is_list(value) do
+    "List with #{length(value)} items"
+  end
+  def truncate_preview(value) when is_tuple(value) do
+    "Tuple with #{tuple_size(value)} elements"
+  end
+  def truncate_preview(value) when is_function(value) do
+    "Function"
+  end
+  def truncate_preview(value) when is_pid(value) do
+    "PID"
+  end
+  def truncate_preview(value) do
+    inspect(value, pretty: true, width: 50)
+  end
 end
+

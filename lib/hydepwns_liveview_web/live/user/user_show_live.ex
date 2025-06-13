@@ -7,11 +7,10 @@ defmodule HydepwnsLiveviewWeb.UserShowLive do
 
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveview.Accounts.User
+  alias HydepwnsLiveviewWeb.UserAuth
 
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [simple_form: 1, input: 1]
-  import HydepwnsLiveviewWeb.CoreComponents
-
-  @behaviour Phoenix.LiveView
+  import HydepwnsLiveviewWeb.Components.Common.CoreComponents
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
@@ -33,13 +32,19 @@ defmodule HydepwnsLiveviewWeb.UserShowLive do
 
   @impl Phoenix.LiveView
   def handle_event("delete", %{"id" => id}, socket) do
-    user = Accounts.get_user!(id)
-    {:ok, _} = Accounts.delete_user(user)
+    case Accounts.delete_user(Accounts.get_user!(id)) do
+      {:ok, _user} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "User deleted successfully")
+         |> push_navigate(to: ~p"/users")}
 
-    {:noreply,
-     socket
-     |> put_flash(:info, "User deleted successfully")
-     |> push_redirect(to: ~p"/users")}
+      {:error, _changeset} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "User could not be deleted")
+         |> push_navigate(to: ~p"/users")}
+    end
   end
 
   @impl Phoenix.LiveView

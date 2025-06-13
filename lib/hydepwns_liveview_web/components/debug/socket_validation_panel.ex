@@ -736,7 +736,7 @@ defmodule HydepwnsLiveviewWeb.Components.Debug.SocketValidationPanel do
     # This is a placeholder - in a real implementation you would
     # check the view module's type_specs and validate the value
     type_html = Phoenix.HTML.html_escape(get_type(value))
-    required_html = Phoenix.HTML.html_escape(inspect(is_required_assign?(key, view_module)))
+    required_html = Phoenix.HTML.html_escape("unknown")
 
     Phoenix.HTML.raw("""
     <div class="validation-check">
@@ -746,12 +746,6 @@ defmodule HydepwnsLiveviewWeb.Components.Debug.SocketValidationPanel do
       </div>
     </div>
     """)
-  end
-
-  # Helper to check if an assign is required (placeholder implementation)
-  defp is_required_assign?(_key, _view_module) do
-    # In a real implementation, this would check the view's required_assigns
-    "unknown"
   end
 
   # Helper to get unique error types from errors
@@ -812,14 +806,22 @@ defmodule HydepwnsLiveviewWeb.Components.Debug.SocketValidationPanel do
     error.message && String.contains?(error.message, "```elixir")
   end
 
-  # Helper to extract the first code sample from an error message
-  defp extract_first_code_sample(nil), do: ""
-
-  defp extract_first_code_sample(message) do
-    case Regex.run(~r/```elixir\s*\n([\s\S]*?)\n\s*```/, message) do
-      [_, code] -> code
-      _ -> ""
+  # Helper function to truncate message to a reasonable length
+  defp truncate_message(message, length \\ 80) do
+    cond do
+      is_nil(message) -> ""
+      String.length(message) <= length -> message
+      true -> String.slice(message, 0, length) <> "..."
     end
+  end
+
+  # Helper to format timestamp to a readable format
+  defp format_time(nil), do: ""
+
+  defp format_time(timestamp) do
+    timestamp
+    |> DateTime.truncate(:second)
+    |> Calendar.strftime("%H:%M:%S")
   end
 
   # Helper to prioritize errors for quick fixes
@@ -838,14 +840,10 @@ defmodule HydepwnsLiveviewWeb.Components.Debug.SocketValidationPanel do
   # Helper to identify common error patterns
   defp identify_error_patterns(errors) do
     type_errors = Enum.filter(errors, &(&1.type == "type_error"))
-    missing_keys = Enum.filter(errors, &(&1.type == "missing_key"))
-    schema_errors = Enum.filter(errors, &(&1.type == "schema_error"))
 
     [
       identify_string_type_errors(type_errors),
-      identify_integer_type_errors(type_errors),
-      identify_common_missing_keys(missing_keys),
-      identify_schema_validation_pattern(schema_errors)
+      identify_integer_type_errors(type_errors)
     ]
     |> Enum.reject(&is_nil/1)
   end
@@ -878,43 +876,5 @@ defmodule HydepwnsLiveviewWeb.Components.Debug.SocketValidationPanel do
     else
       nil
     end
-  end
-
-  # Helper to identify common missing keys
-  defp identify_common_missing_keys(errors) do
-    if length(errors) >= 3 do
-      {"Missing Required Keys", length(errors),
-       "Add all required keys to your socket assigns in the mount function"}
-    else
-      nil
-    end
-  end
-
-  # Helper to identify schema validation patterns
-  defp identify_schema_validation_pattern(errors) do
-    if length(errors) >= 2 do
-      {"Schema Validation Errors", length(errors),
-       "Ensure maps match their expected schema structure"}
-    else
-      nil
-    end
-  end
-
-  # Helper function to truncate message to a reasonable length
-  defp truncate_message(message, length \\ 80) do
-    cond do
-      is_nil(message) -> ""
-      String.length(message) <= length -> message
-      true -> String.slice(message, 0, length) <> "..."
-    end
-  end
-
-  # Helper to format timestamp to a readable format
-  defp format_time(nil), do: ""
-
-  defp format_time(timestamp) do
-    timestamp
-    |> DateTime.truncate(:second)
-    |> Calendar.strftime("%H:%M:%S")
   end
 end

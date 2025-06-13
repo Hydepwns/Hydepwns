@@ -1,13 +1,12 @@
-defmodule HydepwnsLiveviewWeb.EventCalendarLive do
+defmodule HydepwnsLiveviewWeb.Admin.EventCalendarLive do
   @moduledoc """
-  LiveView for displaying events in a calendar view in the admin dashboard.
+  LiveView for displaying events in a calendar view.
   """
 
   use HydepwnsLiveviewWeb, :live_view
 
   alias HydepwnsLiveview.Events
-
-  @behaviour Phoenix.LiveView
+  alias HydepwnsLiveview.Events.Event
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do

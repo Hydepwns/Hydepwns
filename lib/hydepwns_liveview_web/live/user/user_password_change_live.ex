@@ -3,8 +3,7 @@ defmodule HydepwnsLiveviewWeb.UserPasswordChangeLive do
 
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveview.Accounts.User
-
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [simple_form: 1, input: 1, button: 1]
+  alias HydepwnsLiveviewWeb.UserAuth
 
   @impl true
   def mount(_params, _session, socket) do
@@ -39,9 +38,13 @@ defmodule HydepwnsLiveviewWeb.UserPasswordChangeLive do
   def render(assigns) do
     ~H"""
     <div>
-      <.header>
-        Change Password
-        <:subtitle>Update your password.</:subtitle>
+      <.header title="Change Password">
+        <:subtitle>Update your password</:subtitle>
+        <:actions_header>
+          <.link navigate={~p"/users/profile"} class="button button-secondary">
+            Back to Profile
+          </.link>
+        </:actions_header>
       </.header>
 
       <.simple_form for={@changeset} id="password-change-form" phx-change="validate" phx-submit="save">
@@ -49,7 +52,7 @@ defmodule HydepwnsLiveviewWeb.UserPasswordChangeLive do
         <.input field={@changeset[:password]} type="password" label="New Password" />
         <.input field={@changeset[:password_confirmation]} type="password" label="Confirm New Password" />
         <:actions>
-          <.button phx-disable-with="Changing...">Change Password</.button>
+          <HydepwnsLiveviewWeb.Components.UI.FormComponents.button phx-disable-with="Changing...">Change Password</HydepwnsLiveviewWeb.Components.UI.FormComponents.button>
         </:actions>
       </.simple_form>
     </div>

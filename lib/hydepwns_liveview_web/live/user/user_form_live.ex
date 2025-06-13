@@ -1,17 +1,16 @@
-defmodule HydepwnsLiveviewWeb.UserFormLive do
+defmodule HydepwnsLiveviewWeb.User.UserFormLive do
   @moduledoc """
   LiveView for creating and editing users.
   """
 
   use HydepwnsLiveviewWeb, :live_view
 
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [simple_form: 1, input: 1]
-  import HydepwnsLiveviewWeb.CoreComponents
-
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveview.Accounts.User
 
-  @behaviour Phoenix.LiveView
+  import HydepwnsLiveviewWeb.Components.Common.CoreComponents, only: [button: 1]
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [simple_form: 1, input: 1]
+  import HydepwnsLiveviewWeb.Components.Common.HeaderComponent, only: [header: 1]
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
@@ -60,7 +59,7 @@ defmodule HydepwnsLiveviewWeb.UserFormLive do
         {:noreply,
          socket
          |> put_flash(:info, "User updated successfully")
-         |> push_redirect(to: ~p"/users")}
+         |> push_navigate(to: ~p"/users")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :changeset, changeset)}
@@ -73,7 +72,7 @@ defmodule HydepwnsLiveviewWeb.UserFormLive do
         {:noreply,
          socket
          |> put_flash(:info, "User created successfully")
-         |> push_redirect(to: ~p"/users")}
+         |> push_navigate(to: ~p"/users")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, changeset: changeset)}
@@ -84,68 +83,43 @@ defmodule HydepwnsLiveviewWeb.UserFormLive do
   def render(assigns) do
     ~H"""
     <div class="container mx-auto px-4 py-8">
-      <h1 class="text-2xl font-bold mb-6"><%= @page_title %></h1>
+      <%= HydepwnsLiveviewWeb.Components.Common.HeaderComponent.header(assigns) %>
 
-      <.form
-        :let={f}
-        for={@changeset}
-        id="user-form"
-        phx-change="validate"
-        phx-submit="save"
-      >
-        <div class="bg-white shadow rounded-lg p-6">
-          <div class="space-y-6">
-            <div>
-              <.label for={f[:email].id}>Email</.label>
-              <.input field={f[:email]} type="email" />
-              <.error :for={msg <- Keyword.get_values(f[:email].errors, :email)}>
-                <%= msg %>
-              </.error>
-            </div>
+      <div class="bg-white shadow rounded-lg p-6">
+        <div class="space-y-6">
+          <div>
+            <h3 class="text-lg font-medium">User Form</h3>
+            <.form
+              :let={f}
+              for={@changeset}
+              id="user-form"
+              phx-change="validate"
+              phx-submit="save"
+            >
+              <div class="space-y-4">
+                <div>
+                  <.label for={f[:email].id}>Email</.label>
+                  <.input field={f[:email]} type="email" required />
+                </div>
 
-            <div>
-              <.label for={f[:name].id}>Name</.label>
-              <.input field={f[:name]} type="text" />
-              <.error :for={msg <- Keyword.get_values(f[:name].errors, :name)}>
-                <%= msg %>
-              </.error>
-            </div>
+                <div>
+                  <.label for={f[:password].id}>Password</.label>
+                  <.input field={f[:password]} type="password" required />
+                </div>
 
-            <div>
-              <.label for={f[:password].id}>Password</.label>
-              <.input field={f[:password]} type="password" />
-              <.error :for={msg <- Keyword.get_values(f[:password].errors, :password)}>
-                <%= msg %>
-              </.error>
-            </div>
-
-            <div>
-              <.label for={f[:password_confirmation].id}>Confirm Password</.label>
-              <.input field={f[:password_confirmation]} type="password" />
-              <.error :for={msg <- Keyword.get_values(f[:password_confirmation].errors, :password_confirmation)}>
-                <%= msg %>
-              </.error>
-            </div>
-
-            <div>
-              <.label for={f[:role].id}>Role</.label>
-              <.input field={f[:role]} type="select" options={[User: "user", Admin: "admin"]} />
-              <.error :for={msg <- Keyword.get_values(f[:role].errors, :role)}>
-                <%= msg %>
-              </.error>
-            </div>
-
-            <div class="flex justify-end">
-              <.link navigate={~p"/users"} class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded mr-2">
-                Cancel
-              </.link>
-              <.button type="submit" phx-disable-with="Saving...">
-                Save User
-              </.button>
-            </div>
+                <div class="flex justify-end space-x-4">
+                  <.link navigate={~p"/users"} class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                    Cancel
+                  </.link>
+                  <.button type="submit" phx-disable-with="Saving...">
+                    Save User
+                  </.button>
+                </div>
+              </div>
+            </.form>
           </div>
         </div>
-      </.form>
+      </div>
     </div>
     """
   end

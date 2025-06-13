@@ -59,37 +59,57 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
 
   @doc """
   Validates a value against a type specification.
-  Returns {:ok, value} or {:error, message}
+  
+  ## Type Specifications
+  
+  The following type specifications are supported:
+  
+  * Basic types: `:string`, `:integer`, `:boolean`, `:map`, `:list`, `:atom`, `:function`, `:float`, `:number`
+  * List types: `{:list, type_spec}` - Validates each element against the type specification
+  * Union types: `{:union, [type_spec]}` - Validates against multiple possible types
+  * One-of types: `{:one_of, [allowed_values]}` - Validates against a list of allowed values
+  * Custom types: `{:custom, validator}` - Uses a custom validation function
+  * Map types: `{:map, schema}` - Validates a map against a schema of field types
+  
+  ## Returns
+  
+  * `{:ok, value}` - When validation succeeds
+  * `{:error, message}` - When validation fails, with a descriptive error message
+  
+  ## Examples
+  
+      iex> validate_type("hello", :string)
+      {:ok, "hello"}
+      
+      iex> validate_type(42, :integer)
+      {:ok, 42}
+      
+      iex> validate_type([1, 2, 3], {:list, :integer})
+      {:ok, [1, 2, 3]}
+      
+      iex> validate_type(%{name: "John"}, {:map, %{name: :string}})
+      {:ok, %{name: "John"}}
   """
-  @spec validate_type(any(), any()) :: {:ok, any()} | {:error, String.t()}
-  def validate_type(value, :string) when is_binary(value), do: {:ok, value}
-  def validate_type(_value, :string), do: {:error, "expected string"}
+  @spec validate_type(any(), :string | :integer | :boolean | :map | :list | :atom | :function | :float | :number | 
+                           {:list, any()} | {:one_of, list()} | {:union, list()} | {:custom, (any() -> boolean() | {:error, String.t()})} | 
+                           {:map, map()}) :: 
+                           {:ok, any()} | {:error, String.t()}
+  # Basic type validations
+  def validate_type(value, type) when type in [:string, :integer, :boolean, :map, :list, :atom, :function, :float, :number] do
+    case {type, value} do
+      {:string, v} when is_binary(v) -> {:ok, v}
+      {:integer, v} when is_integer(v) -> {:ok, v}
+      {:boolean, v} when is_boolean(v) -> {:ok, v}
+      {:map, v} when is_map(v) -> {:ok, v}
+      {:list, v} when is_list(v) -> {:ok, v}
+      {:atom, v} when is_atom(v) -> {:ok, v}
+      {:function, v} when is_function(v) -> {:ok, v}
+      {:float, v} when is_float(v) -> {:ok, v}
+      {:number, v} when is_number(v) -> {:ok, v}
+      _ -> {:error, "expected #{type}"}
+    end
+  end
 
-  def validate_type(value, :integer) when is_integer(value), do: {:ok, value}
-  def validate_type(_value, :integer), do: {:error, "expected integer"}
-
-  def validate_type(value, :boolean) when is_boolean(value), do: {:ok, value}
-  def validate_type(_value, :boolean), do: {:error, "expected boolean"}
-
-  def validate_type(value, :map) when is_map(value), do: {:ok, value}
-  def validate_type(_value, :map), do: {:error, "expected map"}
-
-  def validate_type(value, :list) when is_list(value), do: {:ok, value}
-  def validate_type(_value, :list), do: {:error, "expected list"}
-
-  def validate_type(value, :atom) when is_atom(value), do: {:ok, value}
-  def validate_type(_value, :atom), do: {:error, "expected atom"}
-
-  def validate_type(value, :function) when is_function(value), do: {:ok, value}
-  def validate_type(_value, :function), do: {:error, "expected function"}
-
-  def validate_type(value, :float) when is_float(value), do: {:ok, value}
-  def validate_type(_value, :float), do: {:error, "expected float"}
-
-  def validate_type(value, :number) when is_number(value), do: {:ok, value}
-  def validate_type(_value, :number), do: {:error, "expected number (integer or float)"}
-
-  # Complex type validations
   def validate_type(value, {:list, type_spec}) when is_list(value) do
     if value == [] do
       {:ok, value}

@@ -7,10 +7,8 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLive do
 
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveview.Accounts.User
-
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [simple_form: 1, input: 1]
-
-  @behaviour Phoenix.LiveView
+  alias HydepwnsLiveviewWeb.UserAuth
+  import HydepwnsLiveviewWeb.Components.Common.CoreComponents
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
@@ -44,14 +42,14 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLive do
   @impl Phoenix.LiveView
   def handle_event("save", %{"user" => user_params}, socket) do
     case Accounts.register_user(user_params) do
-      {:ok, _user} ->
+      {:ok, user} ->
         {:noreply,
          socket
-         |> put_flash(:info, "Account created successfully")
-         |> push_redirect(to: ~p"/users/log_in")}
+         |> put_flash(:info, "User created successfully")
+         |> push_navigate(to: ~p"/users/log_in")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, :changeset, changeset)}
+        {:noreply, assign(socket, changeset: changeset)}
     end
   end
 

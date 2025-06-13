@@ -3,8 +3,7 @@ defmodule HydepwnsLiveviewWeb.UserPreferencesLive do
 
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveview.Accounts.User
-
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [simple_form: 1, input: 1, button: 1]
+  alias HydepwnsLiveviewWeb.UserAuth
 
   @impl true
   def mount(_params, _session, socket) do
@@ -39,9 +38,13 @@ defmodule HydepwnsLiveviewWeb.UserPreferencesLive do
   def render(assigns) do
     ~H"""
     <div>
-      <.header>
-        User Preferences
-        <:subtitle>Manage your user preferences.</:subtitle>
+      <.header title="Preferences">
+        <:subtitle>Manage your account preferences</:subtitle>
+        <:actions_header>
+          <.link navigate={~p"/users/profile"} class="button button-secondary">
+            Back to Profile
+          </.link>
+        </:actions_header>
       </.header>
 
       <.simple_form for={@changeset} id="preferences-form" phx-change="validate" phx-submit="save">
@@ -51,7 +54,7 @@ defmodule HydepwnsLiveviewWeb.UserPreferencesLive do
         <.input field={@changeset[:email_notifications]} type="checkbox" label="Email Notifications" />
         <.input field={@changeset[:push_notifications]} type="checkbox" label="Push Notifications" />
         <:actions>
-          <.button phx-disable-with="Saving...">Save Preferences</.button>
+          <HydepwnsLiveviewWeb.Components.UI.FormComponents.button phx-disable-with="Saving...">Save Preferences</HydepwnsLiveviewWeb.Components.UI.FormComponents.button>
         </:actions>
       </.simple_form>
     </div>

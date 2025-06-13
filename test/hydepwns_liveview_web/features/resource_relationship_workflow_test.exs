@@ -1,6 +1,7 @@
 defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
   use HydepwnsLiveviewWeb.WallabyCase, async: false
   setup :set_mox_global
+  import Wallaby.Query
 
   @moduledoc """
   End-to-end tests for the Resource Relationship Management workflow.
@@ -50,14 +51,14 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
     } do
       # Navigate to child resource
       session
-      |> click(link(child.name))
-      |> click(link("Edit"))
+      |> click(Wallaby.Query.link(child.name))
+      |> click(Wallaby.Query.link("Edit"))
 
       # Set parent relationship
       session
-      |> click(Query.select("resource[parent_id]"))
-      |> click(Query.option(parent.name))
-      |> click(Query.css("[data-test-id='save-resource']"))
+      |> click(Wallaby.Query.select("resource[parent_id]"))
+      |> click(Wallaby.Query.option(parent.name))
+      |> click(Wallaby.Query.css("[data-test-id='save-resource']"))
 
       # Verify relationship was created
       Wallaby.Browser.assert_has(
@@ -69,7 +70,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
 
       # Verify relationship events
       session
-      |> click(link("View Events"))
+      |> click(Wallaby.Query.link("View Events"))
       |> Wallaby.Browser.assert_has(css(".event-row", text: "resource.relationship.created"))
     end
 
@@ -80,16 +81,16 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
     } do
       # Create a second child
       session
-      |> click(link("Create New Resource"))
+      |> click(Wallaby.Query.link("Create New Resource"))
       |> fill_in(text_field("resource[name]"), with: "Second Child")
       |> fill_in(text_field("resource[type]"), with: "document")
-      |> click(Query.select("resource[parent_id]"))
-      |> click(Query.option(parent.name))
+      |> click(Wallaby.Query.select("resource[parent_id]"))
+      |> click(Wallaby.Query.option(parent.name))
       |> click(button("Create Resource"))
 
       # Navigate to parent resource
       session
-      |> click(link(parent.name))
+      |> click(Wallaby.Query.link(parent.name))
 
       # Verify both children are listed
       Wallaby.Browser.assert_has(session, css(".child-resource", text: child.name))
@@ -106,19 +107,19 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
     } do
       # First create parent-child relationship
       session
-      |> click(link(child.name))
-      |> click(link("Edit"))
-      |> click(Query.select("resource[parent_id]"))
-      |> click(Query.option(parent.name))
-      |> click(Query.css("[data-test-id='save-resource']"))
+      |> click(Wallaby.Query.link(child.name))
+      |> click(Wallaby.Query.link("Edit"))
+      |> click(Wallaby.Query.select("resource[parent_id]"))
+      |> click(Wallaby.Query.option(parent.name))
+      |> click(Wallaby.Query.css("[data-test-id='save-resource']"))
 
       # Try to make parent a child of child (circular)
       session
-      |> click(link(parent.name))
-      |> click(link("Edit"))
-      |> click(Query.select("resource[parent_id]"))
-      |> click(Query.option(child.name))
-      |> click(Query.css("[data-test-id='save-resource']"))
+      |> click(Wallaby.Query.link(parent.name))
+      |> click(Wallaby.Query.link("Edit"))
+      |> click(Wallaby.Query.select("resource[parent_id]"))
+      |> click(Wallaby.Query.option(child.name))
+      |> click(Wallaby.Query.css("[data-test-id='save-resource']"))
 
       # Verify error message
       Wallaby.Browser.assert_has(
@@ -130,19 +131,19 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
     test "user can remove relationships", %{session: session, parent: parent, child: child} do
       # First create the relationship
       session
-      |> click(link(child.name))
-      |> click(link("Edit"))
-      |> click(Query.select("resource[parent_id]"))
-      |> click(Query.option(parent.name))
-      |> click(Query.css("[data-test-id='save-resource']"))
+      |> click(Wallaby.Query.link(child.name))
+      |> click(Wallaby.Query.link("Edit"))
+      |> click(Wallaby.Query.select("resource[parent_id]"))
+      |> click(Wallaby.Query.option(parent.name))
+      |> click(Wallaby.Query.css("[data-test-id='save-resource']"))
 
       # Remove the relationship
       session
-      |> click(link(child.name))
-      |> click(link("Edit"))
-      |> click(Query.select("resource[parent_id]"))
-      |> click(Query.option(""))
-      |> click(Query.css("[data-test-id='save-resource']"))
+      |> click(Wallaby.Query.link(child.name))
+      |> click(Wallaby.Query.link("Edit"))
+      |> click(Wallaby.Query.select("resource[parent_id]"))
+      |> click(Wallaby.Query.option(""))
+      |> click(Wallaby.Query.css("[data-test-id='save-resource']"))
 
       # Verify relationship was removed
       Wallaby.Browser.assert_has(
@@ -154,7 +155,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
 
       # Verify relationship removal event
       session
-      |> click(link("View Events"))
+      |> click(Wallaby.Query.link("View Events"))
       |> Wallaby.Browser.assert_has(css(".event-row", text: "resource.relationship.removed"))
     end
 
@@ -165,12 +166,12 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
     } do
       # Try to create invalid relationship type
       session
-      |> click(link(child.name))
-      |> click(link("Edit"))
+      |> click(Wallaby.Query.link(child.name))
+      |> click(Wallaby.Query.link("Edit"))
       # Self-reference
-      |> click(Query.select("resource[parent_id]"))
-      |> click(Query.option(child.name))
-      |> click(Query.css("[data-test-id='save-resource']"))
+      |> click(Wallaby.Query.select("resource[parent_id]"))
+      |> click(Wallaby.Query.option(child.name))
+      |> click(Wallaby.Query.css("[data-test-id='save-resource']"))
 
       # Verify error message
       Wallaby.Browser.assert_has(
@@ -180,13 +181,13 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
 
       # Try to create relationship with incompatible types
       session
-      |> click(link("Create New Resource"))
+      |> click(Wallaby.Query.link("Create New Resource"))
       |> fill_in(text_field("resource[name]"), with: "Invalid Child")
       |> fill_in(text_field("resource[type]"), with: "folder")
       # Document can't be parent of folder
-      |> click(Query.select("resource[parent_id]"))
-      |> click(Query.option(child.name))
-      |> click(Query.css("[data-test-id='save-resource']"))
+      |> click(Wallaby.Query.select("resource[parent_id]"))
+      |> click(Wallaby.Query.option(child.name))
+      |> click(Wallaby.Query.css("[data-test-id='save-resource']"))
 
       # Verify error message
       Wallaby.Browser.assert_has(

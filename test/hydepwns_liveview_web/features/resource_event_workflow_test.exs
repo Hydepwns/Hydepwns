@@ -3,6 +3,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
   setup :set_mox_global
   import Wallaby.Query
   alias HydepwnsLiveviewWeb.MockHelper
+  alias HydepwnsLiveview.TestSupport.ResourceSystemHelper
 
   @moduledoc """
   End-to-end tests for the Resource Event Processing and Subscription workflow.
@@ -18,14 +19,15 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
   alias HydepwnsLiveview.TestSupport.ResourceFixtures
 
   setup %{session: session} do
-    HydepwnsLiveview.Resources.ResourceSystem.reset_store()
+    # Ensure the resource system is properly set up
+    ResourceSystemHelper.setup_resource_system()
 
     {:ok, resource} =
       ResourceFixtures.create_test_resource(%{
         id: "test-resource-id",
         name: "Test Resource",
         type: "document",
-        content: "Initial content"
+        content: %{text: "Initial content"}
       })
 
     MockHelper.setup_mocks()
@@ -52,7 +54,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
       # Navigate to resource
       session
       |> click(Query.css("[data-test-id='resource-link-#{resource.id}']"))
-      |> click(link("Edit"))
+      |> click(Wallaby.Query.link("Edit"))
 
       # Update resource content
       session
@@ -67,7 +69,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
 
       # Navigate to events dashboard
       session
-      |> click(link("View Events"))
+      |> click(Wallaby.Query.link("View Events"))
 
       # Verify events were generated and processed
       Wallaby.Browser.assert_has(session, css(".event-row", text: "resource.updated"))
@@ -90,7 +92,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
       # Navigate to resource
       session
       |> click(Query.css("[data-test-id='resource-link-#{resource.id}']"))
-      |> click(link("Edit"))
+      |> click(Wallaby.Query.link("Edit"))
 
       # Make multiple rapid updates
       session
@@ -103,7 +105,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
 
       # Navigate to events dashboard
       session
-      |> click(link("View Events"))
+      |> click(Wallaby.Query.link("View Events"))
 
       # Verify events were processed in order
       events = all(session, css(".event-row"))
@@ -128,7 +130,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
       # Navigate to events dashboard
       session
       |> click(Query.css("[data-test-id='resource-link-#{resource.id}']"))
-      |> click(link("View Events"))
+      |> click(Wallaby.Query.link("View Events"))
 
       # Verify event processing status indicators
       Wallaby.Browser.assert_has(session, css(".event-status", text: "processed"))
@@ -155,7 +157,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
       # Navigate to resource
       session
       |> click(Query.css("[data-test-id='resource-link-#{resource.id}']"))
-      |> click(link("Manage Subscriptions"))
+      |> click(Wallaby.Query.link("Manage Subscriptions"))
 
       # Subscribe to specific event types
       session
@@ -196,7 +198,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
       # Navigate to resource
       session
       |> click(Query.css("[data-test-id='resource-link-#{resource.id}']"))
-      |> click(link("Edit"))
+      |> click(Wallaby.Query.link("Edit"))
 
       # Attempt invalid update
       session
@@ -209,7 +211,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
 
       # Navigate to events dashboard
       session
-      |> click(link("View Events"))
+      |> click(Wallaby.Query.link("View Events"))
 
       # Verify error event was generated
       Wallaby.Browser.assert_has(session, css(".event-row", text: "resource.validation_error"))

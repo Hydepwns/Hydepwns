@@ -5,7 +5,7 @@ defmodule HydepwnsLiveviewWeb.BaseLive do
 
   use HydepwnsLiveviewWeb, :live_view
 
-  @behaviour Phoenix.LiveView
+  alias HydepwnsLiveview.Resources
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do

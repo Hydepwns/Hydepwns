@@ -1,11 +1,12 @@
-defmodule HydepwnsLiveviewWeb.UserFormComponent do
+defmodule HydepwnsLiveviewWeb.User.UserFormComponent do
   use HydepwnsLiveviewWeb, :live_component
 
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveview.Accounts.User
 
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [simple_form: 1, input: 1, button: 1]
-  import HydepwnsLiveviewWeb.CoreComponents
+  import HydepwnsLiveviewWeb.Components.Common.CoreComponents
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents
+  import HydepwnsLiveviewWeb.Components.Common.HeaderComponent, only: [header: 1]
 
   @impl true
   def update(%{user: user} = assigns, socket) do
@@ -62,10 +63,7 @@ defmodule HydepwnsLiveviewWeb.UserFormComponent do
   def render(assigns) do
     ~H"""
     <div>
-      <.header>
-        <%= @title %>
-        <:subtitle>Use this form to manage user records.</:subtitle>
-      </.header>
+      <%= HydepwnsLiveviewWeb.Components.Common.HeaderComponent.header(assigns) %>
 
       <.simple_form
         for={@changeset}
@@ -86,7 +84,7 @@ defmodule HydepwnsLiveviewWeb.UserFormComponent do
         <.input field={@changeset[:categories]} type="text" label="Categories" />
         <.input field={@changeset[:active]} type="checkbox" label="Active" />
         <:actions>
-          <.button phx-disable-with="Saving...">Save User</.button>
+          <HydepwnsLiveviewWeb.Components.UI.FormComponents.button phx-disable-with="Saving...">Save User</HydepwnsLiveviewWeb.Components.UI.FormComponents.button>
         </:actions>
       </.simple_form>
     </div>

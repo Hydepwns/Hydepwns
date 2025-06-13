@@ -5,7 +5,7 @@ defmodule HydepwnsLiveview.MixProject do
     [
       app: :hydepwns_liveview,
       version: "0.1.0",
-      elixir: "~> 1.14",
+      elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
@@ -51,18 +51,19 @@ defmodule HydepwnsLiveview.MixProject do
   defp deps do
     [
       # {:raxol, "~> 0.4.0"},
-      {:phoenix, "~> 1.7.20"},
+      {:phoenix, "~> 1.7.10"},
       {:phoenix_view, "~> 2.0"},
-      {:phoenix_ecto, "~> 4.5"},
-      {:ecto_sql, "~> 3.11"},
-      {:postgrex, ">= 0.20.0"},
-      {:phoenix_html, "~> 3.3.1", override: true},
+      {:phoenix_ecto, "~> 4.4"},
+      {:ecto_sql, "~> 3.10"},
+      {:postgrex, ">= 0.0.0"},
+      {:phoenix_html, "~> 3.3"},
       # {:phoenix_html_helpers, "0.3.0"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
-      {:phoenix_live_view, "~> 1.0"},
+      {:phoenix_live_view, "~> 0.20.1"},
       {:floki, ">= 0.30.0", only: :test},
-      {:phoenix_live_dashboard, "~> 0.8.3"},
+      {:phoenix_live_dashboard, "~> 0.8.2"},
       {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
+      {:tailwind, "~> 0.2.0", runtime: Mix.env() == :dev},
       {:heroicons,
        github: "tailwindlabs/heroicons",
        tag: "v2.1.1",
@@ -70,11 +71,11 @@ defmodule HydepwnsLiveview.MixProject do
        app: false,
        compile: false,
        depth: 1},
-      {:swoosh, "~> 1.5"},
+      {:swoosh, "~> 1.3"},
       {:finch, "~> 0.13"},
-      {:telemetry_metrics, "~> 1.0"},
+      {:telemetry_metrics, "~> 0.6"},
       {:telemetry_poller, "~> 1.0"},
-      {:gettext, "~> 0.26"},
+      {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
@@ -99,9 +100,20 @@ defmodule HydepwnsLiveview.MixProject do
       {:ex_doc, "~> 0.31", only: :dev, runtime: false},
       {:httpoison, "~> 1.8"},
 
+      # SMS Provider Dependencies
+      {:ex_twilio, "~> 0.9.0"},
+
       # Add test coverage and static analysis
       {:excoveralls, ">= 0.0.0", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.3", only: [:dev], runtime: false}
+      {:dialyxir, "~> 1.3", only: [:dev], runtime: false},
+
+      # Add Signal Protocol for secure messaging
+      {:libsignal_protocol_nif,
+       path: "lib/libsignal-protocol-nif",
+       manager: :rebar3},
+
+      # Add bcrypt for password hashing
+      {:bcrypt_elixir, "~> 3.0"},
 
       # Authentication - Uncomment to add authentication
       # {:phx_gen_auth, "~> 0.7.1", only: [:dev], runtime: false},

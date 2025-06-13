@@ -1,4 +1,6 @@
 defmodule HydepwnsLiveview.Utils.ValidationDependencyResolver do
+  require Logger
+
   @moduledoc """
   Dependency resolution for complex validation rules.
 

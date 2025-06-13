@@ -386,6 +386,24 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
   end
 
   @doc """
+  Renders a button.
+  """
+  def button(assigns) do
+    ~H"""
+    <button
+      type={@type}
+      class={[
+        "phx-submit-loading:opacity-75 rounded-lg bg-zinc-900 py-2 px-3 text-sm font-semibold leading-6 text-white active:text-white/80 hover:bg-zinc-700",
+        @class
+      ]}
+      {@rest}
+    >
+      <%= render_slot(@inner_block_button) %>
+    </button>
+    """
+  end
+
+  @doc """
   Renders a theme toggle button group for switching themes.
   """
   @spec theme_toggle(map()) :: Phoenix.LiveView.Rendered.t()
@@ -449,45 +467,6 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
         </tr>
       </table>
     </header>
-    """
-  end
-
-  @doc """
-  Renders a button.
-  """
-  attr :type, :string, default: "button"
-  attr :class, :string, default: nil
-  attr :rest, :global
-  slot :inner_block, required: true
-
-  def button(assigns) do
-    ~H"""
-    <button
-      type={@type}
-      class={[
-        "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-        "disabled:pointer-events-none disabled:opacity-50",
-        @class
-      ]}
-      {@rest}
-    >
-      <%= render_slot(@inner_block) %>
-    </button>
-    """
-  end
-
-  @doc """
-  Renders an error message.
-  """
-  attr :for, :any, default: nil
-  slot :inner_block, required: true
-
-  def error(assigns) do
-    ~H"""
-    <span class="block mt-2 text-sm text-red-600">
-      <%= render_slot(@inner_block) %>
-    </span>
     """
   end
 end

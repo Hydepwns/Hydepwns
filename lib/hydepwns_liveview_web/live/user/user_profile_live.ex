@@ -3,8 +3,7 @@ defmodule HydepwnsLiveviewWeb.UserProfileLive do
 
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveview.Accounts.User
-
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [simple_form: 1, input: 1, button: 1]
+  alias HydepwnsLiveviewWeb.UserAuth
 
   @impl true
   def mount(_params, _session, socket) do
@@ -39,9 +38,13 @@ defmodule HydepwnsLiveviewWeb.UserProfileLive do
   def render(assigns) do
     ~H"""
     <div>
-      <.header>
-        User Profile
-        <:subtitle>Manage your profile information.</:subtitle>
+      <.header title="Profile">
+        <:subtitle>Manage your account settings</:subtitle>
+        <:actions_header>
+          <.link navigate={~p"/users/preferences"} class="button button-secondary">
+            Preferences
+          </.link>
+        </:actions_header>
       </.header>
 
       <.simple_form for={@changeset} id="user-profile-form" phx-change="validate" phx-submit="save">
@@ -58,7 +61,7 @@ defmodule HydepwnsLiveviewWeb.UserProfileLive do
         <.input field={@changeset[:tags]} type="text" label="Tags" />
         <.input field={@changeset[:categories]} type="text" label="Categories" />
         <:actions>
-          <.button phx-disable-with="Saving...">Save Profile</.button>
+          <HydepwnsLiveviewWeb.Components.UI.FormComponents.button phx-disable-with="Saving...">Save Profile</HydepwnsLiveviewWeb.Components.UI.FormComponents.button>
         </:actions>
       </.simple_form>
     </div>

@@ -13,16 +13,10 @@
   <:item title="Mode">{@theme.mode}</:item>
   <:item title="Colors">
     <div class="space-y-2">
-      <div><strong>Primary:</strong> {@theme.colors["primary"]}</div>
-      <div><strong>Secondary:</strong> {@theme.colors["secondary"]}</div>
-      <div><strong>Accent:</strong> {@theme.colors["accent"]}</div>
-      <div><strong>Background:</strong> {@theme.colors["background"]}</div>
-      <div><strong>Text:</strong> {@theme.colors["text"]}</div>
-      <div><strong>Border:</strong> {@theme.colors["border"]}</div>
-      <div><strong>Error:</strong> {@theme.colors["error"]}</div>
-      <div><strong>Success:</strong> {@theme.colors["success"]}</div>
-      <div><strong>Warning:</strong> {@theme.colors["warning"]}</div>
-      <div><strong>Info:</strong> {@theme.colors["info"]}</div>
+      <div><strong>Primary:</strong> <span style={"color: #{@theme.primary_color}"}>{@theme.primary_color}</span></div>
+      <div><strong>Secondary:</strong> <span style={"color: #{@theme.secondary_color}"}>{@theme.secondary_color}</span></div>
+      <div><strong>Background:</strong> <span style={"color: #{@theme.background_color}"}>{@theme.background_color}</span></div>
+      <div><strong>Text:</strong> <span style={"color: #{@theme.text_color}"}>{@theme.text_color}</span></div>
     </div>
   </:item>
   <:item title="Settings">

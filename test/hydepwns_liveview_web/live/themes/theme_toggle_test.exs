@@ -3,7 +3,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeToggleTest do
   @moduletag :liveview
   import Phoenix.LiveViewTest
   import HydepwnsLiveview.ThemeSystemFixtures
-  import ThemeHelper
+  import HydepwnsLiveview.ThemeHelper
 
   alias HydepwnsLiveviewWeb.MockHelper
 

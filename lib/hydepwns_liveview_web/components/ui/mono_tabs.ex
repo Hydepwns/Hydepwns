@@ -9,7 +9,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoTabs do
   """
   use Phoenix.Component
   alias Phoenix.LiveView.JS
-  import HydepwnsLiveviewWeb.Components.Common.CoreComponents, only: [icon: 1]
+  import HydepwnsLiveviewWeb.Components.Common.CoreComponents, only: [icon_component: 1]
 
   @doc """
   Renders a monospace tabbed interface.
@@ -65,7 +65,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoTabs do
         <%= for {tab, index} <- Enum.with_index(@tab) do %>
           <button type="button" role="tab" id={"#{@id}-tab-#{tab.id}"} data-test={"mono-tab-#{index + 1}"} data-tab-id={tab.id} aria-selected={tab.id == @active_tab} aria-controls={"#{@id}-panel-#{tab.id}"} class={["mono-tab", tab.id == @active_tab && "active"]} phx-click={JS.push("tab_click", value: %{tab: tab.id})}>
             <%= if tab.icon do %>
-              <.icon name={tab.icon} class="mono-tab-icon" />
+              <.icon_component name={tab.icon} class="mono-tab-icon" />
             <% end %>
             <span class="mono-tab-title">{tab.title}</span>
           </button>

@@ -1,4 +1,8 @@
 defmodule HydepwnsLiveviewWeb.ApiDocsLive do
+  @moduledoc """
+  LiveView for displaying API documentation.
+  """
+
   use HydepwnsLiveviewWeb.BaseLive, layout: {HydepwnsLiveviewWeb.Layouts, :app}
   import Phoenix.Component
 
@@ -6,9 +10,6 @@ defmodule HydepwnsLiveviewWeb.ApiDocsLive do
   import ApiDocs
   alias HydepwnsLiveviewWeb.Helpers.PathHelper
 
-  @behaviour Phoenix.LiveView
-
-  @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
     default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()
     theme_class = "#{default_theme.mode}-theme"
@@ -29,12 +30,10 @@ defmodule HydepwnsLiveviewWeb.ApiDocsLive do
     {:ok, socket}
   end
 
-  @impl Phoenix.LiveView
   def handle_params(_params, _url, socket) do
     {:noreply, PathHelper.assign_specific_path(socket, "/api-docs")}
   end
 
-  @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
     <section>
@@ -73,7 +72,7 @@ defmodule HydepwnsLiveviewWeb.ApiDocsLive do
         <.api_docs
           component_name="AsciiArtGenerator"
           description="A component for generating ASCII art with various templates and customization options."
-          import_statement="alias HydepwnsLiveviewWeb.Components.AsciiArtGenerator"
+          import_statement="alias HydepwnsLiveviewWeb.Components.Visualization.AsciiArtGenerator"
           attributes={[
             %{
               name: "id",
@@ -92,7 +91,12 @@ defmodule HydepwnsLiveviewWeb.ApiDocsLive do
       </.api_docs_section>
 
       <.api_docs_section id="theme-components" title="Theme Components">
-        <.api_docs component_name="ThemeToggle" description="A theme toggle component for switching between light, dark, dim, and high-contrast themes." import_statement="alias HydepwnsLiveviewWeb.Components.ThemeToggle" attributes={[]} />
+        <.api_docs 
+          component_name="ThemeToggle" 
+          description="A theme toggle component for switching between light, dark, dim, and high-contrast themes." 
+          import_statement="alias HydepwnsLiveviewWeb.Components.Common.ThemeToggle" 
+          attributes={[]} 
+        />
       </.api_docs_section>
 
       <.api_docs_section id="ui-components" title="UI Components">
@@ -121,55 +125,45 @@ defmodule HydepwnsLiveviewWeb.ApiDocsLive do
   end
 
   defp load_docs do
-    [
-      %{
-        title: "Getting Started",
-        content: """
-        # Getting Started
-
-        Welcome to the API documentation. This guide will help you get started with our API.
-
-        ## Authentication
-
-        All API requests require authentication using an API key. You can get your API key from the dashboard.
-
-        ## Base URL
-
-        All API requests should be made to:
-
-        ```
-        https://api.example.com/v1
-        ```
-
-        ## Rate Limiting
-
-        API requests are limited to 1000 requests per hour per API key.
-        """
-      },
-      %{
-        title: "Resources",
-        content: """
-        # Resources
-
-        ## Users
-
-        ### List Users
-
-        ```http
-        GET /users
-        ```
-
-        Returns a list of users.
-
-        ### Get User
-
-        ```http
-        GET /users/:id
-        ```
-
-        Returns a single user by ID.
-        """
+    # Load documentation from a file or return a default structure
+    %{
+      "grid_components" => [
+        %{
+          name: "MonoGrid",
+          description: "A grid system component that maintains proper character alignment for monospace text.",
+          attributes: [
+            %{name: "id", type: "string", default: nil, description: "Optional unique identifier"},
+            %{name: "cols", type: "integer", default: "80", description: "Number of columns in the grid"}
+          ]
+        }
+      ],
+      "ascii_art_components" => [
+        %{
+          name: "AsciiArtGenerator",
+          description: "A component for generating ASCII art with various templates and customization options.",
+          attributes: [
+            %{name: "id", type: "string", required: true, description: "Unique identifier for this component instance"},
+            %{name: "art_type", type: "string", default: "box", description: "Type of ASCII art to generate"}
+          ]
+        }
+      ],
+      "theme_components" => [
+        %{
+          name: "ThemeToggle",
+          description: "A theme toggle component for switching between light, dark, dim, and high-contrast themes.",
+          attributes: []
+        }
+      ],
+      "ui_components" => [
+        %{
+          name: "MonoTabs",
+          description: "Monospace tabbed interface component that maintains grid alignment.",
+          attributes: [
+            %{name: "id", type: "string", required: true, description: "Unique identifier for the tabs component"},
+            %{name: "style", type: "atom", default: ":bordered", description: "Tab styling variant: :bordered, :underlined, :boxed"}
+          ]
       }
     ]
+    }
   end
 end

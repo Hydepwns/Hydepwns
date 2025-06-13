@@ -10,7 +10,6 @@ defmodule HydepwnsLiveviewWeb.LiveComponents.UserCardComponent do
   use Phoenix.LiveComponent
 
   alias HydepwnsLiveview.Resources.UserResource
-  # alias HydepwnsLiveview.Schemas.User # Removed unused alias
 
   @doc """
   Mount hook for the component.

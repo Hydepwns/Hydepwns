@@ -97,7 +97,7 @@ defmodule HydepwnsLiveview.Events.Core.EventValidator do
       event
       |> Map.take(Map.keys(field_types()))
       |> Enum.filter(fn {field, value} -> not valid_type?(field, value) end)
-      |> Enum.map(fn {field, _} -> field end)
+      |> Enum.map(fn {field, _value} -> field end)
 
     case invalid_fields do
       [] -> :ok

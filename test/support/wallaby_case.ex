@@ -84,15 +84,35 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
   Helper to wait for LiveView to be fully loaded.
   """
   def wait_for_live_view(session) do
-    session =
+    if session do
       session
-      |> assert_has(css("body[data-phx-session]"))
+      |> execute_script("return window.phxLiveViewPids || [];", [])
+      |> case do
+        [] -> Process.sleep(100) && wait_for_live_view(session)
+        _ -> session
+      end
+    else
+      session
+    end
+  end
 
-    # Give LiveView time to initialize 
-
-    Process.sleep(300)
-
+  @doc """
+  Helper to wait for a form to be fully rendered and interactive.
+  """
+  def wait_for_form(session, form_id) do
     session
+    |> assert_has(css("##{form_id}"))
+    |> assert_has(css("##{form_id} input"))
+    |> wait_for_live_view()
+  end
+
+  @doc """
+  Helper to fill in a form field and wait for validation.
+  """
+  def fill_form_field(session, form_id, field_name, value) do
+    session
+    |> fill_in(css("##{form_id} ##{field_name}"), with: value)
+    |> wait_for_live_view()
   end
 
   @doc """

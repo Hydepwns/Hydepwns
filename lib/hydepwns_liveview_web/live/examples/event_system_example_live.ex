@@ -40,7 +40,6 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
   alias HydepwnsLiveview.Events.TestEvents, as: TestEvents
   alias HydepwnsLiveview.Events.ProjectionSupervisor, as: ProjectionSupervisor
 
-  @impl true
   def mount(_params, _session, socket) do
     theme_class = "dark-theme"
     events = Event.list_events()
@@ -59,12 +58,10 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
     {:ok, socket}
   end
 
-  @impl true
   def handle_event("select_tab", %{"tab" => tab}, socket) do
     {:noreply, assign(socket, :active_tab, tab)}
   end
 
-  @impl true
   def handle_event("generate_test_data", %{"user_count" => user_count}, socket) do
     # Parse the user count
     user_count = String.to_integer(user_count)
@@ -88,7 +85,6 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
     end
   end
 
-  @impl true
   def handle_event("publish_event", params, socket) do
     # Extract event data
     event_type = params["event_type"]
@@ -122,7 +118,6 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
     end
   end
 
-  @impl true
   def handle_event("view_projection", %{"projection" => projection_index}, socket) do
     # Get the projection from the list
     case Enum.at(socket.assigns.projections, String.to_integer(projection_index), nil) do
@@ -143,7 +138,6 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
     end
   end
 
-  @impl true
   def handle_event("rebuild_projection", %{"projection" => projection_index}, socket) do
     # Get the projection from the list
     case Enum.at(socket.assigns.projections, String.to_integer(projection_index), nil) do
@@ -170,12 +164,10 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
     end
   end
 
-  @impl true
   def handle_info(_msg, socket) do
     {:noreply, socket}
   end
 
-  @impl true
   def render(assigns) do
     ~H"""
     <div class="event-system-example">
@@ -249,22 +241,23 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
 
                   <div class="event-list">
                     <h2 class="text-xl font-bold mb-2">Recent Events</h2>
-
-                    <div class="overflow-auto max-h-96">
-                      <table class="w-full">
+                    <div class="overflow-x-auto">
+                      <table class="min-w-full">
                         <thead>
                           <tr>
-                            <th class="text-left">Type</th>
-                            <th class="text-left">Resource</th>
-                            <th class="text-left">Timestamp</th>
+                            <th class="px-4 py-2">ID</th>
+                            <th class="px-4 py-2">Type</th>
+                            <th class="px-4 py-2">Resource</th>
+                            <th class="px-4 py-2">Timestamp</th>
                           </tr>
                         </thead>
                         <tbody>
                           <%= for event <- @events do %>
-                            <tr class="border-t">
-                              <td class="py-2">{event.type}</td>
-                              <td class="py-2">{event.resource_type}:{event.resource_id}</td>
-                              <td class="py-2">{format_timestamp(event.timestamp)}</td>
+                            <tr>
+                              <td class="px-4 py-2"><%= event.id %></td>
+                              <td class="px-4 py-2"><%= event.type %></td>
+                              <td class="px-4 py-2"><%= event.resource_type %>:<%= event.resource_id %></td>
+                              <td class="px-4 py-2"><%= format_timestamp(event.timestamp) %></td>
                             </tr>
                           <% end %>
                         </tbody>
@@ -273,75 +266,54 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
                   </div>
                 </div>
               </div>
+
             <% "projections" -> %>
               <div class="projections-tab">
                 <div class="grid grid-cols-2 gap-4">
                   <div class="projection-list">
-                    <h2 class="text-xl font-bold mb-2">Active Projections</h2>
-
-                    <div class="overflow-auto max-h-96">
-                      <table class="w-full">
-                        <thead>
-                          <tr>
-                            <th class="text-left">Projection</th>
-                            <th class="text-left">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <%= for {{projection, _pid}, index} <- Enum.with_index(@projections) do %>
-                            <tr class="border-t">
-                              <td class="py-2">{module_name(projection)}</td>
-                              <td class="py-2">
-                                <button phx-click="view_projection" phx-value-projection={index} class="btn btn-sm btn-secondary">
-                                  View
-                                </button>
-                                <button phx-click="rebuild_projection" phx-value-projection={index} class="btn btn-sm btn-secondary">
-                                  Rebuild
-                                </button>
-                              </td>
-                            </tr>
-                          <% end %>
-                        </tbody>
-                      </table>
+                    <h2 class="text-xl font-bold mb-2">Available Projections</h2>
+                    <div class="space-y-4">
+                      <%= for {projection, index} <- Enum.with_index(@projections) do %>
+                        <div class="projection-item p-4 border rounded">
+                          <h3 class="text-lg font-semibold mb-2"><%= projection %></h3>
+                          <div class="flex space-x-2">
+                            <button phx-click="view_projection" phx-value-projection={index} class="btn btn-secondary">
+                              View State
+                            </button>
+                            <button phx-click="rebuild_projection" phx-value-projection={index} class="btn btn-warning">
+                              Rebuild
+                            </button>
+                          </div>
+                        </div>
+                      <% end %>
                     </div>
                   </div>
 
-                  <div class="projection-state">
-                    <h2 class="text-xl font-bold mb-2">Projection State</h2>
-
-                    <%= if @selected_projection do %>
-                      <h3 class="text-lg font-semibold mb-2">{module_name(@selected_projection)}</h3>
-
-                      <div class="overflow-auto max-h-96 bg-gray-100 p-4 rounded">
-                        <pre><%= format_state(@projection_state) %></pre>
+                  <%= if @selected_projection do %>
+                    <div class="projection-state">
+                      <h2 class="text-xl font-bold mb-2">Projection State</h2>
+                      <div class="p-4 border rounded">
+                        <pre class="whitespace-pre-wrap"><%= inspect(@projection_state, pretty: true) %></pre>
                       </div>
-                    <% else %>
-                      <p>Select a projection to view its state</p>
-                    <% end %>
-                  </div>
+                    </div>
+                  <% end %>
                 </div>
               </div>
+
             <% "handlers" -> %>
               <div class="handlers-tab">
-                <h2 class="text-xl font-bold mb-2">Active Handlers</h2>
-
-                <div class="overflow-auto max-h-96">
-                  <table class="w-full">
-                    <thead>
-                      <tr>
-                        <th class="text-left">Handler</th>
-                        <th class="text-left">PID</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <%= for {handler, pid} <- @handlers do %>
-                        <tr class="border-t">
-                          <td class="py-2">{module_name(handler)}</td>
-                          <td class="py-2">{inspect(pid)}</td>
-                        </tr>
-                      <% end %>
-                    </tbody>
-                  </table>
+                <h2 class="text-xl font-bold mb-2">Event Handlers</h2>
+                <div class="space-y-4">
+                  <%= for handler <- @handlers do %>
+                    <div class="handler-item p-4 border rounded">
+                      <h3 class="text-lg font-semibold mb-2"><%= handler.name %></h3>
+                      <p class="text-gray-600 mb-2"><%= handler.description %></p>
+                      <div class="text-sm">
+                        <p><strong>Event Types:</strong> <%= Enum.join(handler.event_types, ", ") %></p>
+                        <p><strong>Status:</strong> <%= handler.status %></p>
+                      </div>
+                    </div>
+                  <% end %>
                 </div>
               </div>
           <% end %>
@@ -351,34 +323,14 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
     """
   end
 
-  # Helper functions
-
-  defp format_timestamp(%DateTime{} = dt) do
-    Calendar.strftime(dt, "%Y-%m-%d %H:%M:%S")
-  end
-
-  defp format_state(state) when is_map(state) do
-    state
-    |> Jason.encode!(pretty: true)
-    |> String.replace(~r/"(\w+)":/, "\\1:")
-  end
-
-  defp format_state(state) do
-    inspect(state, pretty: true, limit: :infinity)
-  end
-
-  defp module_name(module) do
-    module
-    |> Atom.to_string()
-    |> String.replace(~r/^Elixir\./, "")
-  end
-
-  defp parse_json(""), do: %{}
-
-  defp parse_json(json) do
-    case Jason.decode(json) do
+  defp parse_json(json_string) do
+    case Jason.decode(json_string) do
       {:ok, data} -> data
       {:error, _} -> %{}
     end
+  end
+
+  defp format_timestamp(timestamp) do
+    Calendar.strftime(timestamp, "%Y-%m-%d %H:%M:%S")
   end
 end

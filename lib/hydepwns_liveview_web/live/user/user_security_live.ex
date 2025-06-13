@@ -5,9 +5,11 @@ defmodule HydepwnsLiveviewWeb.UserSecurityLive do
 
   use HydepwnsLiveviewWeb, :live_view
 
-  import HydepwnsLiveviewWeb.CoreComponents
-
-  @behaviour Phoenix.LiveView
+  alias HydepwnsLiveview.Accounts
+  alias HydepwnsLiveview.Accounts.User
+  alias HydepwnsLiveviewWeb.UserAuth
+  import HydepwnsLiveviewWeb.Components.Common.CoreComponents
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, simple_form: 1]
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
@@ -40,12 +42,12 @@ defmodule HydepwnsLiveviewWeb.UserSecurityLive do
 
   @impl Phoenix.LiveView
   def handle_event("save", %{"user" => user_params}, socket) do
-    case Accounts.update_user_security(socket.assigns.user, user_params) do
+    case UserAuth.update_user_password(socket.assigns.user, user_params) do
       {:ok, _user} ->
         {:noreply,
          socket
-         |> put_flash(:info, "Security settings updated successfully")
-         |> push_redirect(to: ~p"/users/#{socket.assigns.user}")}
+         |> put_flash(:info, "Password updated successfully")
+         |> push_navigate(to: ~p"/users/#{socket.assigns.user}")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :changeset, changeset)}
@@ -68,36 +70,36 @@ defmodule HydepwnsLiveviewWeb.UserSecurityLive do
         <div class="bg-white shadow rounded-lg p-6">
           <div class="space-y-6">
             <div>
-              <.label for={f[:current_password].id}>Current Password</.label>
+              <HydepwnsLiveviewWeb.Components.UI.FormComponents.label for={f[:current_password].id}>Current Password</HydepwnsLiveviewWeb.Components.UI.FormComponents.label>
               <.input field={f[:current_password]} type="password" />
-              <.error :for={msg <- Keyword.get_values(f[:current_password].errors, :current_password)}>
+              <HydepwnsLiveviewWeb.Components.UI.FormComponents.error :for={msg <- Keyword.get_values(f[:current_password].errors, :current_password)}>
                 <%= msg %>
-              </.error>
+              </HydepwnsLiveviewWeb.Components.UI.FormComponents.error>
             </div>
 
             <div>
-              <.label for={f[:password].id}>New Password</.label>
+              <HydepwnsLiveviewWeb.Components.UI.FormComponents.label for={f[:password].id}>New Password</HydepwnsLiveviewWeb.Components.UI.FormComponents.label>
               <.input field={f[:password]} type="password" />
-              <.error :for={msg <- Keyword.get_values(f[:password].errors, :password)}>
+              <HydepwnsLiveviewWeb.Components.UI.FormComponents.error :for={msg <- Keyword.get_values(f[:password].errors, :password)}>
                 <%= msg %>
-              </.error>
+              </HydepwnsLiveviewWeb.Components.UI.FormComponents.error>
             </div>
 
             <div>
-              <.label for={f[:password_confirmation].id}>Confirm New Password</.label>
+              <HydepwnsLiveviewWeb.Components.UI.FormComponents.label for={f[:password_confirmation].id}>Confirm New Password</HydepwnsLiveviewWeb.Components.UI.FormComponents.label>
               <.input field={f[:password_confirmation]} type="password" />
-              <.error :for={msg <- Keyword.get_values(f[:password_confirmation].errors, :password_confirmation)}>
+              <HydepwnsLiveviewWeb.Components.UI.FormComponents.error :for={msg <- Keyword.get_values(f[:password_confirmation].errors, :password_confirmation)}>
                 <%= msg %>
-              </.error>
+              </HydepwnsLiveviewWeb.Components.UI.FormComponents.error>
             </div>
 
             <div class="flex justify-end">
               <.link navigate={~p"/users/#{@user}"} class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded mr-2">
                 Cancel
               </.link>
-              <.button type="submit" phx-disable-with="Saving...">
+              <HydepwnsLiveviewWeb.Components.UI.FormComponents.button type="submit" phx-disable-with="Saving...">
                 Save Changes
-              </.button>
+              </HydepwnsLiveviewWeb.Components.UI.FormComponents.button>
             </div>
           </div>
         </div>

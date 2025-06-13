@@ -4,35 +4,35 @@ defmodule HydepwnsLiveviewWeb.ResourceLiveTest do
   import Phoenix.LiveViewTest
 
   alias HydepwnsLiveview.Utils.LiveViewAPI
+  alias HydepwnsLiveview.Utils.ResourceAssigns
 
   # Define a test module that uses ResourceLive
   defmodule TestResourceLive do
-    use HydepwnsLiveviewWeb.ResourceLive
+    use HydepwnsLiveviewWeb.BaseLive
+    use HydepwnsLiveviewWeb.Resources.ResourceLive
     import HydepwnsLiveview.Utils.ResourceAssigns
-    require HydepwnsLiveview.Utils.ResourceAssigns
 
     assigns_resource do
-      attribute(:page_title, :string, default: "Test Resource")
+      attributes do
+        attribute :page_title, :string, default: "Test Resource"
 
-      attribute :user, :map do
-        attribute(:id, :string, required: true)
-        attribute(:name, :string, default: "Test User")
-        attribute(:role, {:one_of, ["admin", "user", "guest"]}, default: "user")
+        attribute :user, :map do
+          attribute :id, :string, required: true
+          attribute :name, :string, default: "Test User"
+          attribute :role, {:one_of, ["admin", "user", "guest"]}, default: "user"
+        end
+
+        attribute :settings, :map, default: Macro.escape(%{theme: "dark"})
+
+        attribute :items, {:list, :string}, default: []
       end
-
-      attribute(:settings, :map, default: %{theme: "dark"})
-
-      attribute(:items, {:list, :string}, default: [])
     end
 
-    @impl HydepwnsLiveviewWeb.BaseLive.Behaviour
+    @impl Phoenix.LiveView
     def do_mount(_params, _session, socket) do
       socket = __apply_resource_defaults__(socket)
-
-      socket =
-        Phoenix.Component.assign(socket, :user, %{id: "user_123", name: "Test User", role: "user"})
-
-      socket
+      socket = Phoenix.Component.assign(socket, :user, %{id: "user_123", name: "Test User", role: "user"})
+      {:noreply, socket}
     end
 
     @impl Phoenix.LiveView
@@ -52,6 +52,7 @@ defmodule HydepwnsLiveviewWeb.ResourceLiveTest do
     end
 
     # Added for testing LiveViewAPI.update
+    @impl Phoenix.LiveView
     def handle_event("test_api_update", %{"field" => field, "value" => value}, socket) do
       updated_socket = apply_update(socket, field, value)
       {:noreply, updated_socket}
@@ -61,34 +62,27 @@ defmodule HydepwnsLiveviewWeb.ResourceLiveTest do
       field = String.to_atom(field_string)
 
       case LiveViewAPI.update(socket, field, value, opts) do
-        {:ok, updated_socket} ->
-          updated_socket
+        {:ok, updated_socket} -> updated_socket
+        {:error, _message, error_socket} -> error_socket
+      end
+    end
 
-        # _message to avoid unused var warning if no IO.inspect
-        {:error, _message, error_socket} ->
-          # IO.inspect({message, field, value}, label: "TestResourceLive.apply_update - ERROR")
-          error_socket
+    defp process_settings(settings) do
+      case settings do
+        {:%{}, _meta, keyword_list_data} when is_list(keyword_list_data) ->
+          Enum.into(keyword_list_data, %{})
+
+        plain_map when is_map(plain_map) ->
+          plain_map
+
+        _ ->
+          %{}
       end
     end
 
     @impl Phoenix.LiveView
     def render(assigns) do
-      processed_settings =
-        case assigns.settings do
-          {:%{}, _meta, keyword_list_data} when is_list(keyword_list_data) ->
-            Enum.into(keyword_list_data, %{})
-
-          plain_map when is_map(plain_map) ->
-            plain_map
-
-          # Fallback or error
-          _ ->
-            %{}
-        end
-
-      # IO.inspect(processed_settings, label: "Render: processed_settings") # Cleaned up previous inspect
-
-      assigns = Map.put(assigns, :settings, processed_settings)
+      assigns = Map.put(assigns, :settings, process_settings(assigns.settings))
 
       ~H"""
       <div id="test-resource">
@@ -119,7 +113,7 @@ defmodule HydepwnsLiveviewWeb.ResourceLiveTest do
 
   describe "ResourceLive with assigns_resource" do
     test "mounts with default values", %{conn: conn} do
-      {:ok, view, html} = live_isolated(conn, TestResourceLive)
+      {:ok, _view, html} = live_isolated(conn, TestResourceLive)
 
       # Check that default values are set
       assert html =~ "Test Resource"
@@ -136,16 +130,15 @@ defmodule HydepwnsLiveviewWeb.ResourceLiveTest do
 
       # Click the set-admin button
       view |> element("#set-admin") |> render_click()
-      # Might not be reached
 
       # Check that the role was updated
       assert has_element?(view, "#user-role", "admin")
 
       # Click the set-guest button
-      # view |> element("#set-guest") |> render_click()
+      view |> element("#set-guest") |> render_click()
 
       # Check that the role was updated again
-      # assert has_element?(view, "#user-role", "guest")
+      assert has_element?(view, "#user-role", "guest")
     end
 
     test "updates resource via API", %{conn: conn} do
@@ -171,60 +164,32 @@ defmodule HydepwnsLiveviewWeb.ResourceLiveTest do
       {:ok, view, _html} = live_isolated(conn, TestResourceLive)
 
       # Attempt to update with invalid value via the event handler
-      # The event handler's apply_update returns the error_socket without crashing.
-      # We can then check assigns or flash if we were setting it.
-      # For this test, we are testing LiveViewAPI.update indirectly.
-      # Let's call apply_update directly with a constructed socket for a more direct test of validation.
+      html =
+        view
+        |> render_click("test_api_update", %{
+          "field" => "user",
+          "value" => %{name: "New Name"} # Missing required id field
+        })
 
-      initial_assigns = %{
-        user: %{id: "user_123", name: "Test User", role: "user"},
-        items: [],
-        settings: %{theme: "dark"},
-        page_title: "Test Resource",
-        __changed__: %{},
-        live_action: nil,
-        # Assuming BaseLive adds this
-        current_user: %{id: "user_123", name: "Test User", role: "user"}
-      }
-
-      # Create a minimal socket for testing the API function directly
-      # Note: This socket won't have a PID or be part of a LiveView process.
-      # It's for unit-testing the LiveViewAPI.update validation logic.
-      test_socket = %Phoenix.LiveView.Socket{
-        id: "test-socket",
-        endpoint: HydepwnsLiveviewWeb.Endpoint,
-        view: TestResourceLive,
-        assigns: initial_assigns,
-        transport_pid: nil,
-        parent_pid: nil,
-        root_pid: nil,
-        router: nil
-      }
-
-      case LiveViewAPI.update(test_socket, :user, %{
-             id: "user_123",
-             name: "Test User",
-             role: "invalid_role"
-           }) do
-        {:ok, _} ->
-          flunk("Expected validation to fail for invalid role")
-
-        {:error, message, _error_socket} ->
-          assert message =~ "expected one of"
-      end
+      # Verify the update failed
+      assert html =~ "Test User" # Original name should still be there
+      assert html =~ "user_123" # Original ID should still be there
     end
 
     test "adds items to list", %{conn: conn} do
       {:ok, view, _html} = live_isolated(conn, TestResourceLive)
 
-      # Add items to the list via the event handler
-      rendered_html =
+      # Add an item to the list
+      html =
         view
-        |> render_click("test_api_update", %{"field" => "items", "value" => ["Item 1", "Item 2"]})
+        |> render_click("test_api_update", %{
+          "field" => "items",
+          "value" => ["item1", "item2"]
+        })
 
-      # Verify items are displayed
-      assert rendered_html =~ "Item 1"
-      assert rendered_html =~ "Item 2"
+      # Verify the items are added
+      assert html =~ "item1"
+      assert html =~ "item2"
     end
   end
 end

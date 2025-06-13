@@ -15,9 +15,11 @@ defmodule HydepwnsLiveviewWeb.Components.UI.LayoutComponents do
   Renders a header with title.
   """
   attr :class, :string, default: nil
+  attr :title, :string, default: nil
   slot :inner_block, required: true
   slot :subtitle
   slot :actions
+  slot :actions_header
 
   def header(assigns) do
     ~H"""
@@ -25,13 +27,14 @@ defmodule HydepwnsLiveviewWeb.Components.UI.LayoutComponents do
       <div class="flex items-center justify-between gap-6">
         <div>
           <h1 class="text-lg font-semibold leading-8 text-zinc-800">
-            {render_slot(@inner_block)}
+            <%= @title || render_slot(@inner_block) %>
           </h1>
           <p :if={@subtitle != []} class="mt-2 text-sm leading-6 text-zinc-600" data-test="header-with-subtitle">
             {render_slot(@subtitle)}
           </p>
         </div>
-        <div :if={@actions != []} class="flex-none" data-test="header-with-actions">
+        <div :if={@actions != [] || @actions_header != []} class="flex-none" data-test="header-with-actions">
+          {render_slot(@actions_header)}
           {render_slot(@actions)}
         </div>
       </div>

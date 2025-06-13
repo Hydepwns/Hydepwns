@@ -1,13 +1,39 @@
 <div>
-  <h1>Admin Resource Dashboard (Ultra Minimal)</h1>
-  
-  <div data-test-id="resource-type-select">
-    <select>
-      <option>Mock Type Select</option>
-    </select>
+  <header class="dashboard-header">
+    <h1>Resource Dashboard</h1>
+    <nav class="dashboard-nav">
+      <a href="/events" data-test-id="events-link">Events</a>
+      <a href="/account" data-test-id="account-link">Account</a>
+    </nav>
+  </header>
+
+  <div class="resource-controls">
+    <div data-test-id="resource-type-select">
+      <select>
+        <option>Mock Type Select</option>
+      </select>
+    </div>
+
+    <button data-test-id="create-new-resource" phx-click="new-resource">Create New Resource</button>
   </div>
 
-  <button data-test-id="create-new-resource" phx-click="new-resource">Create New Resource</button>
+  <div class="resource-list">
+    <%= for resource <- @resources do %>
+      <div class="resource-row">
+        <a href={"/resources/#{resource.id}"} data-test-id={"resource-link-#{resource.id}"}>
+          <%= resource.name %>
+        </a>
+      </div>
+    <% end %>
+  </div>
 
-  <p>Resource listing area intentionally left blank for debugging.</p>
+  <div class="relationship-list">
+    <%= for relationship <- @relationships do %>
+      <div class="relationship-row">
+        <span><%= relationship.parent.name %></span>
+        <span>→</span>
+        <span><%= relationship.child.name %></span>
+      </div>
+    <% end %>
+  </div>
 </div> 

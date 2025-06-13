@@ -1,14 +1,16 @@
-defmodule HydepwnsLiveviewWeb.EventExportLive do
+defmodule HydepwnsLiveviewWeb.Admin.EventExportLive do
   @moduledoc """
   LiveView for exporting event data in various formats in the admin dashboard.
   """
 
   use HydepwnsLiveviewWeb, :live_view
-  import HydepwnsLiveviewWeb.CoreComponents
 
   alias HydepwnsLiveview.Events
+  alias HydepwnsLiveview.Events.Event
+  alias HydepwnsLiveview.Events.EventExport
 
-  @behaviour Phoenix.LiveView
+  import HydepwnsLiveviewWeb.Components.Common.CoreComponents
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
@@ -137,9 +139,9 @@ defmodule HydepwnsLiveviewWeb.EventExportLive do
             </div>
 
             <div class="flex justify-end">
-              <.button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                Export
-              </.button>
+              <HydepwnsLiveviewWeb.Components.UI.FormComponents.button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Export Events
+              </HydepwnsLiveviewWeb.Components.UI.FormComponents.button>
             </div>
           </.form>
         </div>

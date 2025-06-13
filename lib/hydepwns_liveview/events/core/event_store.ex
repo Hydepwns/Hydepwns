@@ -193,6 +193,28 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   end
 
   @doc """
+  Stores an event in the event store with type and data.
+
+  ## Parameters
+  * `event_type` - The type of the event
+  * `event_data` - The data for the event
+
+  ## Returns
+  * `{:ok, persisted_event}` - The event was successfully stored
+  * `{:error, reason}` - The event could not be stored
+  """
+  @spec store_event(String.t(), map()) :: {:ok, Event.t()} | {:error, Ecto.Changeset.t()}
+  def store_event(event_type, event_data) do
+    %Event{}
+    |> Event.changeset(%{
+      type: event_type,
+      data: event_data,
+      timestamp: DateTime.utc_now()
+    })
+    |> Repo.insert()
+  end
+
+  @doc """
   Stores multiple events in the event store.
 
   ## Parameters

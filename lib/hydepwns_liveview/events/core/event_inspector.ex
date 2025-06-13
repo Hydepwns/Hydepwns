@@ -191,7 +191,7 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
         Enum.map(events_by_minute, fn {minute, events} ->
           {minute, length(events)}
         end)
-        |> Enum.sort_by(fn {minute, _} -> minute end)
+        |> Enum.sort_by(fn {_minute, _} -> _minute end)
       else
         []
       end

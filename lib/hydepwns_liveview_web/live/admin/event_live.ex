@@ -1,4 +1,4 @@
-defmodule HydepwnsLiveviewWeb.EventIndexLive do
+defmodule HydepwnsLiveviewWeb.Admin.EventLive do
   @moduledoc """
   LiveView for displaying the list of events in the admin dashboard.
   """
@@ -6,8 +6,7 @@ defmodule HydepwnsLiveviewWeb.EventIndexLive do
   use HydepwnsLiveviewWeb, :live_view
 
   alias HydepwnsLiveview.Events
-
-  @behaviour Phoenix.LiveView
+  alias HydepwnsLiveview.Events.Event
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do

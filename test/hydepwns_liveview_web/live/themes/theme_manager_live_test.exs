@@ -3,7 +3,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
   @moduletag :liveview
   import Phoenix.LiveViewTest
   import HydepwnsLiveview.ThemeSystemFixtures
-  import ThemeHelper
+  import HydepwnsLiveview.ThemeHelper
   alias HydepwnsLiveviewWeb.MockHelper
 
   setup %{conn: conn} do
@@ -215,5 +215,10 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
       mode_value = Floki.attribute(mode_div, "data-mode")
       assert mode_value == ["dark"]
     end
+  end
+
+  defp ensure_theme_exists do
+    themes = HydepwnsLiveview.ThemeSystem.list_themes()
+    assert length(themes) > 0
   end
 end

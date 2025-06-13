@@ -6,7 +6,7 @@ defmodule HydepwnsLiveviewWeb.Layouts do
     namespace: HydepwnsLiveviewWeb
 
   import Phoenix.Controller, only: [get_csrf_token: 0]
-  import HydepwnsLiveviewWeb.Components.UI.ThemeToggle, only: [theme_toggle: 1]
+  import HydepwnsLiveviewWeb.Components.Common.ThemeToggle, only: [theme_toggle: 1]
   import HydepwnsLiveviewWeb.Components.UI.DebugGrid, only: [debug_grid: 1]
 
   use Phoenix.VerifiedRoutes,

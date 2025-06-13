@@ -1,11 +1,15 @@
 defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
-  use HydepwnsLiveviewWeb.BaseLive,
-    layout: {HydepwnsLiveviewWeb.Layouts, :app}
+  @moduledoc """
+  LiveView for the resource event system.
+  """
+
+  use HydepwnsLiveviewWeb, :live_view
+
+  alias HydepwnsLiveview.Resources
+  alias HydepwnsLiveview.Resources.Resource
 
   import Phoenix.Component
-  @behaviour Phoenix.LiveView
 
-  @impl true
   def mount(_params, _session, socket) do
     socket =
       socket
@@ -19,7 +23,6 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
     socket
   end
 
-  @impl true
   def handle_event("filter_events", %{"event_filter" => filter_params}, socket) do
     filter = %{
       type: Map.get(filter_params, "type"),
@@ -30,17 +33,14 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
     {:noreply, assign(socket, :filter, filter)}
   end
 
-  @impl true
   def handle_event("clear_filters", _, socket) do
     {:noreply, assign(socket, filter: %{type: nil, date_from: nil, date_to: nil})}
   end
 
-  @impl true
   def handle_event("toggle_filters", _, socket) do
     {:noreply, update(socket, :show_filters, &(!&1))}
   end
 
-  @impl true
   def handle_event("toggle_event_type", %{"type" => event_type}, socket) do
     selected_types = socket.assigns.selected_event_types
 
@@ -54,49 +54,47 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
     {:noreply, assign(socket, :selected_event_types, new_selected_types)}
   end
 
-  @impl true
   def handle_info({:resource_event, event}, socket) do
     events = [event | socket.assigns.events]
     {:noreply, assign(socket, :events, events)}
   end
 
-  @impl true
   def render(assigns) do
     ~H"""
     <div class="container mx-auto px-4 py-8">
       <div class="flex justify-between items-center mb-8">
         <h1 class="text-3xl font-bold">Resource Event System</h1>
         <div class="flex gap-4">
-          <button phx-click="toggle_filters" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+          <button phx-click="toggle_filters" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" data-test-id="toggle-filters">
             <%= if @show_filters, do: "Hide Filters", else: "Show Filters" %>
           </button>
         </div>
       </div>
 
       <%= if @show_filters do %>
-        <div class="bg-white shadow rounded-lg p-6 mb-8">
+        <div class="bg-white shadow rounded-lg p-6 mb-8" data-test-id="filter-section">
           <form phx-submit="filter_events">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
               <div>
                 <label for="filter-type" class="block text-sm font-medium text-gray-700">Event Type</label>
-                <input type="text" id="filter-type" name="event_filter[type]" value={@filter.type} class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" />
+                <input type="text" id="filter-type" name="event_filter[type]" value={@filter.type} class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" data-test-id="filter-type" />
               </div>
 
               <div>
                 <label for="filter-date-from" class="block text-sm font-medium text-gray-700">From Date</label>
-                <input type="date" id="filter-date-from" name="event_filter[date_from]" value={@filter.date_from} class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" />
+                <input type="date" id="filter-date-from" name="event_filter[date_from]" value={@filter.date_from} class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" data-test-id="filter-date-from" />
               </div>
 
               <div>
                 <label for="filter-date-to" class="block text-sm font-medium text-gray-700">To Date</label>
-                <input type="date" id="filter-date-to" name="event_filter[date_to]" value={@filter.date_to} class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" />
+                <input type="date" id="filter-date-to" name="event_filter[date_to]" value={@filter.date_to} class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" data-test-id="filter-date-to" />
               </div>
 
               <div class="md:col-span-3 flex justify-end gap-2">
-                <button type="button" phx-click="clear_filters" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded">
+                <button type="button" phx-click="clear_filters" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded" data-test-id="clear-filters">
                   Clear Filters
                 </button>
-                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" data-test-id="apply-filters">
                   Apply Filter
                 </button>
               </div>
@@ -125,17 +123,17 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
             <%= for event <- @events do %>
-              <tr class="event-row">
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <tr class="event-row" data-test-id="event-row">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-test-id="event-type">
                   <%= event.type %>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-test-id="event-resource-id">
                   <%= event.resource_id %>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-test-id="event-timestamp">
                   <%= format_datetime(event.timestamp) %>
                 </td>
-                <td class="px-6 py-4 text-sm text-gray-500">
+                <td class="px-6 py-4 text-sm text-gray-500" data-test-id="event-data">
                   <pre class="event-data"><%= inspect(event.data, pretty: true) %></pre>
                 </td>
               </tr>

@@ -1,14 +1,16 @@
-defmodule HydepwnsLiveviewWeb.EventNotificationLive do
+defmodule HydepwnsLiveviewWeb.Admin.EventNotificationLive do
   @moduledoc """
   LiveView for managing event notifications in the admin dashboard.
   """
 
   use HydepwnsLiveviewWeb, :live_view
-  import HydepwnsLiveviewWeb.CoreComponents
 
   alias HydepwnsLiveview.Events
+  alias HydepwnsLiveview.Events.Event
+  alias HydepwnsLiveview.Events.EventNotification
 
-  @behaviour Phoenix.LiveView
+  import HydepwnsLiveviewWeb.Components.Common.CoreComponents
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
@@ -164,9 +166,9 @@ defmodule HydepwnsLiveviewWeb.EventNotificationLive do
               </div>
 
               <div class="flex justify-end">
-                <.button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                <HydepwnsLiveviewWeb.Components.UI.FormComponents.button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                   Create Template
-                </.button>
+                </HydepwnsLiveviewWeb.Components.UI.FormComponents.button>
               </div>
             </.form>
           </div>

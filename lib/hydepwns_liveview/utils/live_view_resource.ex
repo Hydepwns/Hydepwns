@@ -961,16 +961,11 @@ defmodule HydepwnsLiveview.Utils.LiveViewResource do
     end
   end
 
-  # Helper for ensuring a resource has a module reference
   defp ensure_resource_module(resource) when is_map(resource) do
     if Map.has_key?(resource, :__resource_module__) do
       resource
     else
       Map.put(resource, :__resource_module__, __MODULE__)
     end
-  end
-
-  defp ensure_resource_module(module) when is_atom(module) do
-    %{__resource_module__: module}
   end
 end

@@ -1,14 +1,13 @@
 defmodule HydepwnsLiveviewWeb.UserEmailConfirmationLive do
   use HydepwnsLiveviewWeb, :live_view
 
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [simple_form: 1, input: 1, button: 1]
-
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveview.Accounts.User
+  alias HydepwnsLiveviewWeb.UserAuth
 
-  @impl true
-  def mount(%{"token" => token}, _session, socket) do
-    {:ok, assign(socket, :changeset, User.email_confirmation_changeset(%User{}, %{}, token))}
+  @impl Phoenix.LiveView
+  def mount(_params, _session, socket) do
+    {:ok, assign(socket, page_title: "Email Confirmation")}
   end
 
   @impl true
@@ -35,21 +34,41 @@ defmodule HydepwnsLiveviewWeb.UserEmailConfirmationLive do
     end
   end
 
-  @impl true
+  @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
-    <div>
-      <.header>
-        Confirm Email
-        <:subtitle>Confirm your new email address.</:subtitle>
-      </.header>
+    <div class="container mx-auto px-4 py-8">
+      <%= HydepwnsLiveviewWeb.Components.Common.HeaderComponent.header(assigns) %>
 
-      <.simple_form for={@changeset} id="email-confirmation-form" phx-change="validate" phx-submit="save">
-        <.input field={@changeset[:email]} type="email" label="Email" />
-        <:actions>
-          <.button phx-disable-with="Confirming...">Confirm Email</.button>
-        </:actions>
-      </.simple_form>
+      <div class="bg-white shadow rounded-lg p-6">
+        <div class="space-y-6">
+          <div>
+            <h3 class="text-lg font-medium">Email Confirmation</h3>
+            <.form
+              :let={f}
+              for={%{}}
+              id="email-confirmation-form"
+              phx-submit="confirm"
+            >
+              <div class="space-y-4">
+    <div>
+                  <.label for={f[:token].id}>Confirmation Token</.label>
+                  <.input field={f[:token]} type="text" required />
+                </div>
+
+                <div class="flex justify-end space-x-4">
+                  <.link navigate={~p"/users/settings"} class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                    Cancel
+          </.link>
+                  <.button type="submit" phx-disable-with="Confirming...">
+                    Confirm Email
+                  </.button>
+                </div>
+              </div>
+            </.form>
+          </div>
+        </div>
+      </div>
     </div>
     """
   end

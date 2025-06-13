@@ -1,13 +1,12 @@
-defmodule HydepwnsLiveviewWeb.EventShowLive do
+defmodule HydepwnsLiveviewWeb.Admin.EventShowLive do
   @moduledoc """
   LiveView for displaying event details in the admin dashboard.
   """
 
   use HydepwnsLiveviewWeb, :live_view
 
-  alias HydepwnsLiveview.Events
-
-  @behaviour Phoenix.LiveView
+  import HydepwnsLiveviewWeb.Components.Common.CoreComponents
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
@@ -24,18 +23,24 @@ defmodule HydepwnsLiveviewWeb.EventShowLive do
   defp apply_action(socket, :show, %{"id" => id}) do
     socket
     |> assign(:page_title, "Event Details")
-    |> assign(:event, Events.get_event!(id))
+    |> assign(:event, HydepwnsLiveview.Events.get_event!(id))
   end
 
   @impl Phoenix.LiveView
-  def handle_event("delete", %{"id" => id}, socket) do
-    event = Events.get_event!(id)
-    {:ok, _} = Events.delete_event(event)
+  def handle_event("delete", %{"id" => _id}, socket) do
+    case HydepwnsLiveview.Events.delete_event(socket.assigns.event) do
+      {:ok, _event} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Event deleted successfully")
+         |> push_navigate(to: ~p"/admin/events")}
 
-    {:noreply,
-     socket
-     |> put_flash(:info, "Event deleted successfully")
-     |> push_redirect(to: ~p"/admin/events")}
+      {:error, _changeset} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Event could not be deleted")
+         |> push_navigate(to: ~p"/admin/events")}
+    end
   end
 
   @impl Phoenix.LiveView

@@ -34,7 +34,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
     test "user can create a resource and see events generated", %{session: session} do
       # Click on "Create New Resource" button
       session
-      |> click(link("Create New Resource"))
+      |> click(Wallaby.Query.link("Create New Resource"))
 
       # Fill out the form
       session
@@ -48,7 +48,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
 
       # Navigate to events dashboard
       session
-      |> click(link("View Events"))
+      |> click(Wallaby.Query.link("View Events"))
 
       # Verify resource.created event is visible
       Wallaby.Browser.assert_has(session, css(".event-row", text: "resource.created"))
@@ -71,7 +71,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
 
       # Navigate to events dashboard
       session
-      |> click(link("View Events"))
+      |> click(Wallaby.Query.link("View Events"))
 
       # Verify resource.updated event is visible
       Wallaby.Browser.assert_has(session, css(".event-row", text: "resource.updated"))
@@ -93,7 +93,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
 
       # Navigate to events dashboard
       session
-      |> click(link("View Events"))
+      |> click(Wallaby.Query.link("View Events"))
 
       # Verify resource.deleted event is visible
       Wallaby.Browser.assert_has(session, css(".event-row", text: "resource.deleted"))
@@ -106,7 +106,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
       # Navigate to event timeline
       session
       |> click(Query.css("[data-test-id='events-link']"))
-      |> click(link("Timeline"))
+      |> click(Wallaby.Query.link("Timeline"))
 
       # Verify timeline components are present
       Wallaby.Browser.assert_has(session, css(".event-timeline"))
@@ -155,7 +155,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
       # Navigate to notification settings
       session
       |> click(Query.css("[data-test-id='account-link']"))
-      |> click(link("Notification Settings"))
+      |> click(Wallaby.Query.link("Notification Settings"))
 
       # Subscribe to resource.created events
       session
@@ -170,8 +170,8 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
 
       # Create a new resource to trigger event
       session
-      |> click(link("Resources"))
-      |> click(link("Create New Resource"))
+      |> click(Wallaby.Query.link("Resources"))
+      |> click(Wallaby.Query.link("Create New Resource"))
       |> fill_in(text_field("resource[name]"), with: "Notification Test")
       |> click(button("Create Resource"))
 

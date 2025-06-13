@@ -43,6 +43,30 @@ defmodule HydepwnsLiveview.Utils.LiveViewAPI do
   alias HydepwnsLiveview.Utils.ChangeTracker
 
   @doc """
+  Gets a value directly from socket assigns.
+
+  ## Parameters
+
+  - `socket` - The LiveView socket.
+  - `field` - The field to get from the assigns.
+  - `default` - Optional default value to return if the field doesn't exist.
+
+  ## Returns
+
+  The value of the specified field, or the default value if it doesn't exist.
+
+  ## Examples
+
+  ```elixir
+  # Get the current theme
+  theme = LiveViewAPI.get(socket, :theme, "light")
+  ```
+  """
+  def get(%Socket{} = socket, field, default \\ nil) when is_atom(field) do
+    Map.get(socket.assigns, field, default)
+  end
+
+  @doc """
   Gets a value from a resource-oriented socket assign.
 
   ## Parameters
@@ -60,13 +84,13 @@ defmodule HydepwnsLiveview.Utils.LiveViewAPI do
 
   ```elixir
   # Get the user's role
-  role = LiveViewAPI.get(socket, :user, :role)
+  role = LiveViewAPI.get_resource(socket, :user, :role)
 
   # Get the user's theme with a default
-  theme = LiveViewAPI.get(socket, :user, :theme, "light")
+  theme = LiveViewAPI.get_resource(socket, :user, :theme, "light")
   ```
   """
-  def get(%Socket{} = socket, resource, field, default \\ nil)
+  def get_resource(%Socket{} = socket, resource, field, default \\ nil)
       when is_atom(resource) and is_atom(field) do
     socket.assigns
     |> Map.get(resource, %{})
@@ -74,27 +98,47 @@ defmodule HydepwnsLiveview.Utils.LiveViewAPI do
   end
 
   @doc """
-  Gets a value directly from socket assigns.
+  Updates socket assigns directly with the given values.
 
   ## Parameters
 
   - `socket` - The LiveView socket.
-  - `field` - The field to get from the assigns.
-  - `default` - Optional default value to return if the field doesn't exist.
+  - `values` - A map of field-value pairs to update.
+  - `opts` - Options for the update operation.
+    - `:validate` - Whether to validate the values before updating. Defaults to `true`.
 
   ## Returns
 
-  The value of the specified field, or the default value if it doesn't exist.
+  - `{:ok, socket}` - If the update was successful.
+  - `{:error, message, socket}` - If the update failed.
 
   ## Examples
 
   ```elixir
-  # Get the current theme
-  theme = LiveViewAPI.get_assign(socket, :theme, "light")
+  # Update multiple assigns at once
+  case LiveViewAPI.update(socket, %{theme: "dark", sidebar_open: true}) do
+    {:ok, updated_socket} ->
+      {:noreply, updated_socket}
+    
+    {:error, message, socket} ->
+      {:noreply, put_flash(socket, :error, message)}
+  end
   ```
   """
-  def get_assign(%Socket{} = socket, field, default \\ nil) when is_atom(field) do
-    Map.get(socket.assigns, field, default)
+  def update(%Socket{} = socket, values, opts \\ []) when is_map(values) do
+    validate = Keyword.get(opts, :validate, true)
+
+    if validate do
+      case validate_assigns_update(socket, values) do
+        {:ok, validated_values} ->
+          {:ok, Phoenix.Component.assign(socket, validated_values)}
+
+        {:error, message} ->
+          {:error, message, socket}
+      end
+    else
+      {:ok, Phoenix.Component.assign(socket, values)}
+    end
   end
 
   @doc """
@@ -117,7 +161,7 @@ defmodule HydepwnsLiveview.Utils.LiveViewAPI do
 
   ```elixir
   # Update the user's settings
-  case LiveViewAPI.update(socket, :user, %{role: "admin", active: true}) do
+  case LiveViewAPI.update_resource(socket, :user, %{role: "admin", active: true}) do
     {:ok, updated_socket} ->
       {:noreply, updated_socket}
     
@@ -126,7 +170,7 @@ defmodule HydepwnsLiveview.Utils.LiveViewAPI do
   end
   ```
   """
-  def update(%Socket{} = socket, resource, values, opts \\ [])
+  def update_resource(%Socket{} = socket, resource, values, opts \\ [])
       when is_atom(resource) do
     validate = Keyword.get(opts, :validate, true)
 
@@ -141,7 +185,6 @@ defmodule HydepwnsLiveview.Utils.LiveViewAPI do
           end
         end)
       else
-        # Not a map, pass through
         values
       end
 
@@ -155,50 +198,6 @@ defmodule HydepwnsLiveview.Utils.LiveViewAPI do
       end
     else
       {:ok, Phoenix.Component.assign(socket, resource, atom_keyed_values)}
-    end
-  end
-
-  @doc """
-  Updates socket assigns directly with the given values.
-
-  ## Parameters
-
-  - `socket` - The LiveView socket.
-  - `values` - A map of field-value pairs to update.
-  - `opts` - Options for the update operation.
-    - `:validate` - Whether to validate the values before updating. Defaults to `true`.
-
-  ## Returns
-
-  - `{:ok, socket}` - If the update was successful.
-  - `{:error, message, socket}` - If the update failed.
-
-  ## Examples
-
-  ```elixir
-  # Update multiple assigns at once
-  case LiveViewAPI.update_assigns(socket, %{theme: "dark", sidebar_open: true}) do
-    {:ok, updated_socket} ->
-      {:noreply, updated_socket}
-    
-    {:error, message, socket} ->
-      {:noreply, put_flash(socket, :error, message)}
-  end
-  ```
-  """
-  def update_assigns(%Socket{} = socket, values, opts \\ []) when is_map(values) do
-    validate = Keyword.get(opts, :validate, true)
-
-    if validate do
-      case validate_assigns_update(socket, values) do
-        {:ok, validated_values} ->
-          {:ok, Phoenix.Component.assign(socket, validated_values)}
-
-        {:error, message} ->
-          {:error, message, socket}
-      end
-    else
-      {:ok, Phoenix.Component.assign(socket, values)}
     end
   end
 
@@ -640,12 +639,10 @@ defmodule HydepwnsLiveview.Utils.LiveViewAPI do
         "admin" ->
           {:ok, values}
 
-        # Role not being updated, or no role field
         nil ->
           {:ok, values}
 
         invalid_role ->
-          # In a real scenario, this would come from schema
           allowed_roles = ["user", "admin"]
 
           error_message =
@@ -654,20 +651,15 @@ defmodule HydepwnsLiveview.Utils.LiveViewAPI do
           {:error, error_message}
       end
     else
-      # For other resources, or if :user doesn't have :role, pass for now
       {:ok, values}
     end
   end
 
   defp validate_assigns_update(%Socket{} = _socket, values) do
-    # This would ideally use the type_specs information from the LiveView module
-    # For now, we'll just return :ok
     {:ok, values}
   end
 
   defp validate_resource_create(%Socket{} = _socket, _resource, values) do
-    # This would ideally use the __resource_type_specs__/0 function from the LiveView module
-    # For now, we'll just return :ok
     {:ok, values}
   end
 end

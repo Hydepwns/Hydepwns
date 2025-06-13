@@ -11,10 +11,12 @@ defmodule HydepwnsLiveview.ThemeSystem.Models.Theme do
 
   schema "themes" do
     field :name, :string
-    field :mode, :string, default: "light"
-    field :colors, :map, default: %{}
+    field :mode, :string
+    field :primary_color, :string
+    field :secondary_color, :string
+    field :background_color, :string
+    field :text_color, :string
     field :is_default, :boolean, default: false
-    field :settings, :map, default: %{}
     field :__unset_other_defaults__, :boolean, virtual: true
 
     timestamps(type: :utc_datetime)
@@ -33,64 +35,14 @@ defmodule HydepwnsLiveview.ThemeSystem.Models.Theme do
   An Ecto.Changeset with validations applied
   """
   def changeset(theme, attrs) do
-    attrs = for {k, v} <- attrs, into: %{}, do: {to_string(k), v}
-
-    # Extract colors from attrs
-    colors = cond do
-      # If colors are provided as a nested map, use them directly
-      Map.has_key?(attrs, "colors") && is_map(attrs["colors"]) ->
-        attrs["colors"]
-      # Otherwise, try to build from flattened fields
-      true ->
-        %{
-          "primary" => attrs["primary"] || attrs["colors"]["primary"],
-          "secondary" => attrs["secondary"] || attrs["colors"]["secondary"],
-          "accent" => attrs["accent"] || attrs["colors"]["accent"],
-          "background" => attrs["background"] || attrs["colors"]["background"],
-          "text" => attrs["text"] || attrs["colors"]["text"],
-          "border" => attrs["border"] || attrs["colors"]["border"],
-          "error" => attrs["error"] || attrs["colors"]["error"],
-          "success" => attrs["success"] || attrs["colors"]["success"],
-          "warning" => attrs["warning"] || attrs["colors"]["warning"],
-          "info" => attrs["info"] || attrs["colors"]["info"]
-        }
-    end
-
-    # Extract settings from attrs
-    settings = cond do
-      # If settings are provided as a nested map, use them directly
-      Map.has_key?(attrs, "settings") && is_map(attrs["settings"]) ->
-        attrs["settings"]
-      # Otherwise, try to build from flattened fields
-      true ->
-        %{
-          "font_family" => attrs["font_family"] || attrs["settings"]["font_family"],
-          "font_size" => attrs["font_size"] || attrs["settings"]["font_size"],
-          "line_height" => attrs["line_height"] || attrs["settings"]["line_height"],
-          "spacing_unit" => attrs["spacing_unit"] || attrs["settings"]["spacing_unit"],
-          "contrast" => attrs["contrast"] || attrs["settings"]["contrast"],
-          "animations" => attrs["animations"] || attrs["settings"]["animations"],
-          "reduced_motion" => attrs["reduced_motion"] || attrs["settings"]["reduced_motion"]
-        }
-    end
-
-    # Remove nil values
-    colors = Map.filter(colors, fn {_k, v} -> v != nil end)
-    settings = Map.filter(settings, fn {_k, v} -> v != nil end)
-
-    # Merge with existing values
-    colors = Map.merge(theme.colors || %{}, colors)
-    settings = Map.merge(theme.settings || %{}, settings)
-
-    attrs = Map.merge(attrs, %{
-      "colors" => colors,
-      "settings" => settings
-    })
-
     theme
-    |> cast(attrs, [:id, :name, :mode, :colors, :is_default, :settings])
-    |> validate_required([:name, :mode])
-    |> validate_inclusion(:mode, ["light", "dark", "dim", "system"])
+    |> cast(attrs, [:name, :mode, :primary_color, :secondary_color, :background_color, :text_color, :is_default])
+    |> validate_required([:name, :mode, :primary_color, :secondary_color, :background_color, :text_color])
+    |> validate_inclusion(:mode, ["light", "dark"])
+    |> validate_format(:primary_color, ~r/^#[0-9A-Fa-f]{6}$/, message: "must be a valid hex color")
+    |> validate_format(:secondary_color, ~r/^#[0-9A-Fa-f]{6}$/, message: "must be a valid hex color")
+    |> validate_format(:background_color, ~r/^#[0-9A-Fa-f]{6}$/, message: "must be a valid hex color")
+    |> validate_format(:text_color, ~r/^#[0-9A-Fa-f]{6}$/, message: "must be a valid hex color")
     |> unique_constraint(:name)
     |> maybe_handle_default()
   end
@@ -112,18 +64,24 @@ defmodule HydepwnsLiveview.ThemeSystem.Models.Theme do
     params = for {k, v} <- params, into: %{}, do: {to_string(k), v}
 
     types = %{
-      id: :integer,
       name: :string,
       mode: :string,
-      colors: :map,
-      is_default: :boolean,
-      settings: :map
+      primary_color: :string,
+      secondary_color: :string,
+      background_color: :string,
+      text_color: :string,
+      is_default: :boolean
     }
 
     {%{}, types}
     |> cast(params, Map.keys(types))
     |> validate_required([:name, :mode])
-    |> validate_inclusion(:mode, ["light", "dark", "dim", "system"])
+    |> validate_inclusion(:mode, ["light", "dark"])
+    |> validate_required([:primary_color, :secondary_color, :background_color, :text_color])
+    |> validate_format(:primary_color, ~r/^#[0-9a-fA-F]{6}$/, message: "must be a valid hex color")
+    |> validate_format(:secondary_color, ~r/^#[0-9a-fA-F]{6}$/, message: "must be a valid hex color")
+    |> validate_format(:background_color, ~r/^#[0-9a-fA-F]{6}$/, message: "must be a valid hex color")
+    |> validate_format(:text_color, ~r/^#[0-9a-fA-F]{6}$/, message: "must be a valid hex color")
   end
 
   # If this theme is being set as default, unset any existing default

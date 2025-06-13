@@ -11,8 +11,6 @@ defmodule HydepwnsLiveviewWeb.UserAuth do
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveviewWeb.Router.Helpers, as: Routes
 
-  @behaviour Phoenix.LiveView
-
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
     default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()
@@ -56,7 +54,7 @@ defmodule HydepwnsLiveviewWeb.UserAuth do
     socket = assign_current_user(socket, session)
 
     if socket.assigns.current_user do
-      {:halt, redirect(socket, to: Routes.user_path(socket, :show, socket.assigns.current_user))}
+      {:halt, Phoenix.LiveView.redirect(socket, to: Routes.user_path(socket, :show, socket.assigns.current_user))}
     else
       {:cont, socket}
     end
@@ -86,12 +84,12 @@ defmodule HydepwnsLiveviewWeb.UserAuth do
     user_return_to = get_session(socket, :user_return_to)
 
     socket
-    |> assign(:current_user, user)
-    |> assign(:user_token, token)
+    |> Plug.Conn.assign(:current_user, user)
+    |> Plug.Conn.assign(:user_token, token)
     |> put_session(:user_token, token)
     |> put_session(:live_socket_id, "users_sessions:#{Base.url_encode64(token)}")
     |> maybe_write_remember_me_cookie(token, params)
-    |> redirect(to: user_return_to || signed_in_path(socket))
+    |> Phoenix.LiveView.redirect(to: user_return_to || signed_in_path(socket))
   end
 
   defp maybe_write_remember_me_cookie(socket, token, %{"remember_me" => "true"}) do
@@ -109,8 +107,8 @@ defmodule HydepwnsLiveviewWeb.UserAuth do
     socket
     |> clear_session()
     |> delete_resp_cookie(:remember_token)
-    |> redirect(to: ~p"/")
+    |> Phoenix.LiveView.redirect(to: ~p"/")
   end
 
   defp signed_in_path(_socket), do: ~p"/"
-end 
+end

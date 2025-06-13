@@ -5,6 +5,8 @@ defmodule HydepwnsLiveview.Accounts do
 
   alias HydepwnsLiveview.Repo
   alias HydepwnsLiveview.Accounts.User
+  alias HydepwnsLiveview.Accounts.UserToken
+  import Ecto.Query
 
   @doc """
   Creates a user.
@@ -193,5 +195,63 @@ defmodule HydepwnsLiveview.Accounts do
   """
   def update_user_security(user, attrs) do
     update_security(user, attrs)
+  end
+
+  @doc """
+  Authenticates a user.
+  """
+  def authenticate_user(%{"email" => email, "password" => password}) do
+    user = get_user_by_email(email)
+    cond do
+      user && Bcrypt.verify_pass(password, user.password_hash) ->
+        {:ok, user}
+      user ->
+        {:error, :unauthorized}
+      true ->
+        Bcrypt.no_user_verify()
+        {:error, :not_found}
+    end
+  end
+
+  @doc """
+  Generates a session token for a user.
+  """
+  def generate_user_session_token(user) do
+    token = :crypto.strong_rand_bytes(32) |> Base.encode64()
+    Repo.insert(%UserToken{user_id: user.id, token: token})
+    token
+  end
+
+  @doc """
+  Gets a user by session token.
+  """
+  def get_user_by_session_token(token) do
+    Repo.get_by(UserToken, token: token)
+    |> Repo.preload(:user)
+    |> case do
+      %UserToken{user: user} -> user
+      nil -> nil
+    end
+  end
+
+  @doc """
+  Deletes a session token.
+  """
+  def delete_session_token(token) do
+    Repo.delete_all(from t in UserToken, where: t.token == ^token and t.context == "session")
+  end
+
+  @doc """
+  Returns a changeset for user session.
+  """
+  def change_user_session(attrs \\ %{}) do
+    UserToken.changeset(%UserToken{}, attrs)
+  end
+
+  @doc """
+  Returns a changeset for user session with user.
+  """
+  def change_user_session(user, attrs) do
+    UserToken.changeset(%UserToken{user_id: user.id}, attrs)
   end
 end 

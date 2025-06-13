@@ -2,21 +2,20 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeDetailLive do
   use HydepwnsLiveviewWeb, :live_view
 
   alias HydepwnsLiveview.ThemeSystem
+  alias HydepwnsLiveview.ThemeSystem.Theme
+  alias HydepwnsLiveviewWeb.Helpers.PathHelper
 
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [simple_form: 1, input: 1, button: 1]
+  @impl Phoenix.LiveView
+  def mount(_params, _session, socket) do
+    default_theme = ThemeSystem.ensure_default_theme()
+    theme_class = "#{default_theme.mode}-theme"
+    {:ok, assign(socket, theme_class: theme_class)}
+  end
 
-  @impl true
-  def mount(%{"id" => id}, _session, socket) do
-    case ThemeSystem.get_theme(id) do
-      nil ->
-        {:ok,
-         socket
-         |> put_flash(:error, "Theme not found")
-         |> redirect(to: ~p"/themes")}
-
-      theme ->
-        {:ok, assign(socket, :theme, theme)}
-    end
+  @impl Phoenix.LiveView
+  def handle_params(%{"id" => id}, _url, socket) do
+    theme = ThemeSystem.get_theme!(id)
+    {:noreply, assign(socket, :theme, theme)}
   end
 
   @impl true
@@ -42,61 +41,42 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeDetailLive do
      |> put_flash(:info, "Theme applied successfully")}
   end
 
-  @impl true
+  @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
-    <div>
-      <.header>
-        Theme Details
-        <:subtitle>Customize your theme settings.</:subtitle>
-        <:actions>
-          <.button phx-click="apply">Apply Theme</.button>
-        </:actions>
-      </.header>
+    <div class="container mx-auto px-4 py-8">
+      <%= HydepwnsLiveviewWeb.Components.Common.HeaderComponent.header(assigns) %>
 
-      <.simple_form for={%{}} id="theme-form" phx-submit="save">
+      <div class="bg-white shadow rounded-lg p-6">
         <div class="space-y-6">
           <div>
-            <h3 class="text-lg font-medium leading-6 text-gray-900">Colors</h3>
-            <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <.input field={@theme.colors.primary} type="color" label="Primary Color" />
-              <.input field={@theme.colors.secondary} type="color" label="Secondary Color" />
-              <.input field={@theme.colors.accent} type="color" label="Accent Color" />
-              <.input field={@theme.colors.background} type="color" label="Background Color" />
-            </div>
+            <h3 class="text-lg font-medium">Theme Details</h3>
+            <dl class="mt-4 space-y-4">
+    <div>
+            <dt class="text-sm font-medium text-gray-500">Name</dt>
+                <dd class="mt-1 text-sm text-gray-900"><%= @theme.name %></dd>
+          </div>
+              <div>
+            <dt class="text-sm font-medium text-gray-500">Mode</dt>
+                <dd class="mt-1 text-sm text-gray-900"><%= @theme.mode %></dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Created At</dt>
+                <dd class="mt-1 text-sm text-gray-900"><%= @theme.inserted_at %></dd>
+              </div>
+            </dl>
           </div>
 
-          <div>
-            <h3 class="text-lg font-medium leading-6 text-gray-900">Typography</h3>
-            <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <.input field={@theme.typography.font_family} type="text" label="Font Family" />
-              <.input field={@theme.typography.font_size} type="number" label="Base Font Size" />
-              <.input field={@theme.typography.line_height} type="number" label="Line Height" step="0.1" />
-            </div>
+          <div class="flex justify-end space-x-4">
+            <.link navigate={~p"/themes/#{@theme}/edit"} class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+              Edit Theme
+            </.link>
+            <.link navigate={~p"/themes"} class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+              Back to Themes
+            </.link>
           </div>
-
-          <div>
-            <h3 class="text-lg font-medium leading-6 text-gray-900">Spacing</h3>
-            <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <.input field={@theme.spacing.base} type="number" label="Base Spacing" />
-              <.input field={@theme.spacing.small} type="number" label="Small Spacing" />
-              <.input field={@theme.spacing.large} type="number" label="Large Spacing" />
-            </div>
           </div>
-
-          <div>
-            <h3 class="text-lg font-medium leading-6 text-gray-900">Accessibility</h3>
-            <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <.input field={@theme.accessibility.contrast_ratio} type="number" label="Minimum Contrast Ratio" step="0.1" />
-              <.input field={@theme.accessibility.font_size_min} type="number" label="Minimum Font Size" />
-            </div>
-          </div>
-        </div>
-
-        <:actions>
-          <.button>Save Theme</.button>
-        </:actions>
-      </.simple_form>
+      </div>
     </div>
     """
   end

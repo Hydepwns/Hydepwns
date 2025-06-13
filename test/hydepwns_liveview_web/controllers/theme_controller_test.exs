@@ -4,7 +4,7 @@ defmodule HydepwnsLiveviewWeb.ThemeControllerTest do
   import Phoenix.VerifiedRoutes
   use HydepwnsLiveviewWeb.ConnCase, async: true
   import Phoenix.Component
-  import ThemeHelper
+  import HydepwnsLiveview.ThemeHelper
   import HydepwnsLiveview.ThemeSystemFixtures
 
   alias HydepwnsLiveview.ThemeSystem

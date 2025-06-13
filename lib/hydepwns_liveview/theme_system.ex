@@ -11,14 +11,87 @@ defmodule HydepwnsLiveview.ThemeSystem do
   alias HydepwnsLiveview.Repo
   alias HydepwnsLiveview.ThemeSystem.Models.Theme
 
-  @spec list_themes() :: [Theme.t()]
+  @doc """
+  Returns the list of themes.
+  """
   def list_themes do
-    themes = Repo.all(Theme)
-    themes
+    Repo.all(Theme)
   end
 
-  @spec get_theme!(term()) :: Theme.t()
+  @doc """
+  Gets a single theme.
+  Raises `Ecto.NoResultsError` if the Theme does not exist.
+  """
   def get_theme!(id), do: Repo.get!(Theme, id)
+
+  @doc """
+  Creates a theme.
+  """
+  def create_theme(attrs \\ %{}) do
+    %Theme{}
+    |> Theme.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a theme.
+  """
+  def update_theme(%Theme{} = theme, attrs) do
+    theme
+    |> Theme.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a theme.
+  """
+  def delete_theme(%Theme{} = theme) do
+    Repo.delete(theme)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking theme changes.
+  """
+  def change_theme(%Theme{} = theme, attrs \\ %{}) do
+    Theme.changeset(theme, attrs)
+  end
+
+  @doc """
+  Applies a theme to the application.
+  """
+  def apply_theme(%Theme{} = theme) do
+    # Update the application's theme settings
+    Application.put_env(:hydepwns_liveview, :theme, %{
+      mode: theme.mode,
+      primary_color: theme.primary_color,
+      secondary_color: theme.secondary_color,
+      background_color: theme.background_color,
+      text_color: theme.text_color
+    })
+
+    {:ok, theme}
+  end
+
+  @doc """
+  Ensures a default theme exists.
+  """
+  def ensure_default_theme do
+    case Repo.get_by(Theme, is_default: true) do
+      nil ->
+        {:ok, theme} = create_theme(%{
+          name: "Default Theme",
+          mode: "light",
+          primary_color: "#3B82F6",
+          secondary_color: "#10B981",
+          background_color: "#FFFFFF",
+          text_color: "#1F2937",
+          is_default: true
+        })
+        theme
+      theme ->
+        theme
+    end
+  end
 
   @spec get_theme_by_name(String.t()) :: Theme.t() | nil
   def get_theme_by_name(name) when is_binary(name) do
@@ -30,64 +103,9 @@ defmodule HydepwnsLiveview.ThemeSystem do
     Repo.get_by(Theme, is_default: true)
   end
 
-  @spec create_theme(map()) :: {:ok, Theme.t()} | {:error, Ecto.Changeset.t()}
-  def create_theme(attrs \\ %{}) do
-    %Theme{}
-    |> Theme.changeset(attrs)
-    |> Repo.insert()
-  end
-
-  @spec update_theme(Theme.t(), map()) :: {:ok, Theme.t()} | {:error, Ecto.Changeset.t()}
-  def update_theme(%Theme{} = theme, attrs) do
-    result =
-      theme
-      |> Theme.changeset(attrs)
-      |> Repo.update()
-
-    case result do
-      {:ok, theme} ->
-        # If this is a default theme, unset other defaults
-        if theme.__unset_other_defaults__ do
-          unset_other_defaults(theme.id)
-        end
-
-        {:ok, theme}
-
-      error ->
-        error
-    end
-  end
-
-  @spec delete_theme(Theme.t()) :: {:ok, Theme.t()} | {:error, Ecto.Changeset.t()}
-  def delete_theme(%Theme{} = theme) do
-    Repo.delete(theme)
-  end
-
-  @spec change_theme(Theme.t(), map()) :: Ecto.Changeset.t()
-  def change_theme(%Theme{} = theme, attrs \\ %{}) do
-    Theme.changeset(theme, attrs)
-  end
-
   @spec set_default_theme(Theme.t()) :: {:ok, Theme.t()} | {:error, Ecto.Changeset.t()}
   def set_default_theme(%Theme{} = theme) do
     update_theme(theme, %{is_default: true})
-  end
-
-  @spec ensure_default_theme() :: Theme.t()
-  def ensure_default_theme do
-    case get_default_theme() do
-      nil ->
-        {:ok, theme} = create_theme(%{
-          name: "Default",
-          description: "Default theme",
-          is_default: true,
-          palette: %{},
-          mode: "dark"
-        })
-        theme
-      theme ->
-        theme
-    end
   end
 
   @spec get_current_theme() :: {:ok, Theme.t()} | {:error, :no_theme}
@@ -96,12 +114,6 @@ defmodule HydepwnsLiveview.ThemeSystem do
       nil -> {:error, :no_theme}
       theme -> {:ok, theme}
     end
-  end
-
-  @spec apply_theme(Theme.t()) :: {:ok, Theme.t()} | {:error, :invalid_theme}
-  def apply_theme(%Theme{} = theme) do
-    Process.put(:current_theme, theme)
-    {:ok, theme}
   end
 
   # Unsets default status for all themes except the given ID

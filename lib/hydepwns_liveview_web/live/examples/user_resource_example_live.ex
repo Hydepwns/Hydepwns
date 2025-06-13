@@ -6,19 +6,20 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceExampleLive do
   define and work with resource-oriented socket assigns.
   """
 
-  use HydepwnsLiveviewWeb.ResourceLive
+  use HydepwnsLiveviewWeb, :live_view
+  use HydepwnsLiveviewWeb.Resources.ResourceLive
 
   alias HydepwnsLiveview.Utils.LiveViewAPI
   alias HydepwnsLiveview.Resources.UserResource
   alias HydepwnsLiveview.Resources
-  alias HydepwnsLiveview.Resources.Resource
+  alias HydepwnsLiveview.ResourceSystem.Models.Resource
 
   # Valid roles that can be assigned to users
   @valid_roles ["admin", "editor", "viewer"]
   # Valid themes that can be applied
   @valid_themes ["light", "dark", "system"]
 
-  @impl true
+  @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
     socket =
       socket
@@ -38,7 +39,7 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceExampleLive do
     {:ok, socket}
   end
 
-  @impl true
+  @impl Phoenix.LiveView
   def handle_params(params, _url, socket) do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
@@ -81,6 +82,7 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceExampleLive do
     |> assign(:resource, %Resource{})
   end
 
+  @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
     <div class="resource-example">
@@ -107,19 +109,19 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceExampleLive do
 
       <div class="actions">
         <h2>Actions</h2>
-        <button phx-click="update_role" phx-value-role="admin">Set as Admin</button>
-        <button phx-click="update_role" phx-value-role="editor">Set as Editor</button>
-        <button phx-click="update_role" phx-value-role="viewer">Set as Viewer</button>
+        <.button phx-click="update_role" phx-value-role="admin">Set as Admin</.button>
+        <.button phx-click="update_role" phx-value-role="editor">Set as Editor</.button>
+        <.button phx-click="update_role" phx-value-role="viewer">Set as Viewer</.button>
 
         <h3>Theme</h3>
-        <button phx-click="update_theme" phx-value-theme="light">Light Theme</button>
-        <button phx-click="update_theme" phx-value-theme="dark">Dark Theme</button>
-        <button phx-click="update_theme" phx-value-theme="system">System Theme</button>
+        <.button phx-click="update_theme" phx-value-theme="light">Light Theme</.button>
+        <.button phx-click="update_theme" phx-value-theme="dark">Dark Theme</.button>
+        <.button phx-click="update_theme" phx-value-theme="system">System Theme</.button>
 
         <h3>Notifications</h3>
-        <button phx-click="toggle_notifications">
+        <.button phx-click="toggle_notifications">
           {if @settings.notifications, do: "Disable", else: "Enable"} Notifications
-        </button>
+        </.button>
       </div>
 
       <div class="resource-debug">
@@ -130,10 +132,10 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceExampleLive do
     """
   end
 
-  @impl true
+  @impl Phoenix.LiveView
   def handle_event("update_role", %{"role" => role}, socket) do
-    with :ok <- validate_role(role),
-         {:ok, socket} <- update_resource(socket, :role, role) do
+    with :ok <- ResourceHelpers.validate_role(role),
+         {:ok, socket} <- ResourceHelpers.update_resource(socket, :role, role) do
       {:noreply, put_flash(socket, :info, "Role updated successfully")}
     else
       {:error, :invalid_role} ->
@@ -143,10 +145,10 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceExampleLive do
     end
   end
 
-  @impl true
+  @impl Phoenix.LiveView
   def handle_event("update_theme", %{"theme" => theme}, socket) do
-    with :ok <- validate_theme(theme),
-         {:ok, socket} <- update_resource(socket, :theme, theme) do
+    with :ok <- ResourceHelpers.validate_theme(theme),
+         {:ok, socket} <- ResourceHelpers.update_resource(socket, :theme, theme) do
       {:noreply, put_flash(socket, :info, "Theme updated successfully")}
     else
       {:error, :invalid_theme} ->
@@ -156,10 +158,10 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceExampleLive do
     end
   end
 
-  @impl true
+  @impl Phoenix.LiveView
   def handle_event("toggle_notifications", _, socket) do
     current_setting = get_resource(socket, :settings).notifications
-    case update_resource(socket, :settings, %{notifications: !current_setting}) do
+    case ResourceHelpers.update_resource(socket, :settings, %{notifications: !current_setting}) do
       {:ok, socket} ->
         message = if !current_setting, do: "Notifications enabled", else: "Notifications disabled"
         {:noreply, put_flash(socket, :info, message)}
@@ -168,8 +170,12 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceExampleLive do
     end
   end
 
-  @impl true
-  def handle_event(_event, _params, socket), do: {:noreply, socket}
+  @impl Phoenix.LiveView
+  def handle_event(event, params, socket) do
+    require Logger
+    Logger.warning("Unhandled event in UserResourceExampleLive: #{inspect(event)} with params: #{inspect(params)}")
+    {:noreply, put_flash(socket, :warning, "Unhandled event: #{event}")}
+  end
 
   # Private helper function to load user from UserResource
   defp load_user_from_resource(socket) do
@@ -194,11 +200,4 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceExampleLive do
         socket
     end
   end
-
-  # Validation functions
-  defp validate_role(role) when role in @valid_roles, do: :ok
-  defp validate_role(_), do: {:error, :invalid_role}
-
-  defp validate_theme(theme) when theme in @valid_themes, do: :ok
-  defp validate_theme(_), do: {:error, :invalid_theme}
 end

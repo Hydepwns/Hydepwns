@@ -55,6 +55,8 @@ defmodule HydepwnsLiveviewWeb do
       use Phoenix.LiveView, opts
 
       import HydepwnsLiveviewWeb.Gettext
+      import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, simple_form: 1, error: 1]
+      import HydepwnsLiveviewWeb.Components.UI.LayoutComponents, only: [header: 1]
       unquote(html_helpers())
 
       # Base event handlers for all LiveViews
@@ -100,9 +102,9 @@ defmodule HydepwnsLiveviewWeb do
       import Phoenix.HTML
       import Phoenix.HTML.Form
       # Core UI components and translation
-      import HydepwnsLiveviewWeb.CoreComponents, except: [theme_toggle: 1]
+      import HydepwnsLiveviewWeb.Components.Common.CoreComponents, except: [theme_toggle: 1]
       import HydepwnsLiveviewWeb.Gettext
-      import HydepwnsLiveviewWeb.Components.UI.ThemeToggle, only: [theme_toggle: 1]
+      import HydepwnsLiveviewWeb.Components.Common.ThemeToggle, only: [theme_toggle: 1]
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS

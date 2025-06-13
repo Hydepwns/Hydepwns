@@ -6,13 +6,14 @@ defmodule HydepwnsLiveviewWeb.Examples.ChangeTrackingExampleLive do
   view change history, and implement optimistic concurrency control.
   """
 
-  use HydepwnsLiveviewWeb.ResourceLive
+  use HydepwnsLiveviewWeb.Resources.ResourceLive
+  import HydepwnsLiveviewWeb.Resources.ResourceHelpers
   alias HydepwnsLiveview.Utils.LiveViewAPI
   alias HydepwnsLiveview.Resources.UserResource
   import HydepwnsLiveviewWeb.Components.ChangeHistoryViewer
 
-  # Called by ResourceLive's do_mount after setting defaults
-  def do_mount(_params, _session, socket) do
+  @impl true
+  def mount(_params, _session, socket) do
     # Create an initial user resource
     initial_user = %{
       id: "123",
@@ -40,7 +41,7 @@ defmodule HydepwnsLiveviewWeb.Examples.ChangeTrackingExampleLive do
       |> assign(:success_message, nil)
       |> assign(:view_mode, "timeline")
 
-    socket
+    {:ok, socket}
   end
 
   @impl true

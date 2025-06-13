@@ -2,56 +2,54 @@ defmodule HydepwnsLiveviewWeb.UserEmailChangeLive do
   use HydepwnsLiveviewWeb, :live_view
 
   alias HydepwnsLiveview.Accounts
-  alias HydepwnsLiveview.Accounts.User
+  alias HydepwnsLiveviewWeb.UserAuth
 
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [simple_form: 1, input: 1, button: 1]
-
-  @impl true
+  @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, :changeset, User.email_change_changeset(socket.assigns.current_user, %{}))}
+    {:ok, assign(socket, page_title: "Change Email")}
   end
 
-  @impl true
-  def handle_event("validate", %{"user" => user_params}, socket) do
-    changeset =
-      socket.assigns.changeset.data
-      |> User.email_change_changeset(user_params)
-      |> Map.put(:action, :validate)
-
-    {:noreply, assign(socket, :changeset, changeset)}
-  end
-
-  @impl true
-  def handle_event("save", %{"user" => user_params}, socket) do
-    case Accounts.change_email(socket.assigns.current_user, user_params) do
-      {:ok, _user} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "Email change request sent. Please check your email for confirmation.")
-         |> redirect(to: ~p"/users/settings")}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, :changeset, changeset)}
-    end
-  end
-
-  @impl true
+  @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
-    <div>
-      <.header>
-        Change Email
-        <:subtitle>Update your email address.</:subtitle>
-      </.header>
+    <div class="container mx-auto px-4 py-8">
+      <%= HydepwnsLiveviewWeb.Components.Common.HeaderComponent.header(assigns) %>
 
-      <.simple_form for={@changeset} id="user-email-change-form" phx-change="validate" phx-submit="save">
-        <.input field={@changeset[:email]} type="email" label="New Email" />
-        <.input field={@changeset[:current_password]} type="password" label="Current password" />
-        <:actions>
-          <.button phx-disable-with="Saving...">Change Email</.button>
-        </:actions>
-      </.simple_form>
+      <div class="bg-white shadow rounded-lg p-6">
+        <div class="space-y-6">
+          <div>
+            <h3 class="text-lg font-medium">Change Email</h3>
+            <.form
+              :let={f}
+              for={%{}}
+              id="email-form"
+              phx-submit="save"
+            >
+              <div class="space-y-4">
+                <div>
+                  <.label for={f[:email].id}>Email</.label>
+                  <.input field={f[:email]} type="email" required />
+                </div>
+
+                <div>
+                  <.label for={f[:current_password].id}>Current Password</.label>
+                  <.input field={f[:current_password]} type="password" required />
+                </div>
+
+                <div class="flex justify-end space-x-4">
+                  <.link navigate={~p"/users/settings"} class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                    Cancel
+                  </.link>
+                  <.button type="submit" phx-disable-with="Changing...">
+                    Change Email
+                  </.button>
+                </div>
+              </div>
+            </.form>
+          </div>
+        </div>
+      </div>
     </div>
     """
   end
-end 
+end

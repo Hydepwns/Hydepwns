@@ -86,13 +86,13 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
       |> Enum.filter(fn {_type, metrics} ->
         metrics.avg_time > @processing_time_threshold
       end)
-      |> Enum.map(fn {type, _} -> type end)
+      |> Enum.map(fn {type, _metrics} -> type end)
 
     # Check for high error rates
     high_error_types =
       error_rates
       |> Enum.filter(fn {_type, rate} -> rate > @error_rate_threshold end)
-      |> Enum.map(fn {type, _} -> type end)
+      |> Enum.map(fn {type, _rate} -> type end)
 
     # Determine overall backpressure status
     status =

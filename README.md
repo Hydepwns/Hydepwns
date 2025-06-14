@@ -4,7 +4,7 @@ My engineering experience is applied marine MechE & ElecE, now I'm learning Web3
 
 Current:
 
-- [axol.io](https://twitter.com/axol_io)🌵🏗️ Co-founder, building sustainable crypto node infra & FOSS
+- [axol.io](https://twitter.com/axol_io)🌵🏗️ Co-founder, building crypto node infra & FOSS
 
 Previous:
 

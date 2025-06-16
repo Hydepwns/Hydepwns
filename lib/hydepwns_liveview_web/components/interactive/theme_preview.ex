@@ -135,7 +135,7 @@ defmodule HydepwnsLiveviewWeb.Components.Interactive.ThemePreview do
   def theme_preview_card(assigns) do
     ~H"""
     <div class={"theme-preview-card #{@theme}-theme-preview"}>
-      <h4 class="theme-preview-title">{@title}</h4>
+      <h4 class="theme-preview-title"><%= @title %></h4>
       <div class="theme-preview-content">
         <div class="theme-preview-text">
           <p>Sample text</p>

@@ -18,6 +18,8 @@ defmodule HydepwnsLiveview.ThemeSystem.Models.Theme do
     field :text_color, :string
     field :is_default, :boolean, default: false
     field :__unset_other_defaults__, :boolean, virtual: true
+    field :colors, :map, virtual: true, default: %{}
+    field :settings, :map, virtual: true, default: %{}
 
     timestamps(type: :utc_datetime)
   end
@@ -36,15 +38,16 @@ defmodule HydepwnsLiveview.ThemeSystem.Models.Theme do
   """
   def changeset(theme, attrs) do
     theme
-    |> cast(attrs, [:name, :mode, :primary_color, :secondary_color, :background_color, :text_color, :is_default])
+    |> cast(attrs, [:name, :mode, :primary_color, :secondary_color, :background_color, :text_color, :is_default, :settings])
     |> validate_required([:name, :mode, :primary_color, :secondary_color, :background_color, :text_color])
-    |> validate_inclusion(:mode, ["light", "dark"])
+    |> validate_inclusion(:mode, ["light", "dark", "dim", "system", "synthwave"])
     |> validate_format(:primary_color, ~r/^#[0-9A-Fa-f]{6}$/, message: "must be a valid hex color")
     |> validate_format(:secondary_color, ~r/^#[0-9A-Fa-f]{6}$/, message: "must be a valid hex color")
     |> validate_format(:background_color, ~r/^#[0-9A-Fa-f]{6}$/, message: "must be a valid hex color")
     |> validate_format(:text_color, ~r/^#[0-9A-Fa-f]{6}$/, message: "must be a valid hex color")
     |> unique_constraint(:name)
     |> maybe_handle_default()
+    |> put_colors()
   end
 
   @doc """
@@ -70,13 +73,14 @@ defmodule HydepwnsLiveview.ThemeSystem.Models.Theme do
       secondary_color: :string,
       background_color: :string,
       text_color: :string,
-      is_default: :boolean
+      is_default: :boolean,
+      settings: :map
     }
 
     {%{}, types}
     |> cast(params, Map.keys(types))
     |> validate_required([:name, :mode])
-    |> validate_inclusion(:mode, ["light", "dark"])
+    |> validate_inclusion(:mode, ["light", "dark", "dim", "system", "synthwave"])
     |> validate_required([:primary_color, :secondary_color, :background_color, :text_color])
     |> validate_format(:primary_color, ~r/^#[0-9a-fA-F]{6}$/, message: "must be a valid hex color")
     |> validate_format(:secondary_color, ~r/^#[0-9a-fA-F]{6}$/, message: "must be a valid hex color")
@@ -98,6 +102,21 @@ defmodule HydepwnsLiveview.ThemeSystem.Models.Theme do
 
       _ ->
         changeset
+    end
+  end
+
+  # Computes the colors map from individual color fields
+  defp put_colors(changeset) do
+    if changeset.valid? do
+      colors = %{
+        primary: get_change(changeset, :primary_color) || get_field(changeset, :primary_color),
+        secondary: get_change(changeset, :secondary_color) || get_field(changeset, :secondary_color),
+        background: get_change(changeset, :background_color) || get_field(changeset, :background_color),
+        text: get_change(changeset, :text_color) || get_field(changeset, :text_color)
+      }
+      put_change(changeset, :colors, colors)
+    else
+      changeset
     end
   end
 end

@@ -1,21 +1,21 @@
 defmodule HydepwnsLiveview.Events.Adapters.SMSAdapter do
   @moduledoc """
-  Adapter for sending SMS reminders.
-  Supports multiple SMS providers including Twilio and MessageBird.
+  Adapter for sending SMS notifications.
+  Supports multiple SMS providers and proper error handling.
   """
 
   @behaviour HydepwnsLiveview.Events.Adapters.Adapter
   require Logger
 
   @impl true
-  def send_reminder(reminder, settings, config, encrypted_message) do
+  def send_reminder(reminder, _settings, config, encrypted_message) do
     with {:ok, phone_number} <- validate_phone_number(reminder.recipient),
-         {:ok, message} <- build_sms_message(reminder, encrypted_message),
-         {:ok, response} <- send_sms(phone_number, message, config) do
+         {:ok, message} <- build_sms_message(reminder, encrypted_message, config),
+         {:ok, _response} <- send_sms_message(phone_number, message, config) do
       Logger.info("SMS sent successfully to #{phone_number}")
       {:ok, "SMS sent successfully"}
     else
-      {:error, :invalid_number} ->
+      {:error, :invalid_phone} ->
         Logger.error("Invalid phone number: #{reminder.recipient}")
         {:error, "Invalid phone number"}
       {:error, reason} ->
@@ -26,85 +26,34 @@ defmodule HydepwnsLiveview.Events.Adapters.SMSAdapter do
 
   # Private functions
 
-  defp validate_phone_number(recipient) do
-    # Basic phone number validation
-    case Regex.run(~r/^\+?[1-9]\d{1,14}$/, recipient) do
-      [number] -> {:ok, number}
-      _ -> {:error, :invalid_number}
+  defp validate_phone_number(phone_number) do
+    # Basic phone number validation (E.164 format)
+    case Regex.match?(~r/^\+[1-9]\d{1,14}$/, phone_number) do
+      true -> {:ok, phone_number}
+      false -> {:error, :invalid_phone}
     end
   end
 
-  defp build_sms_message(reminder, encrypted_message) do
-    # Build a concise SMS message that fits within standard SMS length limits
-    message = cond do
-      reminder.message && String.length(reminder.message) <= 160 ->
-        reminder.message
-      reminder.message ->
-        String.slice(reminder.message, 0, 157) <> "..."
-      true ->
-        "Reminder: #{reminder.title || 'Event reminder'}"
-    end
+  defp build_sms_message(reminder, encrypted_message, config) do
+    # Build SMS message with optional prefix
+    prefix = config.message_prefix || ""
+    message = "#{prefix}#{reminder.message}\n\nEncrypted: #{encrypted_message}"
 
-    # Add a short link or reference if needed
-    message = message <> "\nRef: #{reminder.id}"
+    # Truncate if too long
+    message = if String.length(message) > 160 do
+      String.slice(message, 0, 157) <> "..."
+    else
+      message
+    end
 
     {:ok, message}
   end
 
-  defp send_sms(phone_number, message, config) do
+  defp send_sms_message(phone_number, message, config) do
     case config.provider do
-      "twilio" ->
-        send_twilio_sms(phone_number, message, config)
-      "messagebird" ->
-        send_messagebird_sms(phone_number, message, config)
-      "nexmo" ->
-        send_nexmo_sms(phone_number, message, config)
-      _ ->
-        {:error, "Unsupported SMS provider"}
-    end
-  end
-
-  defp send_twilio_sms(phone_number, message, config) do
-    try do
-      client = Twilio.client(config.account_sid, config.auth_token)
-      
-      case Twilio.Message.create(client, %{
-        to: phone_number,
-        from: config.from_number,
-        body: message
-      }) do
-        {:ok, response} ->
-          {:ok, %{message_id: response.sid}}
-        {:error, reason} ->
-          Logger.error("Twilio API error: #{inspect(reason)}")
-          {:error, "Failed to send SMS via Twilio"}
-      end
-    rescue
-      e ->
-        Logger.error("Twilio error: #{inspect(e)}")
-        {:error, "Twilio service error"}
-    end
-  end
-
-  defp send_messagebird_sms(phone_number, message, config) do
-    try do
-      client = MessageBird.client(config.api_key)
-      
-      case MessageBird.Message.create(client, %{
-        recipients: [phone_number],
-        originator: config.originator,
-        body: message
-      }) do
-        {:ok, response} ->
-          {:ok, %{message_id: response.id}}
-        {:error, reason} ->
-          Logger.error("MessageBird API error: #{inspect(reason)}")
-          {:error, "Failed to send SMS via MessageBird"}
-      end
-    rescue
-      e ->
-        Logger.error("MessageBird error: #{inspect(e)}")
-        {:error, "MessageBird service error"}
+      "nexmo" -> send_nexmo_sms(phone_number, message, config)
+      "twilio" -> send_twilio_sms(phone_number, message, config.account_sid, config.auth_token)
+      _ -> {:error, "Unsupported SMS provider"}
     end
   end
 
@@ -146,6 +95,29 @@ defmodule HydepwnsLiveview.Events.Adapters.SMSAdapter do
       e ->
         Logger.error("Nexmo error: #{inspect(e)}")
         {:error, "Nexmo service error"}
+    end
+  end
+
+  defp send_twilio_sms(to, message, account_sid, auth_token) do
+    url = "https://api.twilio.com/2010-04-01/Accounts/#{account_sid}/Messages.json"
+    auth = Base.encode64("#{account_sid}:#{auth_token}")
+    headers = [
+      {"Authorization", "Basic #{auth}"},
+      {"Content-Type", "application/x-www-form-urlencoded"}
+    ]
+    body = URI.encode_query(%{
+      To: to,
+      From: "+1234567890",  # Replace with your Twilio phone number
+      Body: message
+    })
+
+    case HTTPoison.post(url, body, headers) do
+      {:ok, %{status_code: status_code}} when status_code in 200..299 ->
+        {:ok, "SMS sent successfully"}
+      {:ok, %{status_code: status_code}} ->
+        {:error, "Failed to send SMS with status code: #{status_code}"}
+      {:error, %HTTPoison.Error{reason: reason}} ->
+        {:error, "Failed to send SMS: #{reason}"}
     end
   end
 end 

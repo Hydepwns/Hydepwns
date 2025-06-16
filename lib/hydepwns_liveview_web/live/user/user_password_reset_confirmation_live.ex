@@ -3,7 +3,6 @@ defmodule HydepwnsLiveviewWeb.UserPasswordResetConfirmationLive do
 
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveview.Accounts.User
-  alias HydepwnsLiveviewWeb.UserAuth
 
   @impl true
   def mount(%{"token" => token}, _session, socket) do

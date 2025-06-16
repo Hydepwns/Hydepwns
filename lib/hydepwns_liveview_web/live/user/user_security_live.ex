@@ -6,10 +6,7 @@ defmodule HydepwnsLiveviewWeb.UserSecurityLive do
   use HydepwnsLiveviewWeb, :live_view
 
   alias HydepwnsLiveview.Accounts
-  alias HydepwnsLiveview.Accounts.User
   alias HydepwnsLiveviewWeb.UserAuth
-  import HydepwnsLiveviewWeb.Components.Common.CoreComponents
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, simple_form: 1]
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
@@ -19,8 +16,8 @@ defmodule HydepwnsLiveviewWeb.UserSecurityLive do
   end
 
   @impl Phoenix.LiveView
-  def handle_params(params, _url, socket) do
-    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  def handle_params(_params, _url, socket) do
+    {:noreply, apply_action(socket, socket.assigns.live_action, _params)}
   end
 
   defp apply_action(socket, :edit, %{"id" => id}) do

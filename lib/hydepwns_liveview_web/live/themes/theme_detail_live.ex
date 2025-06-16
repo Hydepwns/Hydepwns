@@ -1,10 +1,6 @@
 defmodule HydepwnsLiveviewWeb.Themes.ThemeDetailLive do
   use HydepwnsLiveviewWeb, :live_view
 
-  alias HydepwnsLiveview.ThemeSystem
-  alias HydepwnsLiveview.ThemeSystem.Theme
-  alias HydepwnsLiveviewWeb.Helpers.PathHelper
-
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
     default_theme = ThemeSystem.ensure_default_theme()

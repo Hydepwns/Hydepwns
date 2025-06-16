@@ -8,10 +8,10 @@ defmodule HydepwnsLiveview.Events.Adapters.TelegramAdapter do
   require Logger
 
   @impl true
-  def send_reminder(reminder, settings, config, encrypted_message) do
+  def send_reminder(reminder, _settings, config, encrypted_message) do
     with {:ok, chat_id} <- validate_chat_id(reminder.recipient),
          {:ok, message} <- build_telegram_message(reminder, encrypted_message, config),
-         {:ok, response} <- send_telegram_message(chat_id, message, config) do
+         {:ok, _response} <- send_telegram_message(chat_id, message, config) do
       Logger.info("Telegram message sent successfully to chat #{chat_id}")
       {:ok, "Telegram message sent successfully"}
     else
@@ -35,65 +35,30 @@ defmodule HydepwnsLiveview.Events.Adapters.TelegramAdapter do
   end
 
   defp build_telegram_message(reminder, encrypted_message, config) do
-    # Build the message text with HTML formatting
-    text = """
-    *#{escape_markdown(reminder.title || "Event Reminder")}*
-
-    #{escape_markdown(reminder.message || "You have a reminder")}
-
-    *Encrypted Message:*
-    ```
-    #{encrypted_message}
-    ```
-
-    Reference: `#{reminder.id}`
-    Sent at: #{DateTime.utc_now() |> DateTime.to_iso8601()}
-    """
-
-    # Build the message with optional inline keyboard
+    # Build a Telegram message with rich formatting
     message = %{
-      text: text,
-      parse_mode: "MarkdownV2",
+      text: """
+      *#{reminder.title}*
+      
+      #{reminder.message}
+      
+      Encrypted message: `#{encrypted_message}`
+      """,
+      parse_mode: "Markdown",
       disable_web_page_preview: true
     }
 
     # Add inline keyboard if configured
-    message = case build_inline_keyboard(config) do
-      [] -> message
-      keyboard -> Map.put(message, :reply_markup, %{inline_keyboard: keyboard})
-    end
-
-    # Add silent notification if configured
-    message = if config.disable_notification do
-      Map.put(message, :disable_notification, true)
-    else
-      message
+    message = case config.inline_keyboard do
+      keyboard when is_list(keyboard) ->
+        Map.put(message, :reply_markup, %{
+          inline_keyboard: keyboard
+        })
+      _ ->
+        message
     end
 
     {:ok, message}
-  end
-
-  defp build_inline_keyboard(config) do
-    case config.inline_keyboard do
-      buttons when is_list(buttons) ->
-        Enum.map(buttons, fn row ->
-          Enum.map(row, fn button ->
-            %{
-              text: button.text,
-              url: button.url,
-              callback_data: button.callback_data
-            }
-          end)
-        end)
-      _ -> []
-    end
-  end
-
-  defp escape_markdown(text) do
-    # Escape special characters for MarkdownV2
-    text
-    |> String.replace(~r/([_*[\]()~`>#+\-=|{}.!])/, "\\\\\\1")
-    |> String.replace("\\", "\\\\")
   end
 
   defp send_telegram_message(chat_id, message, config) do
@@ -114,16 +79,7 @@ defmodule HydepwnsLiveview.Events.Adapters.TelegramAdapter do
 
       case HTTPoison.post(url, body, headers) do
         {:ok, %HTTPoison.Response{status_code: 200, body: response_body}} ->
-          case Jason.decode(response_body) do
-            {:ok, %{"ok" => true, "result" => %{"message_id" => message_id}}} ->
-              {:ok, %{message_id: message_id}}
-            {:ok, %{"ok" => false, "description" => description}} ->
-              Logger.error("Telegram API error: #{description}")
-              {:error, "Failed to send Telegram message: #{description}"}
-            _ ->
-              Logger.error("Invalid Telegram API response")
-              {:error, "Invalid Telegram API response"}
-          end
+          handle_successful_response(response_body)
         {:ok, %HTTPoison.Response{status_code: 401}} ->
           Logger.error("Telegram authentication error")
           {:error, "Telegram authentication failed"}
@@ -140,6 +96,19 @@ defmodule HydepwnsLiveview.Events.Adapters.TelegramAdapter do
       e ->
         Logger.error("Telegram error: #{inspect(e)}")
         {:error, "Telegram service error"}
+    end
+  end
+
+  defp handle_successful_response(response_body) do
+    case Jason.decode(response_body) do
+      {:ok, %{"ok" => true, "result" => %{"message_id" => message_id}}} ->
+        {:ok, %{message_id: message_id}}
+      {:ok, %{"ok" => false, "description" => description}} ->
+        Logger.error("Telegram API error: #{description}")
+        {:error, "Failed to send Telegram message: #{description}"}
+      _ ->
+        Logger.error("Invalid Telegram API response")
+        {:error, "Invalid Telegram API response"}
     end
   end
 

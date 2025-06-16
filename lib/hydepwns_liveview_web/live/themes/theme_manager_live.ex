@@ -3,10 +3,6 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
 
   alias HydepwnsLiveview.ThemeSystem
   alias HydepwnsLiveview.ThemeSystem.Models.Theme
-  alias HydepwnsLiveviewWeb.Helpers.PathHelper
-  import HydepwnsLiveviewWeb.Components.Common.ThemeToggle, only: [theme_toggle: 1]
-  import HydepwnsLiveviewWeb.Components.Common.HeaderComponent, only: [header: 1]
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [simple_form: 1]
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do

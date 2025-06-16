@@ -107,7 +107,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
         <option :if={@prompt} value=""><%= @prompt %></option>
         {Phoenix.HTML.Form.options_for_select(@options, @value)}
       </select>
-      <.error :for={_msg <- @errors} data-test-id={"#{@id}-error"}><%= _msg %></.error>
+      <.error :for={msg <- @errors} data-test-id={"#{@id}-error"}><%= msg %></.error>
     </div>
     """
   end
@@ -127,7 +127,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
         ]}
         {@rest}
       >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
-      <.error :for={_msg <- @errors} data-test-id={"#{@id}-error"}><%= _msg %></.error>
+      <.error :for={msg <- @errors} data-test-id={"#{@id}-error"}><%= msg %></.error>
     </div>
     """
   end
@@ -149,7 +149,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
         ]}
         {@rest}
       />
-      <.error :for={_msg <- @errors} data-test-id={"#{@id}-error"}><%= _msg %></.error>
+      <.error :for={msg <- @errors} data-test-id={"#{@id}-error"}><%= msg %></.error>
     </div>
     """
   end

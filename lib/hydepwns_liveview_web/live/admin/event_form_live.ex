@@ -7,9 +7,7 @@ defmodule HydepwnsLiveviewWeb.Admin.EventFormLive do
 
   alias HydepwnsLiveview.Events
   alias HydepwnsLiveview.Events.Event
-  alias HydepwnsLiveview.Events.EventForm
 
-  import HydepwnsLiveviewWeb.Components.Common.CoreComponents
   import HydepwnsLiveviewWeb.Components.UI.FormComponents
 
   @impl Phoenix.LiveView
@@ -66,7 +64,7 @@ defmodule HydepwnsLiveviewWeb.Admin.EventFormLive do
   end
 
   defp save_event(socket, :new, event_params) do
-    case Events.create_event(event_params) do
+    case HydepwnsLiveview.Events.Core.Event.create(event_params["type"], event_params) do
       {:ok, _event} ->
         {:noreply,
          socket

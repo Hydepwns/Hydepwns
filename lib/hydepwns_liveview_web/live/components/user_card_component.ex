@@ -126,6 +126,24 @@ defmodule HydepwnsLiveviewWeb.LiveComponents.UserCardComponent do
     {:noreply, socket}
   end
 
+  def handle_event("update_role", %{"role" => role}, socket) do
+    case HydepwnsLiveview.Resources.UserResource.update(socket.assigns.resource, %{role: role}) do
+      {:ok, updated_resource} ->
+        {:noreply, assign(socket, :resource, updated_resource)}
+      {:error, _changeset} ->
+        {:noreply, socket}
+    end
+  end
+
+  def handle_event("update_theme", %{"theme" => theme}, socket) do
+    case HydepwnsLiveview.Resources.UserResource.update(socket.assigns.resource, %{theme: theme}) do
+      {:ok, updated_resource} ->
+        {:noreply, assign(socket, :resource, updated_resource)}
+      {:error, _changeset} ->
+        {:noreply, socket}
+    end
+  end
+
   @doc """
   Handle event updates from the event system.
   """

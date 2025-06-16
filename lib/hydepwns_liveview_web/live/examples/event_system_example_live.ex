@@ -1,5 +1,4 @@
 defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
-  use HydepwnsLiveviewWeb, :live_view
   import Phoenix.Component
 
   @moduledoc """
@@ -35,14 +34,13 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
 
   require Logger
 
-  alias HydepwnsLiveview.Events.Core.Event
-  alias HydepwnsLiveview.Events.EventStore, as: EventStore
+  alias HydepwnsLiveview.Events
   alias HydepwnsLiveview.Events.TestEvents, as: TestEvents
   alias HydepwnsLiveview.Events.ProjectionSupervisor, as: ProjectionSupervisor
 
   def mount(_params, _session, socket) do
     theme_class = "dark-theme"
-    events = Event.list_events()
+    events = Events.list_events()
     projections = [UserActivityProjection]
 
     socket =
@@ -70,7 +68,7 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
     case TestEvents.generate_test_data(user_count) do
       {:ok, events} ->
         # Refresh the events list
-        {:ok, latest_events} = EventStore.get_events(%{limit: 10, sort: [timestamp: :desc]})
+        {:ok, latest_events} = Events.get_events(%{limit: 10, sort: [timestamp: :desc]})
 
         socket =
           socket
@@ -93,7 +91,7 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
     event_data = parse_json(params["event_data"])
 
     # Create and publish the event
-    case Event.create(event_type, %{
+    case Events.create_event(event_type, %{
            resource_id: resource_id,
            resource_type: resource_type,
            data: event_data
@@ -103,7 +101,7 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
         HydepwnsLiveview.Events.EventBus.publish(event)
 
         # Refresh the events list
-        {:ok, latest_events} = EventStore.get_events(%{limit: 10, sort: [timestamp: :desc]})
+        {:ok, latest_events} = Events.get_events(%{limit: 10, sort: [timestamp: :desc]})
 
         socket =
           socket

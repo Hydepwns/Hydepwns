@@ -2,6 +2,13 @@
 # Summarize real test failures from a test run.
 # Usage: ./scripts/summarize_test_errors.sh
 
+# Usage instructions
+if [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
+  echo "Usage: $0"
+  echo "Runs mix test and summarizes warnings and errors in tmp/test_error_summary.txt"
+  exit 0
+fi
+
 # Directory for storing test output
 TMP_DIR="tmp"
 # File to store raw test output
@@ -12,7 +19,47 @@ OUTPUT_FILE="$TMP_DIR/test_error_summary.txt"
 # Ensure tmp directory exists
 mkdir -p "$TMP_DIR"
 
-# Run the test suite and capture all output directly for inspection
+# Function to categorize warnings
+categorize_warnings() {
+  local input_file="$1"
+  local output_file="$2"
+  
+  # Clear the output file
+  echo "=== Test Results Summary ===" > "$output_file"
+  echo "" >> "$output_file"
+  
+  # Unused Variables
+  echo "=== Unused Variables ===" >> "$output_file"
+  grep -E "variable \".*\" is unused" "$input_file" | sort -u >> "$output_file"
+  echo "" >> "$output_file"
+  
+  # Unused Functions
+  echo "=== Unused Functions ===" >> "$output_file"
+  grep -E "function .* is unused" "$input_file" | sort -u >> "$output_file"
+  echo "" >> "$output_file"
+  
+  # Unused Aliases/Imports
+  echo "=== Unused Aliases/Imports ===" >> "$output_file"
+  grep -E "unused (alias|import)" "$input_file" | sort -u >> "$output_file"
+  echo "" >> "$output_file"
+  
+  # Pattern Matching Warnings
+  echo "=== Pattern Matching Warnings ===" >> "$output_file"
+  grep -E "this clause .* cannot match|the underscored variable .* is used after being set" "$input_file" | sort -u >> "$output_file"
+  echo "" >> "$output_file"
+  
+  # Undefined Functions/Modules
+  echo "=== Undefined Functions/Modules ===" >> "$output_file"
+  grep -E "is undefined|is undefined or private" "$input_file" | sort -u >> "$output_file"
+  echo "" >> "$output_file"
+  
+  # Other Warnings
+  echo "=== Other Warnings ===" >> "$output_file"
+  grep -E "warning:" "$input_file" | grep -v -E "variable .* is unused|function .* is unused|unused (alias|import)|this clause .* cannot match|the underscored variable .* is used after being set|is undefined|is undefined or private" | sort -u >> "$output_file"
+  echo "" >> "$output_file"
+}
+
+# Main execution
 echo "Running mix test..."
 if mix test > "$INPUT_FILE" 2>&1; then
   echo "All tests passed!" > "$OUTPUT_FILE"
@@ -21,89 +68,9 @@ if mix test > "$INPUT_FILE" 2>&1; then
 fi
 
 # If mix test failed
-echo "mix test failed. Full output in $INPUT_FILE" > "$OUTPUT_FILE" # Overwrite previous content
+echo "mix test failed. Full output in $INPUT_FILE" > "$OUTPUT_FILE"
 
-# Summarize warnings
-echo "--- Warnings Summary ---" >> "$OUTPUT_FILE"
-grep -E '\[warning\]|warning:' "$INPUT_FILE" >> "$OUTPUT_FILE" || echo "No warnings found." >> "$OUTPUT_FILE"
-
-# Summarize compilation errors
-echo "--- Compilation Errors Summary ---" >> "$OUTPUT_FILE"
-grep -E '\[error\]|error:|^\*\* \(CompileError\)' "$INPUT_FILE" >> "$OUTPUT_FILE" || echo "No compilation errors found." >> "$OUTPUT_FILE"
-
-# Summarize test failures
-echo "--- Test Failures Summary ---" >> "$OUTPUT_FILE"
-
-failure_pattern='^\s*[0-9]+\) test ' # Pattern for lines like "  1) test..."
-
-# Get line numbers of all failure headers
-failure_headers_with_lines=$(grep -nE "$failure_pattern" "$INPUT_FILE")
-
-if [ -z "$failure_headers_with_lines" ]; then
-  echo "No numbered test failures found in the output." >> "$OUTPUT_FILE"
-  echo "This might be a compilation error or a different type of test suite failure." >> "$OUTPUT_FILE"
-  echo "Please check the full output in $INPUT_FILE." >> "$OUTPUT_FILE"
-else
-  # Get the line number of "Finished in " to mark the end of test details
-  finished_line_num_str=$(grep -nE "^Finished in " "$INPUT_FILE" | cut -d: -f1)
-  if [ -z "$finished_line_num_str" ]; then
-    # Fallback to total lines if "Finished in" not found (e.g., crash before summary)
-    finished_line_num_str=$(wc -l < "$INPUT_FILE")
-  fi
-  # Ensure it's treated as a number
-  finished_line_num=$((finished_line_num_str))
-
-  declare -a start_lines
-  declare -a headers
-  while IFS= read -r entry; do
-    start_lines+=("$(echo "$entry" | cut -d: -f1)")
-    headers+=("$(echo "$entry" | cut -d: -f2- | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')") # Store header, trim whitespace
-  done <<< "$failure_headers_with_lines"
-
-  for i in "${!start_lines[@]}"; do
-    current_start_line=${start_lines[$i]}
-    current_header=${headers[$i]}
-
-    echo "$current_header" >> "$OUTPUT_FILE" # Output the test header
-
-    # Determine the start and end lines for this failure's context block
-    # Block starts from the line *after* the current failure's header
-    block_content_start_line=$((current_start_line + 1))
-    block_content_end_line=""
-
-    if [ $i -lt $((${#start_lines[@]} - 1)) ]; then
-      # Block ends just before the next failure's header
-      next_failure_header_start_line=${start_lines[$((i+1))]}
-      block_content_end_line=$((next_failure_header_start_line - 1))
-    else
-      # For the last failure, block ends just before "Finished in " line or end of file
-      block_content_end_line=$((finished_line_num - 1))
-    fi
-    
-    # Ensure the calculated block end line is not before its start line
-    if [ $block_content_end_line -lt $block_content_start_line ]; then
-      echo "    (No further context extracted or context ends immediately after header)" >> "$OUTPUT_FILE"
-    else
-      # Extract the whole context block for this specific failure
-      failure_context_block=$(sed -n "${block_content_start_line},${block_content_end_line}p" "$INPUT_FILE")
-
-      if [ -n "$failure_context_block" ]; then
-        # Print the first 3 lines of the failure context block
-        # This often captures: file path, error type/message, and first detail line (e.g., code:)
-        echo "$failure_context_block" | head -n 3 >> "$OUTPUT_FILE"
-
-        # Then, grep the rest of the block (from the 4th line onwards) for more specific details
-        num_block_lines=$(echo "$failure_context_block" | wc -l | xargs) # xargs to trim whitespace from wc -l output
-        if [ "$num_block_lines" -gt 3 ]; then
-            echo "$failure_context_block" | tail -n +4 | \
-            grep -E '^\s*\*\*|\(test/|\scode:|\sleft:|\sright:|expected|got|Assertion with|stacktrace:' >> "$OUTPUT_FILE"
-        fi
-      else
-        echo "    (No context block found between this failure and the next/end)" >> "$OUTPUT_FILE"
-      fi
-    fi
-    echo "" >> "$OUTPUT_FILE" # Add a blank line for readability before the next failure summary
-  done
-fi
+# Process the output
+categorize_warnings "$INPUT_FILE" "$OUTPUT_FILE"
 
 echo "Full summary in $OUTPUT_FILE"

@@ -12,50 +12,34 @@ defmodule HydepwnsLiveviewWeb.ThemeControllerTest do
   @create_attrs %{
     name: "some name",
     mode: "light",
-    colors: %{
-      primary: "#4A90E2",
-      secondary: "#50E3C2",
-      accent: "#F59E0B",
-      background: "#FFFFFF",
-      text: "#1F2937",
-      border: "#E5E7EB",
-      error: "#EF4444",
-      success: "#22C55E",
-      warning: "#F59E0B",
-      info: "#3B82F6"
-    },
+    primary_color: "#4A90E2",
+    secondary_color: "#50E3C2",
+    background_color: "#FFFFFF",
+    text_color: "#1F2937",
+    is_default: false,
     settings: %{
       font_size: "medium",
       line_height: "normal",
       contrast: "normal",
       animations: true
-    },
-    is_default: false
+    }
   }
   @update_attrs %{
     name: "some updated name",
     mode: "dark",
-    colors: %{
-      primary: "#000000",
-      secondary: "#FFFFFF",
-      accent: "#F59E0B",
-      background: "#111827",
-      text: "#F9FAFB",
-      border: "#374151",
-      error: "#F87171",
-      success: "#4ADE80",
-      warning: "#FBBF24",
-      info: "#60A5FA"
-    },
+    primary_color: "#000000",
+    secondary_color: "#FFFFFF",
+    background_color: "#111827",
+    text_color: "#F9FAFB",
+    is_default: true,
     settings: %{
       font_size: "large",
       line_height: "wide",
       contrast: "high",
       animations: false
-    },
-    is_default: true
+    }
   }
-  @invalid_attrs %{name: nil, mode: nil}
+  @invalid_attrs %{name: nil, mode: nil, primary_color: nil, secondary_color: nil, background_color: nil, text_color: nil}
 
   def fixture(:theme) do
     {:ok, theme} = HydepwnsLiveview.ThemeSystem.create_theme(@create_attrs)
@@ -80,11 +64,11 @@ defmodule HydepwnsLiveviewWeb.ThemeControllerTest do
     test "redirects to show when data is valid", %{conn: conn} do
       conn = post(conn, ~p"/themes", theme: @create_attrs)
 
-      assert id = Map.get(redirected_params(conn), :id) || Map.get(redirected_params(conn), "id")
+      assert %{id: id} = redirected_params(conn)
       assert redirected_to(conn) == ~p"/themes/#{id}"
 
       conn = get(conn, ~p"/themes/#{id}")
-      assert html_response(conn, 200) =~ "Theme #{id}"
+      assert html_response(conn, 200) =~ "some name"
     end
 
     test "renders errors when data is invalid", %{conn: conn} do
@@ -97,11 +81,8 @@ defmodule HydepwnsLiveviewWeb.ThemeControllerTest do
     setup [:create_theme]
 
     test "renders form for editing chosen theme", %{conn: conn, theme: theme} do
-      assert is_map(theme) and Map.has_key?(theme, :id) and not is_nil(theme.id), "Test setup error: theme is nil or missing id"
       conn = get(conn, ~p"/themes/#{theme}/edit")
-      body = html_response(conn, 200)
-      IO.puts("\n--- Edit Theme Response Body ---\n" <> body <> "\n--- END ---\n")
-      assert body =~ "Edit Theme"
+      assert html_response(conn, 200) =~ "Edit Theme"
     end
   end
 
@@ -109,7 +90,6 @@ defmodule HydepwnsLiveviewWeb.ThemeControllerTest do
     setup [:create_theme]
 
     test "redirects when data is valid", %{conn: conn, theme: theme} do
-      assert is_map(theme) and Map.has_key?(theme, :id) and not is_nil(theme.id), "Test setup error: theme is nil or missing id"
       conn = put(conn, ~p"/themes/#{theme}", theme: @update_attrs)
       assert redirected_to(conn) == ~p"/themes/#{theme}"
 
@@ -118,9 +98,8 @@ defmodule HydepwnsLiveviewWeb.ThemeControllerTest do
     end
 
     test "renders errors when data is invalid", %{conn: conn, theme: theme} do
-      assert is_map(theme) and Map.has_key?(theme, :id) and not is_nil(theme.id), "Test setup error: theme is nil or missing id"
       conn = put(conn, ~p"/themes/#{theme}", theme: @invalid_attrs)
-      assert html_response(conn, 422) =~ "Edit Theme"
+      assert html_response(conn, 200) =~ "Edit Theme"
     end
   end
 

@@ -1,0 +1,23 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="flex justify-between items-center mb-8">
+    <h1 class="text-3xl font-bold">New Resource</h1>
+    <div class="flex space-x-4">
+      <.link
+        navigate={~p"/resources"}
+        class="text-blue-600 hover:text-blue-800"
+      >
+        Back to Resources
+      </.link>
+    </div>
+  </div>
+
+  <.live_component
+    module={HydepwnsLiveviewWeb.ResourceFormComponent}
+    id="new"
+    title={@page_title}
+    action={:new}
+    resource={@resource}
+    resources={@resources}
+    navigate={~p"/resources"}
+  />
+</div> 

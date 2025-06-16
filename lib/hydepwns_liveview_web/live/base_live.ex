@@ -5,8 +5,6 @@ defmodule HydepwnsLiveviewWeb.BaseLive do
 
   use HydepwnsLiveviewWeb, :live_view
 
-  alias HydepwnsLiveview.Resources
-
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
     default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()
@@ -42,8 +40,6 @@ defmodule HydepwnsLiveviewWeb.BaseLive do
       import Phoenix.LiveView.Helpers
       import Phoenix.LiveView.Router
       import Phoenix.VerifiedRoutes
-
-      @behaviour Phoenix.LiveView
 
       @impl Phoenix.LiveView
       def mount(params, session, socket) do

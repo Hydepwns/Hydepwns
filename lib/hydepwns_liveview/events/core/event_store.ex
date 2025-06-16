@@ -1,14 +1,13 @@
 defmodule HydepwnsLiveview.Events.Core.EventStore do
   @moduledoc """
-  Event persistence layer for the Resource Event System.
+  Core implementation of the event store.
 
-  The EventStore provides capabilities to:
-  - Store events
-  - Retrieve events by various criteria
-  - Stream events for efficient processing
-  - Maintain event metadata and relationships
-  - Support snapshots for event-sourced resources
-  - Provide event replay functionality
+  This module provides the core functionality for storing and retrieving events,
+  snapshots, and versioned states. It handles:
+  - Event persistence and retrieval
+  - Snapshot management
+  - Versioned state tracking
+  - Event replay functionality
   """
 
   require Logger
@@ -25,8 +24,6 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   """
   @spec start_link(Keyword.t()) :: {:ok, pid()}
   def start_link(_opts \\ []) do
-    # This is a dummy implementation since EventStore is not a process
-    # It's just a module with functions that access the database
     {:ok, self()}
   end
 
@@ -44,8 +41,11 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
     }
   end
 
-  # Schema for snapshots
   defmodule Snapshot do
+    @moduledoc """
+    Schema for storing resource state snapshots.
+    Used for optimizing event replay by providing checkpoints of resource state.
+    """
     use Ecto.Schema
     import Ecto.Changeset
 
@@ -78,8 +78,11 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
     end
   end
 
-  # Schema for replay sessions
   defmodule ReplaySession do
+    @moduledoc """
+    Schema for managing event replay sessions, tracking their status and results.
+    Used for replaying event sequences and analyzing historical state changes.
+    """
     use Ecto.Schema
     import Ecto.Changeset
 
@@ -130,8 +133,11 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
     end
   end
 
-  # Schema for versioned states
   defmodule VersionedState do
+    @moduledoc """
+    Schema for storing versioned states of resources at specific points in time.
+    Used for tracking state changes and supporting point-in-time queries.
+    """
     use Ecto.Schema
     import Ecto.Changeset
 
@@ -385,7 +391,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   * `{:ok, snapshot}` - The snapshot was successfully stored
   * `{:error, changeset}` - The snapshot could not be stored
   """
-  @spec save_snapshot(String.t(), String.t(), map(), map()) :: {:ok, any()} | {:error, any()}
+  @spec save_snapshot(String.t(), String.t(), map(), map()) :: {:ok, Snapshot.t()} | {:error, any()}
   def save_snapshot(resource_type, resource_id, state, metadata \\ %{}) do
     %Snapshot{}
     |> Snapshot.changeset(%{
@@ -515,14 +521,17 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   * `{:ok, events}` - All events for the resource
   * `{:error, reason}` - Error retrieving events
   """
-  @spec get_events_for_resource(String.t(), String.t()) :: [Event.t()]
+  @spec get_events_for_resource(String.t(), String.t()) :: {:ok, [Event.t()]} | {:error, any()}
   def get_events_for_resource(resource_type, resource_id) do
     query =
       from e in Event,
         where: e.resource_type == ^resource_type and e.resource_id == ^resource_id,
-        order_by: [asc: e.inserted_at]
+        order_by: [asc: e.timestamp]
 
-    {:ok, Repo.all(query)}
+    case Repo.all(query) do
+      events when is_list(events) -> {:ok, events}
+      error -> {:error, error}
+    end
   end
 
   @doc """
@@ -652,49 +661,44 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   """
   @spec get_replay_session_events(any()) :: [any()]
   def get_replay_session_events(session_id) do
-    case Repo.get(ReplaySession, session_id, timeout: 5000) do
-      nil ->
-        {:error, :not_found}
+    with {:ok, session} <- get_replay_session(session_id) do
+      query = build_replay_session_query(session)
+      {:ok, Repo.all(query)}
+    end
+  end
 
-      session ->
-        # Build query based on session parameters
-        query =
-          from e in Event,
-            where:
-              e.resource_type == ^session.resource_type and e.resource_id == ^session.resource_id
+  defp build_replay_session_query(session) do
+    session
+    |> build_base_query()
+    |> add_start_event_constraint(session)
+    |> add_end_event_constraint(session)
+    |> order_by([e], asc: e.inserted_at)
+  end
 
-        # Add start_event_id constraint if present
-        query =
-          if session.start_event_id do
-            case get_event(session.start_event_id) do
-              {:ok, start_event} ->
-                from e in query, where: e.inserted_at >= ^start_event.inserted_at
+  defp build_base_query(session) do
+    from e in Event,
+      where: e.resource_type == ^session.resource_type and e.resource_id == ^session.resource_id
+  end
 
-              _ ->
-                query
-            end
-          else
-            query
-          end
+  defp add_start_event_constraint(query, session) do
+    if session.start_event_id do
+      case get_event(session.start_event_id) do
+        {:ok, start_event} -> from e in query, where: e.inserted_at >= ^start_event.inserted_at
+        _ -> query
+      end
+    else
+      query
+    end
+  end
 
-        # Add end_event_id constraint if present
-        query =
-          if session.end_event_id do
-            case get_event(session.end_event_id) do
-              {:ok, end_event} ->
-                from e in query, where: e.inserted_at <= ^end_event.inserted_at
-
-              _ ->
-                query
-            end
-          else
-            query
-          end
-
-        # Order by timestamp
-        query = from e in query, order_by: [asc: e.inserted_at]
-
-        {:ok, Repo.all(query)}
+  defp add_end_event_constraint(query, session) do
+    if session.end_event_id do
+      case get_event(session.end_event_id) do
+        {:ok, end_event} -> from e in query, where: e.inserted_at <= ^end_event.inserted_at
+        _ -> query
+      end
+    else
+      query
     end
   end
 
@@ -734,22 +738,16 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   * `{:ok, versioned_state}` - The versioned state was created
   * `{:error, changeset}` - The versioned state could not be created
   """
-  @spec save_versioned_state(String.t(), String.t(), map(), Keyword.t()) ::
-          {:ok, any()} | {:error, any()}
-  def save_versioned_state(resource_type, resource_id, state, opts \\ []) do
-    attrs = %{
+  @spec save_versioned_state(String.t(), String.t(), map(), map()) :: {:ok, VersionedState.t()} | {:error, any()}
+  def save_versioned_state(resource_type, resource_id, state, metadata \\ %{}) do
+    %VersionedState{}
+    |> VersionedState.changeset(%{
       resource_type: resource_type,
       resource_id: resource_id,
       state: state,
-      label: Keyword.fetch!(opts, :label),
-      replay_id: Keyword.get(opts, :replay_id),
-      created_at: Keyword.get(opts, :created_at, DateTime.utc_now()),
-      point_in_time: Keyword.get(opts, :point_in_time),
-      metadata: Keyword.get(opts, :metadata, %{})
-    }
-
-    %VersionedState{}
-    |> VersionedState.changeset(attrs)
+      metadata: metadata,
+      created_at: DateTime.utc_now()
+    })
     |> Repo.insert()
   end
 
@@ -821,6 +819,35 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   """
   @spec store(Event.t()) :: {:ok, Event.t()} | {:error, Ecto.Changeset.t()}
   def store(event), do: store_event(event)
+
+  @doc """
+  Retrieves events for a resource up to a specific point in time.
+
+  ## Parameters
+  * `resource_type` - The type of resource
+  * `resource_id` - The ID of the resource
+  * `timestamp` - The timestamp to get events up to (inclusive)
+
+  ## Returns
+  * `{:ok, events}` - The events up to the specified timestamp
+  * `{:error, reason}` - Error retrieving events
+  """
+  @spec get_events_for_resource_at(String.t(), String.t(), DateTime.t()) :: {:ok, [Event.t()]} | {:error, any()}
+  def get_events_for_resource_at(resource_type, resource_id, timestamp) do
+    query =
+      from e in Event,
+        where: e.resource_type == ^resource_type and e.resource_id == ^resource_id,
+        where: e.inserted_at <= ^timestamp,
+        order_by: [asc: e.inserted_at]
+
+    try do
+      {:ok, Repo.all(query)}
+    rescue
+      e ->
+        Logger.error("Error retrieving events for resource at timestamp: #{inspect(e)}")
+        {:error, e}
+    end
+  end
 
   # Private functions
 

@@ -5,6 +5,7 @@ defmodule HydepwnsLiveviewWeb.Admin.EventSettingsLive do
 
   use HydepwnsLiveviewWeb, :live_view
 
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [label: 1]
   alias HydepwnsLiveview.Events
 
   @impl Phoenix.LiveView
@@ -63,9 +64,9 @@ defmodule HydepwnsLiveviewWeb.Admin.EventSettingsLive do
                 </div>
 
                 <div class="flex justify-end space-x-4">
-                  <.button type="submit" phx-disable-with="Saving...">
+                  <HydepwnsLiveviewWeb.Components.UI.FormComponents.button type="submit" phx-disable-with="Saving...">
                     Save Settings
-                  </.button>
+                  </HydepwnsLiveviewWeb.Components.UI.FormComponents.button>
                 </div>
               </div>
             </.form>

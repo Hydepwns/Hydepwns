@@ -5,9 +5,6 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
 
   use HydepwnsLiveviewWeb, :live_view
 
-  alias HydepwnsLiveview.Resources
-  alias HydepwnsLiveview.Resources.Resource
-
   import Phoenix.Component
 
   def mount(_params, _session, socket) do

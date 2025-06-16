@@ -8,10 +8,10 @@ defmodule HydepwnsLiveview.Events.Adapters.EmailAdapter do
   require Logger
 
   @impl true
-  def send_reminder(reminder, settings, config, encrypted_message) do
+  def send_reminder(reminder, _settings, config, encrypted_message) do
     with {:ok, email} <- validate_email(reminder.recipient),
          {:ok, email_content} <- build_email_content(reminder, encrypted_message, config),
-         {:ok, response} <- send_email(email, email_content, config) do
+         {:ok, _response} <- send_email(email, email_content, config) do
       Logger.info("Email sent successfully to #{email}")
       {:ok, "Email sent successfully"}
     else
@@ -115,7 +115,7 @@ defmodule HydepwnsLiveview.Events.Adapters.EmailAdapter do
   defp send_email(email, content, config) do
     case config.provider do
       "sendgrid" ->
-        send_sendgrid_email(email, content, config)
+        send_sendgrid_email(email, content.subject, content.text, config.api_key)
       "smtp" ->
         send_smtp_email(email, content, config)
       "custom" ->
@@ -125,56 +125,26 @@ defmodule HydepwnsLiveview.Events.Adapters.EmailAdapter do
     end
   end
 
-  defp send_sendgrid_email(email, content, config) do
-    try do
-      # SendGrid API endpoint
-      url = "https://api.sendgrid.com/v3/mail/send"
-      
-      # Prepare request body
-      body = Jason.encode!(%{
-        personalizations: [
-          %{
-            to: [%{email: email}],
-            subject: content.subject
-          }
-        ],
-        from: %{
-          email: config.from_email,
-          name: config.from_name
-        },
-        content: [
-          %{
-            type: "text/plain",
-            value: content.text
-          },
-          %{
-            type: "text/html",
-            value: content.html
-          }
-        ],
-        attachments: content.attachments
-      })
+  defp send_sendgrid_email(to, subject, body, api_key) do
+    url = "https://api.sendgrid.com/v3/mail/send"
+    headers = [
+      {"Authorization", "Bearer #{api_key}"},
+      {"Content-Type", "application/json"}
+    ]
+    body = Jason.encode!(%{
+      personalizations: [%{to: [%{email: to}]}],
+      from: %{email: "noreply@hydepwns.com"},
+      subject: subject,
+      content: [%{type: "text/plain", value: body}]
+    })
 
-      # Send request
-      headers = [
-        {"Content-Type", "application/json"},
-        {"Authorization", "Bearer #{config.api_key}"}
-      ]
-
-      case HTTPoison.post(url, body, headers) do
-        {:ok, %HTTPoison.Response{status_code: 202}} ->
-          {:ok, %{message_id: Ecto.UUID.generate()}}
-        {:ok, %HTTPoison.Response{status_code: status, body: body}} ->
-          Logger.error("SendGrid API error: #{status} - #{body}")
-          {:error, "Failed to send email via SendGrid"}
-        {:error, %HTTPoison.Error{reason: reason}} ->
-          Logger.error("SendGrid request error: #{inspect(reason)}")
-          {:error, "Failed to connect to SendGrid"}
-      end
-    rescue
-      e ->
-        Logger.error("SendGrid error: #{inspect(e)}")
-        {:error, "SendGrid service error"}
+    case HTTPoison.post(url, body, headers) do
+      {:ok, %{status_code: status_code}} when status_code in 200..299 ->
+        {:ok, "Email sent successfully"}
+      {:ok, %{status_code: status_code}} ->
+        {:error, "Failed to send email with status code: #{status_code}"}
+      {:error, %HTTPoison.Error{reason: reason}} ->
+        {:error, "Failed to send email: #{reason}"}
     end
   end
 

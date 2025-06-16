@@ -1,8 +1,7 @@
 defmodule HydepwnsLiveviewWeb.UserEmailChangeLive do
   use HydepwnsLiveviewWeb, :live_view
 
-  alias HydepwnsLiveview.Accounts
-  alias HydepwnsLiveviewWeb.UserAuth
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label: 1]
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do

@@ -16,13 +16,13 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
   require Logger
 
   alias HydepwnsLiveview.Events.Core.Event
-  alias HydepwnsLiveview.Events.Core.EventStore
+  alias HydepwnsLiveview.Events
 
   @doc """
   Starts the EventBus process.
   """
   @spec start_link(Keyword.t()) :: GenServer.on_start()
-  def start_link(opts \\ []) do
+  def start_link(opts \\ []) when is_list(opts) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
@@ -41,12 +41,12 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
   * `{:error, reason}` - The event could not be published
   """
   @spec publish(Event.t(), Keyword.t()) :: :ok | {:error, any()}
-  def publish(%Event{} = event, opts \\ []) do
+  def publish(%Event{} = event, opts \\ []) when is_list(opts) do
     store? = Keyword.get(opts, :store, true)
 
     # Store the event if requested
     if store? do
-      case EventStore.store_event(event) do
+      case Events.store_event(event) do
         {:ok, persisted_event} ->
           GenServer.cast(__MODULE__, {:publish, persisted_event})
 
@@ -60,261 +60,119 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
 
     :ok
   end
+  def publish(_invalid_event, _opts), do: {:error, :invalid_event}
 
   @doc """
   Subscribes to events.
 
   ## Parameters
-
-  * `subscriber` - The process to receive events (pid or registered name)
   * `event_types` - List of event types to subscribe to, or :all for all events
 
   ## Returns
-
-  * `:ok` - The subscription was successful
+  * `:ok` - Successfully subscribed
+  * `{:error, reason}` - Failed to subscribe
   """
-  @spec subscribe(pid() | atom(), [atom()] | :all) :: :ok
-  def subscribe(subscriber, event_types \\ :all) do
-    GenServer.cast(__MODULE__, {:subscribe, subscriber, event_types})
-    :ok
+  def subscribe(event_types \\ :all) do
+    GenServer.call(__MODULE__, {:subscribe, self(), event_types})
   end
 
   @doc """
   Unsubscribes from events.
 
   ## Parameters
-
-  * `subscriber` - The process to unsubscribe
+  * `subscriber` - The process to unsubscribe (pid or registered name)
   * `event_types` - List of event types to unsubscribe from, or :all for all events
 
   ## Returns
-
-  * `:ok` - The unsubscription was successful
+  * `:ok` - Successfully unsubscribed
+  * `{:error, reason}` - Failed to unsubscribe
   """
-  @spec unsubscribe(pid() | atom(), [atom()] | :all) :: :ok
   def unsubscribe(subscriber, event_types \\ :all) do
-    GenServer.cast(__MODULE__, {:unsubscribe, subscriber, event_types})
-    :ok
+    GenServer.call(__MODULE__, {:unsubscribe, subscriber, event_types})
   end
 
   @doc """
-  Lists all current subscribers.
+  Gets the list of subscribers for a specific event type.
+
+  ## Parameters
+
+  * `event_type` - The type of event to get subscribers for
 
   ## Returns
 
-  * `{:ok, subscribers}` - Map of event types to lists of subscribers
+  * `{:ok, subscribers}` - List of subscribers for the event type
   """
-  @spec list_subscribers() :: {:ok, %{optional(atom()) => [pid()]}}
-  def list_subscribers do
-    GenServer.call(__MODULE__, :list_subscribers)
+  @spec get_subscribers(String.t()) :: {:ok, [pid() | atom()]} | {:error, any()}
+  def get_subscribers(event_type) when is_binary(event_type) and byte_size(event_type) > 0 do
+    GenServer.call(__MODULE__, {:get_subscribers, event_type})
   end
+  def get_subscribers(_invalid_type), do: {:error, :invalid_event_type}
 
-  # Server callbacks
+  # GenServer callbacks
 
   @impl true
   def init(_opts) do
-    # Initialize the state with empty subscribers
-    state = %{
-      # Map of event_type => [subscribers]
-      subscribers: %{},
-      # Map of pid => [event_types]
-      subscribers_by_pid: %{},
-      event_counter: 0
-    }
+    {:ok, %{subscribers: %{}}}
+  end
 
-    {:ok, state}
+  @impl true
+  def handle_call({:subscribe, subscriber, event_types}, _from, state) do
+    new_state = update_subscribers(state, subscriber, event_types)
+    {:reply, :ok, new_state}
+  end
+
+  @impl true
+  def handle_call({:unsubscribe, subscriber, event_types}, _from, state) do
+    new_state = remove_subscriber(state, subscriber)
+    {:reply, :ok, new_state}
+  end
+
+  @impl true
+  def handle_call({:get_subscribers, event_type}, _from, state) do
+    subscribers = get_subscribers_for_type(state, event_type)
+    {:reply, {:ok, subscribers}, state}
   end
 
   @impl true
   def handle_cast({:publish, event}, state) do
-    # Increment the event counter
-    state = %{state | event_counter: state.event_counter + 1}
-
-    # Find subscribers interested in this event
-    subscribers = find_interested_subscribers(event.type, state.subscribers)
-
-    # Deliver the event to each subscriber
-    Enum.each(subscribers, fn subscriber ->
-      send_event(subscriber, event)
-    end)
-
-    # Log the event publication
-    Logger.debug(
-      "Published event #{event.id} of type #{event.type} to #{length(subscribers)} subscribers"
-    )
-
-    {:noreply, state}
-  end
-
-  @impl true
-  def handle_cast({:subscribe, subscriber, event_types}, state) do
-    # Convert subscriber to pid if it's a name
-    subscriber_pid = get_pid(subscriber)
-
-    # Monitor the subscriber
-    Process.monitor(subscriber_pid)
-
-    # Update the state with the new subscription
-    state = add_subscription(state, subscriber_pid, event_types)
-
-    # Log the subscription
-    Logger.debug("Process #{inspect(subscriber_pid)} subscribed to #{inspect(event_types)}")
-
-    {:noreply, state}
-  end
-
-  @impl true
-  def handle_cast({:unsubscribe, subscriber, event_types}, state) do
-    # Convert subscriber to pid if it's a name
-    subscriber_pid = get_pid(subscriber)
-
-    # Update the state by removing the subscription
-    state = remove_subscription(state, subscriber_pid, event_types)
-
-    # Log the unsubscription
-    Logger.debug("Process #{inspect(subscriber_pid)} unsubscribed from #{inspect(event_types)}")
-
-    {:noreply, state}
-  end
-
-  @impl true
-  def handle_call(:list_subscribers, _from, state) do
-    {:reply, {:ok, state.subscribers}, state}
-  end
-
-  @impl true
-  def handle_info({:DOWN, _ref, :process, pid, _reason}, state) do
-    # Subscriber process has terminated, remove all its subscriptions
-    state = remove_subscription(state, pid, :all)
-
-    # Log the removal
-    Logger.debug("Removed subscriptions for terminated process #{inspect(pid)}")
-
+    subscribers = get_subscribers_for_type(state, event.type)
+    notify_subscribers(subscribers, event)
     {:noreply, state}
   end
 
   # Private functions
 
-  # Finds subscribers interested in a specific event type
-  defp find_interested_subscribers(event_type, subscribers) do
-    # Get subscribers specifically interested in this event type
-    specific_subscribers = Map.get(subscribers, event_type, [])
-
-    # Get subscribers interested in all events
-    all_subscribers = Map.get(subscribers, :all, [])
-
-    # Combine and deduplicate
-    (specific_subscribers ++ all_subscribers)
-    |> Enum.uniq()
+  defp update_subscribers(state, subscriber, :all) do
+    Map.update(state, :subscribers, %{subscriber => :all}, fn subscribers ->
+      Map.put(subscribers, subscriber, :all)
+    end)
   end
 
-  # Sends an event to a subscriber
-  defp send_event(subscriber, event) do
-    try do
-      send(subscriber, {:event, event})
-    rescue
-      e ->
-        Logger.error("Error sending event to subscriber #{inspect(subscriber)}: #{inspect(e)}")
-    end
+  defp update_subscribers(state, subscriber, event_types) when is_list(event_types) do
+    Map.update(state, :subscribers, %{subscriber => event_types}, fn subscribers ->
+      Map.put(subscribers, subscriber, event_types)
+    end)
   end
 
-  # Adds a subscription to the state
-  defp add_subscription(state, subscriber_pid, :all) do
-    # Add to the :all event type
-    subscribers =
-      Map.update(state.subscribers, :all, [subscriber_pid], fn subs ->
-        [subscriber_pid | subs]
-        |> Enum.uniq()
-      end)
-
-    # Update the reverse mapping
-    subscribers_by_pid = Map.put(state.subscribers_by_pid, subscriber_pid, [:all])
-
-    %{state | subscribers: subscribers, subscribers_by_pid: subscribers_by_pid}
+  defp remove_subscriber(state, subscriber) do
+    Map.update(state, :subscribers, %{}, fn subscribers ->
+      Map.delete(subscribers, subscriber)
+    end)
   end
 
-  defp add_subscription(state, subscriber_pid, event_types) when is_list(event_types) do
-    # Add to each event type
-    subscribers =
-      Enum.reduce(event_types, state.subscribers, fn event_type, acc ->
-        Map.update(acc, event_type, [subscriber_pid], fn subs ->
-          [subscriber_pid | subs]
-          |> Enum.uniq()
-        end)
-      end)
-
-    # Update the reverse mapping
-    subscribers_by_pid =
-      Map.update(state.subscribers_by_pid, subscriber_pid, event_types, fn types ->
-        (types ++ event_types)
-        |> Enum.uniq()
-      end)
-
-    %{state | subscribers: subscribers, subscribers_by_pid: subscribers_by_pid}
+  defp get_subscribers_for_type(state, event_type) do
+    state.subscribers
+    |> Enum.filter(fn {_subscriber, types} ->
+      types == :all or event_type in types
+    end)
+    |> Enum.map(fn {subscriber, _types} -> subscriber end)
   end
 
-  defp add_subscription(state, subscriber_pid, event_type) do
-    add_subscription(state, subscriber_pid, [event_type])
-  end
-
-  # Removes a subscription from the state
-  defp remove_subscription(state, subscriber_pid, :all) do
-    # Get all event types this subscriber is subscribed to
-    event_types = Map.get(state.subscribers_by_pid, subscriber_pid, [])
-
-    # Remove from each event type
-    subscribers =
-      Enum.reduce(event_types, state.subscribers, fn
-        :all, acc ->
-          Map.update(acc, :all, [], fn subs -> Enum.reject(subs, &(&1 == subscriber_pid)) end)
-
-        event_type, acc ->
-          Map.update(acc, event_type, [], fn subs ->
-            Enum.reject(subs, &(&1 == subscriber_pid))
-          end)
-      end)
-
-    # Remove from the reverse mapping
-    subscribers_by_pid = Map.delete(state.subscribers_by_pid, subscriber_pid)
-
-    %{state | subscribers: subscribers, subscribers_by_pid: subscribers_by_pid}
-  end
-
-  defp remove_subscription(state, subscriber_pid, event_types) when is_list(event_types) do
-    # Remove from each event type
-    subscribers =
-      Enum.reduce(event_types, state.subscribers, fn event_type, acc ->
-        Map.update(acc, event_type, [], fn subs -> Enum.reject(subs, &(&1 == subscriber_pid)) end)
-      end)
-
-    # Update the reverse mapping
-    subscribers_by_pid =
-      Map.update(state.subscribers_by_pid, subscriber_pid, [], fn types ->
-        Enum.reject(types, &(&1 in event_types))
-      end)
-
-    # If no subscriptions left, remove the entry
-    subscribers_by_pid =
-      if Enum.empty?(Map.get(subscribers_by_pid, subscriber_pid, [])) do
-        Map.delete(subscribers_by_pid, subscriber_pid)
-      else
-        subscribers_by_pid
+  defp notify_subscribers(subscribers, event) do
+    Enum.each(subscribers, fn subscriber ->
+      if is_pid(subscriber) and Process.alive?(subscriber) do
+        send(subscriber, {:event, event})
       end
-
-    %{state | subscribers: subscribers, subscribers_by_pid: subscribers_by_pid}
+    end)
   end
-
-  defp remove_subscription(state, subscriber_pid, event_type) do
-    remove_subscription(state, subscriber_pid, [event_type])
-  end
-
-  # Converts a name to a pid if needed
-  defp get_pid(name) when is_atom(name) do
-    case Process.whereis(name) do
-      nil -> raise ArgumentError, "No process registered with name: #{name}"
-      pid -> pid
-    end
-  end
-
-  defp get_pid(pid) when is_pid(pid), do: pid
 end

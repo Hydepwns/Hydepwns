@@ -10,9 +10,11 @@ defmodule HydepwnsLiveview.Events.LiveEventHandler do
   """
 
   alias HydepwnsLiveview.Events.Handlers.LiveEventHandler, as: CoreLiveEventHandler
+  alias HydepwnsLiveview.Events.Core.Event
 
   # Delegate all public functions to the core implementation
   defdelegate subscribe(event_types, resource_type, resource_id), to: CoreLiveEventHandler
+  defdelegate handle_event(socket, event, handler, opts \\ []), to: CoreLiveEventHandler
 
   # Add any other functions that might be called on LiveEventHandler
   # For example:

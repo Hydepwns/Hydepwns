@@ -6,52 +6,70 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
   use HydepwnsLiveviewWeb, :live_view
   require Logger
 
-  alias HydepwnsLiveview.Resources
+  alias HydepwnsLiveview.Resources.ResourceSystem
   alias HydepwnsLiveview.Resources.Resource
 
-  @impl Phoenix.LiveView
+  @impl true
   def mount(_params, _session, socket) do
-    default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()
-    theme_class = "#{default_theme.mode}-theme"
-    
-    Logger.debug("ResourceDashboardLive: Mounting with empty resources")
-    
-    socket = socket
-      |> assign(:theme_class, theme_class)
-      |> assign(:resources, [])
-      |> assign(:relationships, [])
-      |> assign(:page_title, "Resource Dashboard")
-
-    {:ok, socket}
+    {:ok,
+     socket
+     |> assign(:resources, ResourceSystem.list_resources())
+     |> assign(:selected_type, nil)
+     |> assign(:page_title, "Resources")}
   end
 
-  @impl Phoenix.LiveView
+  @impl true
   def handle_params(params, _url, socket) do
-    Logger.debug("ResourceDashboardLive: Handling params #{inspect(params)}")
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
   defp apply_action(socket, :index, _params) do
-    resources = Resources.list_resources()
-    relationships = Resources.list_relationships()
-    
-    Logger.debug("ResourceDashboardLive: Loading #{length(resources)} resources")
-    Logger.debug("ResourceDashboardLive: Resource IDs: #{Enum.map_join(resources, ", ", & &1.id)}")
-    
     socket
-    |> assign(:resources, resources)
-    |> assign(:relationships, relationships)
+    |> assign(:resources, ResourceSystem.list_resources())
   end
 
-  @impl Phoenix.LiveView
+  defp apply_action(socket, :new, _params) do
+    socket
+    |> assign(:page_title, "New Resource")
+    |> assign(:resource, %Resource{})
+  end
+
+  defp apply_action(socket, :edit, %{"id" => id}) do
+    case ResourceSystem.get_resource(id) do
+      {:ok, resource} ->
+        socket
+        |> assign(:page_title, "Edit Resource")
+        |> assign(:resource, resource)
+      {:error, :not_found} ->
+        socket
+        |> put_flash(:error, "Resource not found")
+        |> redirect(to: ~p"/resources")
+    end
+  end
+
+  @impl true
   def handle_event("filter", %{"type" => type}, socket) do
-    resources = Resources.list_resources_by_type(type)
+    resources = case type do
+      "" -> ResourceSystem.list_resources()
+      type -> Enum.filter(ResourceSystem.list_resources(), &(&1.type == type))
+    end
+
     {:noreply, assign(socket, :resources, resources)}
   end
 
-  @impl Phoenix.LiveView
-  def handle_event("new-resource", _params, socket) do
-    {:noreply, push_navigate(socket, to: ~p"/resources/new")}
+  @impl true
+  def handle_event("delete", %{"id" => id}, socket) do
+    case ResourceSystem.delete_resource(id) do
+      {:ok, _resource} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Resource deleted successfully")
+         |> assign(:resources, ResourceSystem.list_resources())}
+      {:error, _reason} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Failed to delete resource")}
+    end
   end
 
   defp resource_status_class("draft"), do: "bg-gray-100 text-gray-800"

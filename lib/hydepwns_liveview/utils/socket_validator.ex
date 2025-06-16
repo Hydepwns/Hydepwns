@@ -5,6 +5,7 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
   """
 
   require Logger
+  alias HydepwnsLiveview.Utils.TypeValidation
 
   @doc """
   Ensures all required assigns are present in the socket.
@@ -13,48 +14,7 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
   @spec validate_required(Phoenix.LiveView.Socket.t(), list(atom())) ::
           {:ok, Phoenix.LiveView.Socket.t()} | {:error, list(atom())}
   def validate_required(socket, required_keys) when is_list(required_keys) do
-    missing = Enum.filter(required_keys, fn key -> !Map.has_key?(socket.assigns, key) end)
-
-    if Enum.empty?(missing) do
-      {:ok, socket}
-    else
-      # Report telemetry for missing required keys
-      :telemetry.execute(
-        [:hydepwns, :socket_validator, :validation, :missing_assigns],
-        %{count: length(missing)},
-        %{
-          missing_keys: missing,
-          view_module: Map.get(socket.assigns, :view, "unknown"),
-          validation_type: :required
-        }
-      )
-
-      # Broadcast to pub/sub for debug panel (only in dev)
-      if Mix.env() == :dev do
-        error_data = %{
-          key:
-            case missing do
-              [h | _] -> h
-              _ -> nil
-            end,
-          type: "missing_assigns",
-          message: "Missing required assigns: #{inspect(missing)}",
-          details: %{
-            missing_keys: missing,
-            view_module: Map.get(socket.assigns, :view, "unknown")
-          }
-        }
-
-        broadcast_validation_error(
-          Map.get(socket.assigns, :view, "unknown"),
-          "missing_assigns",
-          "Missing required assigns: #{inspect(missing)}",
-          error_data
-        )
-      end
-
-      {:error, missing}
-    end
+    TypeValidation.validate_required(socket, required_keys)
   end
 
   @doc """
@@ -94,92 +54,32 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
                            {:list, any()} | {:one_of, list()} | {:union, list()} | {:custom, (any() -> boolean() | {:error, String.t()})} | 
                            {:map, map()}) :: 
                            {:ok, any()} | {:error, String.t()}
-  # Basic type validations
-  def validate_type(value, type) when type in [:string, :integer, :boolean, :map, :list, :atom, :function, :float, :number] do
-    case {type, value} do
-      {:string, v} when is_binary(v) -> {:ok, v}
-      {:integer, v} when is_integer(v) -> {:ok, v}
-      {:boolean, v} when is_boolean(v) -> {:ok, v}
-      {:map, v} when is_map(v) -> {:ok, v}
-      {:list, v} when is_list(v) -> {:ok, v}
-      {:atom, v} when is_atom(v) -> {:ok, v}
-      {:function, v} when is_function(v) -> {:ok, v}
-      {:float, v} when is_float(v) -> {:ok, v}
-      {:number, v} when is_number(v) -> {:ok, v}
-      _ -> {:error, "expected #{type}"}
+  def validate_type(value, type) do
+    case type do
+      :string -> is_binary(value)
+      :integer -> is_integer(value)
+      :float -> is_float(value)
+      :boolean -> is_boolean(value)
+      :map -> is_map(value)
+      :list -> is_list(value)
+      :atom -> is_atom(value)
+      :datetime -> DateTime.from_iso8601(value) != :error
+      :date -> Date.from_iso8601(value) != :error
+      :time -> Time.from_iso8601(value) != :error
+      _ -> true
     end
   end
 
-  def validate_type(value, {:list, type_spec}) when is_list(value) do
-    if value == [] do
-      {:ok, value}
-    else
-      errors =
-        Enum.with_index(value)
-        |> Enum.reduce([], fn {element, index}, acc ->
-          case validate_type(element, type_spec) do
-            {:ok, _} ->
-              acc
-
-            {:error, message} ->
-              # If the error is a schema or list validation, flatten it
-              cond do
-                String.starts_with?(message, "schema validation failed: ") ->
-                  nested_error_details = String.slice(message, 26..-1//1)
-
-                  nested_error_details
-                  |> String.split("; ")
-                  |> Enum.map(fn sub_error -> "item at index #{index}.#{sub_error}" end)
-                  |> then(&(acc ++ &1))
-
-                String.starts_with?(message, "list validation failed: ") ->
-                  nested_error_details = String.slice(message, 22..-1//1)
-
-                  nested_error_details
-                  |> String.split("; ")
-                  |> Enum.map(fn sub_error -> "item at index #{index}.#{sub_error}" end)
-                  |> then(&(acc ++ &1))
-
-                true ->
-                  acc ++ ["item at index #{index}: #{message}"]
-              end
-          end
-        end)
-
-      if Enum.empty?(errors) do
-        {:ok, value}
-      else
-        {:error, Enum.join(errors, "; ")}
-      end
-    end
+  defp validate_one_of(value, allowed) do
+    if Enum.member?(allowed, value), do: {:ok, value}, else: {:error, "expected one of #{inspect(allowed)}, got: #{inspect(value)}"}
   end
 
-  def validate_type(_value, {:list, _type_spec}), do: {:error, "expected list"}
-
-  def validate_type(value, {:one_of, allowed}) when is_list(allowed) do
-    if Enum.member?(allowed, value) do
-      {:ok, value}
-    else
-      {:error, "expected one of #{inspect(allowed)}, got: #{inspect(value)}"}
-    end
-  end
-
-  def validate_type(value, {:union, types}) when is_list(types) do
+  defp validate_union(value, types) do
     results = Enum.map(types, fn type -> {type, validate_type(value, type)} end)
-
-    if Enum.any?(results, fn {_, result} -> match?({:ok, _}, result) end) do
-      {:ok, value}
-    else
-      error_details =
-        Enum.map_join(results, "\n", fn {type, {:error, msg}} ->
-          "- For #{inspect(type)}: #{msg}"
-        end)
-
-      {:error, "Value matched none of the union types:\n#{error_details}"}
-    end
+    if Enum.any?(results, fn {_, result} -> match?({:ok, _}, result) end), do: {:ok, value}, else: {:error, "Value matched none of the union types: #{inspect(types)}"}
   end
 
-  def validate_type(value, {:custom, validator}) when is_function(validator, 1) do
+  defp validate_custom(value, validator) do
     case validator.(value) do
       true -> {:ok, value}
       false -> {:error, "custom validation failed"}
@@ -188,195 +88,25 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
     end
   end
 
-  def validate_type(value, {:map, schema}) when is_map(value) and is_map(schema) do
-    errors =
-      Enum.reduce(schema, [], fn {key, type_spec}, acc ->
-        current_path_segment = Atom.to_string(key)
-
-        if Map.has_key?(value, key) do
-          case validate_type(Map.get(value, key), type_spec) do
-            {:ok, _} ->
-              acc
-
-            {:error, message} ->
-              new_errors =
-                cond do
-                  String.starts_with?(message, "schema validation failed: ") ->
-                    nested_error_details = String.slice(message, 26..-1//1)
-
-                    nested_error_details
-                    |> String.split("; ")
-                    |> Enum.map(fn sub_error -> "#{current_path_segment}.#{sub_error}" end)
-
-                  String.starts_with?(message, "list validation failed: ") ->
-                    nested_error_details = String.slice(message, 22..-1//1)
-
-                    nested_error_details
-                    |> String.split("; ")
-                    |> Enum.map(fn sub_error -> "#{current_path_segment}.#{sub_error}" end)
-
-                  true ->
-                    ["#{current_path_segment}: #{message}"]
-                end
-
-              acc ++ new_errors
-          end
-        else
-          case type_spec do
-            {:optional, _} -> acc
-            _ -> acc ++ ["#{current_path_segment}: missing field"]
-          end
-        end
-      end)
-
-    if Enum.empty?(errors) do
-      {:ok, value}
-    else
-      {:error, Enum.join(errors, "; ")}
-    end
+  @doc """
+  Validates a list against a type specification.
+  """
+  def validate_list_type(item_type, value) do
+    TypeValidation.validate_list_type(item_type, value)
   end
 
-  def validate_type(_value, {:map, _schema}), do: {:error, "expected map"}
-
-  def validate_type(nil, {:optional, _type_spec}), do: {:ok, nil}
-
-  def validate_type(value, {:optional, map_schema})
-      when is_map(map_schema) and not is_struct(map_schema) do
-    validate_type(value, {:optional, {:map, map_schema}})
+  @doc """
+  Validates a map against a schema.
+  """
+  def validate_map_type(field_types, value) do
+    TypeValidation.validate_map_type(field_types, value)
   end
 
-  def validate_type(value, {:optional, type_spec}) do
-    validate_type(value, type_spec)
-  end
-
-  def validate_type(value, {:nested_list, type_spec}) when is_list(value) do
-    if value == [] do
-      Logger.warning(
-        "[validate_type] Received empty outer list for nested_list type_spec: #{inspect(type_spec)}"
-      )
-
-      # Return error for empty outer list unless type_spec is :any or :optional
-      case type_spec do
-        :any ->
-          {:ok, value}
-
-        {:optional, _} ->
-          {:ok, value}
-
-        _ ->
-          {:error,
-           "outer list is empty, expected at least one sublist of type #{inspect(type_spec)}"}
-      end
-    else
-      outer_errors =
-        Enum.with_index(value)
-        |> Enum.reduce([], fn {sublist, outer_idx}, acc_outer ->
-          if is_list(sublist) do
-            if sublist == [] do
-              Logger.warning(
-                "[validate_type] Received empty sublist at index #{outer_idx} for nested_list type_spec: #{inspect(type_spec)}"
-              )
-
-              # Return error for empty sublist unless type_spec is :any or :optional
-              case type_spec do
-                :any ->
-                  acc_outer
-
-                {:optional, _} ->
-                  acc_outer
-
-                _ ->
-                  acc_outer ++
-                    [
-                      "sublist at index #{outer_idx} is empty, expected at least one element of type #{inspect(type_spec)}"
-                    ]
-              end
-            else
-              inner_errors =
-                Enum.with_index(sublist)
-                |> Enum.reduce([], fn {element, inner_idx}, acc_inner ->
-                  case validate_type(element, type_spec) do
-                    {:ok, _} ->
-                      acc_inner
-
-                    {:error, msg} ->
-                      acc_inner ++
-                        ["sublist at index #{outer_idx}, item at index #{inner_idx}: #{msg}"]
-                  end
-                end)
-
-              acc_outer ++ inner_errors
-            end
-          else
-            acc_outer ++ ["item at index #{outer_idx}: expected a list, got #{inspect(sublist)}"]
-          end
-        end)
-
-      if Enum.empty?(outer_errors) do
-        {:ok, value}
-      else
-        {:error, "nested_list validation failed: #{Enum.join(outer_errors, "; ")}"}
-      end
-    end
-  end
-
-  def validate_type(_value, {:nested_list, _type_spec}), do: {:error, "expected nested list"}
-
-  def validate_type(value, {:list_of_maps, schema}) when is_list(value) do
-    if value == [] do
-      Logger.warning(
-        "[validate_type] Received empty list for list_of_maps schema: #{inspect(schema)}"
-      )
-    end
-
-    errors =
-      Enum.with_index(value)
-      |> Enum.reduce([], fn {map, index}, acc ->
-        case validate_type(map, {:map, schema}) do
-          {:ok, _} -> acc
-          {:error, message} -> acc ++ ["item at index #{index}: #{message}"]
-        end
-      end)
-
-    if Enum.empty?(errors) do
-      {:ok, value}
-    else
-      {:error, "list_of_maps validation failed: #{Enum.join(errors, "; ")}"}
-    end
-  end
-
-  def validate_type(_value, {:list_of_maps, _schema}), do: {:error, "expected list of maps"}
-
-  def validate_type(value, {:map_with_lists, schema}) when is_map(value) and is_map(schema) do
-    errors =
-      Enum.reduce(schema, [], fn {key, type_spec}, acc ->
-        if Map.has_key?(value, key) do
-          case validate_type(Map.get(value, key), type_spec) do
-            {:ok, _} -> acc
-            {:error, message} -> acc ++ ["#{key}: #{message}"]
-          end
-        else
-          acc ++ ["#{key}: required key missing"]
-        end
-      end)
-
-    if Enum.empty?(errors) do
-      {:ok, value}
-    else
-      {:error, "map_with_lists validation failed: #{Enum.join(errors, "; ")}"}
-    end
-  end
-
-  def validate_type(_value, {:map_with_lists, _schema}), do: {:error, "expected map"}
-
-  # NEW CLAUSE: Handle direct map schema if schema itself is a map (and not a struct)
-  def validate_type(value, schema) when is_map(schema) and not is_struct(schema) do
-    validate_type(value, {:map, schema})
-  end
-
-  # Default case for unrecognized type specs (must be last)
-  def validate_type(_value, type_spec) do
-    {:error, "unsupported type specification: #{inspect(type_spec)}"}
+  @doc """
+  Validates a field against a type specification.
+  """
+  def validate_field(field, type, value) do
+    TypeValidation.validate_field(field, type, value)
   end
 
   @doc """
@@ -459,322 +189,23 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
   @spec type_validation(Phoenix.LiveView.Socket.t(), atom(), any()) ::
           {:ok, Phoenix.LiveView.Socket.t()} | {:error, String.t(), Phoenix.LiveView.Socket.t()}
   def type_validation(socket, key, type_spec) do
-    case Map.fetch(socket.assigns, key) do
-      {:ok, value} ->
-        case validate_type(value, type_spec) do
-          {:ok, _} ->
-            {:ok, socket}
-
-          {:error, message} ->
-            # Generate error message
-            error_message = "Invalid type for #{key}: #{message}"
-
-            # Send telemetry event for type validation failure
-            :telemetry.execute(
-              [:hydepwns, :socket_validator, :validation, :type_error],
-              %{count: 1},
-              %{
-                key: key,
-                type_spec: type_spec,
-                error_message: message,
-                value: value,
-                view_module: Map.get(socket.assigns, :view, "unknown"),
-                validation_type: :type_validation
-              }
-            )
-
-            # Broadcast to pub/sub for debug panel (only in dev)
-            if Mix.env() == :dev do
-              context_message = context_aware_error(error_message, key, socket)
-
-              error_data = %{
-                key: key,
-                type: "type_error",
-                message: context_message,
-                details: %{
-                  actual_value: inspect(value),
-                  expected_type: inspect(type_spec),
-                  view_module: Map.get(socket.assigns, :view, "unknown")
-                }
-              }
-
-              broadcast_validation_error(
-                Map.get(socket.assigns, :view, "unknown"),
-                "type_error",
-                context_message,
-                error_data
-              )
-            end
-
-            {:error, error_message, socket}
-        end
-
-      :error ->
-        error_message = "Assign #{key} not found in socket"
-
-        # Send telemetry event for missing key
-        :telemetry.execute(
-          [:hydepwns, :socket_validator, :validation, :missing_key],
-          %{count: 1},
-          %{
-            key: key,
-            view_module: Map.get(socket.assigns, :view, "unknown"),
-            validation_type: :type_validation
-          }
-        )
-
-        # Broadcast to pub/sub for debug panel (only in dev)
-        if Mix.env() == :dev do
-          error_data = %{
-            key: key,
-            type: "missing_key",
-            message: error_message,
-            details: %{
-              view_module: Map.get(socket.assigns, :view, "unknown")
-            }
-          }
-
-          broadcast_validation_error(
-            Map.get(socket.assigns, :view, "unknown"),
-            "missing_key",
-            error_message,
-            error_data
-          )
-        end
-
-        {:error, error_message, socket}
-    end
+    TypeValidation.type_validation(socket, key, type_spec)
   end
 
   @doc """
   Creates a context-aware error message with suggested fixes.
   """
   def context_aware_error(message, key, socket) do
-    # Get the current value of the assign
     value = Map.get(socket.assigns, key)
-
-    # Get validation history for this assign if available
     validation_history = get_validation_history(socket, key)
-
-    # Basic context info
     value_type = type_of(value)
     view_module = Map.get(socket.assigns, :view, "unknown")
 
-    # Build detailed context info
-    value_info = """
-    Error in view: #{inspect(view_module)}
-    Key: #{key}
-    Current value: #{inspect(value)} (#{value_type})
-    """
-
-    # Add validation history to context if available
-    value_info = add_validation_history_to_context(value_info, validation_history)
-
-    # Get expected type from error message
+    value_info = generate_value_info(value, value_type, view_module, validation_history, key)
     expected_type = extract_expected_type(message)
+    suggestion = generate_suggestion(message, key, value, expected_type)
+    type_spec_suggestion = generate_type_spec_suggestion(expected_type, key)
 
-    # Add suggestion based on the error type and context
-    suggestion =
-      cond do
-        # String conversion suggestions
-        String.contains?(message, "expected string") && is_integer(value) ->
-          """
-          Convert the integer to a string:
-
-          ```elixir
-          # Using Integer.to_string/1
-          #{key} = Integer.to_string(#{inspect(value)})  # "#{Integer.to_string(value)}"
-
-          # Using to_string/1
-          #{key} = to_string(#{inspect(value)})  # "#{to_string(value)}"
-
-          # In assign:
-          assign(socket, :#{key}, Integer.to_string(#{inspect(value)}))
-          ```
-          """
-
-        String.contains?(message, "expected string") && is_atom(value) ->
-          """
-          Convert the atom to a string:
-
-          ```elixir
-          # Using Atom.to_string/1
-          #{key} = Atom.to_string(#{inspect(value)})  # "#{Atom.to_string(value)}"
-
-          # Using to_string/1
-          #{key} = to_string(#{inspect(value)})  # "#{to_string(value)}"
-
-          # In assign:
-          assign(socket, :#{key}, Atom.to_string(#{inspect(value)}))
-          ```
-          """
-
-        # Integer conversion suggestions
-        String.contains?(message, "expected integer") && is_binary(value) ->
-          case Integer.parse(value) do
-            {int, ""} ->
-              """
-              The string appears to be a valid integer.
-
-              ```elixir
-              # Using String.to_integer/1
-              #{key} = String.to_integer(#{inspect(value)})  # #{int}
-
-              # In assign:
-              assign(socket, :#{key}, String.to_integer(#{inspect(value)}))
-              ```
-              """
-
-            {int, rest} ->
-              """
-              The string starts with an integer but has extra characters.
-
-              ```elixir
-              # For the integer part only:
-              #{key} = String.to_integer(#{inspect(String.replace(value, rest, ""))})  # #{int}
-
-              # Or using pattern matching:
-              {#{key}, _rest} = Integer.parse(#{inspect(value)})  # #{int}
-
-              # In assign with pattern matching:
-              {parsed_value, _} = Integer.parse(#{inspect(value)})
-              assign(socket, :#{key}, parsed_value)
-              ```
-              """
-
-            :error ->
-              """
-              The string doesn't represent a valid integer.
-
-              Common issues:
-              - Contains non-numeric characters: "#{value}"
-              - Empty string: #{value == ""}
-              - Using the wrong variable or nil
-
-              Try:
-              - Ensure the value is a numeric string
-              - Use a default value: `String.to_integer(#{inspect(value)}, 0)`
-              - Add validation before conversion: `if is_binary(value) and String.match?(value, ~r/^[0-9]+$/), do: String.to_integer(value), else: 0`
-              """
-          end
-
-        # Boolean conversion suggestions
-        String.contains?(message, "expected boolean") && (value == "true" || value == "false") ->
-          """
-          Convert the string to a boolean:
-
-          ```elixir
-          # Direct comparison
-          #{key} = #{inspect(value)} == "true"  # #{value == "true"}
-
-          # In assign:
-          assign(socket, :#{key}, #{inspect(value)} == "true")
-          ```
-          """
-
-        # Map validation failures
-        String.contains?(message, "schema validation failed") ->
-          # Extract specific schema validation errors
-          schema_errors = extract_schema_errors(message)
-          schema_error_suggestions = generate_schema_error_suggestions(schema_errors, key, value)
-
-          """
-          Schema validation failed for assign ':#{key}'.
-
-          #{schema_error_suggestions}
-
-          Verify the map structure matches the expected schema.
-          """
-
-        # List validation failures
-        String.contains?(message, "list validation failed") ->
-          """
-          List validation failed for assign ':#{key}'.
-
-          The list should contain only elements of the expected type.
-
-          Try:
-          - Filter invalid elements: `Enum.filter(#{key}, &is_expected_type/1)`
-          - Map elements to correct type: `Enum.map(#{key}, &convert_to_expected_type/1)`
-          - Use a default empty list if current value isn't valid: `value = is_list(#{key}) && #{key} || []`
-          """
-
-        # One of validation failures
-        String.contains?(message, "expected one of") && expected_type ->
-          expected_values = extract_enum_values(expected_type)
-
-          """
-          Value must be one of: #{inspect(expected_values)}
-
-          Current value: #{inspect(value)}
-
-          Try:
-          - Ensure value is from the allowed list
-          - Use a default value: `value = Enum.member?(#{inspect(expected_values)}, #{inspect(value)}) && #{inspect(value)} || #{inspect(case expected_values do
-            [h | _] -> h
-            _ -> nil
-          end)}`
-          - Convert similar values: `String.to_atom(#{inspect(value)})` or `Atom.to_string(#{inspect(value)})`
-          """
-
-        # Union type validation failures
-        String.contains?(message, "matched none of the union types") && expected_type ->
-          union_types = extract_union_types(expected_type)
-
-          """
-          Value must match one of the types: #{inspect(union_types)}
-
-          Current value: #{inspect(value)} (#{type_of(value)})
-
-          Try:
-          - Convert to a compatible type
-          - Use a default value of the correct type
-          - Check the data source for this value
-          """
-
-        # Custom validation failures
-        String.contains?(message, "failed custom validation") ->
-          """
-          Value failed the custom validation function.
-
-          Try:
-          - Check the validation function requirements
-          - Update the value to match validation criteria
-          - Preprocess the value before validation
-          """
-
-        # Fallback for other errors
-        true ->
-          """
-          Try to ensure the value matches the expected type.
-
-          Expected: #{expected_type || "unknown"}
-          Actual: #{inspect(value)} (#{type_of(value)})
-          """
-      end
-
-    # Add type spec suggestion if we can determine the expected type
-    type_spec_suggestion =
-      if expected_type do
-        """
-
-        Specify the correct type in your type_specs/0 function:
-
-        ```elixir
-        def type_specs do
-          %{
-            # ... other specs ...
-            #{key}: #{expected_type},
-            # ... other specs ...
-          }
-        end
-        ```
-        """
-      else
-        ""
-      end
-
-    # Format the error message
     """
     #{message}
 
@@ -787,116 +218,327 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
     """
   end
 
-  # Helper to extract expected type from error message
-  defp extract_expected_type(message) do
-    cond do
-      String.contains?(message, "expected string") -> ":string"
-      String.contains?(message, "expected integer") -> ":integer"
-      String.contains?(message, "expected boolean") -> ":boolean"
-      String.contains?(message, "expected map") -> ":map"
-      String.contains?(message, "expected list") -> ":list"
-      String.contains?(message, "expected atom") -> ":atom"
-      String.contains?(message, "expected function") -> ":function"
-      String.contains?(message, "expected float") -> ":float"
-      String.contains?(message, "expected number") -> ":number"
-      String.contains?(message, "expected one of") -> extract_enum_type(message)
-      String.contains?(message, "matched none of the union types") -> extract_union_type(message)
-      true -> nil
+  defp generate_value_info(value, value_type, view_module, validation_history, key) do
+    value_info = """
+    Error in view: #{inspect(view_module)}
+    Key: #{key}
+    Current value: #{inspect(value)} (#{value_type})
+    """
+
+    add_validation_history_to_context(value_info, validation_history)
+  end
+
+  defp generate_suggestion(message, key, value, expected_type) do
+    suggestion_type = determine_suggestion_type(message, value)
+    apply_suggestion_generator(suggestion_type, message, key, value, expected_type)
+  end
+
+  defp determine_suggestion_type(message, value) do
+    suggestion_patterns = %{
+      {"expected string", &is_integer/1} => :string_from_int,
+      {"expected string", &is_atom/1} => :string_from_atom,
+      {"expected integer", &is_binary/1} => :integer_from_string,
+      {"expected boolean", &(&1 == "true" || &1 == "false")} => :boolean_from_string,
+      {"schema validation failed", &(&1 != nil)} => :schema_error,
+      {"list validation failed", &(&1 != nil)} => :list_error,
+      {"expected one of", &(&1 != nil)} => :one_of_error,
+      {"matched none of the union types", &(&1 != nil)} => :union_error,
+      {"failed custom validation", &(&1 != nil)} => :custom_validation_error
+    }
+
+    Enum.find_value(suggestion_patterns, :generic_error, fn {{pattern, validator}, type} ->
+      if String.contains?(message, pattern) && validator.(value), do: type
+    end)
+  end
+
+  defp apply_suggestion_generator(:string_from_int, _message, key, value, _expected_type), do: generate_string_conversion_suggestion(key, value)
+  defp apply_suggestion_generator(:string_from_atom, _message, key, value, _expected_type), do: generate_atom_to_string_suggestion(key, value)
+  defp apply_suggestion_generator(:integer_from_string, _message, key, value, _expected_type), do: generate_integer_conversion_suggestion(key, value)
+  defp apply_suggestion_generator(:boolean_from_string, _message, key, value, _expected_type), do: generate_boolean_conversion_suggestion(key, value)
+  defp apply_suggestion_generator(:schema_error, message, key, value, _expected_type), do: generate_schema_error_suggestion(message, key, value)
+  defp apply_suggestion_generator(:list_error, _message, key, _value, _expected_type), do: generate_list_error_suggestion(key)
+  defp apply_suggestion_generator(:one_of_error, _message, _key, value, expected_type), do: generate_one_of_suggestion(expected_type, value)
+  defp apply_suggestion_generator(:union_error, _message, _key, value, expected_type), do: generate_union_suggestion(expected_type, value)
+  defp apply_suggestion_generator(:custom_validation_error, _message, _key, _value, _expected_type), do: generate_custom_validation_suggestion()
+  defp apply_suggestion_generator(:generic_error, _message, _key, value, expected_type), do: generate_generic_suggestion(expected_type, value)
+
+  defp generate_string_conversion_suggestion(key, value) do
+    """
+    Convert the integer to a string:
+
+    ```elixir
+    # Using Integer.to_string/1
+    #{key} = Integer.to_string(#{inspect(value)})  # "#{Integer.to_string(value)}"
+
+    # Using to_string/1
+    #{key} = to_string(#{inspect(value)})  # "#{to_string(value)}"
+
+    # In assign:
+    assign(socket, :#{key}, Integer.to_string(#{inspect(value)}))
+    ```
+    """
+  end
+
+  defp generate_atom_to_string_suggestion(key, value) do
+    """
+    Convert the atom to a string:
+
+    ```elixir
+    # Using Atom.to_string/1
+    #{key} = Atom.to_string(#{inspect(value)})  # "#{Atom.to_string(value)}"
+
+    # Using to_string/1
+    #{key} = to_string(#{inspect(value)})  # "#{to_string(value)}"
+
+    # In assign:
+    assign(socket, :#{key}, Atom.to_string(#{inspect(value)}))
+    ```
+    """
+  end
+
+  defp generate_integer_conversion_suggestion(key, value) do
+    case Integer.parse(value) do
+      {int, ""} ->
+        """
+        The string appears to be a valid integer.
+
+        ```elixir
+        # Using String.to_integer/1
+        #{key} = String.to_integer(#{inspect(value)})  # #{int}
+
+        # In assign:
+        assign(socket, :#{key}, String.to_integer(#{inspect(value)}))
+        ```
+        """
+
+      {int, rest} ->
+        """
+        The string starts with an integer but has extra characters.
+
+        ```elixir
+        # For the integer part only:
+        #{key} = String.to_integer(#{inspect(String.replace(value, rest, ""))})  # #{int}
+
+        # Or using pattern matching:
+        {#{key}, _rest} = Integer.parse(#{inspect(value)})  # #{int}
+
+        # In assign with pattern matching:
+        {parsed_value, _} = Integer.parse(#{inspect(value)})
+        assign(socket, :#{key}, parsed_value)
+        ```
+        """
+
+      :error ->
+        """
+        The string doesn't represent a valid integer.
+
+        Common issues:
+        - Contains non-numeric characters: "#{value}"
+        - Empty string: #{value == ""}
+        - Using the wrong variable or nil
+
+        Try:
+        - Ensure the value is a numeric string
+        - Use a default value: `String.to_integer(#{inspect(value)}, 0)`
+        - Add validation before conversion: `if is_binary(value) and String.match?(value, ~r/^[0-9]+$/), do: String.to_integer(value), else: 0`
+        """
     end
   end
 
-  # Extract enum type from error message
+  defp generate_boolean_conversion_suggestion(key, value) do
+    """
+    Convert the string to a boolean:
+
+    ```elixir
+    # Direct comparison
+    #{key} = #{inspect(value)} == "true"  # #{value == "true"}
+
+    # In assign:
+    assign(socket, :#{key}, #{inspect(value)} == "true")
+    ```
+    """
+  end
+
+  defp generate_schema_error_suggestion(message, key, value) do
+    schema_errors = extract_schema_errors(message)
+    schema_error_suggestions = generate_schema_error_suggestions(schema_errors, key, value)
+
+    """
+    Schema validation failed for assign ':#{key}'.
+
+    #{schema_error_suggestions}
+
+    Verify the map structure matches the expected schema.
+    """
+  end
+
+  defp generate_list_error_suggestion(key) do
+    """
+    List validation failed for assign ':#{key}'.
+
+    The list should contain only elements of the expected type.
+
+    Try:
+    - Filter invalid elements: `Enum.filter(#{key}, &is_expected_type/1)`
+    - Map elements to correct type: `Enum.map(#{key}, &convert_to_expected_type/1)`
+    - Use a default empty list if current value isn't valid: `value = is_list(#{key}) && #{key} || []`
+    """
+  end
+
+  defp generate_one_of_suggestion(expected_type, value) do
+    expected_values = extract_enum_values(expected_type)
+
+    """
+    Value must be one of: #{inspect(expected_values)}
+
+    Current value: #{inspect(value)}
+
+    Try:
+    - Ensure value is from the allowed list
+    - Use a default value: `value = Enum.member?(#{inspect(expected_values)}, #{inspect(value)}) && #{inspect(value)} || #{inspect(case expected_values do
+      [h | _] -> h
+      _ -> nil
+    end)}`
+    - Convert similar values: `String.to_atom(#{inspect(value)})` or `Atom.to_string(#{inspect(value)})`
+    """
+  end
+
+  defp generate_union_suggestion(expected_type, value) do
+    union_types = extract_union_types(expected_type)
+
+    """
+    Value must match one of the types: #{inspect(union_types)}
+
+    Current value: #{inspect(value)} (#{type_of(value)})
+
+    Try:
+    - Convert to a compatible type
+    - Use a default value of the correct type
+    - Check the data source for this value
+    """
+  end
+
+  defp generate_custom_validation_suggestion do
+    """
+    Value failed the custom validation function.
+
+    Try:
+    - Check the validation function requirements
+    - Update the value to match validation criteria
+    - Preprocess the value before validation
+    """
+  end
+
+  defp generate_generic_suggestion(expected_type, value) do
+    """
+    Try to ensure the value matches the expected type.
+
+    Expected: #{expected_type || "unknown"}
+    Actual: #{inspect(value)} (#{type_of(value)})
+    """
+  end
+
+  defp generate_type_spec_suggestion(expected_type, key) do
+    if expected_type do
+      """
+
+      Specify the correct type in your type_specs/0 function:
+
+      ```elixir
+      def type_specs do
+        %{
+          # ... other specs ...
+          #{key}: #{expected_type},
+          # ... other specs ...
+        }
+      end
+      ```
+      """
+    else
+      ""
+    end
+  end
+
+  # Helper functions for extracting information from error messages
+  defp extract_expected_type(message) do
+    type_patterns = %{
+      "expected string" => ":string",
+      "expected integer" => ":integer",
+      "expected boolean" => ":boolean",
+      "expected map" => ":map",
+      "expected list" => ":list",
+      "expected atom" => ":atom",
+      "expected function" => ":function",
+      "expected float" => ":float",
+      "expected number" => ":number",
+      "expected one of" => extract_enum_type(message),
+      "matched none of the union types" => extract_union_type(message)
+    }
+
+    Enum.find_value(type_patterns, fn {pattern, type} ->
+      if String.contains?(message, pattern), do: type
+    end)
+  end
+
   defp extract_enum_type(message) do
     case Regex.run(~r/expected one of: (.+)/, message) do
-      [_, values_str] ->
-        if is_binary(values_str) do
-          trimmed = String.trim(values_str)
-
-          if trimmed != "" do
-            "{:one_of, [" <> trimmed <> "]}"
-          else
-            nil
-          end
-        else
-          nil
-        end
-
-      _ ->
-        nil
+      [_, values_str] when is_binary(values_str) ->
+        trimmed = String.trim(values_str)
+        if trimmed != "", do: "{:one_of, [" <> trimmed <> "]}", else: nil
+      _ -> nil
     end
   end
 
-  # Extract enum values from the type spec string
   defp extract_enum_values(type_spec) do
     case Regex.run(~r/{:one_of, \[(.*)\]}/, type_spec) do
-      [_, values_str] ->
-        if is_binary(values_str) do
-          trimmed = String.trim(values_str)
-
-          if trimmed != "" do
-            trimmed
-            |> String.split(",")
-            |> Enum.map(&String.trim/1)
-            |> Enum.reject(&(&1 == ""))
-          else
-            []
-          end
-        else
-          []
-        end
-
-      _ ->
-        []
+      [_, values_str] -> process_values_string(values_str)
+      _ -> []
     end
   end
 
-  # Extract union type from error message
+  defp process_values_string(values_str) when is_binary(values_str) do
+    trimmed = String.trim(values_str)
+    if trimmed != "" do
+      trimmed
+      |> String.split(",")
+      |> Enum.map(&String.trim/1)
+      |> Enum.reject(&(&1 == ""))
+    else
+      []
+    end
+  end
+  defp process_values_string(_), do: []
+
   defp extract_union_type(message) do
     case Regex.run(~r/matched none of the union types: (.+)/, message) do
-      [_, types_str] ->
-        "{:union, [#{types_str}]}"
-
-      _ ->
-        nil
+      [_, types_str] -> "{:union, [#{types_str}]}"
+      _ -> nil
     end
   end
 
-  # Extract union types from the type spec string
   defp extract_union_types(type_spec) do
     case Regex.run(~r/{:union, \[(.+)\]}/, type_spec) do
-      [_, types_str] ->
-        types_str |> String.split(",") |> Enum.map(&String.trim/1)
-
-      _ ->
-        []
+      [_, types_str] -> types_str |> String.split(",") |> Enum.map(&String.trim/1)
+      _ -> []
     end
   end
 
-  # Extract schema validation errors from the error message
   defp extract_schema_errors(message) do
     case Regex.run(~r/schema validation failed: (.+)/, message) do
-      [_, errors_str] ->
-        errors_str |> String.split(", ") |> Enum.map(&parse_schema_error/1)
-
-      _ ->
-        []
+      [_, errors_str] -> errors_str |> String.split(", ") |> Enum.map(&parse_schema_error/1)
+      _ -> []
     end
   end
 
-  # Parse individual schema error
   defp parse_schema_error(error_str) do
     case Regex.run(~r/(.+): (.+)/, error_str) do
-      [_, path, error] ->
-        %{path: path, error: error}
-
-      _ ->
-        %{path: "unknown", error: error_str}
+      [_, path, error] -> %{path: path, error: error}
+      _ -> %{path: "unknown", error: error_str}
     end
   end
 
-  # Generate suggestions for schema errors
-  defp generate_schema_error_suggestions(schema_errors, _key, value) do
-    Enum.map(schema_errors, fn %{path: path, error: error} ->
+  defp generate_schema_error_suggestions(schema_errors, key, value) do
+    Enum.map_join(schema_errors, "\n", fn %{path: path, error: error} ->
       field_path = String.split(path, ".")
       suggested_fix = suggest_fix_for_schema_error(field_path, error, value)
 
@@ -905,56 +547,47 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
         #{suggested_fix}
       """
     end)
-    |> Enum.join("\n")
   end
 
-  # Suggest fixes for schema validation errors
   defp suggest_fix_for_schema_error(field_path, error, value) do
     field_value = get_nested_value(value, field_path)
+    handle_schema_error(error, field_value)
+  end
 
-    cond do
-      error =~ "expected string" && field_value != nil ->
-        "Try converting to string: `to_string(#{inspect(field_value)})`"
+  defp handle_schema_error(error, field_value) do
+    error_patterns = %{
+      {"expected string", &(&1 != nil)} => &handle_string_error/1,
+      {"expected integer", &is_binary/1} => &handle_integer_error/1,
+      {"expected boolean", &(&1 == "true" || &1 == "false")} => &handle_boolean_error/1,
+      {"expected one of", &(&1 != nil)} => &handle_one_of_error/1
+    }
 
-      error =~ "expected integer" && is_binary(field_value) ->
-        "Try converting to integer: `String.to_integer(#{inspect(field_value)})`"
+    Enum.find_value(error_patterns, "Ensure the value matches the expected type.", fn {{pattern, validator}, handler} ->
+      if error =~ pattern && validator.(field_value), do: handler.(field_value)
+    end)
+  end
 
-      error =~ "expected boolean" && (field_value == "true" || field_value == "false") ->
-        "Try converting to boolean: `#{inspect(field_value)} == \"true\"`"
+  defp handle_string_error(field_value), do: "Try converting to string: `to_string(#{inspect(field_value)})`"
+  defp handle_integer_error(field_value), do: "Try converting to integer: `String.to_integer(#{inspect(field_value)})`"
+  defp handle_boolean_error(field_value), do: "Try converting to boolean: `#{inspect(field_value)} == \"true\"`"
 
-      error =~ "expected one of" ->
-        allowed_values = Regex.run(~r/expected one of: (.+)/, error)
-
-        case allowed_values do
-          [_, values_str] ->
-            "Value must be one of: #{values_str}"
-
-          _ ->
-            "Ensure value is one of the allowed values"
-        end
-
-      field_value == nil ->
-        "Field is missing. Ensure it exists in the map."
-
-      true ->
-        "Ensure the value matches the expected type."
+  defp handle_one_of_error(error) do
+    case Regex.run(~r/expected one of: (.+)/, error) do
+      [_, values_str] -> "Value must be one of: #{values_str}"
+      _ -> "Ensure value is one of the allowed values"
     end
   end
 
-  # Get nested value from a map using a list of keys
   defp get_nested_value(map, []), do: map
   defp get_nested_value(nil, _), do: nil
-
   defp get_nested_value(map, [key | rest]) when is_map(map) do
     key = if is_binary(key), do: String.to_existing_atom(key), else: key
     get_nested_value(Map.get(map, key), rest)
   rescue
     _ -> nil
   end
-
   defp get_nested_value(_, _), do: nil
 
-  # Determine the type of a value
   defp type_of(value) when is_binary(value), do: "string"
   defp type_of(value) when is_integer(value), do: "integer"
   defp type_of(value) when is_boolean(value), do: "boolean"
@@ -966,78 +599,7 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
   defp type_of(value) when is_nil(value), do: "nil"
   defp type_of(_), do: "unknown"
 
-  # Function to broadcast validation errors to the debug panel in development
-  defp broadcast_validation_error(view_module, type, message, details) do
-    # Check if we're in development mode
-    if Mix.env() == :dev do
-      # Create a unique ID for this error
-      error_id = :crypto.strong_rand_bytes(8) |> Base.encode16(case: :lower)
-
-      # Add timestamp
-      error_with_timestamp =
-        details
-        |> Map.put(:id, error_id)
-        |> Map.put(:timestamp, DateTime.utc_now())
-        |> Map.put(:message, message)
-        |> Map.put(:type, type)
-        |> Map.put(:view_module, view_module)
-
-      # Broadcast to the debug panel
-      Phoenix.PubSub.broadcast(
-        HydepwnsLiveview.PubSub,
-        "socket_validation",
-        {:socket_validation_error, error_with_timestamp}
-      )
-    end
-  end
-
-  @doc """
-  Records detailed telemetry metrics for validation events.
-  """
-  @spec record_validation_telemetry(atom(), map(), map()) :: :ok
-  def record_validation_telemetry(event_name, metric_value, metadata) do
-    # Build the full event name
-    event = [:hydepwns, :socket_validator, :validation, event_name]
-
-    # Add timestamp if not provided
-    metadata = Map.put_new(metadata, :timestamp, DateTime.utc_now())
-
-    # Add environment information
-    metadata = Map.put_new(metadata, :environment, Mix.env())
-
-    # Add validation_type if not provided
-    metadata = Map.put_new(metadata, :validation_type, :general)
-
-    # Execute the telemetry event
-    :telemetry.execute(event, metric_value, metadata)
-  end
-
-  @doc """
-  Creates a histogram of validation errors over time.
-  """
-  @spec validation_error_histogram(integer()) :: map()
-  def validation_error_histogram(_time_window \\ 3600) do
-    # This is a placeholder implementation
-    # In a real implementation, this would query telemetry data
-    # from a storage backend where the events are aggregated
-
-    # For demonstration, return a mock result
-    %{
-      type_error: 0,
-      missing_key: 0,
-      missing_assigns: 0,
-      schema_error: 0,
-      custom_validation_error: 0
-    }
-  end
-
-  @doc """
-  Retrieves validation history for a specific socket assign key.
-  Used to track previous values of assigns for better error context.
-  """
-  def get_validation_history(_socket, _key) do
-    # Get validation history from socket storage or ETS
-    # For now returning a simple empty history structure
+  defp get_validation_history(_socket, _key) do
     %{
       recent_values: [],
       error_count: 0,
@@ -1046,11 +608,9 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
   end
 
   defp add_validation_history_to_context(value_info, validation_history) do
-    # Add validation history to context if available
     if validation_history && !Enum.empty?(validation_history[:recent_values]) do
       context_with_header = value_info <> "\nRecent values:\n"
 
-      # Use Enum.reduce instead of Enum.each to build the string properly
       Enum.with_index(validation_history[:recent_values], 1)
       |> Enum.reverse()
       |> Enum.take(-3)
@@ -1060,5 +620,19 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
     else
       value_info
     end
+  end
+
+  defp validate_socket(state, opts) do
+    required_keys = Keyword.get(opts, :required_keys, [])
+    type_specs = Keyword.get(opts, :type_specs, %{})
+
+    case TypeValidation.validate_required(state, required_keys) do
+      {:ok, socket} -> TypeValidation.validate_type_specs(socket, type_specs)
+      {:error, missing_keys} -> {:error, "Missing required assigns: #{inspect(missing_keys)}", state}
+    end
+  end
+
+  defp validate_socket_key(_key) do
+    :ok
   end
 end

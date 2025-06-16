@@ -16,7 +16,13 @@ defmodule HydepwnsLiveview.ThemeSystemFixtures do
         secondary_color: "#10B981",
         background_color: "#FFFFFF",
         text_color: "#1F2937",
-        is_default: false
+        is_default: false,
+        settings: %{
+          font_size: "medium",
+          line_height: "normal",
+          contrast: "normal",
+          animations: true
+        }
       })
 
     {:ok, theme} = HydepwnsLiveview.ThemeSystem.create_theme(attrs)
@@ -35,7 +41,13 @@ defmodule HydepwnsLiveview.ThemeSystemFixtures do
         secondary_color: "#10B981",
         background_color: "#FFFFFF",
         text_color: "#1F2937",
-        is_default: false
+        is_default: false,
+        settings: %{
+          font_size: "medium",
+          line_height: "normal",
+          contrast: "normal",
+          animations: true
+        }
       })
 
     {:ok, theme} = HydepwnsLiveview.ThemeSystem.create_theme(attrs)
@@ -54,7 +66,13 @@ defmodule HydepwnsLiveview.ThemeSystemFixtures do
         secondary_color: "#34D399",
         background_color: "#1F2937",
         text_color: "#F9FAFB",
-        is_default: false
+        is_default: false,
+        settings: %{
+          font_size: "medium",
+          line_height: "normal",
+          contrast: "high",
+          animations: true
+        }
       })
 
     {:ok, theme} = HydepwnsLiveview.ThemeSystem.create_theme(attrs)
@@ -145,7 +163,13 @@ defmodule HydepwnsLiveview.ThemeSystemFixtures do
         secondary_color: "#F59E0B",
         background_color: "#F3F4F6",
         text_color: "#111827",
-        is_default: false
+        is_default: false,
+        settings: %{
+          font_size: "medium",
+          line_height: "normal",
+          contrast: "normal",
+          animations: true
+        }
       })
 
     {:ok, theme} = HydepwnsLiveview.ThemeSystem.create_theme(attrs)

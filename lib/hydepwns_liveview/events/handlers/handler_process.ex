@@ -11,7 +11,6 @@ defmodule HydepwnsLiveview.Events.Handlers.HandlerProcess do
   require Logger
 
   alias HydepwnsLiveview.Events.EventBus
-  # alias HydepwnsLiveview.Events.HandlerRegistry # Removed unused alias
 
   @doc """
   Starts a handler process.

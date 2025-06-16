@@ -38,18 +38,10 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       HydepwnsLiveview.ThemeSystem.create_theme(%{
         name: "Test Theme",
         mode: "light",
-        colors: %{
-          primary: "#3b82f6",
-          secondary: "#10b981",
-          accent: "#f59e0b",
-          background: "#ffffff",
-          text: "#1f2937",
-          border: "#e5e7eb",
-          error: "#ef4444",
-          success: "#22c55e",
-          warning: "#f59e0b",
-          info: "#3b82f6"
-        },
+        primary_color: "#3b82f6",
+        secondary_color: "#10b981",
+        background_color: "#ffffff",
+        text_color: "#1f2937",
         is_default: false,
         settings: %{
           font_size: "medium",

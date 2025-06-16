@@ -1,18 +1,18 @@
 defmodule HydepwnsLiveview.Events.Adapters.PushAdapter do
   @moduledoc """
-  Adapter for sending push notifications.
-  Supports multiple push notification providers including Firebase Cloud Messaging (FCM).
+  Adapter for sending push notifications to mobile devices.
+  Supports multiple push notification services and proper error handling.
   """
 
   @behaviour HydepwnsLiveview.Events.Adapters.Adapter
   require Logger
 
   @impl true
-  def send_reminder(reminder, settings, config, encrypted_message) do
+  def send_reminder(reminder, _settings, config, encrypted_message) do
     with {:ok, device_token} <- validate_device_token(reminder.recipient),
-         {:ok, notification} <- build_push_notification(reminder, encrypted_message),
-         {:ok, response} <- send_push_notification(device_token, notification, config) do
-      Logger.info("Push notification sent successfully to device: #{device_token}")
+         {:ok, notification} <- build_push_notification(reminder, encrypted_message, config),
+         {:ok, _response} <- send_push_notification(device_token, notification, config) do
+      Logger.info("Push notification sent successfully to device #{device_token}")
       {:ok, "Push notification sent successfully"}
     else
       {:error, :invalid_token} ->
@@ -27,107 +27,43 @@ defmodule HydepwnsLiveview.Events.Adapters.PushAdapter do
   # Private functions
 
   defp validate_device_token(token) do
-    # Basic FCM token validation (FCM tokens are typically 140-160 characters)
-    case String.length(token) do
-      len when len >= 140 and len <= 160 ->
+    # Basic token validation (should be a non-empty string)
+    case token do
+      token when is_binary(token) and byte_size(token) > 0 ->
         {:ok, token}
       _ ->
         {:error, :invalid_token}
     end
   end
 
-  defp build_push_notification(reminder, encrypted_message) do
-    # Build a structured notification payload
+  defp build_push_notification(reminder, encrypted_message, config) do
+    # Build a push notification with title and body
     notification = %{
-      title: reminder.title || "Event Reminder",
-      body: reminder.message || "You have a reminder",
+      title: reminder.title,
+      body: reminder.message,
       data: %{
         reminder_id: reminder.id,
         encrypted_message: encrypted_message,
         timestamp: DateTime.utc_now() |> DateTime.to_iso8601()
-      },
-      android: %{
-        priority: "high",
-        notification: %{
-          sound: "default",
-          click_action: "FLUTTER_NOTIFICATION_CLICK"
-        }
-      },
-      apns: %{
-        payload: %{
-          aps: %{
-            sound: "default",
-            badge: 1
-          }
-        }
       }
     }
+
+    # Add custom data if configured
+    notification = case config.custom_data do
+      data when is_map(data) ->
+        Map.update!(notification, :data, &Map.merge(&1, data))
+      _ ->
+        notification
+    end
 
     {:ok, notification}
   end
 
   defp send_push_notification(device_token, notification, config) do
     case config.provider do
-      "fcm" ->
-        send_fcm_notification(device_token, notification, config)
-      "onesignal" ->
-        send_onesignal_notification(device_token, notification, config)
-      _ ->
-        {:error, "Unsupported push notification provider"}
-    end
-  end
-
-  defp send_fcm_notification(device_token, notification, config) do
-    try do
-      # FCM API endpoint
-      url = "https://fcm.googleapis.com/v1/projects/#{config.project_id}/messages:send"
-      
-      # Prepare request body
-      body = Jason.encode!(%{
-        message: %{
-          token: device_token,
-          notification: %{
-            title: notification.title,
-            body: notification.body
-          },
-          data: notification.data,
-          android: notification.android,
-          apns: notification.apns
-        }
-      })
-
-      # Send request with OAuth2 token
-      headers = [
-        {"Content-Type", "application/json"},
-        {"Authorization", "Bearer #{config.oauth_token}"}
-      ]
-
-      case HTTPoison.post(url, body, headers) do
-        {:ok, %HTTPoison.Response{status_code: 200, body: response_body}} ->
-          case Jason.decode(response_body) do
-            {:ok, %{"name" => message_id}} ->
-              {:ok, %{message_id: message_id}}
-            {:ok, %{"error" => error}} ->
-              Logger.error("FCM API error: #{inspect(error)}")
-              {:error, "Failed to send FCM notification: #{error.message}"}
-            _ ->
-              Logger.error("Unexpected FCM response: #{response_body}")
-              {:error, "Unexpected response from FCM"}
-          end
-        {:ok, %HTTPoison.Response{status_code: 401}} ->
-          Logger.error("FCM authentication error")
-          {:error, "FCM authentication failed"}
-        {:ok, %HTTPoison.Response{status_code: status}} ->
-          Logger.error("FCM HTTP error: #{status}")
-          {:error, "FCM service error: HTTP #{status}"}
-        {:error, %HTTPoison.Error{reason: reason}} ->
-          Logger.error("FCM request error: #{inspect(reason)}")
-          {:error, "Failed to connect to FCM"}
-      end
-    rescue
-      e ->
-        Logger.error("FCM error: #{inspect(e)}")
-        {:error, "FCM service error"}
+      "onesignal" -> send_onesignal_notification(device_token, notification, config)
+      "firebase" -> send_firebase_notification(device_token, notification, config)
+      _ -> {:error, "Unsupported push notification provider"}
     end
   end
 
@@ -180,6 +116,70 @@ defmodule HydepwnsLiveview.Events.Adapters.PushAdapter do
       e ->
         Logger.error("OneSignal error: #{inspect(e)}")
         {:error, "OneSignal service error"}
+    end
+  end
+
+  defp send_firebase_notification(device_token, notification, config) do
+    try do
+      # Firebase Cloud Messaging API endpoint
+      url = "https://fcm.googleapis.com/v1/projects/#{config.project_id}/messages:send"
+      
+      # Prepare request body
+      body = Jason.encode!(%{
+        message: %{
+          token: device_token,
+          notification: %{
+            title: notification.title,
+            body: notification.body
+          },
+          data: notification.data,
+          android: %{
+            notification: %{
+              channel_id: config.android_channel_id
+            }
+          },
+          apns: %{
+            payload: %{
+              aps: %{
+                badge: 1
+              }
+            }
+          }
+        }
+      })
+
+      # Send request
+      headers = [
+        {"Content-Type", "application/json"},
+        {"Authorization", "Bearer #{config.server_key}"}
+      ]
+
+      case HTTPoison.post(url, body, headers) do
+        {:ok, %HTTPoison.Response{status_code: 200, body: response_body}} ->
+          case Jason.decode(response_body) do
+            {:ok, %{"name" => message_id}} ->
+              {:ok, %{message_id: message_id}}
+            {:ok, error} ->
+              Logger.error("Firebase API error: #{inspect(error)}")
+              {:error, "Failed to send Firebase notification"}
+            {:error, _} ->
+              Logger.error("Invalid Firebase API response")
+              {:error, "Invalid Firebase API response"}
+          end
+        {:ok, %HTTPoison.Response{status_code: 401}} ->
+          Logger.error("Firebase authentication error")
+          {:error, "Firebase authentication failed"}
+        {:ok, %HTTPoison.Response{status_code: status}} ->
+          Logger.error("Firebase HTTP error: #{status}")
+          {:error, "Firebase service error: HTTP #{status}"}
+        {:error, %HTTPoison.Error{reason: reason}} ->
+          Logger.error("Firebase request error: #{inspect(reason)}")
+          {:error, "Failed to connect to Firebase"}
+      end
+    rescue
+      e ->
+        Logger.error("Firebase error: #{inspect(e)}")
+        {:error, "Firebase service error"}
     end
   end
 end 

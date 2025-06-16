@@ -3,7 +3,6 @@ defmodule HydepwnsLiveviewWeb.UserPasswordResetLive do
 
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveview.Accounts.User
-  alias HydepwnsLiveviewWeb.UserAuth
 
   import HydepwnsLiveviewWeb.Components.UI.LayoutComponents, only: [header: 1]
   import HydepwnsLiveviewWeb.Components.Common.CoreComponents, only: [button: 1]

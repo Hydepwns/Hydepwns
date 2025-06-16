@@ -217,4 +217,101 @@ defmodule HydepwnsLiveview.Resources.UserResource do
 
     if errors == [], do: {:ok, struct(__MODULE__, attrs)}, else: {:error, errors}
   end
+
+  @doc """
+  Executes a validation plan for the resource.
+  
+  ## Parameters
+  * `resource` - The resource to validate
+  * `plan` - The validation plan to execute
+  
+  ## Returns
+  * `{:ok, validated_resource}` or `{:error, errors}`
+  """
+  def execute_validation_plan(resource, plan) do
+    case validate_deep(resource) do
+      {:ok, validated} -> {:ok, validated}
+      {:error, errors} -> {:error, errors}
+    end
+  end
+
+  @doc """
+  Resolves a relationship for the resource.
+  
+  ## Parameters
+  * `resource` - The resource to resolve the relationship for
+  * `relationship` - The relationship to resolve
+  
+  ## Returns
+  * `{:ok, resolved_resource}` or `{:error, reason}`
+  """
+  def resolve_relationship(resource, relationship) do
+    case relationship do
+      :team -> 
+        if resource.team_id do
+          case HydepwnsLiveview.Resources.TeamResource.load(resource.team_id) do
+            {:ok, team} -> {:ok, Map.put(resource, :team, team)}
+            error -> error
+          end
+        else
+          {:ok, resource}
+        end
+      :posts ->
+        {:ok, Map.put(resource, :posts, [])}
+      _ -> {:error, "Unknown relationship: #{relationship}"}
+    end
+  end
+
+  @doc """
+  Resolves validation dependencies for the resource.
+  
+  ## Returns
+  * `{:ok, dependencies}` or `{:error, reason}`
+  """
+  def resolve_validation_dependencies do
+    {:ok, [
+      email_must_be_valid: &validate_email/1,
+      name_must_not_be_empty: &validate_name/1
+    ]}
+  end
+
+  @doc """
+  Performs deep validation of the resource, including nested attributes and relationships.
+  
+  ## Parameters
+  * `resource` - The resource to validate
+  
+  ## Returns
+  * `{:ok, validated_resource}` or `{:error, errors}`
+  """
+  def validate_deep(resource) do
+    with {:ok, validated} <- validate(resource),
+         {:ok, with_team} <- resolve_relationship(validated, :team),
+         {:ok, with_posts} <- resolve_relationship(with_team, :posts) do
+      {:ok, with_posts}
+    else
+      {:error, errors} -> {:error, errors}
+    end
+  end
+
+  # Private validation functions
+  defp validate_email(resource) do
+    if resource.email && String.contains?(resource.email, "@") do
+      :ok
+    else
+      {:error, "Email must contain @"}
+    end
+  end
+
+  defp validate_name(resource) do
+    if resource.name && String.length(resource.name) > 0 do
+      :ok
+    else
+      {:error, "Name cannot be empty"}
+    end
+  end
+
+  defp validate_plan(_plan) do
+    :ok
+  end
 end

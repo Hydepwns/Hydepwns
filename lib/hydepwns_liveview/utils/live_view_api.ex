@@ -38,7 +38,6 @@ defmodule HydepwnsLiveview.Utils.LiveViewAPI do
   """
 
   alias Phoenix.LiveView.Socket
-  alias HydepwnsLiveview.Utils.SocketValidator
   alias HydepwnsLiveview.Utils.LiveViewResource
   alias HydepwnsLiveview.Utils.ChangeTracker
 
@@ -173,20 +172,7 @@ defmodule HydepwnsLiveview.Utils.LiveViewAPI do
   def update_resource(%Socket{} = socket, resource, values, opts \\ [])
       when is_atom(resource) do
     validate = Keyword.get(opts, :validate, true)
-
-    # Directly try to atomize keys if 'values' is a map
-    atom_keyed_values =
-      if is_map(values) do
-        Enum.reduce(values, %{}, fn {k, v}, acc ->
-          if is_binary(k) do
-            Map.put(acc, String.to_atom(k), v)
-          else
-            Map.put(acc, k, v)
-          end
-        end)
-      else
-        values
-      end
+    atom_keyed_values = atomize_map_keys(values)
 
     if validate do
       case validate_resource_update(socket, resource, atom_keyed_values) do
@@ -200,6 +186,17 @@ defmodule HydepwnsLiveview.Utils.LiveViewAPI do
       {:ok, Phoenix.Component.assign(socket, resource, atom_keyed_values)}
     end
   end
+
+  defp atomize_map_keys(values) when is_map(values) do
+    Enum.reduce(values, %{}, fn {k, v}, acc ->
+      if is_binary(k) do
+        Map.put(acc, String.to_atom(k), v)
+      else
+        Map.put(acc, k, v)
+      end
+    end)
+  end
+  defp atomize_map_keys(values), do: values
 
   @doc """
   Creates a new resource in the socket assigns.
@@ -350,46 +347,53 @@ defmodule HydepwnsLiveview.Utils.LiveViewAPI do
     validate = Keyword.get(opts, :validate, true)
 
     if validate do
-      # Generate type specs from the resource module
-      type_specs = LiveViewResource.generate_type_specs(resource_module)
-
-      # Validate values against type specs
-      validation_results =
-        Enum.map(values, fn {key, value} ->
-          type_spec = Map.get(type_specs, key)
-
-          if type_spec do
-            case SocketValidator.validate_type(value, type_spec) do
-              {:ok, _} -> nil
-              {:error, message} -> message
-            end
-          else
-            nil
-          end
-        end)
-        |> Enum.reject(&is_nil/1)
-
-      if Enum.empty?(validation_results) do
-        # Apply defaults for any missing required attributes
-        schema = resource_module.__resource_schema__()
-
-        defaults =
-          schema.attributes
-          |> Enum.filter(fn attr -> attr.default != nil end)
-          |> Enum.map(fn attr -> {attr.name, attr.default} end)
-          |> Map.new()
-
-        # Merge defaults with provided values
-        resource_with_defaults = Map.merge(defaults, values)
-
-        {:ok, Phoenix.Component.assign(socket, resource_key, resource_with_defaults)}
-      else
-        error_message = Enum.join(validation_results, "; ")
-        {:error, error_message, socket}
+      case validate_resource_values(resource_module, values) do
+        {:ok, validated_values} ->
+          {:ok, Phoenix.Component.assign(socket, resource_key, validated_values)}
+        {:error, message} ->
+          {:error, message, socket}
       end
     else
       {:ok, Phoenix.Component.assign(socket, resource_key, values)}
     end
+  end
+
+  defp validate_resource_values(resource_module, values) do
+    type_specs = LiveViewResource.generate_type_specs(resource_module)
+    validation_results = validate_values_against_specs(values, type_specs)
+
+    if Enum.empty?(validation_results) do
+      schema = resource_module.__resource_schema__()
+      defaults = get_default_values(schema)
+      {:ok, Map.merge(defaults, values)}
+    else
+      {:error, Enum.join(validation_results, "; ")}
+    end
+  end
+
+  defp validate_values_against_specs(values, type_specs) do
+    Enum.map(values, fn {key, value} ->
+      validate_value_against_spec(key, value, type_specs)
+    end)
+    |> Enum.reject(&is_nil/1)
+  end
+
+  defp validate_value_against_spec(key, value, type_specs) do
+    case Map.get(type_specs, key) do
+      nil -> nil
+      type_spec -> 
+        case SocketValidator.validate_type(value, type_spec) do
+          {:ok, _} -> nil
+          {:error, message} -> message
+        end
+    end
+  end
+
+  defp get_default_values(schema) do
+    schema.attributes
+    |> Enum.filter(fn attr -> attr.default != nil end)
+    |> Enum.map(fn attr -> {attr.name, attr.default} end)
+    |> Map.new()
   end
 
   @doc """
@@ -435,78 +439,32 @@ defmodule HydepwnsLiveview.Utils.LiveViewAPI do
   """
   def update_with_tracking(%Socket{} = socket, resource_key, updates, metadata \\ %{})
       when is_atom(resource_key) and is_map(updates) do
-    # Get the resource from socket assigns
-    resource = Map.get(socket.assigns, resource_key)
-
-    if is_nil(resource) do
-      {:error, "Resource #{resource_key} not found in socket assigns", socket}
+    with {:ok, resource} <- get_resource(socket, resource_key),
+         {:ok, validated_updates} <- validate_resource_update(socket, resource_key, updates),
+         {:ok, updated_resource} <- apply_resource_update(resource, validated_updates, metadata) do
+      {:ok, Phoenix.Component.assign(socket, resource_key, updated_resource)}
     else
-      # First validate the resource updates
-      with {:validation, {:ok, validated_updates}} <-
-             {:validation, validate_resource_update(socket, resource_key, updates)} do
-        # Get the resource module
-        resource_module = Map.get(resource, :__resource_module__)
-
-        if is_nil(resource_module) do
-          {:error, "Resource #{resource_key} does not have a __resource_module__ attribute",
-           socket}
-        else
-          # Add any context validation data to metadata
-          enhanced_metadata =
-            if Map.get(metadata, :context_validation, false) do
-              metadata
-            else
-              # If context_validation isn't specified, check if there's a 
-              # context_validation module attribute on the resource module
-              context_validation =
-                if function_exported?(resource_module, :__context_validation__, 0) do
-                  resource_module.__context_validation__()
-                else
-                  false
-                end
-
-              Map.put(metadata, :context_validation, context_validation)
-            end
-
-          # Call the resource's update_with_tracking function
-          case resource_module.update_with_tracking(
-                 resource,
-                 validated_updates,
-                 enhanced_metadata
-               ) do
-            {:ok, updated_resource} ->
-              # Update the socket with the new resource value
-              updated_socket = Phoenix.Component.assign(socket, resource_key, updated_resource)
-              {:ok, updated_socket}
-
-            {:error, :stale_resource} ->
-              {:error, :stale_resource, socket}
-
-            {:error, errors} ->
-              error_message = format_errors(errors)
-              {:error, error_message, socket}
-          end
-        end
-      else
-        {:validation, {:error, message}} ->
-          {:error, message, socket}
-      end
+      {:error, :stale_resource} -> {:error, :stale_resource, socket}
+      {:error, message} -> {:error, message, socket}
     end
   end
 
-  # Helper function to format error messages
-  defp format_errors(errors) when is_list(errors) do
-    errors
-    |> Enum.map(fn
-      {_key, message} when is_binary(message) -> message
-      message when is_binary(message) -> message
-      error -> inspect(error)
-    end)
-    |> Enum.join("; ")
+  defp get_resource(socket, resource_key) do
+    case Map.get(socket.assigns, resource_key) do
+      nil -> {:error, "Resource #{resource_key} not found in socket assigns"}
+      resource -> {:ok, resource}
+    end
   end
 
-  defp format_errors(errors) when is_binary(errors), do: errors
-  defp format_errors(errors), do: inspect(errors)
+  defp apply_resource_update(resource, updates, metadata) do
+    resource_module = Map.get(resource, :__resource_module__)
+    if is_nil(resource_module) do
+      {:error, "Resource does not have a __resource_module__ attribute"}
+    else
+      enhanced_metadata = enhance_metadata_with_validation(metadata, resource_module)
+      resource_module.update_with_tracking(resource, updates, enhanced_metadata)
+    end
+  end
 
   @doc """
   Gets the change history for a resource in the socket assigns.
@@ -625,6 +583,27 @@ defmodule HydepwnsLiveview.Utils.LiveViewAPI do
       {:error, "Resource #{resource_key} not found in socket assigns"}
     else
       ChangeTracker.diff(resource, opts)
+    end
+  end
+
+  # Extracts context validation logic to reduce nesting depth
+  defp get_context_validation(resource_module) do
+    if function_exported?(resource_module, :__context_validation__, 0) do
+      resource_module.__context_validation__()
+    else
+      false
+    end
+  end
+
+  # Enhances metadata with context validation to reduce nesting depth
+  defp enhance_metadata_with_validation(metadata, resource_module) do
+    context_validation = Map.get(metadata, :context_validation)
+    
+    if context_validation != nil do
+      metadata
+    else
+      validation_value = get_context_validation(resource_module)
+      Map.put(metadata, :context_validation, validation_value)
     end
   end
 

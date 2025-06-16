@@ -6,11 +6,8 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
   use HydepwnsLiveviewWeb, :live_view
 
   alias HydepwnsLiveview.Resources
-  alias HydepwnsLiveview.ResourceSystem.Models.Resource
-  import Phoenix.HTML.Form
-
-  import HydepwnsLiveviewWeb.Components.Common.CoreComponents
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents
+  alias HydepwnsLiveview.Resources.Resource
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label: 1, error: 1]
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
@@ -96,7 +93,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
         <div class="bg-white shadow rounded-lg p-6">
           <div class="space-y-6">
             <div>
-              <HydepwnsLiveviewWeb.Components.UI.FormComponents.label for={f[:name].id}>Name</HydepwnsLiveviewWeb.Components.UI.FormComponents.label>
+              <.label for={f[:name].id}>Name</.label>
               <.input
                 field={f[:name]}
                 type="text"
@@ -110,7 +107,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
             </div>
 
             <div>
-              <HydepwnsLiveviewWeb.Components.UI.FormComponents.label for={f[:type].id}>Type</HydepwnsLiveviewWeb.Components.UI.FormComponents.label>
+              <.label for={f[:type].id}>Type</.label>
               <.input
                 field={f[:type]}
                 type="select"
@@ -125,7 +122,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
             </div>
 
             <div>
-              <HydepwnsLiveviewWeb.Components.UI.FormComponents.label for={f[:parent_id].id}>Parent Resource</HydepwnsLiveviewWeb.Components.UI.FormComponents.label>
+              <.label for={f[:parent_id].id}>Parent Resource</.label>
               <.input
                 field={f[:parent_id]}
                 type="select"
@@ -139,7 +136,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
             </div>
 
             <div>
-              <HydepwnsLiveviewWeb.Components.UI.FormComponents.label for={f[:description].id}>Description</HydepwnsLiveviewWeb.Components.UI.FormComponents.label>
+              <.label for={f[:description].id}>Description</.label>
               <.input
                 field={f[:description]}
                 type="textarea"
@@ -152,7 +149,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
             </div>
 
             <div>
-              <HydepwnsLiveviewWeb.Components.UI.FormComponents.label for={f[:status].id}>Status</HydepwnsLiveviewWeb.Components.UI.FormComponents.label>
+              <.label for={f[:status].id}>Status</.label>
               <.input
                 field={f[:status]}
                 type="select"
@@ -174,13 +171,13 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
               >
                 Cancel
               </.link>
-              <HydepwnsLiveviewWeb.Components.UI.FormComponents.button
+              <.button
                 type="submit"
                 phx-disable-with="Saving..."
                 data-test-id="save-resource"
               >
                 Save Resource
-              </HydepwnsLiveviewWeb.Components.UI.FormComponents.button>
+              </.button>
             </div>
           </div>
         </div>

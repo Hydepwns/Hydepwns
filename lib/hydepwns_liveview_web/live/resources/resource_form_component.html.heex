@@ -1,0 +1,58 @@
+<div>
+  <.form
+    :let={f}
+    for={@changeset}
+    id="resource-form"
+    phx-target={@myself}
+    phx-change="validate"
+    phx-submit="save"
+  >
+    <div class="space-y-6">
+      <div>
+        <.input field={f[:name]} type="text" label="Name" />
+      </div>
+
+      <div>
+        <.input field={f[:type]} type="select" label="Type" options={[
+          {"Document", "document"},
+          {"Task", "task"},
+          {"Note", "note"}
+        ]} />
+      </div>
+
+      <div>
+        <.input field={f[:description]} type="textarea" label="Description" />
+      </div>
+
+      <div>
+        <.input field={f[:content]} type="textarea" label="Content" />
+      </div>
+
+      <div>
+        <.input field={f[:parent_id]} type="select" label="Parent Resource" options={[
+          {"None", nil} | Enum.map(@resources, &{&1.name, &1.id})
+        ]} />
+      </div>
+
+      <div>
+        <.input field={f[:tags]} type="text" label="Tags (comma-separated)" />
+      </div>
+
+      <div>
+        <.input field={f[:categories]} type="text" label="Categories (comma-separated)" />
+      </div>
+
+      <div class="flex justify-end space-x-4">
+        <.link
+          navigate={@navigate}
+          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        >
+          Cancel
+        </.link>
+        <.button type="submit" phx-disable-with="Saving...">
+          Save Resource
+        </.button>
+      </div>
+    </div>
+  </.form>
+</div> 

@@ -6,7 +6,6 @@ defmodule HydepwnsLiveviewWeb.Admin.EventCalendarLive do
   use HydepwnsLiveviewWeb, :live_view
 
   alias HydepwnsLiveview.Events
-  alias HydepwnsLiveview.Events.Event
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do

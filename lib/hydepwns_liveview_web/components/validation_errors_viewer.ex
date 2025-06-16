@@ -271,4 +271,12 @@ defmodule HydepwnsLiveviewWeb.Components.ValidationErrorsViewer do
       "Unknown"
     end
   end
+
+  defp format_error_count(_count, _error_type) do
+    # TODO: Implementation
+  end
+
+  defp format_error(_error) do
+    # TODO: Implementation
+  end
 end

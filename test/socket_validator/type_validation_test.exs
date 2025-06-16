@@ -7,6 +7,13 @@ defmodule HydepwnsLiveview.TypeValidationTest do
   import ExUnit.CaptureLog
   alias HydepwnsLiveviewWeb.TestTypeLive
 
+  # Import live/3 for testing LiveView components
+  import Phoenix.LiveViewTest, only: [live: 3]
+
+  def live(conn, view, opts \\ %{}) do
+    Phoenix.LiveViewTest.live(conn, view, opts)
+  end
+
   describe "type_validation/3 function" do
     test "validates basic types correctly" do
       # Create test socket with assigns of different types

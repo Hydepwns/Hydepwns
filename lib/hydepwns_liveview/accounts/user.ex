@@ -156,7 +156,7 @@ defmodule HydepwnsLiveview.Accounts.User do
   defp put_password_hash(changeset) do
     case changeset do
       %Ecto.Changeset{valid?: true, changes: %{password: password}} ->
-        put_change(changeset, :password_hash, Bcrypt.hash_pwd_salt(password))
+        put_change(changeset, :password_hash, Bcrypt.Base.hash_pwd_salt(password))
       _ ->
         changeset
     end

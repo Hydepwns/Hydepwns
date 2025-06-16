@@ -50,7 +50,7 @@ defmodule HydepwnsLiveview.Events.Core.Event do
 
   * `changeset` - The changeset for the event
   """
-  def changeset(event, attrs) do
+  def changeset(event, attrs) when is_map(attrs) do
     event
     |> cast(attrs, [
       :type,
@@ -66,7 +66,11 @@ defmodule HydepwnsLiveview.Events.Core.Event do
     |> validate_length(:type, min: 3)
     |> validate_length(:resource_id, min: 1)
     |> validate_length(:resource_type, min: 1)
+    |> validate_data()
+    |> validate_metadata()
+    |> validate_timestamp()
   end
+  def changeset(_event, _invalid_attrs), do: {:error, :invalid_attributes}
 
   @doc """
   Creates a new event struct.
@@ -89,7 +93,10 @@ defmodule HydepwnsLiveview.Events.Core.Event do
   * `{:error, changeset}` - The event failed validation
   """
   @spec create(String.t(), map()) :: {:ok, __MODULE__.t()} | {:error, Ecto.Changeset.t()}
-  def create(type, attrs \\ %{}) when is_binary(type) do
+  def create(type, attrs \\ %{})
+  def create(type, attrs)
+      when is_binary(type) and byte_size(type) >= 3 
+      and is_map(attrs) do
     # Pre-process attributes
     attrs = Map.put(attrs, :type, type)
     attrs = set_default_timestamp(attrs)
@@ -111,8 +118,12 @@ defmodule HydepwnsLiveview.Events.Core.Event do
     |> validate_length(:type, min: 3)
     |> validate_length(:resource_id, min: 1)
     |> validate_length(:resource_type, min: 1)
+    |> validate_data()
+    |> validate_metadata()
+    |> validate_timestamp()
     |> apply_action(:create)
   end
+  def create(_invalid_type, _invalid_attrs), do: {:error, :invalid_parameters}
 
   @doc """
   Creates a new event struct, raising an error if validation fails.
@@ -128,7 +139,10 @@ defmodule HydepwnsLiveview.Events.Core.Event do
   * `Ecto.InvalidChangesetError` - If the event is invalid
   """
   @spec create!(String.t(), map()) :: __MODULE__.t()
-  def create!(type, attrs \\ %{}) do
+  def create!(type, attrs \\ %{})
+  def create!(type, attrs)
+      when is_binary(type) and byte_size(type) >= 3 
+      and is_map(attrs) do
     case create(type, attrs) do
       {:ok, event} ->
         event
@@ -137,6 +151,7 @@ defmodule HydepwnsLiveview.Events.Core.Event do
         raise Ecto.InvalidChangesetError, action: :create, changeset: changeset
     end
   end
+  def create!(_invalid_type, _invalid_attrs), do: raise ArgumentError, "Invalid event parameters"
 
   @doc """
   Creates a follow-up event that preserves correlation context.
@@ -169,22 +184,54 @@ defmodule HydepwnsLiveview.Events.Core.Event do
 
   # Private functions
 
-  # Sets default timestamp if not provided
-  defp set_default_timestamp(%{timestamp: _} = attrs), do: attrs
-  defp set_default_timestamp(attrs), do: Map.put(attrs, :timestamp, DateTime.utc_now())
+  defp set_default_timestamp(attrs) do
+    case Map.get(attrs, :timestamp) do
+      nil -> Map.put(attrs, :timestamp, DateTime.utc_now())
+      _ -> attrs
+    end
+  end
 
-  # Sets default IDs if not provided
   defp set_default_ids(attrs) do
     attrs
     |> set_default_correlation_id()
     |> set_default_causation_id()
   end
 
-  defp set_default_correlation_id(%{correlation_id: _} = attrs), do: attrs
+  defp set_default_correlation_id(attrs) do
+    case Map.get(attrs, :correlation_id) do
+      nil -> Map.put(attrs, :correlation_id, Ecto.UUID.generate())
+      _ -> attrs
+    end
+  end
 
-  defp set_default_correlation_id(attrs),
-    do: Map.put(attrs, :correlation_id, Ecto.UUID.generate())
+  defp set_default_causation_id(attrs) do
+    case Map.get(attrs, :causation_id) do
+      nil -> attrs
+      _ -> attrs
+    end
+  end
 
-  defp set_default_causation_id(%{causation_id: _} = attrs), do: attrs
-  defp set_default_causation_id(attrs), do: Map.put(attrs, :causation_id, nil)
+  defp validate_data(changeset) do
+    case get_change(changeset, :data) do
+      nil -> changeset
+      data when is_map(data) -> changeset
+      _ -> add_error(changeset, :data, "must be a map")
+    end
+  end
+
+  defp validate_metadata(changeset) do
+    case get_change(changeset, :metadata) do
+      nil -> changeset
+      metadata when is_map(metadata) -> changeset
+      _ -> add_error(changeset, :metadata, "must be a map")
+    end
+  end
+
+  defp validate_timestamp(changeset) do
+    case get_change(changeset, :timestamp) do
+      nil -> put_change(changeset, :timestamp, DateTime.utc_now())
+      timestamp when is_struct(timestamp, DateTime) -> changeset
+      _ -> add_error(changeset, :timestamp, "must be a DateTime")
+    end
+  end
 end

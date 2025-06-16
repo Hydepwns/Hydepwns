@@ -1,9 +1,10 @@
 defmodule HydepwnsLiveviewWeb.Themes.ThemeNewLive do
   use HydepwnsLiveviewWeb, :live_view
 
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label: 1]
+
   alias HydepwnsLiveview.ThemeSystem
   alias HydepwnsLiveview.ThemeSystem.Models.Theme
-  alias HydepwnsLiveviewWeb.Helpers.PathHelper
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do

@@ -1,12 +1,6 @@
 defmodule HydepwnsLiveview.Events.EventBus do
   @moduledoc """
-  Bridge module for the Event Bus.
-
-  This module delegates to HydepwnsLiveview.Events.Core.EventBus,
-  which is the actual implementation of the event bus.
-
-  This module exists to maintain backward compatibility with code that
-  expects the event bus to be at this module path.
+  Provides a high-level interface for event publishing and subscription.
   """
 
   alias HydepwnsLiveview.Events.Core.EventBus, as: CoreEventBus
@@ -15,8 +9,8 @@ defmodule HydepwnsLiveview.Events.EventBus do
   defdelegate child_spec(opts), to: CoreEventBus
 
   # Delegate all public functions to the core implementation
-  defdelegate subscribe(subscriber, event_types), to: CoreEventBus
-  defdelegate unsubscribe(subscriber, event_types), to: CoreEventBus
+  defdelegate subscribe(event_types \\ :all), to: CoreEventBus
+  defdelegate unsubscribe(subscriber, event_types \\ :all), to: CoreEventBus
   defdelegate publish(event), to: CoreEventBus
   defdelegate publish(event, opts), to: CoreEventBus
 

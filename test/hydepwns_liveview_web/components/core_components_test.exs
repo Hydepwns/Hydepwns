@@ -109,8 +109,8 @@ defmodule HydepwnsLiveviewWeb.CoreComponentsTest do
         render_component(&CoreComponents.simple_form/1, %{
           for: form_struct,
           as: nil,
-          inner_block_simple_form: [%{inner_block: fn _, f -> "Form Field" end}],
-          actions: [%{inner_block: fn _, f -> "Submit" end}]
+          inner_block_simple_form: [%{inner_block: fn _, _f -> "Form Field" end}],
+          actions: [%{inner_block: fn _, _f -> "Submit" end}]
         })
 
       assert html =~ "Form Field"
@@ -198,13 +198,8 @@ defmodule HydepwnsLiveviewWeb.CoreComponentsTest do
         render_component(&CoreComponents.table/1, %{
           id: "table-id",
           rows: [%{name: "Alice"}, %{name: "Bob"}],
-          col: [
-            %{label: "Name", inner_block: fn _, row -> row.name end}
-          ],
-          action: [],
-          row_id: nil,
-          row_item: & &1,
-          row_click: nil
+          row_click: fn _row -> :ok end,
+          row_item: fn _item -> _item end
         })
 
       assert html =~ "table-id"
@@ -218,7 +213,7 @@ defmodule HydepwnsLiveviewWeb.CoreComponentsTest do
     test "renders a list" do
       html =
         render_component(&CoreComponents.list/1, %{
-          item: [
+          _item: [
             %{title: "First", inner_block: fn _, _ -> "One" end},
             %{title: "Second", inner_block: fn _, _ -> "Two" end}
           ]

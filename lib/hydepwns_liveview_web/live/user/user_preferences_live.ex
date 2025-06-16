@@ -3,7 +3,6 @@ defmodule HydepwnsLiveviewWeb.UserPreferencesLive do
 
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveview.Accounts.User
-  alias HydepwnsLiveviewWeb.UserAuth
 
   @impl true
   def mount(_params, _session, socket) do

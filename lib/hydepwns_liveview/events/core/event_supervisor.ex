@@ -12,10 +12,11 @@ defmodule HydepwnsLiveview.Events.Core.EventSupervisor do
   use Supervisor
   require Logger
 
-  alias HydepwnsLiveview.Events.EventBus
-  alias HydepwnsLiveview.Events.EventStore
+  alias HydepwnsLiveview.Events.Core.EventBus
+  alias HydepwnsLiveview.Events.Core.EventStore
   alias HydepwnsLiveview.Events.ProjectionSupervisor
-  alias HydepwnsLiveview.Events.StandardHandlers
+  alias HydepwnsLiveview.Events.Handlers.HandlerSupervisor
+  alias HydepwnsLiveview.Events.Handlers.StandardHandlers
 
   @doc """
   Starts the event system supervisor.
@@ -33,14 +34,12 @@ defmodule HydepwnsLiveview.Events.Core.EventSupervisor do
       {Registry, keys: :unique, name: HydepwnsLiveview.Events.ProjectionRegistry},
       # Event bus for distributing events
       {EventBus, []},
-
       # Event store for persisting events
       {EventStore, []},
-
       # Projection supervisor for managing projections
       {ProjectionSupervisor, []},
-
-      {HydepwnsLiveview.Events.Handlers.HandlerSupervisor, []}
+      # Handler supervisor for managing event handlers
+      {HandlerSupervisor, []}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
@@ -58,6 +57,7 @@ defmodule HydepwnsLiveview.Events.Core.EventSupervisor do
       ProjectionSupervisor.register_standard_projections()
     else
       Logger.warning("ProjectionSupervisor does not export register_standard_projections/0")
+      :error
     end
   end
 
@@ -73,6 +73,7 @@ defmodule HydepwnsLiveview.Events.Core.EventSupervisor do
       StandardHandlers.register_handlers()
     else
       Logger.warning("StandardHandlers does not export register_handlers/0")
+      :error
     end
   end
 end

@@ -61,13 +61,20 @@ config :phoenix, :json_library, Jason
 
 # Configure your database
 config :hydepwns_liveview, HydepwnsLiveview.Repo,
-  username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
-  database: "hydepwns_liveview_dev",
-  stacktrace: true,
-  show_sensitive_data_on_connection_error: true,
-  pool_size: 10
+  adapter: Ecto.Adapters.Postgres,
+  url: System.get_env("DATABASE_URL"),
+  pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10")
+
+# Configure MessageBird
+# config :hydepwns_liveview, :messagebird,
+#   api_key: System.get_env("MESSAGEBIRD_API_KEY"),
+#   api_version: "v1"
+
+# Configure Twilio
+config :hydepwns_liveview, :twilio,
+  account_sid: System.get_env("TWILIO_ACCOUNT_SID"),
+  auth_token: System.get_env("TWILIO_AUTH_TOKEN"),
+  phone_number: System.get_env("TWILIO_PHONE_NUMBER")
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
@@ -117,31 +124,6 @@ config :phoenix, :stacktrace_depth, 20
 
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime
-
-# Configure reminder services
-config :hydepwns_liveview, :reminder_services,
-  email: [
-    adapter: HydepwnsLiveview.Events.Adapters.EmailAdapter,
-    from: "noreply@hydepwns.com",
-    api_key: System.get_env("EMAIL_API_KEY"),
-    provider: "sendgrid" # or "mailgun", "smtp", etc.
-  ],
-  sms: [
-    adapter: HydepwnsLiveview.Events.Adapters.SMSAdapter,
-    from: "+1234567890",
-    api_key: System.get_env("SMS_API_KEY"),
-    provider: "twilio" # or "messagebird", "nexmo", etc.
-  ],
-  push: [
-    adapter: HydepwnsLiveview.Events.Adapters.PushAdapter,
-    api_key: System.get_env("PUSH_API_KEY"),
-    provider: "firebase" # or "onesignal", "pusher", etc.
-  ],
-  webhook: [
-    adapter: HydepwnsLiveview.Events.Adapters.WebhookAdapter,
-    api_key: System.get_env("WEBHOOK_API_KEY"),
-    provider: "custom" # or specific webhook service
-  ]
 
 # Configure reminder worker
 config :hydepwns_liveview, :reminder_worker,

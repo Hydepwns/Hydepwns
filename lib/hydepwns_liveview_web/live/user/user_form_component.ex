@@ -1,16 +1,11 @@
 defmodule HydepwnsLiveviewWeb.User.UserFormComponent do
   use HydepwnsLiveviewWeb, :live_component
 
-  alias HydepwnsLiveview.Accounts
-  alias HydepwnsLiveview.Accounts.User
-
-  import HydepwnsLiveviewWeb.Components.Common.CoreComponents
   import HydepwnsLiveviewWeb.Components.UI.FormComponents
-  import HydepwnsLiveviewWeb.Components.Common.HeaderComponent, only: [header: 1]
 
   @impl true
   def update(%{user: user} = assigns, socket) do
-    changeset = Accounts.change_user(user)
+    changeset = HydepwnsLiveview.Accounts.change_user(user)
 
     {:ok,
      socket
@@ -22,7 +17,7 @@ defmodule HydepwnsLiveviewWeb.User.UserFormComponent do
   def handle_event("validate", %{"user" => user_params}, socket) do
     changeset =
       socket.assigns.user
-      |> Accounts.change_user(user_params)
+      |> HydepwnsLiveview.Accounts.change_user(user_params)
       |> Map.put(:action, :validate)
 
     {:noreply, assign(socket, :changeset, changeset)}
@@ -34,7 +29,7 @@ defmodule HydepwnsLiveviewWeb.User.UserFormComponent do
   end
 
   defp save_user(socket, :edit, user_params) do
-    case Accounts.update_user(socket.assigns.user, user_params) do
+    case HydepwnsLiveview.Accounts.update_user(socket.assigns.user, user_params) do
       {:ok, _user} ->
         {:noreply,
          socket
@@ -47,7 +42,7 @@ defmodule HydepwnsLiveviewWeb.User.UserFormComponent do
   end
 
   defp save_user(socket, :new, user_params) do
-    case Accounts.create_user(user_params) do
+    case HydepwnsLiveview.Accounts.create_user(user_params) do
       {:ok, _user} ->
         {:noreply,
          socket

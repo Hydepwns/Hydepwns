@@ -12,7 +12,7 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceExampleLive do
   alias HydepwnsLiveview.Utils.LiveViewAPI
   alias HydepwnsLiveview.Resources.UserResource
   alias HydepwnsLiveview.Resources
-  alias HydepwnsLiveview.ResourceSystem.Models.Resource
+  alias HydepwnsLiveview.Resources.Resource
 
   # Valid roles that can be assigned to users
   @valid_roles ["admin", "editor", "viewer"]
@@ -163,7 +163,7 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceExampleLive do
     current_setting = get_resource(socket, :settings).notifications
     case ResourceHelpers.update_resource(socket, :settings, %{notifications: !current_setting}) do
       {:ok, socket} ->
-        message = if !current_setting, do: "Notifications enabled", else: "Notifications disabled"
+        message = if current_setting, do: "Notifications disabled", else: "Notifications enabled"
         {:noreply, put_flash(socket, :info, message)}
       {:error, reason} ->
         {:noreply, put_flash(socket, :error, "Failed to update notifications: #{inspect(reason)}")}
@@ -199,5 +199,10 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceExampleLive do
         Logger.error("Failed to load user resource: #{inspect(reason)}")
         socket
     end
+  end
+
+  # Private helper to get a resource from socket assigns
+  defp get_resource(socket, key) do
+    Map.get(socket.assigns, key)
   end
 end

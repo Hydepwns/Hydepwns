@@ -8,9 +8,7 @@ defmodule HydepwnsLiveviewWeb.User.UserFormLive do
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveview.Accounts.User
 
-  import HydepwnsLiveviewWeb.Components.Common.CoreComponents, only: [button: 1]
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [simple_form: 1, input: 1]
-  import HydepwnsLiveviewWeb.Components.Common.HeaderComponent, only: [header: 1]
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label: 1]
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
@@ -20,8 +18,8 @@ defmodule HydepwnsLiveviewWeb.User.UserFormLive do
   end
 
   @impl Phoenix.LiveView
-  def handle_params(params, _url, socket) do
-    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  def handle_params(_params, _url, socket) do
+    {:noreply, apply_action(socket, socket.assigns.live_action, _params)}
   end
 
   defp apply_action(socket, :new, _params) do

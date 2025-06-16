@@ -184,9 +184,16 @@ defmodule HydepwnsLiveview.Resources.Examples.UserResource do
   end
 
   @doc """
-  Generates events for a command.
+  Executes a command on a user resource.
 
-  Overrides the default implementation from EventSourcedResource.
+  ## Parameters
+  * `resource` - The user resource
+  * `command` - The command to execute
+  * `params` - Command parameters
+
+  ## Returns
+  * `{:ok, events, updated_resource}` - Command executed successfully
+  * `{:error, reason}` - Command failed
   """
   def execute_command(resource, command, params) do
     events =
@@ -244,6 +251,36 @@ defmodule HydepwnsLiveview.Resources.Examples.UserResource do
   end
 
   @doc """
+  Updates a user resource.
+
+  ## Parameters
+  * `resource` - The user resource to update
+  * `updates` - The update parameters
+  * `metadata` - Optional metadata for the update
+
+  ## Returns
+  * `{:ok, updated_resource}` - Update successful
+  * `{:error, reason}` - Update failed
+  """
+  def update(resource, updates, metadata) do
+    # Create an update event
+    event = %Event{
+      id: Ecto.UUID.generate(),
+      type: "user.updated",
+      resource_id: resource.id,
+      resource_type: "user",
+      timestamp: DateTime.utc_now(),
+      data: updates,
+      metadata: metadata
+    }
+
+    # Apply the event to get the updated user
+    updated_user = apply_event(event, resource)
+
+    {:ok, updated_user}
+  end
+
+  @doc """
   Updates a user resource with tracking (for audit/telemetry).
 
   ## Parameters
@@ -256,6 +293,6 @@ defmodule HydepwnsLiveview.Resources.Examples.UserResource do
   * `{:ok, updated_resource}` or `{:error, reason}`
   """
   def update_with_tracking(resource, updates, metadata, _opts \\ %{}) do
-    update(resource, updates, metadata)
+    update(resource, updates)
   end
 end

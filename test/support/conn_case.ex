@@ -24,7 +24,6 @@ defmodule HydepwnsLiveviewWeb.ConnCase do
       import HydepwnsLiveviewWeb.ConnCase
       import Phoenix.LiveViewTest
       import Phoenix.Component
-      import Phoenix.HTML
 
       # Ensure Router and its Helpers are compiled and available
       require HydepwnsLiveviewWeb.Router

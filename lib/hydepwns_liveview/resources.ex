@@ -132,6 +132,17 @@ defmodule HydepwnsLiveview.Resources do
   end
 
   @doc """
+  Lists resources by type.
+  """
+  def list_resources_by_type(type) when type in ["", nil] do
+    list_resources()
+  end
+  def list_resources_by_type(type) do
+    list_resources()
+    |> Enum.filter(&(&1.type == type))
+  end
+
+  @doc """
   Gets statistics about resources in the system.
   
   ## Returns
@@ -163,6 +174,23 @@ defmodule HydepwnsLiveview.Resources do
   def list_child_resources(parent_id) do
     list_resources()
     |> Enum.filter(&(&1.parent_id == parent_id))
+  end
+
+  @doc """
+  Lists all resource relationships.
+  """
+  def list_relationships do
+    resources = list_resources()
+    Enum.flat_map(resources, fn resource ->
+      case resource.parent_id do
+        nil -> []
+        parent_id ->
+          case get_resource(parent_id) do
+            nil -> []
+            parent -> [{parent, resource}]
+          end
+      end
+    end)
   end
 
   @doc """
@@ -232,43 +260,5 @@ defmodule HydepwnsLiveview.Resources do
       {:checkpoint, checkpoint} -> 
         {:checkpoint, checkpoint}
     end
-  end
-
-  @doc """
-  Lists all relationships between resources.
-  
-  ## Returns
-  
-    * `[relationship()]` - List of parent-child relationships
-  
-  ## Examples
-  
-      iex> list_relationships()
-      [
-        %{parent: %Resource{id: "parent-1"}, child: %Resource{id: "child-1"}},
-        %{parent: %Resource{id: "parent-2"}, child: %Resource{id: "child-2"}}
-      ]
-  """
-  @spec list_relationships() :: [relationship()]
-  def list_relationships do
-    resources = list_resources()
-    
-    resources
-    |> Enum.filter(&(&1.parent_id != nil))
-    |> Enum.map(fn child ->
-      parent = get_resource!(child.parent_id)
-      %{
-        parent: parent,
-        child: child
-      }
-    end)
-  end
-
-  @doc """
-  Lists resources by type.
-  """
-  def list_resources_by_type(type) do
-    list_resources()
-    |> Enum.filter(&(&1.type == type))
   end
 end

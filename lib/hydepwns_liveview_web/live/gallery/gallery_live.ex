@@ -5,9 +5,6 @@ defmodule HydepwnsLiveviewWeb.GalleryLive do
 
   use HydepwnsLiveviewWeb, :live_view
 
-  import HydepwnsLiveviewWeb.Components.Common.CoreComponents
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents
-
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
     {:ok, assign(socket, :page_title, "Gallery")}

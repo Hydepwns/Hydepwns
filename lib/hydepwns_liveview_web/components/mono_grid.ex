@@ -73,7 +73,6 @@ defmodule HydepwnsLiveviewWeb.Components.MonoGrid do
   | 0.1.0   | Initial implementation |
   """
   use Phoenix.Component
-  alias Phoenix.HTML.Tag
 
   # Default grid properties
   @default_cols 80
@@ -151,6 +150,9 @@ defmodule HydepwnsLiveviewWeb.Components.MonoGrid do
     </.custom_dynamic_tag>
     """
   end
+
+  # Alias for mono_grid to maintain backward compatibility
+  def grid(assigns), do: mono_grid(assigns)
 
   @doc """
   Renders a row within the monospace grid system.

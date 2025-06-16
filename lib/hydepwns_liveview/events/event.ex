@@ -1,4 +1,8 @@
 defmodule HydepwnsLiveview.Events.Event do
+  @moduledoc """
+  Event schema and functions for the event sourcing system.
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 
@@ -8,7 +12,9 @@ defmodule HydepwnsLiveview.Events.Event do
     field :type, :string
     field :data, :map
     field :metadata, :map, default: %{}
-    field :timestamp, :utc_datetime_usec
+    field :resource_type, :string
+    field :resource_id, :string
+    field :timestamp, :utc_datetime
     field :version, :integer, default: 1
     field :aggregate_id, :string
     field :aggregate_type, :string
@@ -19,8 +25,8 @@ defmodule HydepwnsLiveview.Events.Event do
     timestamps(type: :utc_datetime_usec)
   end
 
-  @required_fields ~w(type data timestamp aggregate_id aggregate_type)a
-  @optional_fields ~w(metadata version correlation_id causation_id user_id)a
+  @required_fields ~w(type data resource_type resource_id)a
+  @optional_fields ~w(metadata version aggregate_id aggregate_type correlation_id causation_id user_id)a
 
   @doc """
   Creates a changeset for an event with validation.

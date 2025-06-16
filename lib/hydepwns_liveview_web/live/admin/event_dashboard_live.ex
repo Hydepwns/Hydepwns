@@ -11,7 +11,7 @@ defmodule HydepwnsLiveviewWeb.Admin.EventDashboardLive do
 
   use HydepwnsLiveviewWeb, :live_view
 
-  alias HydepwnsLiveview.Events.Core.Event
+  alias HydepwnsLiveview.Events
 
   # 5 seconds
   @refresh_interval 5000
@@ -164,57 +164,73 @@ defmodule HydepwnsLiveviewWeb.Admin.EventDashboardLive do
     ~H"""
     <div class="container mx-auto px-4 py-8">
       <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold">Event Dashboard</h1>
-        <.link navigate={~p"/admin/events/new"} class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-          New Event
-        </.link>
+        <h1 class="text-2xl font-bold">Event System Dashboard</h1>
+        <div class="flex gap-4">
+          <button
+            phx-click="test_notification"
+            phx-value-level="info"
+            class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Test Info
+          </button>
+          <button
+            phx-click="test_notification"
+            phx-value-level="warning"
+            class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+          >
+            Test Warning
+          </button>
+          <button
+            phx-click="test_notification"
+            phx-value-level="error"
+            class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+          >
+            Test Error
+          </button>
+        </div>
       </div>
 
       <%= if @error do %>
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-          <span class="block sm:inline"><%= @error %></span>
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <%= @error %>
         </div>
       <% end %>
 
       <%= if @metrics do %>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div class="bg-white rounded-lg shadow p-4">
-            <h3 class="text-lg font-semibold mb-2">Processing Rate</h3>
-            <p class="text-2xl font-bold"><%= @metrics.processing_rate %> events/sec</p>
+          <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-2">Events Processed</h3>
+            <p class="text-3xl font-bold"><%= @metrics.events_processed %></p>
           </div>
-
-          <div class="bg-white rounded-lg shadow p-4">
+          <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-2">Average Processing Time</h3>
+            <p class="text-3xl font-bold"><%= @metrics.avg_processing_time %>ms</p>
+          </div>
+          <div class="bg-white shadow rounded-lg p-6">
             <h3 class="text-lg font-semibold mb-2">Queue Size</h3>
-            <p class="text-2xl font-bold"><%= @metrics.queue_size %></p>
+            <p class="text-3xl font-bold"><%= @metrics.queue_size %></p>
           </div>
-
-          <div class="bg-white rounded-lg shadow p-4">
+          <div class="bg-white shadow rounded-lg p-6">
             <h3 class="text-lg font-semibold mb-2">Error Rate</h3>
-            <p class="text-2xl font-bold"><%= @metrics.error_rate %>%</p>
-          </div>
-
-          <div class="bg-white rounded-lg shadow p-4">
-            <h3 class="text-lg font-semibold mb-2">Avg Processing Time</h3>
-            <p class="text-2xl font-bold"><%= @metrics.avg_processing_time %>ms</p>
+            <p class="text-3xl font-bold"><%= @metrics.error_rate %>%</p>
           </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow p-4 mb-8">
-          <h3 class="text-lg font-semibold mb-4">Performance Trends</h3>
-          <div class="h-64">
-            <!-- Add chart component here -->
-          </div>
-        </div>
-
-        <div class="bg-white rounded-lg shadow p-4">
+        <div class="bg-white shadow rounded-lg p-6 mb-8">
           <h3 class="text-lg font-semibold mb-4">Recent Notifications</h3>
-          <%= if @notifications do %>
-            <div class="space-y-2">
+          <%= if @notifications && @notifications != [] do %>
+            <div class="space-y-4">
               <%= for notification <- @notifications do %>
-                <div class="p-2 border rounded">
-                  <p class="font-medium"><%= notification.title %></p>
-                  <p class="text-sm text-gray-600"><%= notification.message %></p>
-                  <p class="text-xs text-gray-500"><%= notification.timestamp %></p>
+                <div class={"p-4 rounded #{notification_class(notification.level)}"}>
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <h4 class="font-semibold"><%= notification.summary %></h4>
+                      <p class="text-sm"><%= notification.message %></p>
+                    </div>
+                    <span class="text-sm text-gray-500">
+                      <%= Calendar.strftime(notification.timestamp, "%H:%M:%S") %>
+                    </span>
+                  </div>
                 </div>
               <% end %>
             </div>
@@ -223,84 +239,11 @@ defmodule HydepwnsLiveviewWeb.Admin.EventDashboardLive do
           <% end %>
         </div>
       <% end %>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div class="bg-white shadow rounded-lg p-6">
-          <h2 class="text-lg font-semibold text-gray-900 mb-2">Total Events</h2>
-          <p class="text-3xl font-bold text-blue-600"><%= @event_stats.total_events %></p>
-        </div>
-
-        <div class="bg-white shadow rounded-lg p-6">
-          <h2 class="text-lg font-semibold text-gray-900 mb-2">Upcoming Events</h2>
-          <p class="text-3xl font-bold text-green-600"><%= @event_stats.upcoming_events %></p>
-        </div>
-
-        <div class="bg-white shadow rounded-lg p-6">
-          <h2 class="text-lg font-semibold text-gray-900 mb-2">Past Events</h2>
-          <p class="text-3xl font-bold text-gray-600"><%= @event_stats.past_events %></p>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-white shadow rounded-lg overflow-hidden">
-          <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-lg font-semibold text-gray-900">Upcoming Events</h2>
-          </div>
-          <div class="divide-y divide-gray-200">
-            <%= for event <- @upcoming_events do %>
-              <div class="px-6 py-4">
-                <div class="flex justify-between items-start">
-                  <div>
-                    <h3 class="text-sm font-medium text-gray-900"><%= event.name %></h3>
-                    <p class="mt-1 text-sm text-gray-500">
-                      <%= Calendar.strftime(event.date, "%B %d, %Y at %I:%M %p") %>
-                    </p>
-                    <p class="mt-1 text-sm text-gray-500"><%= event.location %></p>
-                  </div>
-                  <div class="flex space-x-2">
-                    <.link navigate={~p"/admin/events/#{event}"} class="text-indigo-600 hover:text-indigo-900">
-                      View
-                    </.link>
-                    <.link navigate={~p"/admin/events/#{event}/edit"} class="text-indigo-600 hover:text-indigo-900">
-                      Edit
-                    </.link>
-                  </div>
-                </div>
-              </div>
-            <% end %>
-          </div>
-        </div>
-
-        <div class="bg-white shadow rounded-lg overflow-hidden">
-          <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-lg font-semibold text-gray-900">Past Events</h2>
-          </div>
-          <div class="divide-y divide-gray-200">
-            <%= for event <- @past_events do %>
-              <div class="px-6 py-4">
-                <div class="flex justify-between items-start">
-                  <div>
-                    <h3 class="text-sm font-medium text-gray-900"><%= event.name %></h3>
-                    <p class="mt-1 text-sm text-gray-500">
-                      <%= Calendar.strftime(event.date, "%B %d, %Y at %I:%M %p") %>
-                    </p>
-                    <p class="mt-1 text-sm text-gray-500"><%= event.location %></p>
-                  </div>
-                  <div class="flex space-x-2">
-                    <.link navigate={~p"/admin/events/#{event}"} class="text-indigo-600 hover:text-indigo-900">
-                      View
-                    </.link>
-                    <.link navigate={~p"/admin/events/#{event}/edit"} class="text-indigo-600 hover:text-indigo-900">
-                      Edit
-                    </.link>
-                  </div>
-                </div>
-              </div>
-            <% end %>
-          </div>
-        </div>
-      </div>
     </div>
     """
   end
+
+  defp notification_class(:info), do: "bg-blue-50 text-blue-700"
+  defp notification_class(:warning), do: "bg-yellow-50 text-yellow-700"
+  defp notification_class(:error), do: "bg-red-50 text-red-700"
 end

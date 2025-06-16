@@ -3,6 +3,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeFormLive do
 
   alias HydepwnsLiveview.ThemeSystem
   alias HydepwnsLiveview.ThemeSystem.Models.Theme
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [label: 1, input: 1]
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do

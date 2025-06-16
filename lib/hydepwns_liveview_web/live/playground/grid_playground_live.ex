@@ -2,7 +2,6 @@ defmodule HydepwnsLiveviewWeb.Live.Playground.GridPlaygroundLive do
   use HydepwnsLiveviewWeb, :live_view
 
   import HydepwnsLiveviewWeb.Components.MonoGrid
-  import Phoenix.HTML, only: [raw: 1]
   alias HydepwnsLiveviewWeb.Helpers.PathHelper
 
   @default_grid_content """

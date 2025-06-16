@@ -6,7 +6,6 @@ defmodule HydepwnsLiveviewWeb.UserAuth do
   use HydepwnsLiveviewWeb, :live_view
 
   import Plug.Conn
-  import Phoenix.Controller
 
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveviewWeb.Router.Helpers, as: Routes
@@ -111,4 +110,23 @@ defmodule HydepwnsLiveviewWeb.UserAuth do
   end
 
   defp signed_in_path(_socket), do: ~p"/"
+
+  @doc """
+  Updates a user's password.
+  
+  ## Parameters
+  * `user` - The user to update
+  * `attrs` - The password update attributes
+  
+  ## Returns
+  * `{:ok, updated_user}` or `{:error, changeset}`
+  """
+  def update_user_password(user, attrs) do
+    case HydepwnsLiveview.Accounts.change_password(user, attrs) do
+      {:ok, updated_user} ->
+        {:ok, updated_user}
+      {:error, changeset} ->
+        {:error, changeset}
+    end
+  end
 end

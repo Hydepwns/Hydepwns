@@ -2,8 +2,6 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeShowLive do
   use HydepwnsLiveviewWeb, :live_view
 
   alias HydepwnsLiveview.ThemeSystem
-  alias HydepwnsLiveview.ThemeSystem.Theme
-  alias HydepwnsLiveviewWeb.Helpers.PathHelper
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do

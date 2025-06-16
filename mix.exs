@@ -102,6 +102,7 @@ defmodule HydepwnsLiveview.MixProject do
 
       # SMS Provider Dependencies
       {:ex_twilio, "~> 0.9.0"},
+      # TODO: need sms provider {:message_bird, "~> 0.1.0"},
 
       # Add test coverage and static analysis
       {:excoveralls, ">= 0.0.0", only: [:dev, :test], runtime: false},
@@ -111,6 +112,9 @@ defmodule HydepwnsLiveview.MixProject do
       {:libsignal_protocol_nif,
        path: "lib/libsignal-protocol-nif",
        manager: :rebar3},
+      # {:signal_nif,
+      #  path: "lib/signal-nif",
+      #  manager: :rebar3},
 
       # Add bcrypt for password hashing
       {:bcrypt_elixir, "~> 3.0"},

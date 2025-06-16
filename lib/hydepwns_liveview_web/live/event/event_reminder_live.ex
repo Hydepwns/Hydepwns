@@ -8,9 +8,7 @@ defmodule HydepwnsLiveviewWeb.Event.EventReminderLive do
   alias HydepwnsLiveview.Events
   alias HydepwnsLiveview.Events.EventReminder
 
-  import HydepwnsLiveviewWeb.Components.Common.CoreComponents, only: [button: 1]
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [simple_form: 1, input: 1]
-  import HydepwnsLiveviewWeb.Components.Common.HeaderComponent, only: [header: 1]
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label: 1]
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do

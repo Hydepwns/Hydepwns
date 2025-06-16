@@ -11,24 +11,19 @@ defmodule HydepwnsLiveview.Events.Handlers.LiveEventHandler do
   alias HydepwnsLiveview.Events.EventBus
 
   @doc """
-  Subscribes the current LiveView to events.
-
-  This will subscribe the current process to events matching the given criteria.
-  When events are received, they will be sent to the process as a message of the form:
-  `{:event, event}`.
+  Subscribes to events for a specific resource.
 
   ## Parameters
-  * `event_types` - List of event types to subscribe to, or `:all` for all events
-  * `resource_type` - Optional resource type to filter by
-  * `resource_id` - Optional resource ID to filter by
+  * `event_types` - List of event types to subscribe to, or :all for all events
+  * `resource_type` - The type of resource to subscribe to
+  * `resource_id` - The ID of the resource to subscribe to
 
   ## Returns
-  * `:ok` - The subscription was successful
+  * `:ok` - Successfully subscribed
   * `{:error, reason}` - Failed to subscribe
   """
-  def subscribe(event_types \\ :all, resource_type \\ nil, resource_id \\ nil) do
-    filter = build_filter(event_types, resource_type, resource_id)
-    EventBus.subscribe(self(), filter)
+  def subscribe(event_types, resource_type, resource_id) do
+    GenServer.call(__MODULE__, {:subscribe, self(), event_types, resource_type, resource_id})
   end
 
   @doc """
@@ -43,29 +38,32 @@ defmodule HydepwnsLiveview.Events.Handlers.LiveEventHandler do
   end
 
   @doc """
-  Handles an event in a LiveView. This should be called from handle_info in the LiveView.
+  Handles an event in a LiveView.
 
   ## Parameters
   * `event` - The event to handle
   * `socket` - The LiveView socket
-  * `handlers` - Map of event type patterns to handler functions. 
-    Each handler should take the event and socket as arguments and return the updated socket.
-  * `default_handler` - Optional function to handle events that don't match any pattern
+  * `handlers` - Map of event type patterns to handler functions
+  * `default_handler` - Optional function to handle unmatched events
 
   ## Returns
   * Updated socket
   """
   def handle_event(event, socket, handlers, default_handler \\ nil) do
-    # Try to find a matching handler
-    handler =
-      Enum.find_value(handlers, default_handler, fn {pattern, handler_fn} ->
-        if event_matches_pattern?(event.type, pattern), do: handler_fn, else: nil
-      end)
+    # Find a matching handler
+    handler = find_matching_handler(event.type, handlers)
 
-    case handler do
-      # No handler found
-      nil -> socket
-      handler_fn -> handler_fn.(event, socket)
+    if handler do
+      # Call the handler with the event and socket
+      handler.(event, socket)
+    else
+      # Use default handler if provided
+      if default_handler do
+        default_handler.(event, socket)
+      else
+        # No handler found, return unchanged socket
+        socket
+      end
     end
   end
 
@@ -136,6 +134,12 @@ defmodule HydepwnsLiveview.Events.Handlers.LiveEventHandler do
   defmacro event_reactive_assign(resource_type, resource_id, event_types, handler_fn) do
     quote do
       defmodule EventReactiveAssign do
+        @moduledoc """
+        A dynamically generated module that handles event-reactive assigns.
+        
+        This module subscribes to specified events and updates data when events are received.
+        It's used internally by the event_reactive_assign macro to create reactive assign hooks.
+        """
         def init(data) do
           # Subscribe to events
           HydepwnsLiveview.Events.Handlers.LiveEventHandler.subscribe(
@@ -191,24 +195,29 @@ defmodule HydepwnsLiveview.Events.Handlers.LiveEventHandler do
     end
   end
 
-  # Checks if an event type matches a pattern
-  defp event_matches_pattern?(event_type, pattern) when is_binary(pattern) do
+  defp find_matching_handler(event_type, handlers) do
+    Enum.find_value(handlers, fn {pattern, handler} ->
+      if matches_pattern?(event_type, pattern), do: handler
+    end)
+  end
+
+  defp matches_pattern?(event_type, pattern) when is_binary(pattern) do
     event_type == pattern
   end
 
-  defp event_matches_pattern?(event_type, pattern) when is_list(pattern) do
-    Enum.member?(pattern, event_type)
+  defp matches_pattern?(event_type, pattern) when is_list(pattern) do
+    Enum.any?(pattern, &matches_pattern?(event_type, &1))
   end
 
-  defp event_matches_pattern?(event_type, pattern) when is_function(pattern, 1) do
+  defp matches_pattern?(event_type, pattern) when is_function(pattern, 1) do
     pattern.(event_type)
   end
 
-  defp event_matches_pattern?(event_type, {prefix, :*}) when is_binary(prefix) do
+  defp matches_pattern?(event_type, {prefix, :*}) when is_binary(prefix) do
     String.starts_with?(event_type, prefix)
   end
 
-  defp event_matches_pattern?(_event_type, _pattern) do
+  defp matches_pattern?(_event_type, _pattern) do
     false
   end
 end

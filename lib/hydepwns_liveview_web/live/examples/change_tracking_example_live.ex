@@ -7,7 +7,6 @@ defmodule HydepwnsLiveviewWeb.Examples.ChangeTrackingExampleLive do
   """
 
   use HydepwnsLiveviewWeb.Resources.ResourceLive
-  import HydepwnsLiveviewWeb.Resources.ResourceHelpers
   alias HydepwnsLiveview.Utils.LiveViewAPI
   alias HydepwnsLiveview.Resources.UserResource
   import HydepwnsLiveviewWeb.Components.ChangeHistoryViewer

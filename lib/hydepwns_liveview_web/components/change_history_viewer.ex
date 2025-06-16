@@ -110,8 +110,8 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
       <div :if={@diff} class="diff-view mb-6">
         <h4 class="text-lg font-semibold mb-2">Showing diff</h4>
         <div class="diff-details bg-gray-100 p-3 rounded">
-          <div :for={{_key, values} <- @diff.changes} class="diff-item mb-4 border-b pb-2">
-            <div class="diff-key font-bold mb-1">{Atom.to_string(_key)}</div>
+          <div :for={{key, values} <- @diff.changes} class="diff-item mb-4 border-b pb-2">
+            <div class="diff-key font-bold mb-1">{Atom.to_string(key)}</div>
             <div class="diff-values grid grid-cols-2 gap-4">
               <div class="diff-old">
                 <span class="text-red-500">- {inspect(values.before)}</span>
@@ -122,14 +122,14 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
             </div>
             <div :if={values[:nested_diff] && map_size(values.nested_diff) > 0} class="mt-2 pl-4 border-l-2 border-gray-300">
               <div class="text-sm font-medium mb-1">Nested Changes:</div>
-              <div :for={{_nested_key, _nested_values} <- values.nested_diff} class="diff-item mb-2">
-                <div class="diff-key font-medium text-sm">{Atom.to_string(_nested_key)}</div>
+              <div :for={{nested_key, nested_values} <- values.nested_diff} class="diff-item mb-2">
+                <div class="diff-key font-medium text-sm">{Atom.to_string(nested_key)}</div>
                 <div class="diff-values grid grid-cols-2 gap-4 text-sm">
                   <div class="diff-old">
-                    <span class="text-red-500">- {inspect(_nested_values.before)}</span>
+                    <span class="text-red-500">- {inspect(nested_values.before)}</span>
                   </div>
                   <div class="diff-new">
-                    <span class="text-green-500">+ {inspect(_nested_values.after)}</span>
+                    <span class="text-green-500">+ {inspect(nested_values.after)}</span>
                   </div>
                 </div>
               </div>
@@ -227,7 +227,7 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
         </div>
       </div>
       <div class="timeline-labels flex justify-between w-full mt-2">
-        <div :for={_change <- @change_history} class="text-xs text-gray-500">
+        <div :for={change <- @change_history} class="text-xs text-gray-500">
           {format_timestamp_short(Map.get(change.metadata, :timestamp))}
         </div>
       </div>
@@ -373,5 +373,13 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
   # Assuming DateTime
   defp format_timestamp_short(timestamp) do
     Calendar.strftime(timestamp, "%b %d, %H:%M")
+  end
+
+  defp format_nested_changes(_nested_key, _nested_values) do
+    # TODO: Implementation
+  end
+
+  defp format_change(_key, _change) do
+    # TODO: Implementation
   end
 end

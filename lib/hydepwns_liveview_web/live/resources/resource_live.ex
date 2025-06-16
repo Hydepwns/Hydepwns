@@ -15,7 +15,6 @@ defmodule HydepwnsLiveviewWeb.Resources.ResourceLive do
     quote do
       import Phoenix.Component
       import Phoenix.LiveView
-      import HydepwnsLiveviewWeb.Resources.ResourceHelpers
     end
   end
 

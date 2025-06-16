@@ -11,10 +11,10 @@ defmodule HydepwnsLiveview.Events.Adapters.WebhookAdapter do
   @retry_delay 1000 # 1 second
 
   @impl true
-  def send_reminder(reminder, settings, config, encrypted_message) do
+  def send_reminder(reminder, _settings, config, encrypted_message) do
     with {:ok, webhook_url} <- validate_webhook_url(config.webhook_url),
          {:ok, payload} <- build_webhook_payload(reminder, encrypted_message, config),
-         {:ok, response} <- send_webhook_request(webhook_url, payload, config) do
+         {:ok, _response} <- send_webhook_request(webhook_url, payload, config) do
       Logger.info("Webhook notification sent successfully to #{webhook_url}")
       {:ok, "Webhook notification sent successfully"}
     else
@@ -72,14 +72,19 @@ defmodule HydepwnsLiveview.Events.Adapters.WebhookAdapter do
     body = Jason.encode!(payload)
 
     case HTTPoison.post(url, body, headers) do
-      {:ok, %HTTPoison.Response{status_code: status_code} = response} when status_code in 200..299 ->
-        handle_successful_response(response)
-      {:ok, %HTTPoison.Response{status_code: status_code} = response} when status_code in 500..599 ->
-        handle_retry(response, url, payload, config, retry_count)
-      {:ok, %HTTPoison.Response{status_code: status_code} = response} ->
-        handle_error_response(response)
+      {:ok, %{status_code: status_code}} when status_code in 200..299 ->
+        {:ok, "Webhook request sent successfully"}
+      {:ok, %{status_code: status_code}} ->
+        {:error, "Webhook request failed with status code: #{status_code}"}
       {:error, %HTTPoison.Error{reason: reason}} ->
-        handle_connection_error(reason, url, payload, config, retry_count)
+        if retry_count < @max_retries do
+          Logger.warning("Connection error, retrying webhook request after #{@retry_delay}ms (attempt #{retry_count + 1}/#{@max_retries})")
+          Process.sleep(@retry_delay)
+          send_webhook_request(url, payload, config, retry_count + 1)
+        else
+          Logger.error("Connection error after #{@max_retries} retries: #{inspect(reason)}")
+          {:error, "Connection error: #{inspect(reason)}"}
+        end
     end
   end
 
@@ -110,42 +115,6 @@ defmodule HydepwnsLiveview.Events.Adapters.WebhookAdapter do
         end)
       _ ->
         headers
-    end
-  end
-
-  defp handle_successful_response(response) do
-    case Jason.decode(response.body) do
-      {:ok, body} ->
-        {:ok, %{status_code: response.status_code, body: body}}
-      {:error, _} ->
-        {:ok, %{status_code: response.status_code, body: response.body}}
-    end
-  end
-
-  defp handle_error_response(response) do
-    Logger.error("Webhook request failed with status #{response.status_code}: #{response.body}")
-    {:error, "Webhook request failed with status #{response.status_code}"}
-  end
-
-  defp handle_retry(response, url, payload, config, retry_count) do
-    if retry_count < @max_retries do
-      Logger.warn("Retrying webhook request after #{@retry_delay}ms (attempt #{retry_count + 1}/#{@max_retries})")
-      Process.sleep(@retry_delay)
-      send_webhook_request(url, payload, config, retry_count + 1)
-    else
-      Logger.error("Max retries reached for webhook request")
-      {:error, "Max retries reached for webhook request"}
-    end
-  end
-
-  defp handle_connection_error(reason, url, payload, config, retry_count) do
-    if retry_count < @max_retries do
-      Logger.warn("Connection error, retrying webhook request after #{@retry_delay}ms (attempt #{retry_count + 1}/#{@max_retries})")
-      Process.sleep(@retry_delay)
-      send_webhook_request(url, payload, config, retry_count + 1)
-    else
-      Logger.error("Connection error after #{@max_retries} retries: #{inspect(reason)}")
-      {:error, "Connection error: #{inspect(reason)}"}
     end
   end
 end 

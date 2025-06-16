@@ -5,7 +5,7 @@ defmodule HydepwnsLiveviewWeb.UserSessionLive do
 
   use HydepwnsLiveviewWeb, :live_view
 
-  import HydepwnsLiveviewWeb.Components.Common.CoreComponents
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label: 1, error: 1]
 
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveview.Accounts.User
@@ -19,8 +19,8 @@ defmodule HydepwnsLiveviewWeb.UserSessionLive do
   end
 
   @impl Phoenix.LiveView
-  def handle_params(params, _url, socket) do
-    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  def handle_params(_params, _url, socket) do
+    {:noreply, apply_action(socket, socket.assigns.live_action, _params)}
   end
 
   defp apply_action(socket, :new, _params) do

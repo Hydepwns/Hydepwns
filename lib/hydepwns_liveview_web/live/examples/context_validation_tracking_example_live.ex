@@ -17,7 +17,6 @@ defmodule HydepwnsLiveviewWeb.Examples.ContextValidationTrackingExampleLive do
       :images
     ]
 
-  import HydepwnsLiveviewWeb.Resources.ResourceHelpers
   alias HydepwnsLiveview.Utils.LiveViewAPI
   import HydepwnsLiveviewWeb.Components.ChangeHistoryViewer
 

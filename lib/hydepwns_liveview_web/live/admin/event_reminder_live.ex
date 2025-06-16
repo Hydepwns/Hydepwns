@@ -5,13 +5,6 @@ defmodule HydepwnsLiveviewWeb.Admin.EventReminderLive do
 
   use HydepwnsLiveviewWeb, :live_view
 
-  alias HydepwnsLiveview.Events
-  alias HydepwnsLiveview.Events.Event
-  alias HydepwnsLiveview.Events.EventReminder
-
-  import HydepwnsLiveviewWeb.Components.Common.CoreComponents
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents
-
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
     default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()

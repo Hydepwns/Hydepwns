@@ -1,9 +1,7 @@
 defmodule HydepwnsLiveviewWeb.BridgeFormLive do
   use HydepwnsLiveviewWeb, :live_view
 
-  alias HydepwnsLiveview.Bridges
-  alias HydepwnsLiveview.Bridges.Bridge
-  alias HydepwnsLiveviewWeb.UserAuth
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label: 1]
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do

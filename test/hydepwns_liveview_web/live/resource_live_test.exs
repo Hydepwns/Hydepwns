@@ -32,7 +32,7 @@ defmodule HydepwnsLiveviewWeb.ResourceLiveTest do
     def do_mount(_params, _session, socket) do
       socket = __apply_resource_defaults__(socket)
       socket = Phoenix.Component.assign(socket, :user, %{id: "user_123", name: "Test User", role: "user"})
-      {:noreply, socket}
+      {:ok, socket}
     end
 
     @impl Phoenix.LiveView

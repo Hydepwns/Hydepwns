@@ -1,16 +1,43 @@
 defmodule HydepwnsLiveviewWeb.ResourceShowLive do
   use HydepwnsLiveviewWeb, :live_view
 
-  alias HydepwnsLiveview.Resources
-  alias HydepwnsLiveview.Resources.Resource
+  alias HydepwnsLiveview.Resources.ResourceSystem
 
   @impl true
-  def mount(%{"id" => id}, _session, socket) do
-    if connected?(socket) do
-      resource = Resources.get_resource!(id)
-      {:ok, assign(socket, resource: resource)}
-    else
-      {:ok, assign(socket, resource: nil)}
+  def mount(_params, _session, socket) do
+    {:ok, socket}
+  end
+
+  @impl true
+  def handle_params(%{"id" => id}, _url, socket) do
+    case ResourceSystem.get_resource(id) do
+      {:ok, resource} ->
+        {:noreply,
+         socket
+         |> assign(:page_title, resource.name)
+         |> assign(:resource, resource)}
+
+      {:error, :not_found} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Resource not found")
+         |> redirect(to: ~p"/resources")}
+    end
+  end
+
+  @impl true
+  def handle_event("delete", _params, socket) do
+    case ResourceSystem.delete_resource(socket.assigns.resource.id) do
+      {:ok, _resource} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Resource deleted successfully")
+         |> redirect(to: ~p"/resources")}
+
+      {:error, _reason} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Failed to delete resource")}
     end
   end
 
@@ -99,16 +126,5 @@ defmodule HydepwnsLiveviewWeb.ResourceShowLive do
       </div>
     </div>
     """
-  end
-
-  @impl true
-  def handle_event("delete", %{"id" => id}, socket) do
-    resource = Resources.get_resource!(id)
-    {:ok, _} = Resources.delete_resource(resource)
-
-    {:noreply,
-     socket
-     |> put_flash(:info, "Resource deleted successfully")
-     |> push_navigate(to: ~p"/resources")}
   end
 end

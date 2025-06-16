@@ -6,9 +6,8 @@ defmodule HydepwnsLiveviewWeb.UserSettingsLive do
   use HydepwnsLiveviewWeb, :live_view
 
   alias HydepwnsLiveview.Accounts
-  alias HydepwnsLiveview.Accounts.User
   alias HydepwnsLiveviewWeb.UserAuth
-  import HydepwnsLiveviewWeb.Components.Common.CoreComponents
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label: 1, error: 1]
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do

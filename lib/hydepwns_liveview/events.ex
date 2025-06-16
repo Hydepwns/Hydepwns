@@ -5,7 +5,7 @@ defmodule HydepwnsLiveview.Events do
 
   import Ecto.Query, warn: false
   alias HydepwnsLiveview.Repo
-  alias HydepwnsLiveview.Events.{Event, EventSettings, EventReminder}
+  alias HydepwnsLiveview.Events.{Event, EventSettings, EventReminder, EventNotification}
 
   @doc """
   Returns the list of all events.
@@ -209,5 +209,243 @@ defmodule HydepwnsLiveview.Events do
     %EventSettings{}
     |> EventSettings.changeset(attrs)
     |> Repo.insert()
+  end
+
+  @doc """
+  Returns a list of supported timezones.
+  Uses the IANA timezone database names.
+  """
+  @spec list_timezones() :: [String.t()]
+  def list_timezones do
+    [
+      "UTC",
+      "America/New_York",
+      "America/Chicago",
+      "America/Denver",
+      "America/Los_Angeles",
+      "Europe/London",
+      "Europe/Paris",
+      "Europe/Berlin",
+      "Asia/Tokyo",
+      "Asia/Shanghai",
+      "Australia/Sydney"
+    ]
+  end
+
+  @doc """
+  Returns the list of all event reminders.
+  """
+  def list_event_reminders do
+    Repo.all(EventReminder)
+  end
+
+  @doc """
+  Updates an event reminder.
+  """
+  def update_event_reminder(%EventReminder{} = reminder, attrs) do
+    reminder
+    |> EventReminder.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Returns a list of past events.
+  """
+  def list_past_events do
+    now = DateTime.utc_now()
+    from(e in Event,
+      where: e.start_time < ^now,
+      order_by: [desc: e.start_time]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Returns a list of upcoming events.
+  """
+  def list_upcoming_events do
+    now = DateTime.utc_now()
+    from(e in Event,
+      where: e.start_time >= ^now,
+      order_by: [asc: e.start_time]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Returns a list of due reminders for a given event.
+  """
+  def list_due_reminders(event_id) when is_binary(event_id) do
+    now = DateTime.utc_now()
+    from(r in EventReminder,
+      where: r.event_id == ^event_id and r.reminder_time <= ^now and r.status == "pending",
+      order_by: [asc: r.reminder_time]
+    )
+    |> Repo.all()
+  end
+  def list_due_reminders(_invalid_id), do: {:error, :invalid_event_id}
+
+  @doc """
+  Creates an event notification template.
+  """
+  def create_event_notification_template(attrs \\ %{}) do
+    %EventNotification{}
+    |> EventNotification.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Deletes an event notification.
+  """
+  def delete_event_notification(%EventNotification{} = notification) do
+    Repo.delete(notification)
+  end
+
+  @doc """
+  Gets a single event notification.
+  """
+  def get_event_notification!(id), do: Repo.get!(EventNotification, id)
+
+  @doc """
+  Returns the list of event notifications.
+  """
+  def list_event_notifications do
+    Repo.all(EventNotification)
+  end
+
+  @doc """
+  Imports events from a file.
+  """
+  def import_events(file_path) do
+    case File.read(file_path) do
+      {:ok, content} ->
+        events =
+          content
+          |> String.split("\n")
+          |> Enum.drop(1)  # Skip header row
+          |> Enum.map(&parse_event_row/1)
+          |> Enum.filter(&(&1 != nil))
+          |> Enum.map(&create_event/1)
+
+        {:ok, events}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp parse_event_row(row) do
+    case String.split(row, ",") do
+      [title, start_time, end_time, description, status] ->
+        %{
+          title: title,
+          start_time: parse_datetime(start_time),
+          end_time: parse_datetime(end_time),
+          description: description,
+          status: status
+        }
+      _ -> nil
+    end
+  end
+
+  defp parse_datetime(datetime_str) do
+    case DateTime.from_iso8601(datetime_str) do
+      {:ok, datetime, _} -> datetime
+      _ -> nil
+    end
+  end
+
+  @doc """
+  Exports an event report.
+  """
+  def export_report(report_id) do
+    events = list_events()
+    filename = "report_#{report_id}.csv"
+    
+    headers = ["ID", "Title", "Start Time", "End Time", "Description", "Status"]
+    rows = Enum.map(events, fn event ->
+      [
+        event.id,
+        event.title,
+        event.start_time,
+        event.end_time,
+        event.description,
+        event.status
+      ]
+    end)
+    
+    content = [headers | rows]
+    |> Enum.map_join("\n", &Enum.join(&1, ","))
+    
+    case File.write(filename, content) do
+      :ok -> {:ok, filename}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @doc """
+  Generates an event report.
+  """
+  def generate_event_report(event_id) do
+    event = get_event!(event_id)
+    reminders = list_due_reminders(event_id)
+    notifications = list_event_notifications()
+    
+    report = %{
+      event_id: event_id,
+      event_details: %{
+        title: event.title,
+        start_time: event.start_time,
+        end_time: event.end_time,
+        description: event.description,
+        status: event.status
+      },
+      reminders: reminders,
+      notifications: notifications,
+      generated_at: DateTime.utc_now()
+    }
+    
+    {:ok, report}
+  end
+
+  @doc """
+  Lists events with optional filters.
+  """
+  def list_events(filters \\ %{}, opts \\ []) do
+    query = from(e in Event)
+
+    query =
+      Enum.reduce(filters, query, fn
+        {:start_date, date}, q ->
+          from(e in q, where: e.start_time >= ^date)
+
+        {:end_date, date}, q ->
+          from(e in q, where: e.start_time <= ^date)
+
+        {:status, status}, q ->
+          from(e in q, where: e.status == ^status)
+
+        {:type, type}, q ->
+          from(e in q, where: e.type == ^type)
+
+        _, q ->
+          q
+      end)
+
+    query =
+      if opts[:order_by] do
+        from(e in query, order_by: ^opts[:order_by])
+      else
+        from(e in query, order_by: [desc: e.inserted_at])
+      end
+
+    query =
+      if opts[:limit] do
+        from(e in query, limit: ^opts[:limit])
+      else
+        query
+      end
+
+    Repo.all(query)
   end
 end 

@@ -6,11 +6,6 @@ defmodule HydepwnsLiveviewWeb.Admin.EventImportLive do
   use HydepwnsLiveviewWeb, :live_view
 
   alias HydepwnsLiveview.Events
-  alias HydepwnsLiveview.Events.Event
-  alias HydepwnsLiveview.Events.EventImport
-
-  import HydepwnsLiveviewWeb.Components.Common.CoreComponents
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do

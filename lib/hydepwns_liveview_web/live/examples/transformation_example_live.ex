@@ -207,8 +207,10 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
     context = %{
       current_user: socket.assigns.current_user
     }
+
     socket
     |> assign(:transformation_context, context)
+
     {:noreply, socket}
   end
 

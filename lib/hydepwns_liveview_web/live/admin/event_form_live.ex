@@ -6,7 +6,7 @@ defmodule HydepwnsLiveviewWeb.Admin.EventFormLive do
   use HydepwnsLiveviewWeb, :live_view
 
   alias HydepwnsLiveview.Events
-  alias HydepwnsLiveview.Events.Event
+  alias HydepwnsLiveview.Events.Core.Event
 
   import HydepwnsLiveviewWeb.Components.UI.FormComponents
 
@@ -64,7 +64,7 @@ defmodule HydepwnsLiveviewWeb.Admin.EventFormLive do
   end
 
   defp save_event(socket, :new, event_params) do
-    case HydepwnsLiveview.Events.Core.Event.create(event_params["type"], event_params) do
+    case Event.create(event_params["type"], event_params) do
       {:ok, _event} ->
         {:noreply,
          socket
@@ -83,14 +83,7 @@ defmodule HydepwnsLiveviewWeb.Admin.EventFormLive do
       <div class="max-w-2xl mx-auto">
         <h1 class="text-2xl font-bold mb-6"><%= @page_title %></h1>
 
-        <.form
-          :let={f}
-          for={@changeset}
-          id="event-form"
-          phx-change="validate"
-          phx-submit="save"
-          class="space-y-6"
-        >
+        <.form :let={f} for={@changeset} id="event-form" phx-change="validate" phx-submit="save" class="space-y-6">
           <div>
             <.input field={f[:name]} type="text" label="Name" />
           </div>
@@ -124,4 +117,4 @@ defmodule HydepwnsLiveviewWeb.Admin.EventFormLive do
     </div>
     """
   end
-end 
+end

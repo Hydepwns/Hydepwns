@@ -55,7 +55,10 @@ defmodule HydepwnsLiveviewWeb do
       use Phoenix.LiveView, opts
 
       import HydepwnsLiveviewWeb.Gettext
-      import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, simple_form: 1, error: 1]
+
+      import HydepwnsLiveviewWeb.Components.UI.FormComponents,
+        only: [input: 1, simple_form: 1, error: 1]
+
       import HydepwnsLiveviewWeb.Components.UI.LayoutComponents, only: [header: 1]
       unquote(html_helpers())
 

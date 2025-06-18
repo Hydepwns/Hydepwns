@@ -256,8 +256,7 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
     <span class="ascii-version">MONOSPACE WEB DESIGN SYSTEM v1.3.1</span>
               </pre>
             </section>
-            
-    <!-- Introduction Section -->
+            <!-- Introduction Section -->
             <section id="introduction">
               <h2>Introduction</h2>
               <p>Welcome to the Hydepwns monospace interface demonstration.</p>
@@ -265,8 +264,7 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
               <h3 id="background">Background</h3>
               <p>The design is inspired by terminal UIs and uses monospace fonts technical aesthetic. This approach allows for precise control over ASCII art integration.</p>
             </section>
-            
-    <!-- Features Section -->
+            <!-- Features Section -->
             <section id="features">
               <h2>Features</h2>
 
@@ -315,8 +313,7 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
                 </div>
               </div>
             </section>
-            
-    <!-- Themes Section -->
+            <!-- Themes Section -->
             <section id="themes">
               <h2>Themes</h2>
 
@@ -355,8 +352,7 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
                 </div>
               </div>
             </section>
-            
-    <!-- Copyright Footer -->
+            <!-- Copyright Footer -->
             <footer class="copyright-footer">
               <pre class="ascii-box footer-box">
               ╔══════════════════════════════════╗

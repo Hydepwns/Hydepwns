@@ -19,4 +19,4 @@ defmodule HydepwnsLiveview.Projects do
       ]
     }
   end
-end 
+end

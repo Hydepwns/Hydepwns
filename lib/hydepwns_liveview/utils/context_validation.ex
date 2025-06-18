@@ -347,11 +347,13 @@ defmodule HydepwnsLiveview.Utils.ContextValidation do
   # Prepare the context for a related resource
   defp prepare_related_context(context, parent, relationship, child) do
     # Add relationship metadata to the context
-    context = Map.put(context, :relationship, %{
-      name: relationship,
-      parent: parent,
-      child: child
-    })
+    context =
+      Map.put(context, :relationship, %{
+        name: relationship,
+        parent: parent,
+        child: child
+      })
+
     context
   end
 
@@ -473,6 +475,7 @@ defmodule HydepwnsLiveview.Utils.ContextValidation do
         resource
     end
   end
+
   defp validate_rule(rule, context) do
     # Validate that the rule is a valid validation rule
     with {:ok, rule_fn} <- validate_rule_function(rule),
@@ -487,6 +490,7 @@ defmodule HydepwnsLiveview.Utils.ContextValidation do
   defp validate_rule_function(rule) when is_function(rule, 1) or is_function(rule, 2) do
     {:ok, rule}
   end
+
   defp validate_rule_function(_rule), do: {:error, "Invalid rule function"}
 
   # Helper to validate that the rule can handle the given context
@@ -502,10 +506,12 @@ defmodule HydepwnsLiveview.Utils.ContextValidation do
       e -> {:error, "Rule execution failed: #{inspect(e)}"}
     end
   end
+
   defp validate_rule_context(rule_fn, _context) when is_function(rule_fn, 1) do
     # Rule doesn't accept context, but that's okay
     {:ok, rule_fn}
   end
+
   defp validate_rule_context(_rule_fn, _context) do
     {:error, "Invalid validation rule: must be a function that takes 1 or 2 arguments"}
   end

@@ -12,6 +12,7 @@ defmodule HydepwnsLiveview.Utils.TypeValidation do
   """
   def validate_type(value, type) do
     validators = basic_type_validators()
+
     if Map.has_key?(validators, type) do
       validators[type].(value)
     else
@@ -58,7 +59,7 @@ defmodule HydepwnsLiveview.Utils.TypeValidation do
   """
   def validate_list_type(item_type, value) when is_list(value) do
     results = Enum.map(value, &validate_type(&1, item_type))
-    
+
     if Enum.all?(results, &match?({:ok, _}, &1)) do
       {:ok, value}
     else
@@ -66,18 +67,20 @@ defmodule HydepwnsLiveview.Utils.TypeValidation do
       {:error, "list validation failed: #{inspect(errors)}"}
     end
   end
+
   def validate_list_type(_, value), do: {:error, "expected list, got: #{inspect(value)}"}
 
   @doc """
   Validates a map against a schema.
   """
   def validate_map_type(field_types, value) when is_map(value) do
-    results = Enum.map(field_types, fn {field, type} ->
-      case Map.fetch(value, field) do
-        {:ok, field_value} -> {field, validate_type(field_value, type)}
-        :error -> {field, {:error, "missing required field"}}
-      end
-    end)
+    results =
+      Enum.map(field_types, fn {field, type} ->
+        case Map.fetch(value, field) do
+          {:ok, field_value} -> {field, validate_type(field_value, type)}
+          :error -> {field, {:error, "missing required field"}}
+        end
+      end)
 
     if Enum.all?(results, fn {_, result} -> match?({:ok, _}, result) end) do
       {:ok, value}
@@ -86,6 +89,7 @@ defmodule HydepwnsLiveview.Utils.TypeValidation do
       {:error, "schema validation failed: #{inspect(errors)}"}
     end
   end
+
   def validate_map_type(_, value), do: {:error, "expected map, got: #{inspect(value)}"}
 
   @doc """
@@ -104,7 +108,7 @@ defmodule HydepwnsLiveview.Utils.TypeValidation do
   """
   def validate_required(socket, required_keys) do
     missing = Enum.filter(required_keys, &(Map.get(socket.assigns, &1) == nil))
-    
+
     if Enum.empty?(missing) do
       {:ok, socket}
     else
@@ -116,12 +120,13 @@ defmodule HydepwnsLiveview.Utils.TypeValidation do
   Validates type specifications for socket assigns.
   """
   def validate_type_specs(socket, type_specs) do
-    results = Enum.map(type_specs, fn {key, type} ->
-      case Map.fetch(socket.assigns, key) do
-        {:ok, value} -> {key, validate_type(value, type)}
-        :error -> {key, {:error, "missing required assign"}}
-      end
-    end)
+    results =
+      Enum.map(type_specs, fn {key, type} ->
+        case Map.fetch(socket.assigns, key) do
+          {:ok, value} -> {key, validate_type(value, type)}
+          :error -> {key, {:error, "missing required assign"}}
+        end
+      end)
 
     if Enum.all?(results, fn {_, result} -> match?({:ok, _}, result) end) do
       {:ok, socket}
@@ -132,12 +137,17 @@ defmodule HydepwnsLiveview.Utils.TypeValidation do
   end
 
   defp validate_one_of(value, allowed) do
-    if Enum.member?(allowed, value), do: {:ok, value}, else: {:error, "expected one of #{inspect(allowed)}, got: #{inspect(value)}"}
+    if Enum.member?(allowed, value),
+      do: {:ok, value},
+      else: {:error, "expected one of #{inspect(allowed)}, got: #{inspect(value)}"}
   end
 
   defp validate_union(value, types) do
     results = Enum.map(types, fn type -> {type, validate_type(value, type)} end)
-    if Enum.any?(results, fn {_, result} -> match?({:ok, _}, result) end), do: {:ok, value}, else: {:error, "Value matched none of the union types: #{inspect(types)}"}
+
+    if Enum.any?(results, fn {_, result} -> match?({:ok, _}, result) end),
+      do: {:ok, value},
+      else: {:error, "Value matched none of the union types: #{inspect(types)}"}
   end
 
   defp validate_custom(value, validator) do
@@ -181,4 +191,4 @@ defmodule HydepwnsLiveview.Utils.TypeValidation do
       {:error, _} -> {:error, error_message}
     end
   end
-end 
+end

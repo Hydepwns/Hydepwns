@@ -32,6 +32,7 @@ defmodule HydepwnsLiveviewWeb.Event.EventReminderLive do
 
   defp apply_action(socket, :edit, %{"id" => id}) do
     event_reminder = Events.get_event_reminder!(id)
+
     socket
     |> assign(:page_title, "Edit Event Reminder")
     |> assign(:event_id, event_reminder.event_id)
@@ -90,13 +91,7 @@ defmodule HydepwnsLiveviewWeb.Event.EventReminderLive do
         <div class="space-y-6">
           <div>
             <h3 class="text-lg font-medium">Event Reminder</h3>
-            <.form
-              :let={f}
-              for={@changeset}
-              id="event-reminder-form"
-              phx-change="validate"
-              phx-submit="save"
-            >
+            <.form :let={f} for={@changeset} id="event-reminder-form" phx-change="validate" phx-submit="save">
               <div class="space-y-4">
                 <div>
                   <.label for={f[:reminder_time].id}>Reminder Time</.label>
@@ -129,4 +124,4 @@ defmodule HydepwnsLiveviewWeb.Event.EventReminderLive do
     </div>
     """
   end
-end 
+end

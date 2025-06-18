@@ -52,4 +52,4 @@ defmodule HydepwnsLiveview.Bridge do
   def delete_bridge(bridge) do
     Repo.delete(bridge)
   end
-end 
+end

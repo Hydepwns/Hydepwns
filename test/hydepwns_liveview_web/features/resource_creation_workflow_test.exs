@@ -1,6 +1,9 @@
 defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
   use HydepwnsLiveviewWeb.WallabyCase, async: false
-  import HydepwnsLiveview.TestSupport.ResourceFixtures, only: [create_test_resource: 1, create_test_resource: 0]
+
+  import HydepwnsLiveview.TestSupport.ResourceFixtures,
+    only: [create_test_resource: 1, create_test_resource: 0]
+
   import HydepwnsLiveview.TestSupport.ResourceSystemHelper
   import Wallaby.Query
 

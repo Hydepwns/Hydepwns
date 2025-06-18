@@ -77,7 +77,8 @@ defmodule HydepwnsLiveviewWeb.ResourceDSL do
   defmacro relationship(name, type, resource, options \\ []) do
     quote do
       @resource_relationships {unquote(name),
-                               [type: unquote(type), resource: unquote(resource)] ++ unquote(options)}
+                               [type: unquote(type), resource: unquote(resource)] ++
+                                 unquote(options)}
     end
   end
-end 
+end

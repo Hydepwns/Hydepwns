@@ -49,15 +49,17 @@ defmodule HydepwnsLiveviewWeb.Admin.EventExportLive do
 
   defp generate_export(events, "csv") do
     headers = ["Name", "Date", "Location", "Status", "Description"]
-    rows = Enum.map(events, fn event ->
-      [
-        event.name,
-        Calendar.strftime(event.date, "%Y-%m-%d %H:%M:%S"),
-        event.location,
-        event.status,
-        event.description
-      ]
-    end)
+
+    rows =
+      Enum.map(events, fn event ->
+        [
+          event.name,
+          Calendar.strftime(event.date, "%Y-%m-%d %H:%M:%S"),
+          event.location,
+          event.status,
+          event.description
+        ]
+      end)
 
     [headers | rows]
     |> Enum.map(&Enum.join(&1, ","))
@@ -91,20 +93,11 @@ defmodule HydepwnsLiveviewWeb.Admin.EventExportLive do
           <h2 class="text-lg font-semibold text-gray-900">Export Options</h2>
         </div>
         <div class="p-6">
-          <.form
-            :let={_f}
-            for={%{}}
-            id="export-form"
-            phx-submit="export"
-            class="space-y-6"
-          >
+          <.form :let={_f} for={%{}} id="export-form" phx-submit="export" class="space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label class="block text-sm font-medium text-gray-700">Export Format</label>
-                <select
-                  name="export[format]"
-                  class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                >
+                <select name="export[format]" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
                   <option value="csv" selected={@export_format == "csv"}>CSV</option>
                   <option value="json" selected={@export_format == "json"}>JSON</option>
                 </select>
@@ -112,22 +105,12 @@ defmodule HydepwnsLiveviewWeb.Admin.EventExportLive do
 
               <div>
                 <label class="block text-sm font-medium text-gray-700">Start Date</label>
-                <input
-                  type="date"
-                  name="export[start_date]"
-                  value={@date_range.start}
-                  class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                />
+                <input type="date" name="export[start_date]" value={@date_range.start} class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" />
               </div>
 
               <div>
                 <label class="block text-sm font-medium text-gray-700">End Date</label>
-                <input
-                  type="date"
-                  name="export[end_date]"
-                  value={@date_range.end}
-                  class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                />
+                <input type="date" name="export[end_date]" value={@date_range.end} class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" />
               </div>
             </div>
 
@@ -187,4 +170,4 @@ defmodule HydepwnsLiveviewWeb.Admin.EventExportLive do
   defp event_status_class("published"), do: "bg-green-100 text-green-800"
   defp event_status_class("cancelled"), do: "bg-red-100 text-red-800"
   defp event_status_class(_), do: "bg-gray-100 text-gray-800"
-end 
+end

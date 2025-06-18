@@ -7,29 +7,34 @@ defmodule HydepwnsLiveview.MockExternalAPI do
 
   @impl true
   def fetch_data(id) do
-    {:ok, %{
-      "id" => id,
-      "name" => "Test Resource",
-      "status" => "active",
-      "type" => "test_type",
-      "description" => "Test Description",
-      "content" => %{
-        "text" => "Test content"
-      }
-    }}
+    {:ok,
+     %{
+       "id" => id,
+       "name" => "Test Resource",
+       "status" => "active",
+       "type" => "test_type",
+       "description" => "Test Description",
+       "content" => %{
+         "text" => "Test content"
+       }
+     }}
   end
 
   @impl true
   def update_resource(id, data) do
-    {:ok, Map.merge(%{
-      "id" => id,
-      "name" => "Test Resource",
-      "status" => "active",
-      "type" => "test_type",
-      "description" => "Test Description",
-      "content" => %{
-        "text" => "Test content"
-      }
-    }, data)}
+    {:ok,
+     Map.merge(
+       %{
+         "id" => id,
+         "name" => "Test Resource",
+         "status" => "active",
+         "type" => "test_type",
+         "description" => "Test Description",
+         "content" => %{
+           "text" => "Test content"
+         }
+       },
+       data
+     )}
   end
-end 
+end

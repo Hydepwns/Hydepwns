@@ -79,12 +79,7 @@ defmodule HydepwnsLiveviewWeb.Admin.EventLive do
                   <.link navigate={~p"/admin/events/#{event}/edit"} class="text-indigo-600 hover:text-indigo-900 mr-4">
                     Edit
                   </.link>
-                  <.link
-                    phx-click="delete"
-                    phx-value-id={event.id}
-                    data-confirm="Are you sure?"
-                    class="text-red-600 hover:text-red-900"
-                  >
+                  <.link phx-click="delete" phx-value-id={event.id} data-confirm="Are you sure?" class="text-red-600 hover:text-red-900">
                     Delete
                   </.link>
                 </td>
@@ -101,4 +96,4 @@ defmodule HydepwnsLiveviewWeb.Admin.EventLive do
   defp event_status_class("published"), do: "bg-green-100 text-green-800"
   defp event_status_class("cancelled"), do: "bg-red-100 text-red-800"
   defp event_status_class(_), do: "bg-gray-100 text-gray-800"
-end 
+end

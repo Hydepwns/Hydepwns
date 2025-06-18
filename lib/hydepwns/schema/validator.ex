@@ -43,7 +43,9 @@ defmodule Hydepwns.Schema.Validator do
           :ok -> []
           {:error, field_errors} -> Enum.map(field_errors, &"field '#{field}': #{&1}")
         end
-      :error -> ["field '#{field}' is required"]
+
+      :error ->
+        ["field '#{field}' is required"]
     end
   end
-end 
+end

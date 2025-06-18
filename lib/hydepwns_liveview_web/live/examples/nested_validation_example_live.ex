@@ -28,18 +28,26 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
 
   def handle_event("validate_user", _params, socket) do
     user = socket.assigns.user
+
     case UserResource.validate_deep(user) do
-      :ok -> {:noreply, assign(socket, :validation_result, "Valid")}
-      {:error, errors} -> {:noreply, assign(socket, :validation_result, "Invalid: #{inspect(errors)}")}
+      :ok ->
+        {:noreply, assign(socket, :validation_result, "Valid")}
+
+      {:error, errors} ->
+        {:noreply, assign(socket, :validation_result, "Invalid: #{inspect(errors)}")}
     end
   end
 
   def handle_event("validate_user_with_context", _params, socket) do
     user = socket.assigns.user
     context = %{current_user: socket.assigns.current_user}
+
     case UserResource.validate_deep(user, context: context) do
-      :ok -> {:noreply, assign(socket, :validation_result, "Valid with context")}
-      {:error, errors} -> {:noreply, assign(socket, :validation_result, "Invalid with context: #{inspect(errors)}")}
+      :ok ->
+        {:noreply, assign(socket, :validation_result, "Valid with context")}
+
+      {:error, errors} ->
+        {:noreply, assign(socket, :validation_result, "Invalid with context: #{inspect(errors)}")}
     end
   end
 

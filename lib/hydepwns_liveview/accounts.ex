@@ -203,12 +203,12 @@ defmodule HydepwnsLiveview.Accounts do
   def authenticate_user(%{"email" => email, "password" => password}) do
     user = get_user_by_email(email)
     cond do
-      user && Bcrypt.Base.verify_pass(password, user.password_hash) ->
+      user && Bcrypt.verify_pass(password, user.password_hash) ->
         {:ok, user}
       user ->
         {:error, :unauthorized}
       true ->
-        Bcrypt.Base.no_user_verify()
+        Bcrypt.no_user_verify()
         {:error, :not_found}
     end
   end
@@ -275,4 +275,4 @@ defmodule HydepwnsLiveview.Accounts do
   def change_user_security(user, attrs \\ %{}) do
     User.security_changeset(user, attrs)
   end
-end 
+end

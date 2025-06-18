@@ -32,6 +32,7 @@ defmodule HydepwnsLiveviewWeb.Event.EventSettingsLive do
 
   defp apply_action(socket, :edit, %{"id" => id}) do
     event_settings = Events.get_event_settings!(id)
+
     socket
     |> assign(:page_title, "Edit Event Settings")
     |> assign(:event_id, event_settings.event_id)
@@ -90,13 +91,7 @@ defmodule HydepwnsLiveviewWeb.Event.EventSettingsLive do
         <div class="space-y-6">
           <div>
             <h3 class="text-lg font-medium">Event Settings</h3>
-            <.form
-              :let={f}
-              for={@changeset}
-              id="event-settings-form"
-              phx-change="validate"
-              phx-submit="save"
-            >
+            <.form :let={f} for={@changeset} id="event-settings-form" phx-change="validate" phx-submit="save">
               <div class="space-y-4">
                 <div>
                   <.label for={f[:reminder_time].id}>Reminder Time (minutes before event)</.label>
@@ -129,4 +124,4 @@ defmodule HydepwnsLiveviewWeb.Event.EventSettingsLive do
     </div>
     """
   end
-end 
+end

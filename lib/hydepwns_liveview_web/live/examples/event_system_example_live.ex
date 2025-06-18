@@ -264,7 +264,6 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
                   </div>
                 </div>
               </div>
-
             <% "projections" -> %>
               <div class="projections-tab">
                 <div class="grid grid-cols-2 gap-4">
@@ -297,7 +296,6 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
                   <% end %>
                 </div>
               </div>
-
             <% "handlers" -> %>
               <div class="handlers-tab">
                 <h2 class="text-xl font-bold mb-2">Event Handlers</h2>

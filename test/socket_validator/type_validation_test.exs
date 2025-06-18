@@ -214,11 +214,16 @@ defmodule HydepwnsLiveview.TypeValidationTest do
 
       # Assert we received the expected telemetry event
       assert_receive {
-        [:hydepwns, :socket_validator, :validation, :type_error],
-        _ref,
-        %{count: 1},
-        %{key: :string_value, type_spec: :string, validation_type: :type_validation} = meta
-      } when is_map(meta)
+                       [:hydepwns, :socket_validator, :validation, :type_error],
+                       _ref,
+                       %{count: 1},
+                       %{
+                         key: :string_value,
+                         type_spec: :string,
+                         validation_type: :type_validation
+                       } = meta
+                     }
+                     when is_map(meta)
 
       # Clean up
       :telemetry.detach(ref)
@@ -491,7 +496,9 @@ defmodule HydepwnsLiveview.TypeValidationTest do
         capture_log(fn ->
           # Mount with invalid data should still succeed but log warnings
           result = live(conn, "/test-types")
-          assert match?({:ok, _, _}, result), "Expected live/3 to succeed, got: #{inspect(result)}"
+
+          assert match?({:ok, _, _}, result),
+                 "Expected live/3 to succeed, got: #{inspect(result)}"
         end)
 
       # Print the captured logs for debugging
@@ -532,6 +539,7 @@ defmodule HydepwnsLiveview.TypeValidationTest do
         case expected_result do
           :valid ->
             assert assigns[key] == value
+
           :invalid ->
             # The BaseLive implementation will keep invalid values, but log warnings about them
             :ok

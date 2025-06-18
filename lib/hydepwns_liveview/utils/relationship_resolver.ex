@@ -283,7 +283,7 @@ defmodule HydepwnsLiveview.Utils.RelationshipResolver do
   # Loads a belongs_to relationship
   defp load_belongs_to_relationship(resource, relationship, opts) do
     cache = Keyword.get(opts, :cache, true)
-    
+
     # Get the foreign key value
     foreign_key = relationship.foreign_key
     foreign_key_value = Map.get(resource, foreign_key)

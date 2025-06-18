@@ -2,7 +2,8 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
   # Explicitly ensure router context BEFORE ConnCase, even if ConnCase should also provide it.
   require HydepwnsLiveviewWeb.Router
   @phoenix_router HydepwnsLiveviewWeb.Router
-  import Phoenix.VerifiedRoutes # For ~p
+  # For ~p
+  import Phoenix.VerifiedRoutes
 
   use HydepwnsLiveviewWeb.ConnCase, async: true
 
@@ -59,7 +60,14 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
       resource_id = "123"
 
       # Ensure the resource exists in the ResourceSystem Agent for the test
-      create_result = HydepwnsLiveview.Resources.ResourceSystem.create_resource(%{"id" => resource_id, "name" => "Test Resource", "description" => "Initial Description", "type" => "test_type", "status" => "active"})
+      create_result =
+        HydepwnsLiveview.Resources.ResourceSystem.create_resource(%{
+          "id" => resource_id,
+          "name" => "Test Resource",
+          "description" => "Initial Description",
+          "type" => "test_type",
+          "status" => "active"
+        })
 
       # Expect fetch_data for loading the EDIT page
       expect(HydepwnsLiveview.MockExternalAPI, :fetch_data, 1, fn ^resource_id ->
@@ -77,7 +85,7 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
 
       #   assert updated_name == "Updated Name"
       #   assert updated_status == "updated"
-        
+
       #   {:ok, %{id: resource_id, name: updated_name, status: updated_status}}
       # end)
 

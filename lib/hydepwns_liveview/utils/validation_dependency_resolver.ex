@@ -989,7 +989,10 @@ defmodule HydepwnsLiveview.Utils.ValidationDependencyResolver do
           {:halt, {updated_deps, []}}
         else
           # Continue removing edges
-          Logger.debug("Remaining cycles after removing edge #{from} -> #{to}: #{inspect(remaining)}")
+          Logger.debug(
+            "Remaining cycles after removing edge #{from} -> #{to}: #{inspect(remaining)}"
+          )
+
           {:cont, {updated_deps, remaining}}
         end
       end)

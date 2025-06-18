@@ -3,7 +3,8 @@ defmodule HydepwnsLiveviewWeb.ImageHelper do
   Helper functions for optimizing image loading and rendering.
   Provides functionality for serving WebP images with fallbacks.
   """
-  alias Phoenix.HTML.Tag # Add alias for Phoenix.HTML.Tag
+  # Add alias for Phoenix.HTML.Tag
+  alias Phoenix.HTML.Tag
 
   @doc """
   Generates an HTML picture element with WebP and fallback sources.

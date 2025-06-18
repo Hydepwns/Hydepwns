@@ -76,20 +76,9 @@ defmodule HydepwnsLiveview.ThemeSystem do
   Ensures a default theme exists.
   """
   def ensure_default_theme do
-    case Repo.get_by(Theme, is_default: true) do
-      nil ->
-        {:ok, theme} = create_theme(%{
-          name: "Default Theme",
-          mode: "light",
-          primary_color: "#3B82F6",
-          secondary_color: "#10B981",
-          background_color: "#FFFFFF",
-          text_color: "#1F2937",
-          is_default: true
-        })
-        theme
-      theme ->
-        theme
+    case get_default_theme() do
+      nil -> create_default_theme()
+      theme -> theme
     end
   end
 
@@ -120,5 +109,19 @@ defmodule HydepwnsLiveview.ThemeSystem do
   defp unset_other_defaults(except_id) do
     from(t in Theme, where: t.id != ^except_id and t.is_default == true)
     |> Repo.update_all(set: [is_default: false])
+  end
+
+  defp create_default_theme do
+    %Theme{
+      name: "Default",
+      is_default: true,
+      colors: %{
+        primary: "#4F46E5",
+        secondary: "#6B7280",
+        background: "#FFFFFF",
+        text: "#111827"
+      }
+    }
+    |> Repo.insert!()
   end
 end

@@ -25,7 +25,7 @@ defmodule HydepwnsLiveview.Utils.ResourceAssigns do
         attribute :role, {:one_of, ["admin", "user", "guest"]}, default: "user"
         
         # Nested attributes using map schema
-        attribute :settings, :map do
+        nested_attribute :settings, :map do
           attribute :theme, {:one_of, ["dark", "light", "system"]}, default: "system"
           attribute :notifications, :boolean, default: true
         end
@@ -78,7 +78,7 @@ defmodule HydepwnsLiveview.Utils.ResourceAssigns do
   defmacro attributes(do: block) do
     quote do
       import HydepwnsLiveview.Utils.ResourceAssigns,
-        only: [attribute: 2, attribute: 3, attribute: 4]
+        only: [attribute: 2, attribute: 3, nested_attribute: 4]
 
       unquote(block)
     end
@@ -116,7 +116,7 @@ defmodule HydepwnsLiveview.Utils.ResourceAssigns do
   @doc """
   Defines a nested attribute with a block for nested attributes.
   """
-  defmacro attribute(name, type, opts, do: block) when type == :map do
+  defmacro nested_attribute(name, type, opts \\ [], do: block) when type == :map do
     quote do
       # Start a new nested context for attributes
       Module.register_attribute(__MODULE__, :nested_attributes, accumulate: true)
@@ -181,64 +181,15 @@ defmodule HydepwnsLiveview.Utils.ResourceAssigns do
     relationships = Module.get_attribute(env.module, :resource_relationships) || []
     validations = Module.get_attribute(env.module, :resource_validations) || []
 
-    # Build the required_assigns list
-    required_assigns =
-      attributes
-      |> Enum.filter(fn {_name, _type, opts} ->
-        !Keyword.get(opts, :optional, false) && !Keyword.has_key?(opts, :default)
-      end)
-      |> Enum.map(fn {name, _type, _opts} -> name end)
+    # Build metadata
+    required_assigns = build_required_assigns(attributes)
+    type_specs = build_type_specs(attributes)
+    default_values = build_default_values(attributes)
 
-    # Build the type_specs map
-    type_specs =
-      attributes
-      |> Enum.map(fn {name, type, opts} ->
-        {name, build_type_spec(type, opts)}
-      end)
-      |> Enum.into(%{})
-
-    # Generate default values map
-    default_values =
-      attributes
-      |> Enum.filter(fn {_name, _type, opts} -> Keyword.has_key?(opts, :default) end)
-      |> Enum.map(fn {name, _type, opts} -> {name, Keyword.get(opts, :default)} end)
-      |> Enum.into(%{})
-
-    # Generate the __apply_resource_defaults__/1 function
-    apply_defaults_function =
-      quote do
-        def __apply_resource_defaults__(socket) do
-          defaults = unquote(Macro.escape(default_values))
-          Phoenix.Component.assign(socket, defaults)
-        end
-      end
-
-    # Generate accessor functions for each attribute
-    accessors =
-      Enum.map(attributes, fn {name, _type, opts} ->
-        quote do
-          def unquote(name)(socket) do
-            HydepwnsLiveview.Utils.SocketValidator.get_assign(
-              socket,
-              unquote(name),
-              unquote(Keyword.get(opts, :default))
-            )
-          end
-
-          def unquote(:"put_#{name}")(socket, value) do
-            Phoenix.Component.assign(socket, unquote(name), value)
-          end
-        end
-      end)
-
-    # Generate initialization function to set default values
-    init_function =
-      quote do
-        def init_resource_assigns(socket) do
-          defaults = unquote(Macro.escape(default_values))
-          Phoenix.Component.assign(socket, defaults)
-        end
-      end
+    # Generate functions
+    apply_defaults_function = generate_apply_defaults_function(default_values)
+    accessors = generate_accessors(attributes)
+    init_function = generate_init_function(default_values)
 
     # Combine everything and generate the code
     quote do
@@ -258,8 +209,6 @@ defmodule HydepwnsLiveview.Utils.ResourceAssigns do
       # Override do_mount to include default values
       def do_mount(params, session, socket) do
         socket = init_resource_assigns(socket)
-
-        # Call the original do_mount implementation if defined
         super(params, session, socket)
       end
 
@@ -273,6 +222,66 @@ defmodule HydepwnsLiveview.Utils.ResourceAssigns do
           type_specs: unquote(Macro.escape(type_specs)),
           default_values: unquote(Macro.escape(default_values))
         }
+      end
+    end
+  end
+
+  # Helper functions to reduce complexity
+  defp build_required_assigns(attributes) do
+    attributes
+    |> Enum.filter(fn {_name, _type, opts} ->
+      !Keyword.get(opts, :optional, false) && !Keyword.has_key?(opts, :default)
+    end)
+    |> Enum.map(fn {name, _type, _opts} -> name end)
+  end
+
+  defp build_type_specs(attributes) do
+    attributes
+    |> Enum.map(fn {name, type, opts} ->
+      {name, build_type_spec(type, opts)}
+    end)
+    |> Enum.into(%{})
+  end
+
+  defp build_default_values(attributes) do
+    attributes
+    |> Enum.filter(fn {_name, _type, opts} -> Keyword.has_key?(opts, :default) end)
+    |> Enum.map(fn {name, _type, opts} -> {name, Keyword.get(opts, :default)} end)
+    |> Enum.into(%{})
+  end
+
+  defp generate_apply_defaults_function(default_values) do
+    quote do
+      def __apply_resource_defaults__(socket) do
+        defaults = unquote(Macro.escape(default_values))
+        Phoenix.Component.assign(socket, defaults)
+      end
+    end
+  end
+
+  defp generate_accessors(attributes) do
+    Enum.map(attributes, fn {name, _type, opts} ->
+      quote do
+        def unquote(name)(socket) do
+          HydepwnsLiveview.Utils.SocketValidator.get_assign(
+            socket,
+            unquote(name),
+            unquote(Keyword.get(opts, :default))
+          )
+        end
+
+        def unquote(:"put_#{name}")(socket, value) do
+          Phoenix.Component.assign(socket, unquote(name), value)
+        end
+      end
+    end)
+  end
+
+  defp generate_init_function(default_values) do
+    quote do
+      def init_resource_assigns(socket) do
+        defaults = unquote(Macro.escape(default_values))
+        Phoenix.Component.assign(socket, defaults)
       end
     end
   end

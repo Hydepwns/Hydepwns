@@ -56,6 +56,7 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceExampleLive do
         socket
         |> put_flash(:error, "Resource not found")
         |> redirect(to: ~p"/resources")
+
       resource ->
         socket
         |> assign(:page_title, "User Resource Details")
@@ -69,6 +70,7 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceExampleLive do
         socket
         |> put_flash(:error, "Resource not found")
         |> redirect(to: ~p"/resources")
+
       resource ->
         socket
         |> assign(:page_title, "Edit User Resource")
@@ -139,7 +141,13 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceExampleLive do
       {:noreply, put_flash(socket, :info, "Role updated successfully")}
     else
       {:error, :invalid_role} ->
-        {:noreply, put_flash(socket, :error, "Invalid role. Must be one of: #{Enum.join(@valid_roles, ", ")}")}
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           "Invalid role. Must be one of: #{Enum.join(@valid_roles, ", ")}"
+         )}
+
       {:error, reason} ->
         {:noreply, put_flash(socket, :error, "Failed to update role: #{inspect(reason)}")}
     end
@@ -152,7 +160,13 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceExampleLive do
       {:noreply, put_flash(socket, :info, "Theme updated successfully")}
     else
       {:error, :invalid_theme} ->
-        {:noreply, put_flash(socket, :error, "Invalid theme. Must be one of: #{Enum.join(@valid_themes, ", ")}")}
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           "Invalid theme. Must be one of: #{Enum.join(@valid_themes, ", ")}"
+         )}
+
       {:error, reason} ->
         {:noreply, put_flash(socket, :error, "Failed to update theme: #{inspect(reason)}")}
     end
@@ -161,19 +175,26 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceExampleLive do
   @impl Phoenix.LiveView
   def handle_event("toggle_notifications", _, socket) do
     current_setting = get_resource(socket, :settings).notifications
+
     case ResourceHelpers.update_resource(socket, :settings, %{notifications: !current_setting}) do
       {:ok, socket} ->
         message = if current_setting, do: "Notifications disabled", else: "Notifications enabled"
         {:noreply, put_flash(socket, :info, message)}
+
       {:error, reason} ->
-        {:noreply, put_flash(socket, :error, "Failed to update notifications: #{inspect(reason)}")}
+        {:noreply,
+         put_flash(socket, :error, "Failed to update notifications: #{inspect(reason)}")}
     end
   end
 
   @impl Phoenix.LiveView
   def handle_event(event, params, socket) do
     require Logger
-    Logger.warning("Unhandled event in UserResourceExampleLive: #{inspect(event)} with params: #{inspect(params)}")
+
+    Logger.warning(
+      "Unhandled event in UserResourceExampleLive: #{inspect(event)} with params: #{inspect(params)}"
+    )
+
     {:noreply, put_flash(socket, :warning, "Unhandled event: #{event}")}
   end
 

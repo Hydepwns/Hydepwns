@@ -1,20 +1,23 @@
 defmodule HydepwnsLiveview.Notifications.Twilio do
   @moduledoc """
-  Twilio integration for sending SMS notifications.
+  Twilio notifications module for sending SMS messages.
   """
+
+  alias HydepwnsLiveview.Events.Core.EventBus
 
   @doc """
   Creates a Twilio client with the given account SID and auth token.
   """
-  def client(account_sid, auth_token) 
-      when is_binary(account_sid) and byte_size(account_sid) > 0
-      and is_binary(auth_token) and byte_size(auth_token) > 0 do
+  def client(account_sid, auth_token)
+      when is_binary(account_sid) and byte_size(account_sid) > 0 and
+             is_binary(auth_token) and byte_size(auth_token) > 0 do
     %{
       account_sid: account_sid,
       auth_token: auth_token,
       base_url: "https://api.twilio.com/2010-04-01/Accounts/#{account_sid}"
     }
   end
+
   def client(_invalid_account_sid, _invalid_auth_token), do: {:error, :invalid_credentials}
 
   @doc """
@@ -25,6 +28,7 @@ defmodule HydepwnsLiveview.Notifications.Twilio do
          {:ok, _} <- validate_params(params) do
       url = "#{client.base_url}/Messages.json"
       auth = Base.encode64("#{client.account_sid}:#{client.auth_token}")
+
       headers = [
         {"Authorization", "Basic #{auth}"},
         {"Content-Type", "application/x-www-form-urlencoded"}
@@ -44,23 +48,60 @@ defmodule HydepwnsLiveview.Notifications.Twilio do
       end
     end
   end
+
+  def send_sms(phone_number, message) do
+    case validate_phone_number(phone_number) do
+      :ok ->
+        case send_sms_message(phone_number, message) do
+          {:ok, response} ->
+            EventBus.publish("sms_sent", %{phone_number: phone_number})
+            {:ok, response}
+
+          {:error, reason} ->
+            EventBus.publish("sms_failed", %{phone_number: phone_number, reason: reason})
+            {:error, reason}
+        end
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp validate_phone_number(phone_number) do
+    case Regex.run(~r/^\+?[1-9]\d{1,14}$/, phone_number) do
+      [_match] -> :ok
+      nil -> {:error, :invalid_phone_number}
+    end
+  end
+
+  defp send_sms_message(phone_number, message) do
+    # TODO: Implement actual Twilio SMS sending logic
+    # This is a placeholder that simulates SMS sending
+    case :rand.uniform(10) do
+      1 -> {:error, "Failed to send SMS"}
+      _ -> {:ok, %{message_id: Ecto.UUID.generate()}}
+    end
+  end
+
   def message_create(_invalid_client, _invalid_params), do: {:error, :invalid_parameters}
 
   # Private functions
 
   defp validate_client(%{account_sid: account_sid, auth_token: auth_token, base_url: base_url})
-       when is_binary(account_sid) and byte_size(account_sid) > 0
-       and is_binary(auth_token) and byte_size(auth_token) > 0
-       and is_binary(base_url) and byte_size(base_url) > 0 do
+       when is_binary(account_sid) and byte_size(account_sid) > 0 and
+              is_binary(auth_token) and byte_size(auth_token) > 0 and
+              is_binary(base_url) and byte_size(base_url) > 0 do
     :ok
   end
+
   defp validate_client(_invalid_client), do: {:error, :invalid_client}
 
   defp validate_params(%{From: from, To: to, Body: body})
-       when is_binary(from) and byte_size(from) > 0
-       and is_binary(to) and byte_size(to) > 0
-       and is_binary(body) and byte_size(body) > 0 do
+       when is_binary(from) and byte_size(from) > 0 and
+              is_binary(to) and byte_size(to) > 0 and
+              is_binary(body) and byte_size(body) > 0 do
     :ok
   end
+
   defp validate_params(_invalid_params), do: {:error, :invalid_params}
-end 
+end

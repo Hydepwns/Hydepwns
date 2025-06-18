@@ -196,6 +196,7 @@ defmodule HydepwnsLiveview.Utils.LiveViewAPI do
       end
     end)
   end
+
   defp atomize_map_keys(values), do: values
 
   @doc """
@@ -350,6 +351,7 @@ defmodule HydepwnsLiveview.Utils.LiveViewAPI do
       case validate_resource_values(resource_module, values) do
         {:ok, validated_values} ->
           {:ok, Phoenix.Component.assign(socket, resource_key, validated_values)}
+
         {:error, message} ->
           {:error, message, socket}
       end
@@ -380,8 +382,10 @@ defmodule HydepwnsLiveview.Utils.LiveViewAPI do
 
   defp validate_value_against_spec(key, value, type_specs) do
     case Map.get(type_specs, key) do
-      nil -> nil
-      type_spec -> 
+      nil ->
+        nil
+
+      type_spec ->
         case SocketValidator.validate_type(value, type_spec) do
           {:ok, _} -> nil
           {:error, message} -> message
@@ -458,6 +462,7 @@ defmodule HydepwnsLiveview.Utils.LiveViewAPI do
 
   defp apply_resource_update(resource, updates, metadata) do
     resource_module = Map.get(resource, :__resource_module__)
+
     if is_nil(resource_module) do
       {:error, "Resource does not have a __resource_module__ attribute"}
     else
@@ -598,7 +603,7 @@ defmodule HydepwnsLiveview.Utils.LiveViewAPI do
   # Enhances metadata with context validation to reduce nesting depth
   defp enhance_metadata_with_validation(metadata, resource_module) do
     context_validation = Map.get(metadata, :context_validation)
-    
+
     if context_validation != nil do
       metadata
     else

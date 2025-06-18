@@ -15,4 +15,4 @@ defmodule HydepwnsLiveview.About do
     end
     """
   end
-end 
+end

@@ -60,22 +60,10 @@ defmodule HydepwnsLiveviewWeb.Admin.EventImportLive do
             <h2 class="text-lg font-semibold text-gray-900">Import Events</h2>
           </div>
           <div class="p-6">
-            <.form
-              :let={_f}
-              for={%{}}
-              id="import-form"
-              phx-change="validate"
-              phx-submit="import"
-              class="space-y-6"
-            >
+            <.form :let={_f} for={%{}} id="import-form" phx-change="validate" phx-submit="import" class="space-y-6">
               <div>
                 <label class="block text-sm font-medium text-gray-700">CSV File</label>
-                <input
-                  type="file"
-                  name="import[file]"
-                  accept=".csv"
-                  class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                />
+                <input type="file" name="import[file]" accept=".csv" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" />
               </div>
 
               <div>
@@ -150,4 +138,4 @@ defmodule HydepwnsLiveviewWeb.Admin.EventImportLive do
     </div>
     """
   end
-end 
+end

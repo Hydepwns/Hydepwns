@@ -48,19 +48,10 @@ defmodule HydepwnsLiveviewWeb.Admin.EventReportLive do
             <h2 class="text-lg font-semibold text-gray-900">Generate Report</h2>
           </div>
           <div class="p-6">
-            <.form
-              :let={_f}
-              for={%{}}
-              id="report-form"
-              phx-submit="generate"
-              class="space-y-6"
-            >
+            <.form :let={_f} for={%{}} id="report-form" phx-submit="generate" class="space-y-6">
               <div>
                 <label class="block text-sm font-medium text-gray-700">Report Type</label>
-                <select
-                  name="report[type]"
-                  class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                >
+                <select name="report[type]" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
                   <option value="attendance">Attendance Report</option>
                   <option value="revenue">Revenue Report</option>
                   <option value="feedback">Feedback Report</option>
@@ -72,29 +63,18 @@ defmodule HydepwnsLiveviewWeb.Admin.EventReportLive do
                 <div class="grid grid-cols-2 gap-4">
                   <div>
                     <label class="block text-xs text-gray-500">Start Date</label>
-                    <input
-                      type="date"
-                      name="report[start_date]"
-                      class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                    />
+                    <input type="date" name="report[start_date]" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" />
                   </div>
                   <div>
                     <label class="block text-xs text-gray-500">End Date</label>
-                    <input
-                      type="date"
-                      name="report[end_date]"
-                      class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                    />
+                    <input type="date" name="report[end_date]" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" />
                   </div>
                 </div>
               </div>
 
               <div>
                 <label class="block text-sm font-medium text-gray-700">Event Type</label>
-                <select
-                  name="report[event_type]"
-                  class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                >
+                <select name="report[event_type]" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
                   <option value="all">All Events</option>
                   <option value="workshop">Workshops</option>
                   <option value="conference">Conferences</option>
@@ -211,10 +191,7 @@ defmodule HydepwnsLiveviewWeb.Admin.EventReportLive do
                 <% end %>
 
                 <div class="flex justify-end">
-                  <.link
-                    href={Events.export_report(@report_data)}
-                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
-                  >
+                  <.link href={Events.export_report(@report_data)} class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
                     Download Report
                   </.link>
                 </div>
@@ -230,4 +207,4 @@ defmodule HydepwnsLiveviewWeb.Admin.EventReportLive do
     </div>
     """
   end
-end 
+end

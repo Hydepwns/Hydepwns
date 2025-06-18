@@ -74,39 +74,20 @@ defmodule HydepwnsLiveviewWeb.Admin.EventNotificationLive do
             <h2 class="text-lg font-semibold text-gray-900">Create Notification Template</h2>
           </div>
           <div class="p-6">
-            <.form
-              :let={_f}
-              for={@changeset}
-              id="notification-form"
-              phx-change="validate"
-              phx-submit="save"
-              class="space-y-6"
-            >
+            <.form :let={_f} for={@changeset} id="notification-form" phx-change="validate" phx-submit="save" class="space-y-6">
               <div>
                 <label class="block text-sm font-medium text-gray-700">Template Name</label>
-                <input
-                  type="text"
-                  name="template[name]"
-                  class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                />
+                <input type="text" name="template[name]" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" />
               </div>
 
               <div>
                 <label class="block text-sm font-medium text-gray-700">Subject</label>
-                <input
-                  type="text"
-                  name="template[subject]"
-                  class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                />
+                <input type="text" name="template[subject]" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" />
               </div>
 
               <div>
                 <label class="block text-sm font-medium text-gray-700">Body</label>
-                <textarea
-                  name="template[body]"
-                  rows="4"
-                  class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                ></textarea>
+                <textarea name="template[body]" rows="4" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"></textarea>
                 <p class="text-sm text-gray-500">
                   Available variables: @event
                 </p>
@@ -114,10 +95,7 @@ defmodule HydepwnsLiveviewWeb.Admin.EventNotificationLive do
 
               <div>
                 <label class="block text-sm font-medium text-gray-700">Trigger</label>
-                <select
-                  name="template[trigger]"
-                  class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                >
+                <select name="template[trigger]" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
                   <option value="on_create">On Event Creation</option>
                   <option value="on_update">On Event Update</option>
                   <option value="on_cancel">On Event Cancellation</option>
@@ -129,30 +107,15 @@ defmodule HydepwnsLiveviewWeb.Admin.EventNotificationLive do
                 <label class="block text-sm font-medium text-gray-700">Recipients</label>
                 <div class="mt-2 space-y-2">
                   <label class="inline-flex items-center">
-                    <input
-                      type="checkbox"
-                      name="template[recipients][]"
-                      value="organizer"
-                      class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                    />
+                    <input type="checkbox" name="template[recipients][]" value="organizer" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" />
                     <span class="ml-2">Event Organizer</span>
                   </label>
                   <label class="inline-flex items-center">
-                    <input
-                      type="checkbox"
-                      name="template[recipients][]"
-                      value="attendees"
-                      class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                    />
+                    <input type="checkbox" name="template[recipients][]" value="attendees" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" />
                     <span class="ml-2">Event Attendees</span>
                   </label>
                   <label class="inline-flex items-center">
-                    <input
-                      type="checkbox"
-                      name="template[recipients][]"
-                      value="admins"
-                      class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                    />
+                    <input type="checkbox" name="template[recipients][]" value="admins" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" />
                     <span class="ml-2">Administrators</span>
                   </label>
                 </div>
@@ -181,12 +144,7 @@ defmodule HydepwnsLiveviewWeb.Admin.EventNotificationLive do
                     <p class="mt-1 text-sm text-gray-500">Recipients: <%= Enum.join(notification.recipients, ", ") %></p>
                   </div>
                   <div class="flex space-x-2">
-                    <.link
-                      phx-click="delete"
-                      phx-value-id={notification.id}
-                      data-confirm="Are you sure?"
-                      class="text-red-600 hover:text-red-900"
-                    >
+                    <.link phx-click="delete" phx-value-id={notification.id} data-confirm="Are you sure?" class="text-red-600 hover:text-red-900">
                       Delete
                     </.link>
                   </div>
@@ -207,4 +165,4 @@ defmodule HydepwnsLiveviewWeb.Admin.EventNotificationLive do
     </div>
     """
   end
-end 
+end

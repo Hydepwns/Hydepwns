@@ -19,25 +19,25 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
 
   @doc """
   Validates a value against a type specification.
-  
+
   ## Type Specifications
-  
+
   The following type specifications are supported:
-  
+
   * Basic types: `:string`, `:integer`, `:boolean`, `:map`, `:list`, `:atom`, `:function`, `:float`, `:number`
   * List types: `{:list, type_spec}` - Validates each element against the type specification
   * Union types: `{:union, [type_spec]}` - Validates against multiple possible types
   * One-of types: `{:one_of, [allowed_values]}` - Validates against a list of allowed values
   * Custom types: `{:custom, validator}` - Uses a custom validation function
   * Map types: `{:map, schema}` - Validates a map against a schema of field types
-  
+
   ## Returns
-  
+
   * `{:ok, value}` - When validation succeeds
   * `{:error, message}` - When validation fails, with a descriptive error message
-  
+
   ## Examples
-  
+
       iex> validate_type("hello", :string)
       {:ok, "hello"}
       
@@ -50,42 +50,75 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
       iex> validate_type(%{name: "John"}, {:map, %{name: :string}})
       {:ok, %{name: "John"}}
   """
-  @spec validate_type(any(), :string | :integer | :boolean | :map | :list | :atom | :function | :float | :number | 
-                           {:list, any()} | {:one_of, list()} | {:union, list()} | {:custom, (any() -> boolean() | {:error, String.t()})} | 
-                           {:map, map()}) :: 
-                           {:ok, any()} | {:error, String.t()}
-  def validate_type(value, type) do
-    case type do
-      :string -> is_binary(value)
-      :integer -> is_integer(value)
-      :float -> is_float(value)
-      :boolean -> is_boolean(value)
-      :map -> is_map(value)
-      :list -> is_list(value)
-      :atom -> is_atom(value)
-      :datetime -> DateTime.from_iso8601(value) != :error
-      :date -> Date.from_iso8601(value) != :error
-      :time -> Time.from_iso8601(value) != :error
-      _ -> true
+  @spec validate_type(
+          any(),
+          :string
+          | :integer
+          | :boolean
+          | :map
+          | :list
+          | :atom
+          | :function
+          | :float
+          | :number
+          | {:list, any()}
+          | {:one_of, list()}
+          | {:union, list()}
+          | {:custom, (any() -> boolean() | {:error, String.t()})}
+          | {:map, map()}
+        ) ::
+          {:ok, any()} | {:error, String.t()}
+  def validate_type(value, type_spec) do
+    case type_spec do
+      :string when is_binary(value) -> :ok
+      :integer when is_integer(value) -> :ok
+      :float when is_float(value) -> :ok
+      :boolean when is_boolean(value) -> :ok
+      :map when is_map(value) -> :ok
+      :list when is_list(value) -> :ok
+      {:list, type} when is_list(value) -> validate_list_type(value, type)
+      {:map, key_type, value_type} when is_map(value) -> validate_map_types(value, key_type, value_type)
+      _ -> {:error, "Invalid type"}
     end
   end
 
-  defp validate_one_of(value, allowed) do
-    if Enum.member?(allowed, value), do: {:ok, value}, else: {:error, "expected one of #{inspect(allowed)}, got: #{inspect(value)}"}
-  end
-
-  defp validate_union(value, types) do
-    results = Enum.map(types, fn type -> {type, validate_type(value, type)} end)
-    if Enum.any?(results, fn {_, result} -> match?({:ok, _}, result) end), do: {:ok, value}, else: {:error, "Value matched none of the union types: #{inspect(types)}"}
-  end
-
-  defp validate_custom(value, validator) do
-    case validator.(value) do
-      true -> {:ok, value}
-      false -> {:error, "custom validation failed"}
-      {:error, message} -> {:error, message}
-      other -> {:error, "custom validator returned unexpected result: #{inspect(other)}"}
+  defp validate_list_type(list, type) do
+    if Enum.all?(list, &validate_type(&1, type) == :ok) do
+      :ok
+    else
+      {:error, "List contains invalid elements"}
     end
+  end
+
+  defp validate_map_types(map, key_type, value_type) do
+    if Enum.all?(map, fn {key, value} ->
+      validate_type(key, key_type) == :ok && validate_type(value, value_type) == :ok
+    end) do
+      :ok
+    else
+      {:error, "Map contains invalid keys or values"}
+    end
+  end
+
+  def validate_one_of(value, allowed) when is_list(allowed) do
+    if value in allowed do
+      :ok
+    else
+      {:error, "Value not in allowed list"}
+    end
+  end
+
+  def validate_union(value, types) when is_list(types) do
+    Enum.find_value(types, {:error, "Value matches no allowed types"}, fn type ->
+      case validate_type(value, type) do
+        :ok -> :ok
+        _ -> nil
+      end
+    end)
+  end
+
+  def validate_custom(value, validator) when is_function(validator, 1) do
+    validator.(value)
   end
 
   @doc """
@@ -251,16 +284,41 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
     end)
   end
 
-  defp apply_suggestion_generator(:string_from_int, _message, key, value, _expected_type), do: generate_string_conversion_suggestion(key, value)
-  defp apply_suggestion_generator(:string_from_atom, _message, key, value, _expected_type), do: generate_atom_to_string_suggestion(key, value)
-  defp apply_suggestion_generator(:integer_from_string, _message, key, value, _expected_type), do: generate_integer_conversion_suggestion(key, value)
-  defp apply_suggestion_generator(:boolean_from_string, _message, key, value, _expected_type), do: generate_boolean_conversion_suggestion(key, value)
-  defp apply_suggestion_generator(:schema_error, message, key, value, _expected_type), do: generate_schema_error_suggestion(message, key, value)
-  defp apply_suggestion_generator(:list_error, _message, key, _value, _expected_type), do: generate_list_error_suggestion(key)
-  defp apply_suggestion_generator(:one_of_error, _message, _key, value, expected_type), do: generate_one_of_suggestion(expected_type, value)
-  defp apply_suggestion_generator(:union_error, _message, _key, value, expected_type), do: generate_union_suggestion(expected_type, value)
-  defp apply_suggestion_generator(:custom_validation_error, _message, _key, _value, _expected_type), do: generate_custom_validation_suggestion()
-  defp apply_suggestion_generator(:generic_error, _message, _key, value, expected_type), do: generate_generic_suggestion(expected_type, value)
+  defp apply_suggestion_generator(:string_from_int, _message, key, value, _expected_type),
+    do: generate_string_conversion_suggestion(key, value)
+
+  defp apply_suggestion_generator(:string_from_atom, _message, key, value, _expected_type),
+    do: generate_atom_to_string_suggestion(key, value)
+
+  defp apply_suggestion_generator(:integer_from_string, _message, key, value, _expected_type),
+    do: generate_integer_conversion_suggestion(key, value)
+
+  defp apply_suggestion_generator(:boolean_from_string, _message, key, value, _expected_type),
+    do: generate_boolean_conversion_suggestion(key, value)
+
+  defp apply_suggestion_generator(:schema_error, message, key, value, _expected_type),
+    do: generate_schema_error_suggestion(message, key, value)
+
+  defp apply_suggestion_generator(:list_error, _message, key, _value, _expected_type),
+    do: generate_list_error_suggestion(key)
+
+  defp apply_suggestion_generator(:one_of_error, _message, _key, value, expected_type),
+    do: generate_one_of_suggestion(expected_type, value)
+
+  defp apply_suggestion_generator(:union_error, _message, _key, value, expected_type),
+    do: generate_union_suggestion(expected_type, value)
+
+  defp apply_suggestion_generator(
+         :custom_validation_error,
+         _message,
+         _key,
+         _value,
+         _expected_type
+       ),
+       do: generate_custom_validation_suggestion()
+
+  defp apply_suggestion_generator(:generic_error, _message, _key, value, expected_type),
+    do: generate_generic_suggestion(expected_type, value)
 
   defp generate_string_conversion_suggestion(key, value) do
     """
@@ -485,7 +543,9 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
       [_, values_str] when is_binary(values_str) ->
         trimmed = String.trim(values_str)
         if trimmed != "", do: "{:one_of, [" <> trimmed <> "]}", else: nil
-      _ -> nil
+
+      _ ->
+        nil
     end
   end
 
@@ -498,6 +558,7 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
 
   defp process_values_string(values_str) when is_binary(values_str) do
     trimmed = String.trim(values_str)
+
     if trimmed != "" do
       trimmed
       |> String.split(",")
@@ -507,6 +568,7 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
       []
     end
   end
+
   defp process_values_string(_), do: []
 
   defp extract_union_type(message) do
@@ -562,14 +624,21 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
       {"expected one of", &(&1 != nil)} => &handle_one_of_error/1
     }
 
-    Enum.find_value(error_patterns, "Ensure the value matches the expected type.", fn {{pattern, validator}, handler} ->
+    Enum.find_value(error_patterns, "Ensure the value matches the expected type.", fn {{pattern,
+                                                                                        validator},
+                                                                                       handler} ->
       if error =~ pattern && validator.(field_value), do: handler.(field_value)
     end)
   end
 
-  defp handle_string_error(field_value), do: "Try converting to string: `to_string(#{inspect(field_value)})`"
-  defp handle_integer_error(field_value), do: "Try converting to integer: `String.to_integer(#{inspect(field_value)})`"
-  defp handle_boolean_error(field_value), do: "Try converting to boolean: `#{inspect(field_value)} == \"true\"`"
+  defp handle_string_error(field_value),
+    do: "Try converting to string: `to_string(#{inspect(field_value)})`"
+
+  defp handle_integer_error(field_value),
+    do: "Try converting to integer: `String.to_integer(#{inspect(field_value)})`"
+
+  defp handle_boolean_error(field_value),
+    do: "Try converting to boolean: `#{inspect(field_value)} == \"true\"`"
 
   defp handle_one_of_error(error) do
     case Regex.run(~r/expected one of: (.+)/, error) do
@@ -580,12 +649,14 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
 
   defp get_nested_value(map, []), do: map
   defp get_nested_value(nil, _), do: nil
+
   defp get_nested_value(map, [key | rest]) when is_map(map) do
     key = if is_binary(key), do: String.to_existing_atom(key), else: key
     get_nested_value(Map.get(map, key), rest)
   rescue
     _ -> nil
   end
+
   defp get_nested_value(_, _), do: nil
 
   defp type_of(value) when is_binary(value), do: "string"
@@ -627,8 +698,11 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
     type_specs = Keyword.get(opts, :type_specs, %{})
 
     case TypeValidation.validate_required(state, required_keys) do
-      {:ok, socket} -> TypeValidation.validate_type_specs(socket, type_specs)
-      {:error, missing_keys} -> {:error, "Missing required assigns: #{inspect(missing_keys)}", state}
+      {:ok, socket} ->
+        TypeValidation.validate_type_specs(socket, type_specs)
+
+      {:error, missing_keys} ->
+        {:error, "Missing required assigns: #{inspect(missing_keys)}", state}
     end
   end
 

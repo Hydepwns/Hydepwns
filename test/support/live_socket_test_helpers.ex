@@ -31,6 +31,7 @@ defmodule HydepwnsLiveviewWeb.LiveSocketTestHelpers do
   def assert_required_assigns(%{view: view}, required_assigns) do
     for assign <- required_assigns do
       assigns = :sys.get_state(view.pid).socket.assigns
+
       assert assigns[assign] != nil,
              "Expected socket to have assign #{inspect(assign)}, but it was nil or missing"
     end
@@ -55,6 +56,7 @@ defmodule HydepwnsLiveviewWeb.LiveSocketTestHelpers do
         {:ok, view, _html} ->
           assert_required_assigns(%{view: view}, unquote(required_assigns))
           {:ok, view}
+
         error ->
           error
       end
@@ -81,9 +83,12 @@ defmodule HydepwnsLiveviewWeb.LiveSocketTestHelpers do
       case Phoenix.LiveViewTest.live(unquote(conn), unquote(path), %{}) do
         {:ok, view, _html} ->
           assigns = :sys.get_state(view.pid).socket.assigns
+
           assert Map.has_key?(assigns, unquote(assign_to_omit)),
                  "Expected socket to have assign \\#{inspect(unquote(assign_to_omit))} set to nil, but it was missing"
+
           {:ok, view}
+
         error ->
           error
       end
@@ -373,15 +378,19 @@ defmodule HydepwnsLiveviewWeb.LiveSocketTestHelpers do
     quote do
       session = for {k, v} <- unquote(session), into: %{}, do: {to_string(k), v}
       conn = Plug.Test.init_test_session(unquote(conn), session)
+
       case Phoenix.LiveViewTest.live(conn, unquote(path), session) do
         {:ok, view, _html} ->
           for {key, type_spec} <- unquote(type_specs) do
             assigns = :sys.get_state(view.pid).socket.assigns
+
             if Map.has_key?(assigns, key) do
               assert_assign_type(view, key, type_spec)
             end
           end
+
           {:ok, view}
+
         error ->
           error
       end
@@ -412,14 +421,20 @@ defmodule HydepwnsLiveviewWeb.LiveSocketTestHelpers do
   defmacro property_test_types(conn, path, type_specs, iterations \\ 5) do
     quote do
       Enum.all?(1..unquote(iterations), fn _ ->
-        session = generate_test_session(for {key, type_spec} <- unquote(type_specs), into: %{} do
-          {to_string(key), type_spec}
-        end)
+        session =
+          generate_test_session(
+            for {key, type_spec} <- unquote(type_specs), into: %{} do
+              {to_string(key), type_spec}
+            end
+          )
+
         session = for {k, v} <- session, into: %{}, do: {to_string(k), v}
+
         case Phoenix.LiveViewTest.live(unquote(conn), unquote(path), session) do
           {:ok, view, _html} ->
             Enum.all?(unquote(type_specs), fn {key, type_spec} ->
               assigns = :sys.get_state(view.pid).socket.assigns
+
               if Map.has_key?(assigns, key) do
                 try do
                   assert_assign_type(view, key, type_spec)
@@ -431,6 +446,7 @@ defmodule HydepwnsLiveviewWeb.LiveSocketTestHelpers do
                 true
               end
             end)
+
           _error ->
             false
         end

@@ -12,4 +12,4 @@ defmodule HydepwnsLiveview.ResourceSystem do
       resource -> {:ok, resource}
     end
   end
-end 
+end

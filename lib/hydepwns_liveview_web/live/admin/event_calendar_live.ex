@@ -53,10 +53,7 @@ defmodule HydepwnsLiveviewWeb.Admin.EventCalendarLive do
       <div class="bg-white shadow rounded-lg overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200">
           <div class="flex justify-between items-center">
-            <button
-              phx-click="previous_month"
-              class="text-gray-600 hover:text-gray-900"
-            >
+            <button phx-click="previous_month" class="text-gray-600 hover:text-gray-900">
               <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
               </svg>
@@ -64,10 +61,7 @@ defmodule HydepwnsLiveviewWeb.Admin.EventCalendarLive do
             <h2 class="text-lg font-semibold text-gray-900">
               <%= Calendar.strftime(@current_month, "%B %Y") %>
             </h2>
-            <button
-              phx-click="next_month"
-              class="text-gray-600 hover:text-gray-900"
-            >
+            <button phx-click="next_month" class="text-gray-600 hover:text-gray-900">
               <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
@@ -121,4 +115,4 @@ defmodule HydepwnsLiveviewWeb.Admin.EventCalendarLive do
       event_date == day
     end)
   end
-end 
+end

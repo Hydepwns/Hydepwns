@@ -34,4 +34,4 @@ defmodule HydepwnsLiveview.Content do
       }
     ]
   end
-end 
+end

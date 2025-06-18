@@ -55,9 +55,15 @@ defmodule HydepwnsLiveviewWeb.Router do
     live "/resources/new", ResourceNewLive, :new
     live "/resources/:id", ResourceShowLive, :show
     live "/resources/:id/edit", ResourceEditLive, :edit
-    live "/resources/:id/manage-subscriptions", ResourceSubscriptionLive, :manage_subscriptions, as: :resource_manage_subscriptions
+
+    live "/resources/:id/manage-subscriptions", ResourceSubscriptionLive, :manage_subscriptions,
+      as: :resource_manage_subscriptions
+
     live "/resources/:id/events", ResourceEventSystemLive, :index, as: :resource_events
-    live "/resources/:id/subscriptions", ResourceSubscriptionLive, :index, as: :resource_subscriptions
+
+    live "/resources/:id/subscriptions", ResourceSubscriptionLive, :index,
+      as: :resource_subscriptions
+
     live "/terminal", TerminalLive, :index, as: :terminal
 
     # Theme system routes
@@ -78,8 +84,13 @@ defmodule HydepwnsLiveviewWeb.Router do
       live "/change-tracking", ChangeTrackingExampleLive, :index, as: :change_tracking
       live "/nested-validation", NestedValidationExampleLive, :index, as: :nested_validation
       live "/transformation", TransformationExampleLive, :index, as: :transformation
-      live "/transformation-metrics", TransformationMetricsLive, :index, as: :transformation_metrics
-      live "/context-validation-tracking", ContextValidationTrackingExampleLive, :index, as: :context_validation_tracking
+
+      live "/transformation-metrics", TransformationMetricsLive, :index,
+        as: :transformation_metrics
+
+      live "/context-validation-tracking", ContextValidationTrackingExampleLive, :index,
+        as: :context_validation_tracking
+
       live "/event-system", EventSystemExampleLive, :index, as: :event_system
     end
 
@@ -118,9 +129,14 @@ defmodule HydepwnsLiveviewWeb.Router do
     live "/events/new", Event.EventFormLive, :new, as: :event_form
     live "/events/:id/edit", Event.EventFormLive, :edit, as: :event_form
     live "/events/:id/settings/new", Event.EventSettingsLive, :new, as: :event_settings
-    live "/events/:id/settings/:settings_id/edit", Event.EventSettingsLive, :edit, as: :event_settings
+
+    live "/events/:id/settings/:settings_id/edit", Event.EventSettingsLive, :edit,
+      as: :event_settings
+
     live "/events/:id/reminders/new", Event.EventReminderLive, :new, as: :event_reminder
-    live "/events/:id/reminders/:reminder_id/edit", Event.EventReminderLive, :edit, as: :event_reminder
+
+    live "/events/:id/reminders/:reminder_id/edit", Event.EventReminderLive, :edit,
+      as: :event_reminder
   end
 
   # Development-only routes

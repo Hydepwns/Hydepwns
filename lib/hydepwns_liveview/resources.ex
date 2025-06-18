@@ -2,17 +2,17 @@ defmodule HydepwnsLiveview.Resources do
   @moduledoc """
   Main interface for working with resources in the system.
   This module provides common functions for CRUD operations on resources.
-  
+
   ## Resource Types
-  
+
   The system supports various types of resources:
-  
+
   * `document` - Text-based resources with content
   * `user` - User resources with authentication info
   * `media` - Media resources like images and videos
-  
+
   ## Examples
-  
+
       # Create a new document resource
       {:ok, resource} = create_resource(%{
         "name" => "My Document",
@@ -37,31 +37,37 @@ defmodule HydepwnsLiveview.Resources do
   @type resource_type :: String.t()
   @type resource_status :: String.t()
   @type resource_params :: %{String.t() => any()}
-  @type resource_stats :: %{total: non_neg_integer(), published: non_neg_integer(), draft: non_neg_integer()}
+  @type resource_stats :: %{
+          total: non_neg_integer(),
+          published: non_neg_integer(),
+          draft: non_neg_integer()
+        }
   @type relationship :: %{parent: Resource.t(), child: Resource.t()}
 
   @doc """
   Gets a resource by id.
-  
+
   ## Parameters
-  
+
     * `id` - The unique identifier of the resource
-  
+
   ## Returns
-  
+
     * `Resource.t()` - The found resource
     * A mock resource if not found (in development)
-  
+
   ## Examples
-  
+
       iex> get_resource!("doc-123")
       %DocumentResource{id: "doc-123", name: "Test Resource", ...}
   """
   @spec get_resource!(resource_id()) :: Resource.t()
   def get_resource!(id) do
     case ResourceSystem.get_resource(id) do
-      {:ok, resource} -> resource
-      {:error, :not_found} -> 
+      {:ok, resource} ->
+        resource
+
+      {:error, :not_found} ->
         # For now, create a mock resource for testing
         # In a real implementation, this would likely fetch from a database
         struct(DocumentResource, %{
@@ -78,23 +84,24 @@ defmodule HydepwnsLiveview.Resources do
 
   @doc """
   Updates a resource with the given params.
-  
+
   ## Parameters
-  
+
     * `resource` - The resource to update
     * `params` - Map of parameters to update
-  
+
   ## Returns
-  
+
     * `{:ok, Resource.t()}` - On successful update
     * `{:error, Ecto.Changeset.t()}` - On validation error
-  
+
   ## Examples
-  
+
       iex> update_resource(resource, %{"name" => "Updated Name"})
       {:ok, %DocumentResource{name: "Updated Name", ...}}
   """
-  @spec update_resource(Resource.t(), resource_params()) :: {:ok, Resource.t()} | {:error, Ecto.Changeset.t()}
+  @spec update_resource(Resource.t(), resource_params()) ::
+          {:ok, Resource.t()} | {:error, Ecto.Changeset.t()}
   def update_resource(resource, params) do
     # Convert string keys to atom keys in params
     atom_params = for {k, v} <- params, into: %{}, do: {String.to_existing_atom(k), v}
@@ -137,6 +144,7 @@ defmodule HydepwnsLiveview.Resources do
   def list_resources_by_type(type) when type in ["", nil] do
     list_resources()
   end
+
   def list_resources_by_type(type) do
     list_resources()
     |> Enum.filter(&(&1.type == type))
@@ -144,23 +152,23 @@ defmodule HydepwnsLiveview.Resources do
 
   @doc """
   Gets statistics about resources in the system.
-  
+
   ## Returns
-  
+
     * `resource_stats()` - Map containing:
       * `:total` - Total number of resources
       * `:published` - Number of published resources
       * `:draft` - Number of draft resources
-  
+
   ## Examples
-  
+
       iex> get_resource_stats()
       %{total: 10, published: 5, draft: 5}
   """
   @spec get_resource_stats() :: resource_stats()
   def get_resource_stats do
     resources = list_resources()
-    
+
     %{
       total: length(resources),
       published: Enum.count(resources, &(&1.status == "published")),
@@ -181,9 +189,12 @@ defmodule HydepwnsLiveview.Resources do
   """
   def list_relationships do
     resources = list_resources()
+
     Enum.flat_map(resources, fn resource ->
       case resource.parent_id do
-        nil -> []
+        nil ->
+          []
+
         parent_id ->
           case get_resource(parent_id) do
             nil -> []
@@ -203,7 +214,9 @@ defmodule HydepwnsLiveview.Resources do
         child = get_resource!(child_id)
         update_resource(child, %{parent_id: parent_id})
         {:ok, relationship}
-      error -> error
+
+      error ->
+        error
     end
   end
 
@@ -229,35 +242,40 @@ defmodule HydepwnsLiveview.Resources do
 
   @doc """
   Executes a validation plan for a user resource.
-  
+
   ## Parameters
-  
+
     * `user_resource` - The user resource to validate
     * `plan` - The validation plan to execute
-  
+
   ## Returns
-  
+
     * `{:ok, user_resource}` - When all validations pass
     * `{:error, validation_errors}` - When some validations fail
     * `{:checkpoint, checkpoint_state}` - When validation is partially complete
-  
+
   ## Examples
-  
+
       iex> {:ok, plan} = ValidationDependencyResolver.resolve_dependencies(user_resource)
       iex> execute_validation_plan(user_resource, plan)
       {:ok, user_resource}
   """
-  @spec execute_validation_plan(Resource.t(), map()) :: 
-          {:ok, Resource.t()} | 
-          {:error, map()} | 
-          {:checkpoint, map()}
+  @spec execute_validation_plan(Resource.t(), map()) ::
+          {:ok, Resource.t()}
+          | {:error, map()}
+          | {:checkpoint, map()}
   def execute_validation_plan(user_resource, plan) do
-    case HydepwnsLiveview.Utils.ValidationDependencyResolver.execute_validation_plan(plan, user_resource) do
-      {:ok, _results} -> 
+    case HydepwnsLiveview.Utils.ValidationDependencyResolver.execute_validation_plan(
+           plan,
+           user_resource
+         ) do
+      {:ok, _results} ->
         {:ok, user_resource}
-      {:error, errors} -> 
+
+      {:error, errors} ->
         {:error, errors}
-      {:checkpoint, checkpoint} -> 
+
+      {:checkpoint, checkpoint} ->
         {:checkpoint, checkpoint}
     end
   end

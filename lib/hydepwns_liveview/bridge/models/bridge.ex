@@ -27,4 +27,4 @@ defmodule HydepwnsLiveview.Bridge.Models.Bridge do
     |> validate_required([:name, :type])
     |> validate_inclusion(:status, ["active", "inactive", "maintenance"])
   end
-end 
+end

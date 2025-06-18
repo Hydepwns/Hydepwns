@@ -67,7 +67,11 @@ defmodule HydepwnsLiveviewWeb.BaseLive do
       def get_resource(socket, key), do: Map.get(socket.assigns, key)
       def update_resource(socket, key, value), do: {:ok, assign(socket, key, value)}
 
-      defoverridable [do_mount: 3, do_handle_params: 3, do_handle_event: 3, get_resource: 2, update_resource: 3]
+      defoverridable do_mount: 3,
+                     do_handle_params: 3,
+                     do_handle_event: 3,
+                     get_resource: 2,
+                     update_resource: 3
     end
   end
 
@@ -163,7 +167,8 @@ defmodule HydepwnsLiveviewWeb.BaseLive do
     with {:ok, theme} <- HydepwnsLiveview.ThemeSystem.get_current_theme(),
          {:ok, resource} <- HydepwnsLiveview.ResourceSystem.get_current_resource(),
          {:ok, bridge} <- HydepwnsLiveview.Bridge.get_current_bridge() do
-      {:cont, assign(socket, current_theme: theme, current_resource: resource, current_bridge: bridge)}
+      {:cont,
+       assign(socket, current_theme: theme, current_resource: resource, current_bridge: bridge)}
     else
       _ ->
         {:halt, redirect(socket, to: ~p"/themes/new")}

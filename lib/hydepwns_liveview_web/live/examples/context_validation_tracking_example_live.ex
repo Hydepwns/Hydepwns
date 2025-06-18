@@ -86,6 +86,7 @@ defmodule HydepwnsLiveviewWeb.Examples.ContextValidationTrackingExampleLive do
         notifications: true
       }
     }
+
     default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()
     theme_class = "#{default_theme.mode}-theme"
     # Update the socket with the user and default values
@@ -101,8 +102,12 @@ defmodule HydepwnsLiveviewWeb.Examples.ContextValidationTrackingExampleLive do
       |> assign(:error_message, nil)
       |> assign(:success_message, nil)
       |> assign(:view_mode, "timeline")
-      |> assign(:validation_context, %{allowed_roles: ["user", "admin", "editor"], admin_mode: false})
+      |> assign(:validation_context, %{
+        allowed_roles: ["user", "admin", "editor"],
+        admin_mode: false
+      })
       |> assign(:admin_mode, false)
+
     {:ok, socket}
   end
 

@@ -89,22 +89,22 @@ defmodule HydepwnsLiveview.Integration.Adapters.ShopifyAdapter do
     config = Map.get(options, :config, %{})
 
     # Build request URL
-    _url = build_url(config.shop_url, endpoint, @shopify_api_version)
+    url = build_url(config.shop_url, endpoint, @shopify_api_version)
 
     # Transform data to Shopify format
     shopify_data = transform_to_shopify_format(data, resource_type)
 
     # Make the API request
-    _headers = [
+    headers = [
       {"X-Shopify-Access-Token", config.api_key},
       {"Content-Type", "application/json"},
       {"Accept", "application/json"}
     ]
 
     # Create request body
-    _body = Jason.encode!(shopify_data)
+    body = Jason.encode!(shopify_data)
 
-    case HTTPoison.post(_url, _body, _headers) do
+    case HTTPoison.post(url, body, headers) do
       {:ok, %{status_code: status_code, body: response_body}} when status_code in 200..201 ->
         # Parse JSON response
         case Jason.decode(response_body) do

@@ -25,8 +25,10 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
         [first | _] -> first
         _ -> nil
       end
+
     default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()
     theme_class = "#{default_theme.mode}-theme"
+
     socket =
       socket
       |> assign(:resource_modules, resource_modules)
@@ -46,6 +48,7 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
       |> assign(:resource_events, [])
       |> assign(:show_filters, false)
       |> assign_new(:errors, fn -> %{} end)
+
     # If we have a default resource type, select it
     socket =
       if default_resource_type do
@@ -53,10 +56,12 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
       else
         socket
       end
+
     # Subscribe to resource events
     if connected?(socket) do
       EventBus.subscribe(self(), "resource:*")
     end
+
     {:ok, socket}
   end
 
@@ -115,7 +120,8 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
     if is_nil(resource_id) or resource_id == "" do
       {:noreply, push_patch(socket, to: ~p"/admin/resources?view=list")}
     else
-      {:noreply, push_patch(socket, to: ~p"/admin/resources?resource_id=#{resource_id}&view=detail")}
+      {:noreply,
+       push_patch(socket, to: ~p"/admin/resources?resource_id=#{resource_id}&view=detail")}
     end
   end
 
@@ -124,7 +130,8 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
     if is_nil(resource_id) or resource_id == "" do
       {:noreply, push_patch(socket, to: ~p"/admin/resources?view=list")}
     else
-      {:noreply, push_patch(socket, to: ~p"/admin/resources?resource_id=#{resource_id}&view=events")}
+      {:noreply,
+       push_patch(socket, to: ~p"/admin/resources?resource_id=#{resource_id}&view=events")}
     end
   end
 
@@ -138,7 +145,8 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
     if is_nil(resource_type) or resource_type == "" do
       {:noreply, push_patch(socket, to: ~p"/admin/resources?view=list")}
     else
-      {:noreply, push_patch(socket, to: ~p"/admin/resources?resource_type=#{resource_type}&view=list")}
+      {:noreply,
+       push_patch(socket, to: ~p"/admin/resources?resource_type=#{resource_type}&view=list")}
     end
   end
 
@@ -236,7 +244,9 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
              )}
 
           {:error, %Ecto.Changeset{} = changeset} ->
-            {:noreply, assign(socket, changeset: changeset) |> assign_new(:errors, fn -> changeset.errors || %{} end)}
+            {:noreply,
+             assign(socket, changeset: changeset)
+             |> assign_new(:errors, fn -> changeset.errors || %{} end)}
 
           {:error, reason} ->
             {:noreply,
@@ -256,7 +266,9 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
              |> push_patch(to: ~p"/admin/resources?resource_id=#{resource_id}&view=detail")}
 
           {:error, %Ecto.Changeset{} = changeset} ->
-            {:noreply, assign(socket, changeset: changeset) |> assign_new(:errors, fn -> changeset.errors || %{} end)}
+            {:noreply,
+             assign(socket, changeset: changeset)
+             |> assign_new(:errors, fn -> changeset.errors || %{} end)}
 
           {:error, reason} ->
             {:noreply,

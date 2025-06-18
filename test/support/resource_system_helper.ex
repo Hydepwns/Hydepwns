@@ -12,13 +12,14 @@ defmodule HydepwnsLiveview.TestSupport.ResourceSystemHelper do
   def setup_resource_system() do
     # Start the Agent if it's not already running
     case Process.whereis(ResourceSystem.Agent) do
-      nil -> 
+      nil ->
         {:ok, _} = ResourceSystem.start_link()
-      _ -> 
+
+      _ ->
         :ok
     end
 
     # Reset the store to ensure a clean state
     ResourceSystem.reset_store()
   end
-end 
+end

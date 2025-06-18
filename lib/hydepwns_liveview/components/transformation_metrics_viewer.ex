@@ -305,6 +305,7 @@ defmodule HydepwnsLiveview.Components.TransformationMetricsViewer do
       :error -> nil
     end
   end
+
   defp parse_integer(_), do: nil
 
   defp get_transformation_name(module) when is_atom(module) do
@@ -313,6 +314,7 @@ defmodule HydepwnsLiveview.Components.TransformationMetricsViewer do
     |> List.last()
     |> String.replace("Transformation", "")
   end
+
   defp get_transformation_name(_), do: "Unknown"
 
   defp format_time(time_ms) when is_integer(time_ms) do
@@ -322,11 +324,13 @@ defmodule HydepwnsLiveview.Components.TransformationMetricsViewer do
       true -> "#{Float.round(time_ms / 60_000, 1)}m"
     end
   end
+
   defp format_time(_), do: "N/A"
 
   defp format_timestamp(%DateTime{} = timestamp) do
     Calendar.strftime(timestamp, "%Y-%m-%d %H:%M:%S")
   end
+
   defp format_timestamp(_), do: "N/A"
 
   defp format_status(:ok), do: "Success"
@@ -336,6 +340,7 @@ defmodule HydepwnsLiveview.Components.TransformationMetricsViewer do
   defp format_percentage(value) when is_number(value) do
     "#{Float.round(value * 100, 1)}%"
   end
+
   defp format_percentage(_), do: "N/A"
 
   defp format_size_change(value) when is_number(value) do
@@ -345,5 +350,6 @@ defmodule HydepwnsLiveview.Components.TransformationMetricsViewer do
       true -> "0%"
     end
   end
+
   defp format_size_change(_), do: "N/A"
 end

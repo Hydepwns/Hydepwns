@@ -21,7 +21,8 @@ defmodule HydepwnsLiveviewWeb.LiveComponents.UserCardComponent do
       socket
       |> assign(:id, assigns.id)
       |> assign(:resource_id, assigns.resource_id)
-      # Add more explicit assigns as needed based on expected assigns keys
+
+    # Add more explicit assigns as needed based on expected assigns keys
 
     resource =
       if Map.has_key?(assigns, :resource) do
@@ -130,6 +131,7 @@ defmodule HydepwnsLiveviewWeb.LiveComponents.UserCardComponent do
     case HydepwnsLiveview.Resources.UserResource.update(socket.assigns.resource, %{role: role}) do
       {:ok, updated_resource} ->
         {:noreply, assign(socket, :resource, updated_resource)}
+
       {:error, _changeset} ->
         {:noreply, socket}
     end
@@ -139,6 +141,7 @@ defmodule HydepwnsLiveviewWeb.LiveComponents.UserCardComponent do
     case HydepwnsLiveview.Resources.UserResource.update(socket.assigns.resource, %{theme: theme}) do
       {:ok, updated_resource} ->
         {:noreply, assign(socket, :resource, updated_resource)}
+
       {:error, _changeset} ->
         {:noreply, socket}
     end

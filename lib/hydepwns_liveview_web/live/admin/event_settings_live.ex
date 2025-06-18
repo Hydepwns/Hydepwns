@@ -47,12 +47,7 @@ defmodule HydepwnsLiveviewWeb.Admin.EventSettingsLive do
         <div class="space-y-6">
           <div>
             <h3 class="text-lg font-medium">Event Settings</h3>
-            <.form
-              :let={f}
-              for={@changeset}
-              id="settings-form"
-              phx-submit="save"
-            >
+            <.form :let={f} for={@changeset} id="settings-form" phx-submit="save">
               <div class="space-y-4">
                 <div>
                   <.label for={f[:timezone].id}>Timezone</.label>
@@ -76,4 +71,4 @@ defmodule HydepwnsLiveviewWeb.Admin.EventSettingsLive do
     </div>
     """
   end
-end 
+end

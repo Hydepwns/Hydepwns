@@ -74,20 +74,10 @@ defmodule HydepwnsLiveviewWeb.Admin.EventReminderLive do
             <h2 class="text-lg font-semibold text-gray-900">Create Reminder</h2>
           </div>
           <div class="p-6">
-            <.form
-              :let={_f}
-              for={@changeset}
-              id="reminder-form"
-              phx-change="validate"
-              phx-submit="save"
-              class="space-y-6"
-            >
+            <.form :let={_f} for={@changeset} id="reminder-form" phx-change="validate" phx-submit="save" class="space-y-6">
               <div>
                 <label class="block text-sm font-medium text-gray-700">Event</label>
-                <select
-                  name="reminder[event_id]"
-                  class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                >
+                <select name="reminder[event_id]" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
                   <%= for event <- Events.list_events() do %>
                     <option value={event.id}><%= event.name %></option>
                   <% end %>
@@ -96,41 +86,23 @@ defmodule HydepwnsLiveviewWeb.Admin.EventReminderLive do
 
               <div>
                 <label class="block text-sm font-medium text-gray-700">Reminder Time</label>
-                <input
-                  type="datetime-local"
-                  name="reminder[reminder_time]"
-                  class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                />
+                <input type="datetime-local" name="reminder[reminder_time]" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" />
               </div>
 
               <div>
                 <label class="block text-sm font-medium text-gray-700">Message</label>
-                <textarea
-                  name="reminder[message]"
-                  rows="4"
-                  class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                ></textarea>
+                <textarea name="reminder[message]" rows="4" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"></textarea>
               </div>
 
               <div>
                 <label class="block text-sm font-medium text-gray-700">Recipients</label>
                 <div class="mt-2 space-y-2">
                   <label class="inline-flex items-center">
-                    <input
-                      type="checkbox"
-                      name="reminder[recipients][]"
-                      value="organizer"
-                      class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                    />
+                    <input type="checkbox" name="reminder[recipients][]" value="organizer" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" />
                     <span class="ml-2">Event Organizer</span>
                   </label>
                   <label class="inline-flex items-center">
-                    <input
-                      type="checkbox"
-                      name="reminder[recipients][]"
-                      value="attendees"
-                      class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                    />
+                    <input type="checkbox" name="reminder[recipients][]" value="attendees" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" />
                     <span class="ml-2">Event Attendees</span>
                   </label>
                 </div>
@@ -165,12 +137,7 @@ defmodule HydepwnsLiveviewWeb.Admin.EventReminderLive do
                     </p>
                   </div>
                   <div class="flex space-x-2">
-                    <.link
-                      phx-click="delete"
-                      phx-value-id={reminder.id}
-                      data-confirm="Are you sure?"
-                      class="text-red-600 hover:text-red-900"
-                    >
+                    <.link phx-click="delete" phx-value-id={reminder.id} data-confirm="Are you sure?" class="text-red-600 hover:text-red-900">
                       Delete
                     </.link>
                   </div>
@@ -187,4 +154,4 @@ defmodule HydepwnsLiveviewWeb.Admin.EventReminderLive do
     </div>
     """
   end
-end 
+end

@@ -5,7 +5,7 @@
   <:inner_block_simple_form>
     <.input field={@changeset[:name]} type="text" label="Name" required data-test-id="theme-name-input" />
     <.input field={@changeset[:mode]} type="select" label="Mode" options={[{"Light", "light"}, {"Dark", "dark"}]} required data-test-id="theme-mode-select" />
-    
+
     <div class="space-y-4">
       <h3 class="text-lg font-medium">Colors</h3>
       <.input field={@changeset[:primary_color]} type="text" label="Primary Color" value={get_in(@changeset.data, [:primary_color]) || "#3B82F6"} required data-test-id="theme-primary-color" />

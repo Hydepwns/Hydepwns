@@ -18,19 +18,14 @@ defmodule HydepwnsLiveviewWeb.BridgeFormLive do
         <div class="space-y-6">
           <div>
             <h3 class="text-lg font-medium">Bridge Form</h3>
-            <.form
-              :let={f}
-              for={%{}}
-              id="bridge-form"
-              phx-submit="save"
-            >
+            <.form :let={f} for={%{}} id="bridge-form" phx-submit="save">
               <div class="space-y-4">
                 <div>
                   <.label for={f[:name].id}>Name</.label>
                   <.input field={f[:name]} type="text" required />
                 </div>
 
-    <div>
+                <div>
                   <.label for={f[:type].id}>Type</.label>
                   <.input field={f[:type]} type="select" options={[Type1: "type1", Type2: "type2"]} required />
                 </div>
@@ -51,4 +46,4 @@ defmodule HydepwnsLiveviewWeb.BridgeFormLive do
     </div>
     """
   end
-end 
+end

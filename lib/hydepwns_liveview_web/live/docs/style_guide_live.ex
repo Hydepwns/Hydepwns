@@ -6,6 +6,7 @@ defmodule HydepwnsLiveviewWeb.StyleGuideLive do
   @impl true
   def mount(_params, _session, socket) do
     theme_class = "dark-theme"
+
     socket =
       socket
       |> assign(:page_title, "Style Guide")

@@ -78,4 +78,4 @@ defmodule HydepwnsLiveview.SignalProtocol do
   def set_cache_size(session, chain_key_size, root_key_size) do
     :libsignal_protocol_nif.set_cache_size(session, chain_key_size, root_key_size)
   end
-end 
+end

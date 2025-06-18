@@ -5,13 +5,18 @@ defmodule HydepwnsLiveview.Events do
 
   import Ecto.Query, warn: false
   alias HydepwnsLiveview.Repo
-  alias HydepwnsLiveview.Events.{Event, EventSettings, EventReminder, EventNotification}
+  alias HydepwnsLiveview.Events.Core.Event
+  alias HydepwnsLiveview.Events.EventOperations
+  alias HydepwnsLiveview.Events.{EventSettings, EventReminder, EventNotification}
 
   @doc """
   Returns the list of all events.
   """
   def list_events do
-    Repo.all(Event)
+    case EventOperations.get_events(%{}) do
+      {:ok, events} -> events
+      {:error, _} -> []
+    end
   end
 
   @doc """
@@ -22,12 +27,23 @@ defmodule HydepwnsLiveview.Events do
   def get_event!(id), do: Repo.get!(Event, id)
 
   @doc """
+  Gets a single event.
+
+  Returns nil if the Event does not exist.
+  """
+  def get_event(id) do
+    case EventOperations.get_events(%{id: id}) do
+      {:ok, [event]} -> {:ok, event}
+      {:ok, []} -> {:error, :not_found}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @doc """
   Creates an event.
   """
   def create_event(attrs \\ %{}) do
-    %Event{}
-    |> Event.changeset(attrs)
-    |> Repo.insert()
+    EventOperations.store_event(attrs.type, attrs)
   end
 
   @doc """
@@ -58,7 +74,10 @@ defmodule HydepwnsLiveview.Events do
   """
   def get_event_statistics do
     total_events = Repo.aggregate(Event, :count)
-    upcoming_events = Repo.aggregate(from(e in Event, where: e.date >= ^Date.utc_today()), :count)
+
+    upcoming_events =
+      Repo.aggregate(from(e in Event, where: e.timestamp >= ^DateTime.utc_now()), :count)
+
     past_events = total_events - upcoming_events
 
     %{
@@ -72,20 +91,44 @@ defmodule HydepwnsLiveview.Events do
   Returns the list of past events.
   """
   def list_events_past do
-    Event
-    |> where([e], e.date < ^Date.utc_today())
-    |> order_by([e], desc: e.date)
-    |> Repo.all()
+    case EventOperations.get_events(%{
+           timestamp: %{lt: DateTime.utc_now()},
+           sort: [timestamp: :desc]
+         }) do
+      {:ok, events} -> events
+      {:error, _} -> []
+    end
   end
 
   @doc """
   Returns the list of upcoming events.
   """
   def list_events_upcoming do
-    Event
-    |> where([e], e.date >= ^Date.utc_today())
-    |> order_by([e], asc: e.date)
-    |> Repo.all()
+    case EventOperations.get_events(%{
+           timestamp: %{gte: DateTime.utc_now()},
+           sort: [timestamp: :asc]
+         }) do
+      {:ok, events} -> events
+      {:error, _} -> []
+    end
+  end
+
+  @doc """
+  Gets events for a specific resource.
+  """
+  def get_events_for_resource(resource_type, resource_id) do
+    EventOperations.get_events(%{
+      resource_type: resource_type,
+      resource_id: resource_id,
+      sort: [timestamp: :desc]
+    })
+  end
+
+  @doc """
+  Gets events with the given criteria.
+  """
+  def get_events(criteria) do
+    EventOperations.get_events(criteria)
   end
 
   @doc """
@@ -93,6 +136,37 @@ defmodule HydepwnsLiveview.Events do
   """
   def change_event_notification_template(event \\ %Event{}, attrs \\ %{}) do
     Event.notification_template_changeset(event, attrs)
+  end
+
+  @doc """
+  Exports an event report.
+  """
+  def export_report(report_id) do
+    events = list_events()
+    filename = "report_#{report_id}.csv"
+
+    headers = ["ID", "Title", "Start Time", "End Time", "Description", "Status"]
+
+    rows =
+      Enum.map(events, fn event ->
+        [
+          event.id,
+          event.title,
+          event.start_time,
+          event.end_time,
+          event.description,
+          event.status
+        ]
+      end)
+
+    content =
+      [headers | rows]
+      |> Enum.map_join("\n", &Enum.join(&1, ","))
+
+    case File.write(filename, content) do
+      :ok -> {:ok, filename}
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   @doc """
@@ -119,6 +193,13 @@ defmodule HydepwnsLiveview.Events do
     settings
     |> EventSettings.changeset(attrs)
     |> Repo.update()
+  end
+
+  @doc """
+  Returns the list of available timezones.
+  """
+  def get_available_timezones do
+    Tzdata.zone_list()
   end
 
   @doc """
@@ -171,10 +252,65 @@ defmodule HydepwnsLiveview.Events do
   end
 
   @doc """
+  Updates an event reminder.
+  """
+  def update_event_reminder(%EventReminder{} = reminder, attrs) do
+    reminder
+    |> EventReminder.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
   Deletes an event reminder.
   """
   def delete_event_reminder(%EventReminder{} = reminder) do
     Repo.delete(reminder)
+  end
+
+  @doc """
+  Returns a changeset for event notification.
+  """
+  def change_event_notification(notification \\ %EventNotification{}, attrs \\ %{}) do
+    EventNotification.changeset(notification, attrs)
+  end
+
+  @doc """
+  Creates an event notification.
+  """
+  def create_event_notification(attrs) do
+    %EventNotification{}
+    |> EventNotification.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Gets a single event notification.
+  """
+  def get_event_notification!(id) do
+    Repo.get!(EventNotification, id)
+  end
+
+  @doc """
+  Returns the list of event notifications.
+  """
+  def list_events_notifications do
+    Repo.all(EventNotification)
+  end
+
+  @doc """
+  Updates an event notification.
+  """
+  def update_event_notification(%EventNotification{} = notification, attrs) do
+    notification
+    |> EventNotification.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes an event notification.
+  """
+  def delete_event_notification(%EventNotification{} = notification) do
+    Repo.delete(notification)
   end
 
   @doc """
@@ -240,19 +376,11 @@ defmodule HydepwnsLiveview.Events do
   end
 
   @doc """
-  Updates an event reminder.
-  """
-  def update_event_reminder(%EventReminder{} = reminder, attrs) do
-    reminder
-    |> EventReminder.changeset(attrs)
-    |> Repo.update()
-  end
-
-  @doc """
   Returns a list of past events.
   """
   def list_past_events do
     now = DateTime.utc_now()
+
     from(e in Event,
       where: e.start_time < ^now,
       order_by: [desc: e.start_time]
@@ -265,6 +393,7 @@ defmodule HydepwnsLiveview.Events do
   """
   def list_upcoming_events do
     now = DateTime.utc_now()
+
     from(e in Event,
       where: e.start_time >= ^now,
       order_by: [asc: e.start_time]
@@ -277,12 +406,14 @@ defmodule HydepwnsLiveview.Events do
   """
   def list_due_reminders(event_id) when is_binary(event_id) do
     now = DateTime.utc_now()
+
     from(r in EventReminder,
       where: r.event_id == ^event_id and r.reminder_time <= ^now and r.status == "pending",
       order_by: [asc: r.reminder_time]
     )
     |> Repo.all()
   end
+
   def list_due_reminders(_invalid_id), do: {:error, :invalid_event_id}
 
   @doc """
@@ -295,25 +426,6 @@ defmodule HydepwnsLiveview.Events do
   end
 
   @doc """
-  Deletes an event notification.
-  """
-  def delete_event_notification(%EventNotification{} = notification) do
-    Repo.delete(notification)
-  end
-
-  @doc """
-  Gets a single event notification.
-  """
-  def get_event_notification!(id), do: Repo.get!(EventNotification, id)
-
-  @doc """
-  Returns the list of event notifications.
-  """
-  def list_event_notifications do
-    Repo.all(EventNotification)
-  end
-
-  @doc """
   Imports events from a file.
   """
   def import_events(file_path) do
@@ -322,7 +434,8 @@ defmodule HydepwnsLiveview.Events do
         events =
           content
           |> String.split("\n")
-          |> Enum.drop(1)  # Skip header row
+          # Skip header row
+          |> Enum.drop(1)
           |> Enum.map(&parse_event_row/1)
           |> Enum.filter(&(&1 != nil))
           |> Enum.map(&create_event/1)
@@ -344,7 +457,9 @@ defmodule HydepwnsLiveview.Events do
           description: description,
           status: status
         }
-      _ -> nil
+
+      _ ->
+        nil
     end
   end
 
@@ -356,41 +471,13 @@ defmodule HydepwnsLiveview.Events do
   end
 
   @doc """
-  Exports an event report.
-  """
-  def export_report(report_id) do
-    events = list_events()
-    filename = "report_#{report_id}.csv"
-    
-    headers = ["ID", "Title", "Start Time", "End Time", "Description", "Status"]
-    rows = Enum.map(events, fn event ->
-      [
-        event.id,
-        event.title,
-        event.start_time,
-        event.end_time,
-        event.description,
-        event.status
-      ]
-    end)
-    
-    content = [headers | rows]
-    |> Enum.map_join("\n", &Enum.join(&1, ","))
-    
-    case File.write(filename, content) do
-      :ok -> {:ok, filename}
-      {:error, reason} -> {:error, reason}
-    end
-  end
-
-  @doc """
   Generates an event report.
   """
   def generate_event_report(event_id) do
     event = get_event!(event_id)
     reminders = list_due_reminders(event_id)
-    notifications = list_event_notifications()
-    
+    notifications = list_events_notifications()
+
     report = %{
       event_id: event_id,
       event_details: %{
@@ -404,7 +491,7 @@ defmodule HydepwnsLiveview.Events do
       notifications: notifications,
       generated_at: DateTime.utc_now()
     }
-    
+
     {:ok, report}
   end
 
@@ -448,4 +535,4 @@ defmodule HydepwnsLiveview.Events do
 
     Repo.all(query)
   end
-end 
+end

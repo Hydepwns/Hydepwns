@@ -12,5 +12,3 @@ defmodule HydepwnsLiveviewWeb.ThemeView do
     }
   end
 end
-
-  

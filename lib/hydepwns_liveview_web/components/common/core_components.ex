@@ -79,6 +79,7 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
   # Table component
   attr :class, :string, default: nil
   slot :inner_block, required: false
+
   def table(assigns) do
     ~H"""
     <div class="table-responsive">
@@ -97,16 +98,10 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
   attr :phx_value, :any, default: nil
   attr :class, :string, default: nil
   slot :inner_block, required: false
+
   def link_component(assigns) do
     ~H"""
-    <.link
-      class={["link", @class]}
-      href={@href}
-      patch={@patch}
-      navigate={@navigate}
-      phx_click={@phx_click}
-      phx_value={@phx_value}
-    >
+    <.link class={["link", @class]} href={@href} patch={@patch} navigate={@navigate} phx_click={@phx_click} phx_value={@phx_value}>
       <%= render_slot(@inner_block) %>
     </.link>
     """
@@ -150,11 +145,7 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
     >
       <p :if={@title} class="font-semibold leading-tight"><%= @title %></p>
       <p class="mt-2 leading-tight"><%= msg %></p>
-      <button
-        type="button"
-        class="group absolute top-2 right-1 p-2"
-        aria-label="close"
-      >
+      <button type="button" class="group absolute top-2 right-1 p-2" aria-label="close">
         <.icon_component name="hero-x-mark-solid" class="h-5 w-5 opacity-40 group-hover:opacity-70" />
       </button>
     </div>
@@ -166,27 +157,12 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
     <div id={@flash_group_id}>
       <.flash kind={:info} title="Success!" flash={@flash} />
       <.flash kind={:error} title="Error!" flash={@flash} />
-      <.flash
-        id="client-error"
-        kind={:error}
-        title="We can't find the internet"
-        phx-disconnected={show(".phx-client-error #client-error")}
-        phx-connected={hide("#client-error")}
-        hidden
-      >
+      <.flash id="client-error" kind={:error} title="We can't find the internet" phx-disconnected={show(".phx-client-error #client-error")} phx-connected={hide("#client-error")} hidden>
         Attempting to reconnect <.icon_component name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
       </.flash>
 
-      <.flash
-        id="server-error"
-        kind={:error}
-        title="Something went wrong!"
-        phx-disconnected={show(".phx-server-error #server-error")}
-        phx-connected={hide("#server-error")}
-        hidden
-      >
-        Hang in there while we get back on track.
-        <.icon_component name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
+      <.flash id="server-error" kind={:error} title="Something went wrong!" phx-disconnected={show(".phx-server-error #server-error")} phx-connected={hide("#server-error")} hidden>
+        Hang in there while we get back on track. <.icon_component name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
       </.flash>
     </div>
     """

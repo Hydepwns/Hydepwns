@@ -8,18 +8,12 @@ defmodule HydepwnsLiveviewWeb.Components.Common.LinkComponent do
   attr :phx_value, :any, default: nil
   attr :class, :string, default: nil
   slot :inner_block, required: false
+
   def link_component(assigns) do
     ~H"""
-    <.link
-      class={["link", @class]}
-      href={@href}
-      patch={@patch}
-      navigate={@navigate}
-      phx_click={@phx_click}
-      phx_value={@phx_value}
-    >
+    <.link class={["link", @class]} href={@href} patch={@patch} navigate={@navigate} phx_click={@phx_click} phx_value={@phx_value}>
       <%= render_slot(@inner_block) %>
     </.link>
     """
   end
-end 
+end

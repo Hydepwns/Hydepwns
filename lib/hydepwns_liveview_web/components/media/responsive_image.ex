@@ -68,11 +68,9 @@ defmodule HydepwnsLiveviewWeb.Components.Media.ResponsiveImage do
     <picture>
       <!-- WebP versions -->
       <source type="image/webp" srcset={build_srcset(@image_name, @quality, "webp")} sizes={@sizes} />
-      
-    <!-- Original format versions -->
+      <!-- Original format versions -->
       <source srcset={build_srcset(@image_name, nil, @original_format)} sizes={@sizes} />
-      
-    <!-- Fallback -->
+      <!-- Fallback -->
       <img src={"/images/#{@image_name}.#{@original_format}"} alt={@alt} loading={@loading} width={@width} height={@height} class={@class} />
     </picture>
     """

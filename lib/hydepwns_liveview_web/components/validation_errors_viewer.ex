@@ -18,6 +18,7 @@ defmodule HydepwnsLiveviewWeb.Components.ValidationErrorsViewer do
 
   use Phoenix.Component
   alias HydepwnsLiveview.Utils.ValidationErrorReporter
+  alias Inflectorex
 
   @doc """
   Renders a validation errors viewer for a resource.
@@ -69,7 +70,7 @@ defmodule HydepwnsLiveviewWeb.Components.ValidationErrorsViewer do
         <h3 class="text-xl font-bold mb-3">
           Validation Errors
           <span class="text-sm font-normal ml-2">
-            ({@error_count} {Inflex.inflect("error", @error_count)})
+            ({@error_count} {Inflectorex.pluralize("error", @error_count)})
           </span>
         </h3>
 
@@ -95,7 +96,7 @@ defmodule HydepwnsLiveviewWeb.Components.ValidationErrorsViewer do
                 <div class="flex justify-between items-center p-2 border-b">
                   <span class="text-gray-700">{format_error_type(error_type)}</span>
                   <span class="text-sm bg-red-100 text-red-800 px-2 py-1 rounded-full">
-                    {count} {Inflex.inflect("error", count)}
+                    {count} {Inflectorex.pluralize("error", count)}
                   </span>
                 </div>
               <% end %>

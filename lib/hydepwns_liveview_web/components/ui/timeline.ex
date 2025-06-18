@@ -136,8 +136,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.Timeline do
               <% end %>┄┄┄
           <% end %>
         </div>
-        
-    <!-- Timeline events -->
+        <!-- Timeline events -->
         <div class="timeline-events">
           <%= for {event, _index} <- Enum.with_index(@event) do %>
             <div class={"timeline-event #{if Map.get(event, :highlight, false), do: "highlighted"}"}>

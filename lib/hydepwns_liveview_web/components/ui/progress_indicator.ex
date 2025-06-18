@@ -256,12 +256,12 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ProgressIndicator do
       <div class="spinner-container">
         <div class="spinner-animation" role="status" aria-live="polite">
           {if Enum.empty?(@frames),
-            do: "",
-            else:
-              (case @frames do
-                 [h | _] -> h
-                 _ -> ""
-               end)}
+          do: "",
+          else:
+          (case @frames do
+          [h | _] -> h
+          _ -> ""
+          end)}
         </div>
         <%= if @label do %>
           <div class="spinner-label">{@label}</div>

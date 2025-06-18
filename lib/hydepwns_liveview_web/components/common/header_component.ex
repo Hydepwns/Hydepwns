@@ -25,4 +25,4 @@ defmodule HydepwnsLiveviewWeb.Components.Common.HeaderComponent do
     </header>
     """
   end
-end 
+end

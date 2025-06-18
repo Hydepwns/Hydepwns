@@ -99,15 +99,15 @@ defmodule HydepwnsLiveviewWeb.Components.UI.TableComponents do
     """
   end
 
-  defp render_column(_col) do
-    # Implementation
-  end
+  # defp render_column(col) do
+  #   render_slot(col)
+  # end
 
-  defp render_action(_action) do
-    # Implementation
-  end
+  # defp render_action(action) do
+  #   render_slot(action)
+  # end
 
-  defp render_item(_item) do
-    # Implementation
-  end
+  # defp render_item(item) do
+  #   render_slot(item)
+  # end
 end

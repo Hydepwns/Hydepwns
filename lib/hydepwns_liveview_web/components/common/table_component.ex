@@ -3,6 +3,7 @@ defmodule HydepwnsLiveviewWeb.Components.Common.TableComponent do
 
   attr :class, :string, default: nil
   slot :inner_block, required: false
+
   def table(assigns) do
     ~H"""
     <div class="table-responsive">
@@ -12,4 +13,4 @@ defmodule HydepwnsLiveviewWeb.Components.Common.TableComponent do
     </div>
     """
   end
-end 
+end

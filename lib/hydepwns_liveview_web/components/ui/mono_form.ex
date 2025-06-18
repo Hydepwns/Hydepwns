@@ -5,7 +5,8 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoForm do
   """
   use Phoenix.Component
 
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [simple_form: 1, input: 1, button: 1, label: 1, error: 1]
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents,
+    only: [simple_form: 1, input: 1, button: 1, label: 1, error: 1]
 
   attr :for, :any, required: true, doc: "the data structure for the form"
   attr :as, :any, default: nil, doc: "the server side parameter to collect all input under"
@@ -34,15 +35,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoForm do
   """
   def mono_input(assigns) do
     ~H"""
-    <.input
-      type={@type}
-      field={@field}
-      label={@label}
-      value={@value}
-      errors={@errors}
-      class="mono-input"
-      {@rest}
-    />
+    <.input type={@type} field={@field} label={@label} value={@value} errors={@errors} class="mono-input" {@rest} />
     """
   end
 
@@ -51,11 +44,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoForm do
   """
   def mono_button(assigns) do
     ~H"""
-    <.button
-      type={@type}
-      class="mono-button"
-      {@rest}
-    >
+    <.button type={@type} class="mono-button" {@rest}>
       {render_slot(@inner_block)}
     </.button>
     """
@@ -66,10 +55,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoForm do
   """
   def mono_label(assigns) do
     ~H"""
-    <.label
-      for={@for}
-      class="mono-label"
-    >
+    <.label for={@for} class="mono-label">
       {render_slot(@inner_block)}
     </.label>
     """

@@ -4,6 +4,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
   """
   use Phoenix.Component
   use Gettext, backend: HydepwnsLiveviewWeb.Gettext
+  import Phoenix.HTML.Form
 
   alias Phoenix.LiveView.JS
 
@@ -35,10 +36,12 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
   attr :name, :any
   attr :label, :string, default: nil
   attr :value, :any
+
   attr :type_input, :string,
     default: "text",
     values: ~w(checkbox color date datetime-local email file month number password
                range search select tel text textarea time url week)
+
   attr :field, Phoenix.HTML.FormField,
     doc: "a form field struct retrieved from the form, for example: @form[:email]"
 
@@ -54,7 +57,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
   end
 
   def input(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
-    errors = if Phoenix.Component.used_input?(field), do: field.errors, else: []
+    errors = if input_value(assigns[:form], field.name), do: field.errors, else: []
 
     assigns
     |> assign(field: nil, id: assigns[:id] || field.id)
@@ -72,15 +75,14 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
   def input(%{type: "checkbox"} = assigns) do
     assigns =
       assign_new(assigns, :checked, fn ->
-        Phoenix.HTML.Form.normalize_value("checkbox", assigns[:value])
+        input_value(assigns[:form], assigns[:name])
       end)
 
     ~H"""
     <div>
       <label class="flex items-center gap-4 text-sm leading-6 text-zinc-600">
         <input type="hidden" name={@name} value="false" disabled={@rest[:disabled]} />
-        <input type="checkbox" id={@id} name={@name} value="true" checked={@checked} class="rounded border-zinc-300 text-zinc-900 focus:ring-0" {@rest} />
-        {@label}
+        <input type="checkbox" id={@id} name={@name} value="true" checked={@checked} class="rounded border-zinc-300 text-zinc-900 focus:ring-0" {@rest} /> {@label}
       </label>
       <.error :for={msg <- @errors}>{msg}</.error>
     </div>
@@ -88,24 +90,17 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
   end
 
   def input(%{type: "select"} = assigns) do
-    assigns = 
+    assigns =
       assigns
       |> assign_new(:multiple, fn -> assigns[:multiple] || false end)
       |> assign_new(:prompt, fn -> assigns[:prompt] end)
-    
+
     ~H"""
     <div data-test-id={"#{@id}-container"}>
       <.label for={@id}>{@label}</.label>
-      <select 
-        id={@id} 
-        name={@name} 
-        class="mt-2 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm" 
-        multiple={@multiple} 
-        data-test-id={@id}
-        {@rest}
-      >
+      <select id={@id} name={@name} class="mt-2 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm" multiple={@multiple} data-test-id={@id} {@rest}>
         <option :if={@prompt} value=""><%= @prompt %></option>
-        {Phoenix.HTML.Form.options_for_select(@options, @value)}
+        {options_for_select(@options, @value)}
       </select>
       <.error :for={msg <- @errors} data-test-id={"#{@id}-error"}><%= msg %></.error>
     </div>
@@ -126,7 +121,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
           @errors != [] && "border-rose-400 focus:border-rose-400"
         ]}
         {@rest}
-      >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
+      >{input_value(@form, @name)}</textarea>
       <.error :for={msg <- @errors} data-test-id={"#{@id}-error"}><%= msg %></.error>
     </div>
     """
@@ -134,24 +129,22 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
 
   def input(assigns) do
     ~H"""
-    <div data-test-id={"#{@id}-container"}>
-      <.label for={@id}>{@label}</.label>
-      <input
-        type={@type_input}
-        name={@name}
-        id={@id}
-        data-test-id={@id}
-        value={Phoenix.HTML.Form.normalize_value(@type_input, @value)}
-        class={[
-          "mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6",
-          @errors == [] && "border-zinc-300 focus:border-zinc-400",
-          @errors != [] && "border-rose-400 focus:border-rose-400"
-        ]}
-        {@rest}
-      />
-      <.error :for={msg <- @errors} data-test-id={"#{@id}-error"}><%= msg %></.error>
+    <div class="form-group">
+      <%= label(f, @field) %>
+      <%= input(f, @field, class: "form-control #{if @errors != [], do: "is-invalid"}") %>
+      <%= error_tag(f, @field) %>
     </div>
     """
+  end
+
+  defp error_tag(form, field) do
+    errors = if input_value(form, field), do: form.errors[field], else: []
+    Enum.map(errors, fn error ->
+      content_tag(:span, translate_error(error),
+        class: "invalid-feedback",
+        phx_feedback_for: input_name(form, field)
+      )
+    end)
   end
 
   def label(assigns) do
@@ -165,8 +158,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
   def error(assigns) do
     ~H"""
     <p class="mt-3 flex gap-3 text-sm leading-6 text-rose-600" data-test-id={@rest[:data_test_id]}>
-      <.icon name="hero-exclamation-circle-mini" class="mt-0.5 h-5 w-5 flex-none" />
-      {render_slot(@inner_block)}
+      <.icon name="hero-exclamation-circle-mini" class="mt-0.5 h-5 w-5 flex-none" /> {render_slot(@inner_block)}
     </p>
     """
   end
@@ -188,6 +180,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
   attr :class, :string, default: nil
   attr :rest, :global
   slot :inner_block, required: true
+
   def button(assigns) do
     ~H"""
     <button

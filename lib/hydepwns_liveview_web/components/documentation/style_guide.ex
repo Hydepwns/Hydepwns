@@ -70,7 +70,8 @@ defmodule HydepwnsLiveviewWeb.Components.Documentation.StyleGuide do
     socket =
       socket
       |> assign(:id, assigns.id)
-      # Add more explicit assigns as needed based on expected assigns keys
+
+    # Add more explicit assigns as needed based on expected assigns keys
 
     {:ok, socket}
   end

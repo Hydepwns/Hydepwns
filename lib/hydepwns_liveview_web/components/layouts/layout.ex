@@ -27,8 +27,7 @@ defmodule HydepwnsLiveviewWeb.Components.Layouts.Layout do
         <nav class="desktop-only">
           <!-- Existing navigation code -->
         </nav>
-        
-    <!-- Progress bar for page load indication -->
+        <!-- Progress bar for page load indication -->
         <div class="nprogress-container">
           <div id="nprogress-bar" class="nprogress" phx-hook="ProgressBar" />
         </div>
@@ -41,11 +40,9 @@ defmodule HydepwnsLiveviewWeb.Components.Layouts.Layout do
       <footer class="main-footer">
         <!-- Footer content -->
       </footer>
-      
-    <!-- Mobile navigation (only appears on mobile devices) -->
+      <!-- Mobile navigation (only appears on mobile devices) -->
       <MobileNav.mobile_nav current_path={assigns[:current_path] || ""} />
-      
-    <!-- Socket Validation Panel (only visible in development mode) -->
+      <!-- Socket Validation Panel (only visible in development mode) -->
       <%= if Mix.env() == :dev do %>
         <.live_component module={SocketValidationPanel} id="socket-validation-panel" />
       <% end %>

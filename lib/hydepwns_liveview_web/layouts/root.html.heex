@@ -12,13 +12,11 @@
     <link rel="apple-touch-icon" sizes="180x180" href={~p"/images/apple-touch-icon.png"} />
     <link rel="icon" type="image/png" sizes="32x32" href={~p"/images/favicon-32x32.png"} />
     <link rel="icon" type="image/png" sizes="16x16" href={~p"/images/favicon-16x16.png"} />
-    
-<!-- Font optimization tags -->
+    <!-- Font optimization tags -->
     <link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin />
     <link rel="preload" href="/assets/fonts/MonaspaceArgon-Regular.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/assets/fonts/MonaspaceArgon-Bold.woff2" as="font" type="font/woff2" crossorigin />
-    
-<!-- Critical CSS inlined for performance -->
+    <!-- Critical CSS inlined for performance -->
     <style>
       /* Critical font styles to avoid FOUT */
       @font-face {
@@ -41,7 +39,8 @@
     </style>
 
     <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
-    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}></script>
+    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
+    </script>
     <script>
       // Set theme based on user preference or system theme
       const setThemeClass = () => {
@@ -104,7 +103,6 @@
   <body class={assigns[:theme_class] || "light-theme"}>
     <a href="#main-content" class="skip-to-content">Skip to content</a>
     <.theme_toggle id="theme-toggle-root" />
-    <.debug_grid id="debug-grid-toggle-root" />
-    {@inner_content}
+    <.debug_grid id="debug-grid-toggle-root" /> {@inner_content}
   </body>
 </html>

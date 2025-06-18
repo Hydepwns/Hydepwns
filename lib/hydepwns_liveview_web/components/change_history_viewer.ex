@@ -262,7 +262,7 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
             <td class="table-cell">{Map.get(change_item.metadata, :reason) || "No reason provided"}</td>
             <td class="table-cell">
               <ul class="list-disc pl-5">
-                <li :for={{_key, _value} <- change_item.changes}>{Atom.to_string(_key)}</li>
+                <li :for={{key, value} <- change_item.changes}>{Atom.to_string(key)}</li>
               </ul>
             </td>
             <td class="table-cell">

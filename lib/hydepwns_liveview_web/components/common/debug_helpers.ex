@@ -52,6 +52,7 @@ defmodule HydepwnsLiveviewWeb.Components.Common.DebugHelpers do
 
   # Helper to create a preview of a value
   def truncate_preview(nil), do: "nil"
+
   def truncate_preview(value) when is_binary(value) do
     if String.length(value) <= 50 do
       value
@@ -59,23 +60,28 @@ defmodule HydepwnsLiveviewWeb.Components.Common.DebugHelpers do
       String.slice(value, 0, 47) <> "..."
     end
   end
+
   def truncate_preview(value) when is_map(value) do
     "Map with #{map_size(value)} keys"
   end
+
   def truncate_preview(value) when is_list(value) do
     "List with #{length(value)} items"
   end
+
   def truncate_preview(value) when is_tuple(value) do
     "Tuple with #{tuple_size(value)} elements"
   end
+
   def truncate_preview(value) when is_function(value) do
     "Function"
   end
+
   def truncate_preview(value) when is_pid(value) do
     "PID"
   end
+
   def truncate_preview(value) do
     inspect(value, pretty: true, width: 50)
   end
 end
-

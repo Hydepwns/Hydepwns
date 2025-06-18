@@ -66,4 +66,4 @@ defmodule HydepwnsLiveviewWeb.UserProfileLive do
     </div>
     """
   end
-end 
+end

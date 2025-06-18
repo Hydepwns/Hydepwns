@@ -66,12 +66,7 @@ defmodule HydepwnsLiveviewWeb.UserShowLive do
           <.link navigate={~p"/users/#{@user}/edit"} class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
             Edit
           </.link>
-          <.link
-            phx-click="delete"
-            phx-value-id={@user.id}
-            data-confirm="Are you sure?"
-            class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-          >
+          <.link phx-click="delete" phx-value-id={@user.id} data-confirm="Are you sure?" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
             Delete
           </.link>
         </div>
@@ -108,4 +103,4 @@ defmodule HydepwnsLiveviewWeb.UserShowLive do
     </div>
     """
   end
-end 
+end

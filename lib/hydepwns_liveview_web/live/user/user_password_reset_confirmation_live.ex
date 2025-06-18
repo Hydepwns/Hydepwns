@@ -6,7 +6,8 @@ defmodule HydepwnsLiveviewWeb.UserPasswordResetConfirmationLive do
 
   @impl true
   def mount(%{"token" => token}, _session, socket) do
-    {:ok, assign(socket, :changeset, User.password_reset_confirmation_changeset(%User{}, %{}, token))}
+    {:ok,
+     assign(socket, :changeset, User.password_reset_confirmation_changeset(%User{}, %{}, token))}
   end
 
   @impl true
@@ -59,4 +60,4 @@ defmodule HydepwnsLiveviewWeb.UserPasswordResetConfirmationLive do
     </div>
     """
   end
-end 
+end

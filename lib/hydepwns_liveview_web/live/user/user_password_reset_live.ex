@@ -67,4 +67,4 @@ defmodule HydepwnsLiveviewWeb.UserPasswordResetLive do
     </div>
     """
   end
-end 
+end

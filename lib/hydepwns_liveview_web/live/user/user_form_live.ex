@@ -87,13 +87,7 @@ defmodule HydepwnsLiveviewWeb.User.UserFormLive do
         <div class="space-y-6">
           <div>
             <h3 class="text-lg font-medium">User Form</h3>
-            <.form
-              :let={f}
-              for={@changeset}
-              id="user-form"
-              phx-change="validate"
-              phx-submit="save"
-            >
+            <.form :let={f} for={@changeset} id="user-form" phx-change="validate" phx-submit="save">
               <div class="space-y-4">
                 <div>
                   <.label for={f[:email].id}>Email</.label>
@@ -121,4 +115,4 @@ defmodule HydepwnsLiveviewWeb.User.UserFormLive do
     </div>
     """
   end
-end 
+end

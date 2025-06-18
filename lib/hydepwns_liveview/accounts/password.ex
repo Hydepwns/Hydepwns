@@ -4,16 +4,18 @@ defmodule HydepwnsLiveview.Accounts.Password do
   """
 
   @min_password_length 8
-  @max_password_length 72  # Bcrypt's maximum password length
+  # Bcrypt's maximum password length
+  @max_password_length 72
 
   @doc """
   Verifies a password against a hash.
   """
-  def verify_pass(password, hash) 
-      when is_binary(password) and byte_size(password) > 0
-      and is_binary(hash) and byte_size(hash) > 0 do
+  def verify_pass(password, hash)
+      when is_binary(password) and byte_size(password) > 0 and
+             is_binary(hash) and byte_size(hash) > 0 do
     Bcrypt.verify_pass(password, hash)
   end
+
   def verify_pass(_invalid_password, _invalid_hash), do: {:error, :invalid_parameters}
 
   @doc """
@@ -25,6 +27,7 @@ defmodule HydepwnsLiveview.Accounts.Password do
       false -> {:error, :invalid_password}
     end
   end
+
   def hash_password(_invalid_password), do: {:error, :invalid_password}
 
   @doc """
@@ -44,6 +47,7 @@ defmodule HydepwnsLiveview.Accounts.Password do
       has_number and
       has_special
   end
+
   def valid_password?(_invalid_password), do: false
 
   @doc """
@@ -52,6 +56,7 @@ defmodule HydepwnsLiveview.Accounts.Password do
   def invalid_password?(password) when is_binary(password) do
     not valid_password?(password)
   end
+
   def invalid_password?(_invalid_password), do: true
 
   @doc """
@@ -104,5 +109,6 @@ defmodule HydepwnsLiveview.Accounts.Password do
 
     errors
   end
+
   def password_errors(_invalid_password), do: ["Invalid password format"]
-end 
+end

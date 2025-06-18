@@ -34,6 +34,7 @@ defmodule HydepwnsLiveview.Accounts.UserToken do
   def sign_token(user, context) when is_binary(context) do
     Phoenix.Token.sign(HydepwnsLiveviewWeb.Endpoint, context, user.id)
   end
+
   def sign_token(_invalid_user, _invalid_context), do: {:error, :invalid_parameters}
 
   @doc """
@@ -42,6 +43,7 @@ defmodule HydepwnsLiveview.Accounts.UserToken do
   def encode_token(token) when is_binary(token) do
     {:ok, Base.url_encode64(token, padding: false)}
   end
+
   def encode_token(_invalid_token), do: {:error, :invalid_token}
 
   @doc """
@@ -53,6 +55,7 @@ defmodule HydepwnsLiveview.Accounts.UserToken do
       :error -> {:error, :invalid_token}
     end
   end
+
   def decode_token(_invalid_token), do: {:error, :invalid_token}
 
   @doc """
@@ -61,6 +64,7 @@ defmodule HydepwnsLiveview.Accounts.UserToken do
   def build_email_token(user, context) when is_binary(context) do
     build_hashed_token(user, context, user.email)
   end
+
   def build_email_token(_invalid_user, _invalid_context), do: {:error, :invalid_parameters}
 
   @doc """
@@ -75,7 +79,9 @@ defmodule HydepwnsLiveview.Accounts.UserToken do
 
     {:ok, query}
   end
-  def verify_email_token_query(_invalid_token, _invalid_context), do: {:error, :invalid_parameters}
+
+  def verify_email_token_query(_invalid_token, _invalid_context),
+    do: {:error, :invalid_parameters}
 
   @doc """
   Checks if the token is valid and returns its underlying lookup query.
@@ -83,6 +89,7 @@ defmodule HydepwnsLiveview.Accounts.UserToken do
   def verify_password_reset_token_query(token) when is_binary(token) do
     verify_email_token_query(token, "reset_password")
   end
+
   def verify_password_reset_token_query(_invalid_token), do: {:error, :invalid_token}
 
   @doc """
@@ -91,6 +98,7 @@ defmodule HydepwnsLiveview.Accounts.UserToken do
   def verify_session_token_query(token) when is_binary(token) do
     verify_token_query(token, "session")
   end
+
   def verify_session_token_query(_invalid_token), do: {:error, :invalid_token}
 
   @doc """
@@ -100,6 +108,7 @@ defmodule HydepwnsLiveview.Accounts.UserToken do
     from HydepwnsLiveview.Accounts.UserToken,
       where: [token: ^token, context: ^context]
   end
+
   def token_and_context_query(_invalid_token, _invalid_context), do: {:error, :invalid_parameters}
 
   @doc """
@@ -113,6 +122,7 @@ defmodule HydepwnsLiveview.Accounts.UserToken do
     from t in HydepwnsLiveview.Accounts.UserToken,
       where: t.user_id == ^user.id and t.context in ^contexts
   end
+
   def user_and_contexts_query(_invalid_user, _invalid_contexts), do: {:error, :invalid_parameters}
 
   @doc """
@@ -121,9 +131,12 @@ defmodule HydepwnsLiveview.Accounts.UserToken do
   def build_hashed_token(user, context, sent_to) when is_binary(context) and is_binary(sent_to) do
     build_hashed_token(user, context, sent_to, user.email)
   end
-  def build_hashed_token(_invalid_user, _invalid_context, _invalid_sent_to), do: {:error, :invalid_parameters}
 
-  def build_hashed_token(user, context, sent_to, email) when is_binary(context) and is_binary(sent_to) and is_binary(email) do
+  def build_hashed_token(_invalid_user, _invalid_context, _invalid_sent_to),
+    do: {:error, :invalid_parameters}
+
+  def build_hashed_token(user, context, sent_to, email)
+      when is_binary(context) and is_binary(sent_to) and is_binary(email) do
     token = :crypto.strong_rand_bytes(@rand_size)
     hashed_token = :crypto.hash(@hash_algorithm, token)
 
@@ -135,7 +148,9 @@ defmodule HydepwnsLiveview.Accounts.UserToken do
        user_id: user.id
      }}
   end
-  def build_hashed_token(_invalid_user, _invalid_context, _invalid_sent_to, _invalid_email), do: {:error, :invalid_parameters}
+
+  def build_hashed_token(_invalid_user, _invalid_context, _invalid_sent_to, _invalid_email),
+    do: {:error, :invalid_parameters}
 
   @doc """
   Returns the token struct for the given token value.
@@ -150,6 +165,7 @@ defmodule HydepwnsLiveview.Accounts.UserToken do
         {:error, :invalid_token}
     end
   end
+
   def verify_token_query(_invalid_token, _invalid_context), do: {:error, :invalid_parameters}
 
   @doc """
@@ -160,16 +176,20 @@ defmodule HydepwnsLiveview.Accounts.UserToken do
       {:ok, decoded_token} ->
         hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
 
-        {:ok, (
-          from token in token_and_context_query(hashed_token, "change_email"),
-            where: token.sent_to == ^email and token.inserted_at > ago(@change_email_validity_in_days, "day")
-        )}
+        {:ok,
+         from(token in token_and_context_query(hashed_token, "change_email"),
+           where:
+             token.sent_to == ^email and
+               token.inserted_at > ago(@change_email_validity_in_days, "day")
+         )}
 
       :error ->
         {:error, :invalid_token}
     end
   end
-  def verify_change_email_token_query(_invalid_token, _invalid_email), do: {:error, :invalid_parameters}
+
+  def verify_change_email_token_query(_invalid_token, _invalid_email),
+    do: {:error, :invalid_parameters}
 
   @doc """
   Deletes all tokens for a user.
@@ -180,9 +200,12 @@ defmodule HydepwnsLiveview.Accounts.UserToken do
   end
 
   def delete_all_tokens(user, [_ | _] = contexts) do
-    from(t in HydepwnsLiveview.Accounts.UserToken, where: t.user_id == ^user.id and t.context in ^contexts)
+    from(t in HydepwnsLiveview.Accounts.UserToken,
+      where: t.user_id == ^user.id and t.context in ^contexts
+    )
     |> HydepwnsLiveview.Repo.delete_all()
   end
+
   def delete_all_tokens(_invalid_user, _invalid_contexts), do: {:error, :invalid_parameters}
 
   @doc """
@@ -194,4 +217,4 @@ defmodule HydepwnsLiveview.Accounts.UserToken do
     |> Ecto.Changeset.validate_required([:token, :context])
     |> Ecto.Changeset.foreign_key_constraint(:user_id)
   end
-end 
+end

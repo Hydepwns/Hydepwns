@@ -60,13 +60,7 @@ defmodule HydepwnsLiveviewWeb.User.UserFormComponent do
     <div>
       <%= HydepwnsLiveviewWeb.Components.Common.HeaderComponent.header(assigns) %>
 
-      <.simple_form
-        for={@changeset}
-        id="user-form"
-        phx-target={@myself}
-        phx-change="validate"
-        phx-submit="save"
-      >
+      <.simple_form for={@changeset} id="user-form" phx-target={@myself} phx-change="validate" phx-submit="save">
         <.input field={@changeset[:name]} type="text" label="Name" />
         <.input field={@changeset[:email]} type="email" label="Email" />
         <.input field={@changeset[:password]} type="password" label="Password" />
@@ -85,4 +79,4 @@ defmodule HydepwnsLiveviewWeb.User.UserFormComponent do
     </div>
     """
   end
-end 
+end

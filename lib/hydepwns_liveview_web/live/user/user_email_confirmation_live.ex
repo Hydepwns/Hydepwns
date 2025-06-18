@@ -45,14 +45,9 @@ defmodule HydepwnsLiveviewWeb.UserEmailConfirmationLive do
         <div class="space-y-6">
           <div>
             <h3 class="text-lg font-medium">Email Confirmation</h3>
-            <.form
-              :let={f}
-              for={%{}}
-              id="email-confirmation-form"
-              phx-submit="confirm"
-            >
+            <.form :let={f} for={%{}} id="email-confirmation-form" phx-submit="confirm">
               <div class="space-y-4">
-    <div>
+                <div>
                   <.label for={f[:token].id}>Confirmation Token</.label>
                   <.input field={f[:token]} type="text" required />
                 </div>
@@ -60,7 +55,7 @@ defmodule HydepwnsLiveviewWeb.UserEmailConfirmationLive do
                 <div class="flex justify-end space-x-4">
                   <.link navigate={~p"/users/settings"} class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
                     Cancel
-          </.link>
+                  </.link>
                   <.button type="submit" phx-disable-with="Confirming...">
                     Confirm Email
                   </.button>
@@ -73,4 +68,4 @@ defmodule HydepwnsLiveviewWeb.UserEmailConfirmationLive do
     </div>
     """
   end
-end 
+end

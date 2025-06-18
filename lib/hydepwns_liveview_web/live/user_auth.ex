@@ -53,7 +53,10 @@ defmodule HydepwnsLiveviewWeb.UserAuth do
     socket = assign_current_user(socket, session)
 
     if socket.assigns.current_user do
-      {:halt, Phoenix.LiveView.redirect(socket, to: Routes.user_path(socket, :show, socket.assigns.current_user))}
+      {:halt,
+       Phoenix.LiveView.redirect(socket,
+         to: Routes.user_path(socket, :show, socket.assigns.current_user)
+       )}
     else
       {:cont, socket}
     end
@@ -113,11 +116,11 @@ defmodule HydepwnsLiveviewWeb.UserAuth do
 
   @doc """
   Updates a user's password.
-  
+
   ## Parameters
   * `user` - The user to update
   * `attrs` - The password update attributes
-  
+
   ## Returns
   * `{:ok, updated_user}` or `{:error, changeset}`
   """
@@ -125,6 +128,7 @@ defmodule HydepwnsLiveviewWeb.UserAuth do
     case HydepwnsLiveview.Accounts.change_password(user, attrs) do
       {:ok, updated_user} ->
         {:ok, updated_user}
+
       {:error, changeset} ->
         {:error, changeset}
     end

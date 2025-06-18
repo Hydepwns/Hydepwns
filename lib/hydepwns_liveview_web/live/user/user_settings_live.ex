@@ -58,13 +58,7 @@ defmodule HydepwnsLiveviewWeb.UserSettingsLive do
     <div class="container mx-auto px-4 py-8">
       <h1 class="text-2xl font-bold mb-6">Settings</h1>
 
-      <.form
-        :let={f}
-        for={@changeset}
-        id="settings-form"
-        phx-change="validate"
-        phx-submit="save"
-      >
+      <.form :let={f} for={@changeset} id="settings-form" phx-change="validate" phx-submit="save">
         <div class="bg-white shadow rounded-lg p-6">
           <div class="space-y-6">
             <div>
@@ -113,4 +107,4 @@ defmodule HydepwnsLiveviewWeb.UserSettingsLive do
     </div>
     """
   end
-end 
+end

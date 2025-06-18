@@ -11,6 +11,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventLive do
          socket
          |> assign(:resource_id, resource_id)
          |> assign(:events, events)}
+
       {:error, reason} ->
         {:ok,
          socket
@@ -43,7 +44,8 @@ defmodule HydepwnsLiveviewWeb.ResourceEventLive do
         {:noreply,
          socket
          |> put_flash(:info, "Event deleted successfully")
-         |> push_redirect(to: ~p"/resource_events")}
+         |> push_navigate(to: ~p"/resource_events")}
+
       {:error, reason} ->
         {:noreply,
          socket
@@ -56,6 +58,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventLive do
     case Events.get_events_for_resource("resource", socket.assigns.resource_id) do
       {:ok, events} ->
         {:noreply, assign(socket, :events, events)}
+
       {:error, reason} ->
         {:noreply,
          socket
@@ -69,10 +72,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventLive do
     <div class="container mx-auto px-4 py-8">
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold">Resource Events</h1>
-        <button
-          phx-click="refresh"
-          class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
+        <button phx-click="refresh" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
           Refresh
         </button>
       </div>
@@ -108,11 +108,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventLive do
                   <%= Calendar.strftime(event.timestamp, "%Y-%m-%d %H:%M:%S") %>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  <button
-                    phx-click="delete"
-                    phx-value-id={event.id}
-                    class="text-red-600 hover:text-red-900"
-                  >
+                  <button phx-click="delete" phx-value-id={event.id} class="text-red-600 hover:text-red-900">
                     Delete
                   </button>
                 </td>
@@ -124,4 +120,4 @@ defmodule HydepwnsLiveviewWeb.ResourceEventLive do
     </div>
     """
   end
-end 
+end

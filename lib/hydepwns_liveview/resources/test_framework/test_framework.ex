@@ -1,4 +1,6 @@
 defmodule HydepwnsLiveview.Resources.TestFramework do
+  require Logger
+
   @moduledoc """
   Testing framework for event-sourced resources.
 

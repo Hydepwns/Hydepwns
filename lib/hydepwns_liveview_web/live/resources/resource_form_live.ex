@@ -82,25 +82,12 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
     <div class="container mx-auto px-4 py-8">
       <h1 class="text-2xl font-bold mb-6"><%= @page_title %></h1>
 
-      <.form
-        :let={f}
-        for={@changeset}
-        id="resource-form"
-        phx-change="validate"
-        phx-submit="save"
-        data-test-id="resource-form"
-      >
+      <.form :let={f} for={@changeset} id="resource-form" phx-change="validate" phx-submit="save" data-test-id="resource-form">
         <div class="bg-white shadow rounded-lg p-6">
           <div class="space-y-6">
             <div>
               <.label for={f[:name].id}>Name</.label>
-              <.input
-                field={f[:name]}
-                type="text"
-                id="name"
-                data-test-id="name-input"
-                required
-              />
+              <.input field={f[:name]} type="text" id="name" data-test-id="name-input" required />
               <.error :for={msg <- Keyword.get_values(f[:name].errors, :name)} data-test-id="error-message">
                 <%= msg %>
               </.error>
@@ -108,14 +95,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
 
             <div>
               <.label for={f[:type].id}>Type</.label>
-              <.input
-                field={f[:type]}
-                type="select"
-                id="type"
-                data-test-id="type-input"
-                options={[Folder: "folder", Document: "document"]}
-                required
-              />
+              <.input field={f[:type]} type="select" id="type" data-test-id="type-input" options={[Folder: "folder", Document: "document"]} required />
               <.error :for={msg <- Keyword.get_values(f[:type].errors, :type)} data-test-id="error-message">
                 <%= msg %>
               </.error>
@@ -123,13 +103,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
 
             <div>
               <.label for={f[:parent_id].id}>Parent Resource</.label>
-              <.input
-                field={f[:parent_id]}
-                type="select"
-                id="parent_id"
-                data-test-id="parent-id-select"
-                options={Resources.list_resources() |> Enum.map(&{&1.name, &1.id})}
-              />
+              <.input field={f[:parent_id]} type="select" id="parent_id" data-test-id="parent-id-select" options={Resources.list_resources() |> Enum.map(&{&1.name, &1.id})} />
               <.error :for={msg <- Keyword.get_values(f[:parent_id].errors, :parent_id)} data-test-id="error-message">
                 <%= msg %>
               </.error>
@@ -137,12 +111,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
 
             <div>
               <.label for={f[:description].id}>Description</.label>
-              <.input
-                field={f[:description]}
-                type="textarea"
-                id="description"
-                data-test-id="description-input"
-              />
+              <.input field={f[:description]} type="textarea" id="description" data-test-id="description-input" />
               <.error :for={msg <- Keyword.get_values(f[:description].errors, :description)} data-test-id="error-message">
                 <%= msg %>
               </.error>
@@ -150,32 +119,17 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
 
             <div>
               <.label for={f[:status].id}>Status</.label>
-              <.input
-                field={f[:status]}
-                type="select"
-                id="status"
-                data-test-id="status-input"
-                options={[Active: "active", Inactive: "inactive"]}
-                required
-              />
+              <.input field={f[:status]} type="select" id="status" data-test-id="status-input" options={[Active: "active", Inactive: "inactive"]} required />
               <.error :for={msg <- Keyword.get_values(f[:status].errors, :status)} data-test-id="error-message">
                 <%= msg %>
               </.error>
             </div>
 
             <div class="flex justify-end space-x-4">
-              <.link
-                navigate={~p"/resources"}
-                class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
-                data-test-id="cancel-resource-button"
-              >
+              <.link navigate={~p"/resources"} class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" data-test-id="cancel-resource-button">
                 Cancel
               </.link>
-              <.button
-                type="submit"
-                phx-disable-with="Saving..."
-                data-test-id="save-resource"
-              >
+              <.button type="submit" phx-disable-with="Saving..." data-test-id="save-resource">
                 Save Resource
               </.button>
             </div>

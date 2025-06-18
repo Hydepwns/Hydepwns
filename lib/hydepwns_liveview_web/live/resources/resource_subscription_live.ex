@@ -32,8 +32,7 @@ defmodule HydepwnsLiveviewWeb.ResourceSubscriptionLive do
           <%= for event_type <- ["resource.updated", "resource.transformed"] do %>
             <div class="mb-2">
               <label for={"event-checkbox-#{event_type}"}>
-                <input type="checkbox" id={"event-checkbox-#{event_type}"} name="events[]" value={event_type} checked={event_type in @selected_events} data-test-id={"event-checkbox-#{event_type}"} />
-                {event_type}
+                <input type="checkbox" id={"event-checkbox-#{event_type}"} name="events[]" value={event_type} checked={event_type in @selected_events} data-test-id={"event-checkbox-#{event_type}"} /> {event_type}
               </label>
             </div>
           <% end %>

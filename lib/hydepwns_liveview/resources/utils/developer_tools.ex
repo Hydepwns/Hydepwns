@@ -639,7 +639,10 @@ defmodule HydepwnsLiveview.Resources.DeveloperTools do
   * `{:error, reason}` - The event handling failed
   """
   def handle_debug_event(event, session_id, pid) do
-    Logger.debug("Debug event received for session #{session_id} from process #{inspect(pid)}: #{inspect(event)}")
+    Logger.debug(
+      "Debug event received for session #{session_id} from process #{inspect(pid)}: #{inspect(event)}"
+    )
+
     :ok
   end
 

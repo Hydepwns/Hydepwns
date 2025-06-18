@@ -144,4 +144,4 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
 
   defp format_datetime(nil), do: "-"
   defp format_datetime(%DateTime{} = dt), do: Calendar.strftime(dt, "%Y-%m-%d %H:%M:%S")
-end 
+end

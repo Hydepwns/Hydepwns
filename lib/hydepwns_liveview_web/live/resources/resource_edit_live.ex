@@ -26,4 +26,4 @@ defmodule HydepwnsLiveviewWeb.ResourceEditLive do
          |> redirect(to: ~p"/resources")}
     end
   end
-end 
+end

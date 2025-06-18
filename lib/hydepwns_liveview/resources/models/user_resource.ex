@@ -220,11 +220,11 @@ defmodule HydepwnsLiveview.Resources.UserResource do
 
   @doc """
   Executes a validation plan for the resource.
-  
+
   ## Parameters
   * `resource` - The resource to validate
   * `plan` - The validation plan to execute
-  
+
   ## Returns
   * `{:ok, validated_resource}` or `{:error, errors}`
   """
@@ -237,17 +237,17 @@ defmodule HydepwnsLiveview.Resources.UserResource do
 
   @doc """
   Resolves a relationship for the resource.
-  
+
   ## Parameters
   * `resource` - The resource to resolve the relationship for
   * `relationship` - The relationship to resolve
-  
+
   ## Returns
   * `{:ok, resolved_resource}` or `{:error, reason}`
   """
   def resolve_relationship(resource, relationship) do
     case relationship do
-      :team -> 
+      :team ->
         if resource.team_id do
           case HydepwnsLiveview.Resources.TeamResource.load(resource.team_id) do
             {:ok, team} -> {:ok, Map.put(resource, :team, team)}
@@ -256,31 +256,35 @@ defmodule HydepwnsLiveview.Resources.UserResource do
         else
           {:ok, resource}
         end
+
       :posts ->
         {:ok, Map.put(resource, :posts, [])}
-      _ -> {:error, "Unknown relationship: #{relationship}"}
+
+      _ ->
+        {:error, "Unknown relationship: #{relationship}"}
     end
   end
 
   @doc """
   Resolves validation dependencies for the resource.
-  
+
   ## Returns
   * `{:ok, dependencies}` or `{:error, reason}`
   """
   def resolve_validation_dependencies do
-    {:ok, [
-      email_must_be_valid: &validate_email/1,
-      name_must_not_be_empty: &validate_name/1
-    ]}
+    {:ok,
+     [
+       email_must_be_valid: &validate_email/1,
+       name_must_not_be_empty: &validate_name/1
+     ]}
   end
 
   @doc """
   Performs deep validation of the resource, including nested attributes and relationships.
-  
+
   ## Parameters
   * `resource` - The resource to validate
-  
+
   ## Returns
   * `{:ok, validated_resource}` or `{:error, errors}`
   """

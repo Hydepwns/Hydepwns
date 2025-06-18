@@ -58,4 +58,4 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
         {:noreply, assign(socket, :changeset, changeset)}
     end
   end
-end 
+end

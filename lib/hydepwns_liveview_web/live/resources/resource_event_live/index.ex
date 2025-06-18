@@ -6,7 +6,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventLive.Index do
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
     {:ok, events} = Events.get_events(%{})
-    
+
     {:ok,
      socket
      |> assign(:events, events)
@@ -31,7 +31,8 @@ defmodule HydepwnsLiveviewWeb.ResourceEventLive.Index do
         {:noreply,
          socket
          |> put_flash(:info, "Event deleted successfully")
-         |> push_redirect(to: ~p"/resource_events")}
+         |> push_navigate(to: ~p"/resource_events")}
+
       {:error, reason} ->
         {:noreply,
          socket
@@ -44,10 +45,11 @@ defmodule HydepwnsLiveviewWeb.ResourceEventLive.Index do
     case Events.get_events(%{}) do
       {:ok, events} ->
         {:noreply, assign(socket, :events, events)}
+
       {:error, reason} ->
         {:noreply,
          socket
          |> put_flash(:error, "Failed to refresh events: #{inspect(reason)}")}
     end
   end
-end 
+end

@@ -12,6 +12,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventLive.Show do
          socket
          |> assign(:event, event)
          |> assign(:page_title, "Show Resource Event")}
+
       {:error, :not_found} ->
         {:ok,
          socket
@@ -34,15 +35,15 @@ defmodule HydepwnsLiveviewWeb.ResourceEventLive.Show do
   @impl Phoenix.LiveView
   def handle_event("delete", %{"id" => id}, socket) do
     case Events.delete_event(id) do
-      {:ok, _event} ->
+      {:ok, _} ->
         {:noreply,
          socket
-         |> put_flash(:info, "Event deleted successfully")
-         |> push_redirect(to: ~p"/resource_events")}
-      {:error, reason} ->
+         |> put_flash(:info, "Resource event deleted successfully")
+         |> push_navigate(to: ~p"/resource_events")}
+      {:error, _changeset} ->
         {:noreply,
          socket
-         |> put_flash(:error, "Failed to delete event: #{inspect(reason)}")}
+         |> put_flash(:error, "Error deleting resource event")}
     end
   end
 
@@ -50,4 +51,4 @@ defmodule HydepwnsLiveviewWeb.ResourceEventLive.Show do
   def handle_event("back", _params, socket) do
     {:noreply, push_redirect(socket, to: ~p"/resource_events")}
   end
-end 
+end

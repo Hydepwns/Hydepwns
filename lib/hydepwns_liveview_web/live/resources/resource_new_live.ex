@@ -12,4 +12,4 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLive do
      |> assign(:resource, %Resource{})
      |> assign(:resources, ResourceSystem.list_resources())}
   end
-end 
+end

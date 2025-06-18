@@ -40,6 +40,7 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
         socket
         |> assign(:page_title, "Edit Resource")
         |> assign(:resource, resource)
+
       {:error, :not_found} ->
         socket
         |> put_flash(:error, "Resource not found")
@@ -49,10 +50,11 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
 
   @impl true
   def handle_event("filter", %{"type" => type}, socket) do
-    resources = case type do
-      "" -> ResourceSystem.list_resources()
-      type -> Enum.filter(ResourceSystem.list_resources(), &(&1.type == type))
-    end
+    resources =
+      case type do
+        "" -> ResourceSystem.list_resources()
+        type -> Enum.filter(ResourceSystem.list_resources(), &(&1.type == type))
+      end
 
     {:noreply, assign(socket, :resources, resources)}
   end
@@ -65,6 +67,7 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
          socket
          |> put_flash(:info, "Resource deleted successfully")
          |> assign(:resources, ResourceSystem.list_resources())}
+
       {:error, _reason} ->
         {:noreply,
          socket

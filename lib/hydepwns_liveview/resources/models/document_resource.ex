@@ -73,13 +73,16 @@ defmodule HydepwnsLiveview.Resources.DocumentResource do
 
   defp validate_content(changeset) do
     case get_change(changeset, :content) do
-      nil -> 
+      nil ->
         put_change(changeset, :content, %{text: ""})
-      content when is_map(content) -> 
+
+      content when is_map(content) ->
         changeset
-      content when is_binary(content) -> 
+
+      content when is_binary(content) ->
         put_change(changeset, :content, %{text: content})
-      _ -> 
+
+      _ ->
         add_error(changeset, :content, "must be a map or string")
     end
   end

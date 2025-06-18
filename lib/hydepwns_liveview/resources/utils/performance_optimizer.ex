@@ -618,7 +618,10 @@ defmodule HydepwnsLiveview.Resources.PerformanceOptimizer do
   * `{:error, reason}` - The alert failed to send
   """
   def send_performance_alert(operation, duration, threshold, context) do
-    Logger.warning("Performance alert: Operation '#{operation}' took #{duration}ms (threshold: #{threshold}ms) in context: #{inspect(context)}")
+    Logger.warning(
+      "Performance alert: Operation '#{operation}' took #{duration}ms (threshold: #{threshold}ms) in context: #{inspect(context)}"
+    )
+
     :ok
   end
 

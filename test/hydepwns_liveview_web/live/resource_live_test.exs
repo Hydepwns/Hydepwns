@@ -14,24 +14,27 @@ defmodule HydepwnsLiveviewWeb.ResourceLiveTest do
 
     assigns_resource do
       attributes do
-        attribute :page_title, :string, default: "Test Resource"
+        attribute(:page_title, :string, default: "Test Resource")
 
         attribute :user, :map do
-          attribute :id, :string, required: true
-          attribute :name, :string, default: "Test User"
-          attribute :role, {:one_of, ["admin", "user", "guest"]}, default: "user"
+          attribute(:id, :string, required: true)
+          attribute(:name, :string, default: "Test User")
+          attribute(:role, {:one_of, ["admin", "user", "guest"]}, default: "user")
         end
 
-        attribute :settings, :map, default: Macro.escape(%{theme: "dark"})
+        attribute(:settings, :map, default: Macro.escape(%{theme: "dark"}))
 
-        attribute :items, {:list, :string}, default: []
+        attribute(:items, {:list, :string}, default: [])
       end
     end
 
     @impl Phoenix.LiveView
     def do_mount(_params, _session, socket) do
       socket = __apply_resource_defaults__(socket)
-      socket = Phoenix.Component.assign(socket, :user, %{id: "user_123", name: "Test User", role: "user"})
+
+      socket =
+        Phoenix.Component.assign(socket, :user, %{id: "user_123", name: "Test User", role: "user"})
+
       {:ok, socket}
     end
 
@@ -168,12 +171,15 @@ defmodule HydepwnsLiveviewWeb.ResourceLiveTest do
         view
         |> render_click("test_api_update", %{
           "field" => "user",
-          "value" => %{name: "New Name"} # Missing required id field
+          # Missing required id field
+          "value" => %{name: "New Name"}
         })
 
       # Verify the update failed
-      assert html =~ "Test User" # Original name should still be there
-      assert html =~ "user_123" # Original ID should still be there
+      # Original name should still be there
+      assert html =~ "Test User"
+      # Original ID should still be there
+      assert html =~ "user_123"
     end
 
     test "adds items to list", %{conn: conn} do

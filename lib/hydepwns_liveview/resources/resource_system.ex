@@ -53,6 +53,7 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
     case Repo.get(Resource, id) do
       nil ->
         {:error, :not_found}
+
       resource ->
         resource
         |> Resource.changeset(attrs)
@@ -67,6 +68,7 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
     case Repo.get(Resource, id) do
       nil ->
         {:error, :not_found}
+
       resource ->
         Repo.delete(resource)
     end

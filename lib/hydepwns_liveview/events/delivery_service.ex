@@ -26,7 +26,9 @@ defmodule HydepwnsLiveview.Events.DeliveryService do
   Sends a reminder through multiple delivery methods.
   Returns a map of results for each delivery method.
   """
-  @spec send_reminder_multi(struct(), [delivery_type()], map()) :: %{delivery_type() => delivery_result()}
+  @spec send_reminder_multi(struct(), [delivery_type()], map()) :: %{
+          delivery_type() => delivery_result()
+        }
   def send_reminder_multi(reminder, delivery_types, settings) do
     delivery_types
     |> Enum.map(fn type -> {type, send_reminder(reminder, type, settings)} end)
@@ -43,9 +45,10 @@ defmodule HydepwnsLiveview.Events.DeliveryService do
 
   defp get_config(delivery_type) do
     config = Application.get_env(:hydepwns_liveview, :reminder_services)
+
     case config[delivery_type] do
       nil -> {:error, "No configuration found for #{delivery_type}"}
       config -> {:ok, config}
     end
   end
-end 
+end

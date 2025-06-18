@@ -6,7 +6,7 @@ defmodule HydepwnsLiveview.Events.ResourceEventGenerator do
   for resource-related operations like create, update, delete, etc.
   """
 
-  alias HydepwnsLiveview.Events.Event
+  alias HydepwnsLiveview.Events.Core.Event
 
   @doc """
   Generate and publish an event for a resource.
@@ -117,14 +117,11 @@ defmodule HydepwnsLiveview.Events.ResourceEventGenerator do
 
   # Private functions
 
-  # Extract the resource type from the module name
-  # Example: HydepwnsLiveview.Resources.UserResource -> "user"
   defp extract_resource_type(module) when is_atom(module) do
     module
-    |> to_string()
-    |> String.split(".")
+    |> Module.split()
     |> List.last()
     |> String.replace("Resource", "")
-    |> String.downcase()
+    |> Macro.underscore()
   end
 end

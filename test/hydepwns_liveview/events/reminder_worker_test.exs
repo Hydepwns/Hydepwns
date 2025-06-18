@@ -71,4 +71,4 @@ defmodule HydepwnsLiveview.Events.ReminderWorkerTest do
     assert updated_reminder.status == "pending"
     assert updated_reminder.sent_at == nil
   end
-end 
+end

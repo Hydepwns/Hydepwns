@@ -6,6 +6,8 @@ defmodule HydepwnsLiveview.Events.Event do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias HydepwnsLiveview.Events.Core.Event, as: CoreEvent
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "events" do
@@ -78,7 +80,7 @@ defmodule HydepwnsLiveview.Events.Event do
   """
   @spec create(String.t(), map()) :: {:ok, map()} | {:error, term()}
   def create(type, data) when is_binary(type) and is_map(data) do
-    case HydepwnsLiveview.Events.Core.Event.create(type, data) do
+    case CoreEvent.create(type, data) do
       {:ok, event} ->
         case HydepwnsLiveview.Events.EventBus.publish(event) do
           :ok -> {:ok, event}

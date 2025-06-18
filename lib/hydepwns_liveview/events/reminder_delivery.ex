@@ -26,10 +26,12 @@ defmodule HydepwnsLiveview.Events.ReminderDelivery do
           case deliver_reminder(reminder, settings) do
             {:ok, _} ->
               update_reminder_status(reminder, "sent")
+
             {:error, reason} ->
               update_reminder_status(reminder, "failed", reason)
               Repo.rollback(reason)
           end
+
         {:error, reason} ->
           update_reminder_status(reminder, "failed", reason)
           Repo.rollback(reason)
@@ -64,4 +66,4 @@ defmodule HydepwnsLiveview.Events.ReminderDelivery do
     })
     |> Repo.update()
   end
-end 
+end

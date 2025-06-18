@@ -47,7 +47,9 @@ defmodule HydepwnsLiveview.Events.EventOperationsTest do
     end
 
     test "rejects invalid event data" do
-      assert {:error, :invalid_parameters} = EventOperations.store_event("test_event", "not_a_map")
+      assert {:error, :invalid_parameters} =
+               EventOperations.store_event("test_event", "not_a_map")
+
       assert {:error, :invalid_parameters} = EventOperations.store_event("test_event", nil)
       assert {:error, :invalid_parameters} = EventOperations.store_event("test_event", 123)
     end
@@ -119,4 +121,4 @@ defmodule HydepwnsLiveview.Events.EventOperationsTest do
       assert {:ok, []} = EventOperations.get_events(%{event_type: "nonexistent_type"})
     end
   end
-end 
+end

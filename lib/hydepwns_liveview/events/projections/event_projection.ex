@@ -63,10 +63,11 @@ defmodule HydepwnsLiveview.Events.Projections.EventProjection do
   # Private Functions
 
   defp update_state(state, event) do
-    %{state |
-      events: [event | state.events],
-      last_event_id: event.id,
-      last_updated: DateTime.utc_now()
+    %{
+      state
+      | events: [event | state.events],
+        last_event_id: event.id,
+        last_updated: DateTime.utc_now()
     }
   end
-end 
+end

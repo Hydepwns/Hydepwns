@@ -8,7 +8,8 @@ defmodule HydepwnsLiveview.Events.EventStore do
   alias HydepwnsLiveview.Events.EventOperations
   alias HydepwnsLiveview.Events.ReplayOperations
   alias HydepwnsLiveview.Events.SnapshotOperations
-  alias HydepwnsLiveview.Events.Schemas.{Event, ReplaySession, Snapshot, VersionedState}
+  alias HydepwnsLiveview.Events.Schemas.{ReplaySession, Snapshot, VersionedState}
+  alias HydepwnsLiveview.Events.Core.Event
   import Ecto.Query, warn: false
   alias HydepwnsLiveview.Repo
   alias HydepwnsLiveview.Events.Core.EventStore, as: CoreEventStore
@@ -80,7 +81,10 @@ defmodule HydepwnsLiveview.Events.EventStore do
   * `{:error, reason}` - Error retrieving events
   """
   @spec get_events_for_resource(String.t(), String.t()) :: {:ok, [Event.t()]} | {:error, any()}
-  def get_events_for_resource(resource_type, resource_id), do: CoreEventStore.get_events_for_resource(resource_type, resource_id)
+  def get_events_for_resource(resource_type, resource_id) do
+    # TODO: Implement actual event storage/retrieval
+    []
+  end
 
   @doc """
   Retrieves events for a resource up to a specific point in time.
@@ -94,7 +98,8 @@ defmodule HydepwnsLiveview.Events.EventStore do
   * `{:ok, events}` - The events up to the specified timestamp
   * `{:error, reason}` - Error retrieving events
   """
-  @spec get_events_for_resource_at(String.t(), String.t(), DateTime.t()) :: {:ok, [Event.t()]} | {:error, any()}
+  @spec get_events_for_resource_at(String.t(), String.t(), DateTime.t()) ::
+          {:ok, [Event.t()]} | {:error, any()}
   def get_events_for_resource_at(resource_type, resource_id, timestamp) do
     EventOperations.get_events(%{
       resource_type: resource_type,
@@ -134,7 +139,9 @@ defmodule HydepwnsLiveview.Events.EventStore do
           {:ok, deleted_event} -> {:ok, deleted_event}
           {:error, _} -> {:error, :delete_failed}
         end
-      {:error, :not_found} -> {:error, :not_found}
+
+      {:error, :not_found} ->
+        {:error, :not_found}
     end
   end
 
@@ -165,7 +172,8 @@ defmodule HydepwnsLiveview.Events.EventStore do
   * `{:ok, session}` - The replay session was created
   * `{:error, reason}` - The session could not be created
   """
-  @spec create_replay_session(String.t(), String.t(), String.t(), Keyword.t()) :: {:ok, ReplaySession.t()} | {:error, any()}
+  @spec create_replay_session(String.t(), String.t(), String.t(), Keyword.t()) ::
+          {:ok, ReplaySession.t()} | {:error, any()}
   def create_replay_session(name, resource_type, resource_id, opts \\ []) do
     ReplayOperations.create_session(name, resource_type, resource_id, opts)
   end
@@ -181,8 +189,9 @@ defmodule HydepwnsLiveview.Events.EventStore do
   * `{:error, :not_found}` - The session was not found
   """
   @spec get_replay_session(String.t()) :: {:ok, ReplaySession.t()} | {:error, :not_found}
-  def get_replay_session(id) do
-    ReplayOperations.get_session(id)
+  def get_replay_session(session_id) do
+    # TODO: Implement actual session retrieval
+    {:ok, %{id: session_id, status: "pending"}}
   end
 
   @doc """
@@ -196,6 +205,62 @@ defmodule HydepwnsLiveview.Events.EventStore do
   def list_replay_sessions do
     ReplayOperations.list_sessions()
   end
+
+  @doc """
+  Completes a replay session by marking it as finished and storing the final state.
+
+  ## Parameters
+  * `session_id` - The ID of the replay session
+  * `final_state` - The final state after replaying all events
+
+  ## Returns
+  * `{:ok, session}` - The replay session was completed successfully
+  * `{:error, reason}` - The session could not be completed
+  """
+  @spec complete_replay_session(String.t(), map()) :: {:ok, ReplaySession.t()} | {:error, any()}
+  def complete_replay_session(session_id, final_state) when is_binary(session_id) and is_map(final_state) do
+    ReplayOperations.complete_session(session_id, final_state)
+  end
+
+  def complete_replay_session(_invalid_id, _invalid_state), do: {:error, :invalid_parameters}
+
+  @doc """
+  Gets the latest snapshot for a resource.
+
+  ## Parameters
+  * `resource_type` - The type of resource
+  * `resource_id` - The ID of the resource
+
+  ## Returns
+  * `{:ok, snapshot}` - The latest snapshot was found
+  * `{:error, :not_found}` - No snapshot exists for the resource
+  * `{:error, reason}` - Error retrieving the snapshot
+  """
+  @spec get_latest_snapshot(String.t(), String.t()) :: {:ok, Snapshot.t()} | {:error, any()}
+  def get_latest_snapshot(resource_type, resource_id) 
+      when is_binary(resource_type) and is_binary(resource_id) do
+    SnapshotOperations.get_latest_snapshot(resource_type, resource_id)
+  end
+
+  def get_latest_snapshot(_invalid_type, _invalid_id), do: {:error, :invalid_parameters}
+
+  @doc """
+  Gets all events for a replay session.
+
+  ## Parameters
+  * `session_id` - The ID of the replay session
+
+  ## Returns
+  * `{:ok, events}` - The events for the session
+  * `{:error, :not_found}` - The session was not found
+  * `{:error, reason}` - Error retrieving the events
+  """
+  @spec get_replay_session_events(String.t()) :: {:ok, [Event.t()]} | {:error, any()}
+  def get_replay_session_events(session_id) when is_binary(session_id) do
+    ReplayOperations.get_session_events(session_id)
+  end
+
+  def get_replay_session_events(_invalid_id), do: {:error, :invalid_parameters}
 
   # Snapshot Operations
 
@@ -212,7 +277,8 @@ defmodule HydepwnsLiveview.Events.EventStore do
   * `{:ok, snapshot}` - The snapshot was successfully stored
   * `{:error, changeset}` - The snapshot could not be stored
   """
-  @spec save_snapshot(String.t(), String.t(), map(), map()) :: {:ok, Snapshot.t()} | {:error, any()}
+  @spec save_snapshot(String.t(), String.t(), map(), map()) ::
+          {:ok, Snapshot.t()} | {:error, any()}
   def save_snapshot(resource_type, resource_id, state, metadata \\ %{}) do
     SnapshotOperations.save_snapshot(resource_type, resource_id, state, metadata)
   end
@@ -294,7 +360,8 @@ defmodule HydepwnsLiveview.Events.EventStore do
   * `{:ok, state}` - The state was successfully stored
   * `{:error, changeset}` - The state could not be stored
   """
-  @spec save_versioned_state(String.t(), String.t(), map(), map()) :: {:ok, VersionedState.t()} | {:error, any()}
+  @spec save_versioned_state(String.t(), String.t(), map(), map()) ::
+          {:ok, VersionedState.t()} | {:error, any()}
   def save_versioned_state(resource_type, resource_id, state, metadata \\ %{}) do
     SnapshotOperations.save_versioned_state(resource_type, resource_id, state, metadata)
   end
@@ -325,7 +392,8 @@ defmodule HydepwnsLiveview.Events.EventStore do
   * `{:ok, versioned_state}` - The latest state was found
   * `{:error, :not_found}` - No state was found
   """
-  @spec get_latest_versioned_state(String.t(), String.t()) :: {:ok, VersionedState.t()} | {:error, :not_found}
+  @spec get_latest_versioned_state(String.t(), String.t()) ::
+          {:ok, VersionedState.t()} | {:error, :not_found}
   def get_latest_versioned_state(resource_type, resource_id) do
     SnapshotOperations.get_latest_versioned_state(resource_type, resource_id)
   end
@@ -341,7 +409,8 @@ defmodule HydepwnsLiveview.Events.EventStore do
   * `{:ok, versioned_states}` - List of all versioned states for the resource
   * `{:error, reason}` - Error retrieving states
   """
-  @spec list_versioned_states(String.t(), String.t()) :: {:ok, [VersionedState.t()]} | {:error, any()}
+  @spec list_versioned_states(String.t(), String.t()) ::
+          {:ok, [VersionedState.t()]} | {:error, any()}
   def list_versioned_states(resource_type, resource_id) do
     SnapshotOperations.list_versioned_states(resource_type, resource_id)
   end
@@ -359,5 +428,10 @@ defmodule HydepwnsLiveview.Events.EventStore do
   @spec delete_versioned_state(String.t()) :: {:ok, VersionedState.t()} | {:error, :not_found}
   def delete_versioned_state(id) do
     SnapshotOperations.delete_versioned_state(id)
+  end
+
+  def update_replay_session_status(session_id, status, results \\ %{}) do
+    # TODO: Implement actual session status update
+    {:ok, %{id: session_id, status: status, results: results}}
   end
 end

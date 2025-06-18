@@ -40,9 +40,10 @@ defmodule HydepwnsLiveview.Events.ReminderWorker do
       case ReminderDelivery.send_reminder(reminder) do
         {:ok, _} ->
           Logger.info("Successfully sent reminder #{reminder.id}")
+
         {:error, reason} ->
           Logger.error("Failed to send reminder #{reminder.id}: #{reason}")
       end
     end)
   end
-end 
+end

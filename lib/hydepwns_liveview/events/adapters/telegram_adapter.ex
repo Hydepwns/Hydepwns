@@ -18,6 +18,7 @@ defmodule HydepwnsLiveview.Events.Adapters.TelegramAdapter do
       {:error, :invalid_chat} ->
         Logger.error("Invalid Telegram chat ID: #{reminder.recipient}")
         {:error, "Invalid Telegram chat ID"}
+
       {:error, reason} ->
         Logger.error("Failed to send Telegram message: #{inspect(reason)}")
         {:error, "Failed to send Telegram message"}
@@ -39,9 +40,9 @@ defmodule HydepwnsLiveview.Events.Adapters.TelegramAdapter do
     message = %{
       text: """
       *#{reminder.title}*
-      
+
       #{reminder.message}
-      
+
       Encrypted message: `#{encrypted_message}`
       """,
       parse_mode: "Markdown",
@@ -49,14 +50,16 @@ defmodule HydepwnsLiveview.Events.Adapters.TelegramAdapter do
     }
 
     # Add inline keyboard if configured
-    message = case config.inline_keyboard do
-      keyboard when is_list(keyboard) ->
-        Map.put(message, :reply_markup, %{
-          inline_keyboard: keyboard
-        })
-      _ ->
-        message
-    end
+    message =
+      case config.inline_keyboard do
+        keyboard when is_list(keyboard) ->
+          Map.put(message, :reply_markup, %{
+            inline_keyboard: keyboard
+          })
+
+        _ ->
+          message
+      end
 
     {:ok, message}
   end
@@ -65,10 +68,10 @@ defmodule HydepwnsLiveview.Events.Adapters.TelegramAdapter do
     try do
       # Telegram Bot API endpoint
       url = "https://api.telegram.org/bot#{config.bot_token}/sendMessage"
-      
+
       # Add chat_id to the message
       message = Map.put(message, :chat_id, chat_id)
-      
+
       # Prepare request body
       body = Jason.encode!(message)
 
@@ -80,14 +83,18 @@ defmodule HydepwnsLiveview.Events.Adapters.TelegramAdapter do
       case HTTPoison.post(url, body, headers) do
         {:ok, %HTTPoison.Response{status_code: 200, body: response_body}} ->
           handle_successful_response(response_body)
+
         {:ok, %HTTPoison.Response{status_code: 401}} ->
           Logger.error("Telegram authentication error")
           {:error, "Telegram authentication failed"}
+
         {:ok, %HTTPoison.Response{status_code: 429, body: response_body}} ->
           handle_rate_limit(response_body)
+
         {:ok, %HTTPoison.Response{status_code: status}} ->
           Logger.error("Telegram HTTP error: #{status}")
           {:error, "Telegram service error: HTTP #{status}"}
+
         {:error, %HTTPoison.Error{reason: reason}} ->
           Logger.error("Telegram request error: #{inspect(reason)}")
           {:error, "Failed to connect to Telegram"}
@@ -103,9 +110,11 @@ defmodule HydepwnsLiveview.Events.Adapters.TelegramAdapter do
     case Jason.decode(response_body) do
       {:ok, %{"ok" => true, "result" => %{"message_id" => message_id}}} ->
         {:ok, %{message_id: message_id}}
+
       {:ok, %{"ok" => false, "description" => description}} ->
         Logger.error("Telegram API error: #{description}")
         {:error, "Failed to send Telegram message: #{description}"}
+
       _ ->
         Logger.error("Invalid Telegram API response")
         {:error, "Invalid Telegram API response"}
@@ -118,12 +127,14 @@ defmodule HydepwnsLiveview.Events.Adapters.TelegramAdapter do
         Logger.warning("Telegram rate limit hit, retry after #{retry_after} seconds")
         Process.sleep(retry_after * 1000)
         {:error, "Rate limited, please retry"}
+
       {:ok, error} ->
         Logger.error("Telegram rate limit error: #{inspect(error)}")
         {:error, "Telegram rate limit error"}
+
       {:error, _} ->
         Logger.error("Invalid Telegram rate limit response")
         {:error, "Telegram rate limit error"}
     end
   end
-end 
+end

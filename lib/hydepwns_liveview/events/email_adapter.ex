@@ -11,4 +11,4 @@ defmodule HydepwnsLiveview.Events.EmailAdapter do
     # For now, we'll just simulate a successful delivery
     {:ok, "Email sent to #{reminder.recipient}"}
   end
-end 
+end

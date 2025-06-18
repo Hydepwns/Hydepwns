@@ -18,6 +18,7 @@ defmodule HydepwnsLiveview.Events.Adapters.SMSAdapter do
       {:error, :invalid_phone} ->
         Logger.error("Invalid phone number: #{reminder.recipient}")
         {:error, "Invalid phone number"}
+
       {:error, reason} ->
         Logger.error("Failed to send SMS: #{inspect(reason)}")
         {:error, "Failed to send SMS"}
@@ -40,11 +41,12 @@ defmodule HydepwnsLiveview.Events.Adapters.SMSAdapter do
     message = "#{prefix}#{reminder.message}\n\nEncrypted: #{encrypted_message}"
 
     # Truncate if too long
-    message = if String.length(message) > 160 do
-      String.slice(message, 0, 157) <> "..."
-    else
-      message
-    end
+    message =
+      if String.length(message) > 160 do
+        String.slice(message, 0, 157) <> "..."
+      else
+        message
+      end
 
     {:ok, message}
   end
@@ -61,15 +63,16 @@ defmodule HydepwnsLiveview.Events.Adapters.SMSAdapter do
     try do
       # Nexmo API endpoint
       url = "https://rest.nexmo.com/sms/json"
-      
+
       # Prepare request body
-      body = Jason.encode!(%{
-        api_key: config.api_key,
-        api_secret: config.api_secret,
-        to: phone_number,
-        from: config.from_number,
-        text: message
-      })
+      body =
+        Jason.encode!(%{
+          api_key: config.api_key,
+          api_secret: config.api_secret,
+          to: phone_number,
+          from: config.from_number,
+          text: message
+        })
 
       # Send request
       case HTTPoison.post(url, body, [{"Content-Type", "application/json"}]) do
@@ -77,16 +80,20 @@ defmodule HydepwnsLiveview.Events.Adapters.SMSAdapter do
           case Jason.decode(response_body) do
             {:ok, %{"messages" => [%{"message-id" => message_id} | _]}} ->
               {:ok, %{message_id: message_id}}
+
             {:ok, %{"messages" => [%{"error-text" => error} | _]}} ->
               Logger.error("Nexmo API error: #{error}")
               {:error, "Failed to send SMS via Nexmo: #{error}"}
+
             _ ->
               Logger.error("Unexpected Nexmo response: #{response_body}")
               {:error, "Unexpected response from Nexmo"}
           end
+
         {:ok, %HTTPoison.Response{status_code: status}} ->
           Logger.error("Nexmo HTTP error: #{status}")
           {:error, "Nexmo service error: HTTP #{status}"}
+
         {:error, %HTTPoison.Error{reason: reason}} ->
           Logger.error("Nexmo request error: #{inspect(reason)}")
           {:error, "Failed to connect to Nexmo"}
@@ -101,23 +108,29 @@ defmodule HydepwnsLiveview.Events.Adapters.SMSAdapter do
   defp send_twilio_sms(to, message, account_sid, auth_token) do
     url = "https://api.twilio.com/2010-04-01/Accounts/#{account_sid}/Messages.json"
     auth = Base.encode64("#{account_sid}:#{auth_token}")
+
     headers = [
       {"Authorization", "Basic #{auth}"},
       {"Content-Type", "application/x-www-form-urlencoded"}
     ]
-    body = URI.encode_query(%{
-      To: to,
-      From: "+1234567890",  # Replace with your Twilio phone number
-      Body: message
-    })
+
+    body =
+      URI.encode_query(%{
+        To: to,
+        # Replace with your Twilio phone number
+        From: "+1234567890",
+        Body: message
+      })
 
     case HTTPoison.post(url, body, headers) do
       {:ok, %{status_code: status_code}} when status_code in 200..299 ->
         {:ok, "SMS sent successfully"}
+
       {:ok, %{status_code: status_code}} ->
         {:error, "Failed to send SMS with status code: #{status_code}"}
+
       {:error, %HTTPoison.Error{reason: reason}} ->
         {:error, "Failed to send SMS: #{reason}"}
     end
   end
-end 
+end

@@ -47,4 +47,4 @@ defmodule HydepwnsLiveview.Events.Schemas.VersionedState do
     ])
     |> validate_required([:resource_type, :resource_id, :state, :label, :created_at])
   end
-end 
+end

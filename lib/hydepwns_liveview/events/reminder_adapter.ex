@@ -5,4 +5,4 @@ defmodule HydepwnsLiveview.Events.ReminderAdapter do
 
   @callback send_reminder(reminder :: struct(), settings :: struct()) ::
               {:ok, String.t()} | {:error, String.t()}
-end 
+end

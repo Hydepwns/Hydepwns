@@ -52,4 +52,4 @@ defmodule HydepwnsLiveview.Events.Schemas.ReplaySession do
     |> validate_required([:name, :resource_type, :resource_id])
     |> validate_inclusion(:status, ["pending", "running", "completed", "failed"])
   end
-end 
+end

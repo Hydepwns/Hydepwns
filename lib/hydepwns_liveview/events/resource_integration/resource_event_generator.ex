@@ -175,10 +175,15 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator do
   # Extracts the ID from a resource
   defp extract_id(resource) do
     cond do
-      Map.has_key?(resource, :id) -> resource.id
-      Map.has_key?(resource, "id") -> resource["id"]
+      Map.has_key?(resource, :id) ->
+        resource.id
+
+      Map.has_key?(resource, "id") ->
+        resource["id"]
+
       true ->
-        raise KeyError, "Resource must have an :id or 'id' key. Got keys: #{inspect(Map.keys(resource))}. Add an :id key to your resource map."
+        raise KeyError,
+              "Resource must have an :id or 'id' key. Got keys: #{inspect(Map.keys(resource))}. Add an :id key to your resource map."
     end
   end
 

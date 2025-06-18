@@ -65,28 +65,31 @@ defmodule HydepwnsLiveview.Events.Projections.ResourceProjection do
   defp update_state(state, event) do
     case event do
       %{type: "resource_created", resource_id: id, data: data} ->
-        %{state |
-          resources: Map.put(state.resources, id, data),
-          last_event_id: event.id,
-          last_updated: DateTime.utc_now()
+        %{
+          state
+          | resources: Map.put(state.resources, id, data),
+            last_event_id: event.id,
+            last_updated: DateTime.utc_now()
         }
 
       %{type: "resource_updated", resource_id: id, data: data} ->
-        %{state |
-          resources: Map.update(state.resources, id, data, &Map.merge(&1, data)),
-          last_event_id: event.id,
-          last_updated: DateTime.utc_now()
+        %{
+          state
+          | resources: Map.update(state.resources, id, data, &Map.merge(&1, data)),
+            last_event_id: event.id,
+            last_updated: DateTime.utc_now()
         }
 
       %{type: "resource_deleted", resource_id: id} ->
-        %{state |
-          resources: Map.delete(state.resources, id),
-          last_event_id: event.id,
-          last_updated: DateTime.utc_now()
+        %{
+          state
+          | resources: Map.delete(state.resources, id),
+            last_event_id: event.id,
+            last_updated: DateTime.utc_now()
         }
 
       _ ->
         state
     end
   end
-end 
+end

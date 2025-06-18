@@ -144,10 +144,11 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventIntegration d
       # Check if the module uses EventSourcedResource
       resource_module.__info__(:attributes)
       |> Enum.any?(fn {key, value} ->
-        key == :__using__ && Enum.any?(value, fn
-          {HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource, _} -> true
-          _ -> false
-        end)
+        key == :__using__ &&
+          Enum.any?(value, fn
+            {HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource, _} -> true
+            _ -> false
+          end)
       end)
     else
       _ -> false
@@ -194,12 +195,21 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventIntegration d
   """
   defp get_id(resource) when is_map(resource) do
     cond do
-      Map.has_key?(resource, :id) -> resource.id
-      Map.has_key?(resource, "id") -> resource["id"]
-      Map.has_key?(resource, :uuid) -> resource.uuid
-      Map.has_key?(resource, "uuid") -> resource["uuid"]
+      Map.has_key?(resource, :id) ->
+        resource.id
+
+      Map.has_key?(resource, "id") ->
+        resource["id"]
+
+      Map.has_key?(resource, :uuid) ->
+        resource.uuid
+
+      Map.has_key?(resource, "uuid") ->
+        resource["uuid"]
+
       true ->
-        raise KeyError, "Resource must have an :id, 'id', :uuid, or 'uuid' key. Got keys: #{inspect(Map.keys(resource))}"
+        raise KeyError,
+              "Resource must have an :id, 'id', :uuid, or 'uuid' key. Got keys: #{inspect(Map.keys(resource))}"
     end
   end
 

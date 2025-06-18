@@ -1,4 +1,6 @@
 defmodule HydepwnsLiveview.Events.Core.EventInspector do
+  require Logger
+
   @moduledoc """
   Provides tools for inspecting and debugging events in the system.
 
@@ -191,7 +193,7 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
         Enum.map(events_by_minute, fn {minute, events} ->
           {minute, length(events)}
         end)
-        |> Enum.sort_by(fn {_minute, _} -> _minute end)
+        |> Enum.sort_by(fn {minute, _} -> minute end)
       else
         []
       end
@@ -392,5 +394,77 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
       },
       %{session_id: session_id}
     )
+  end
+
+  def analyze_event_sequence(events) when is_list(events) do
+    with :ok <- validate_event_sequence(events),
+         analysis <- perform_sequence_analysis(events) do
+      {:ok, analysis}
+    else
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  def get_event_metadata(event) do
+    %{
+      type: event.__struct__,
+      timestamp: event.timestamp,
+      source: event.source,
+      correlation_id: event.correlation_id
+    }
+  end
+
+  # Private functions
+
+  defp validate_event(event) do
+    case event do
+      %{__struct__: _} -> :ok
+      _ -> {:error, "Invalid event structure"}
+    end
+  end
+
+  defp check_event_type(event) do
+    case event.__struct__ do
+      type when is_atom(type) -> :ok
+      _ -> {:error, "Invalid event type"}
+    end
+  end
+
+  defp validate_event_data(event) do
+    required_fields = [:timestamp, :source, :correlation_id]
+    
+    case Enum.all?(required_fields, &Map.has_key?(event, &1)) do
+      true -> :ok
+      false -> {:error, "Missing required event fields"}
+    end
+  end
+
+  defp validate_event_sequence(events) do
+    case Enum.all?(events, &validate_event/1) do
+      true -> :ok
+      false -> {:error, "Invalid event in sequence"}
+    end
+  end
+
+  defp perform_sequence_analysis(events) do
+    %{
+      total_events: length(events),
+      event_types: Enum.uniq(Enum.map(events, & &1.__struct__)),
+      time_span: calculate_time_span(events),
+      source_distribution: analyze_source_distribution(events)
+    }
+  end
+
+  defp calculate_time_span(events) do
+    timestamps = Enum.map(events, & &1.timestamp)
+    {min, max} = Enum.min_max(timestamps)
+    DateTime.diff(max, min)
+  end
+
+  defp analyze_source_distribution(events) do
+    events
+    |> Enum.group_by(& &1.source)
+    |> Enum.map(fn {source, events} -> {source, length(events)} end)
+    |> Enum.into(%{})
   end
 end

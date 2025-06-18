@@ -8,7 +8,8 @@ defmodule HydepwnsLiveview.Events.Adapters.WebhookAdapter do
   require Logger
 
   @max_retries 3
-  @retry_delay 1000 # 1 second
+  # 1 second
+  @retry_delay 1000
 
   @impl true
   def send_reminder(reminder, _settings, config, encrypted_message) do
@@ -21,6 +22,7 @@ defmodule HydepwnsLiveview.Events.Adapters.WebhookAdapter do
       {:error, :invalid_url} ->
         Logger.error("Invalid webhook URL: #{config.webhook_url}")
         {:error, "Invalid webhook URL"}
+
       {:error, reason} ->
         Logger.error("Failed to send webhook notification: #{inspect(reason)}")
         {:error, "Failed to send webhook notification"}
@@ -33,6 +35,7 @@ defmodule HydepwnsLiveview.Events.Adapters.WebhookAdapter do
     case URI.parse(url) do
       %URI{scheme: scheme, host: host} when scheme in ["http", "https"] and not is_nil(host) ->
         {:ok, url}
+
       _ ->
         {:error, :invalid_url}
     end
@@ -57,12 +60,14 @@ defmodule HydepwnsLiveview.Events.Adapters.WebhookAdapter do
     }
 
     # Apply custom payload transformation if configured
-    payload = case config.payload_transform do
-      {module, function} when is_atom(module) and is_atom(function) ->
-        apply(module, function, [payload])
-      _ ->
-        payload
-    end
+    payload =
+      case config.payload_transform do
+        {module, function} when is_atom(module) and is_atom(function) ->
+          apply(module, function, [payload])
+
+        _ ->
+          payload
+      end
 
     {:ok, payload}
   end
@@ -74,11 +79,16 @@ defmodule HydepwnsLiveview.Events.Adapters.WebhookAdapter do
     case HTTPoison.post(url, body, headers) do
       {:ok, %{status_code: status_code}} when status_code in 200..299 ->
         {:ok, "Webhook request sent successfully"}
+
       {:ok, %{status_code: status_code}} ->
         {:error, "Webhook request failed with status code: #{status_code}"}
+
       {:error, %HTTPoison.Error{reason: reason}} ->
         if retry_count < @max_retries do
-          Logger.warning("Connection error, retrying webhook request after #{@retry_delay}ms (attempt #{retry_count + 1}/#{@max_retries})")
+          Logger.warning(
+            "Connection error, retrying webhook request after #{@retry_delay}ms (attempt #{retry_count + 1}/#{@max_retries})"
+          )
+
           Process.sleep(@retry_delay)
           send_webhook_request(url, payload, config, retry_count + 1)
         else
@@ -95,17 +105,21 @@ defmodule HydepwnsLiveview.Events.Adapters.WebhookAdapter do
     ]
 
     # Add authentication headers based on config
-    headers = case config.auth do
-      %{type: "basic", username: username, password: password} ->
-        auth = Base.encode64("#{username}:#{password}")
-        [{"Authorization", "Basic #{auth}"} | headers]
-      %{type: "bearer", token: token} ->
-        [{"Authorization", "Bearer #{token}"} | headers]
-      %{type: "api_key", key: key, value: value} ->
-        [{key, value} | headers]
-      _ ->
-        headers
-    end
+    headers =
+      case config.auth do
+        %{type: "basic", username: username, password: password} ->
+          auth = Base.encode64("#{username}:#{password}")
+          [{"Authorization", "Basic #{auth}"} | headers]
+
+        %{type: "bearer", token: token} ->
+          [{"Authorization", "Bearer #{token}"} | headers]
+
+        %{type: "api_key", key: key, value: value} ->
+          [{key, value} | headers]
+
+        _ ->
+          headers
+      end
 
     # Add custom headers if configured
     case config.custom_headers do
@@ -113,8 +127,9 @@ defmodule HydepwnsLiveview.Events.Adapters.WebhookAdapter do
         Enum.reduce(headers_map, headers, fn {key, value}, acc ->
           [{key, value} | acc]
         end)
+
       _ ->
         headers
     end
   end
-end 
+end

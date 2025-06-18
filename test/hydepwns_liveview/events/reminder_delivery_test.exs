@@ -44,7 +44,9 @@ defmodule HydepwnsLiveview.Events.ReminderDeliveryTest do
 
     test "fails to send a non-pending reminder", %{reminder: reminder} do
       {:ok, sent_reminder} = Events.update_event_reminder(reminder, %{status: "sent"})
-      assert {:error, "Reminder is not in pending status"} = ReminderDelivery.send_reminder(sent_reminder)
+
+      assert {:error, "Reminder is not in pending status"} =
+               ReminderDelivery.send_reminder(sent_reminder)
     end
 
     test "fails when event settings are missing", %{reminder: reminder} do
@@ -54,4 +56,4 @@ defmodule HydepwnsLiveview.Events.ReminderDeliveryTest do
       assert {:error, "No event settings found"} = ReminderDelivery.send_reminder(reminder)
     end
   end
-end 
+end

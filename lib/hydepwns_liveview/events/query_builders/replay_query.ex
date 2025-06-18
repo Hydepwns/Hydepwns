@@ -58,4 +58,4 @@ defmodule HydepwnsLiveview.Events.QueryBuilders.ReplayQuery do
       event -> {:ok, event}
     end
   end
-end 
+end

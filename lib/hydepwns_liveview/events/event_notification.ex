@@ -18,4 +18,4 @@ defmodule HydepwnsLiveview.Events.EventNotification do
     |> cast(attrs, [:title, :message, :type, :status, :sent_at, :metadata])
     |> validate_required([:title, :message, :type, :status])
   end
-end 
+end

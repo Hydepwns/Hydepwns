@@ -34,4 +34,4 @@ defmodule HydepwnsLiveview.Events.Schemas.Snapshot do
     |> cast(attrs, [:resource_type, :resource_id, :state, :metadata])
     |> validate_required([:resource_type, :resource_id, :state])
   end
-end 
+end

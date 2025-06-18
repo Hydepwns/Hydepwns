@@ -7,8 +7,9 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   import Ecto.Query
   require Logger
   alias HydepwnsLiveview.Repo
-  alias HydepwnsLiveview.Events.Schemas.Event
+  alias HydepwnsLiveview.Events.Core.Event
   alias HydepwnsLiveview.Events.QueryBuilders.EventQuery
+  alias HydepwnsLiveview.Events.Core.EventBus
 
   @doc """
   Stores an event in the event store.
@@ -24,6 +25,7 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   def store_event(%Event{} = event) when is_struct(event, Event) do
     Repo.insert(event)
   end
+
   def store_event(_invalid_event), do: {:error, :invalid_event}
 
   @doc """
@@ -38,16 +40,14 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   * `{:error, reason}` - The event could not be stored
   """
   @spec store_event(String.t(), map()) :: {:ok, Event.t()} | {:error, Ecto.Changeset.t()}
-  def store_event(event_type, event_data) 
-    when is_binary(event_type) and byte_size(event_type) > 0 and is_map(event_data) do
-    %Event{}
-    |> Event.changeset(%{
-      type: event_type,
-      data: event_data,
-      timestamp: DateTime.utc_now()
-    })
-    |> Repo.insert()
+  def store_event(event_type, event_data)
+      when is_binary(event_type) and byte_size(event_type) > 0 and is_map(event_data) do
+    case Event.create(event_type, event_data) do
+      {:ok, event} -> Repo.insert(event)
+      {:error, reason} -> {:error, reason}
+    end
   end
+
   def store_event(_invalid_type, _invalid_data), do: {:error, :invalid_parameters}
 
   @doc """
@@ -66,6 +66,7 @@ defmodule HydepwnsLiveview.Events.EventOperations do
       Enum.map(events, &Repo.insert!/1)
     end)
   end
+
   def store_events([]), do: {:error, :empty_event_list}
   def store_events(_invalid_events), do: {:error, :invalid_events}
 
@@ -101,6 +102,7 @@ defmodule HydepwnsLiveview.Events.EventOperations do
         {:error, e}
     end
   end
+
   def get_events(_invalid_criteria), do: {:error, :invalid_criteria}
 
   @doc """
@@ -116,14 +118,36 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   """
   @spec get_event(any()) :: {:ok, Event.t()} | {:error, any()}
   def get_event(id) do
-    case Repo.get(Event, id, timeout: 5000) do
-      nil -> {:error, :not_found}
-      event -> {:ok, event}
+    case get_events(%{id: id}) do
+      {:ok, [event]} -> {:ok, event}
+      {:ok, []} -> {:error, :not_found}
+      {:error, reason} -> {:error, reason}
     end
-  rescue
-    e ->
-      Logger.error("Error retrieving event #{id}: #{inspect(e)}")
-      {:error, e}
+  end
+
+  @doc """
+  Deletes an event by ID.
+
+  ## Parameters
+  * `id` - The ID of the event to delete
+
+  ## Returns
+  * `{:ok, event}` - The event was deleted
+  * `{:error, :not_found}` - No event with the given ID exists
+  * `{:error, reason}` - Error deleting the event
+  """
+  @spec delete_event(any()) :: {:ok, Event.t()} | {:error, any()}
+  def delete_event(id) do
+    case get_event(id) do
+      {:ok, event} ->
+        case Repo.delete(event) do
+          {:ok, deleted_event} -> {:ok, deleted_event}
+          {:error, reason} -> {:error, reason}
+        end
+
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 
   @doc """
@@ -211,74 +235,131 @@ defmodule HydepwnsLiveview.Events.EventOperations do
 
   # Private functions
 
-  defp build_event_query(criteria) when is_map(criteria) do
-    base_query = from(e in Event)
-
-    criteria
-    |> Enum.reduce(base_query, &apply_criterion/2)
-    |> apply_sort(criteria)
-    |> apply_pagination(criteria)
+  defp build_event_query(criteria) do
+    Event
+    |> filter_by_id(criteria[:id])
+    |> filter_by_correlation_id(criteria[:correlation_id])
+    |> filter_by_causation_id(criteria[:causation_id])
+    |> filter_by_event_type(criteria[:event_type])
+    |> filter_by_resource_id(criteria[:resource_id])
+    |> filter_by_resource_type(criteria[:resource_type])
+    |> filter_by_timestamp(criteria[:timestamp])
+    |> filter_by_metadata(criteria[:metadata])
+    |> apply_sort(criteria[:sort])
+    |> apply_limit(criteria[:limit])
+    |> apply_offset(criteria[:offset])
   end
 
-  defp apply_criterion({:id, id}, query) when is_binary(id) do
-    where(query, [e], e.id == ^id)
-  end
+  defp filter_by_id(query, nil), do: query
+  defp filter_by_id(query, id), do: where(query, [e], e.id == ^id)
 
-  defp apply_criterion({:correlation_id, correlation_id}, query) when is_binary(correlation_id) do
-    where(query, [e], e.correlation_id == ^correlation_id)
-  end
+  defp filter_by_correlation_id(query, nil), do: query
 
-  defp apply_criterion({:causation_id, causation_id}, query) when is_binary(causation_id) do
-    where(query, [e], e.causation_id == ^causation_id)
-  end
+  defp filter_by_correlation_id(query, correlation_id),
+    do: where(query, [e], e.correlation_id == ^correlation_id)
 
-  defp apply_criterion({:event_type, event_types}, query) when is_list(event_types) do
-    where(query, [e], e.type in ^event_types)
-  end
+  defp filter_by_causation_id(query, nil), do: query
 
-  defp apply_criterion({:event_type, event_type}, query) when is_binary(event_type) do
-    where(query, [e], e.type == ^event_type)
-  end
+  defp filter_by_causation_id(query, causation_id),
+    do: where(query, [e], e.causation_id == ^causation_id)
 
-  defp apply_criterion({:resource_id, resource_id}, query) when is_binary(resource_id) do
-    where(query, [e], e.resource_id == ^resource_id)
-  end
+  defp filter_by_event_type(query, nil), do: query
 
-  defp apply_criterion({:timestamp, timestamp_criteria}, query) when is_map(timestamp_criteria) do
-    Enum.reduce(timestamp_criteria, query, fn
-      {:after, time}, q when is_struct(time, DateTime) -> where(q, [e], e.timestamp >= ^time)
-      {:before, time}, q when is_struct(time, DateTime) -> where(q, [e], e.timestamp <= ^time)
-      _, q -> q
+  defp filter_by_event_type(query, event_type) when is_binary(event_type),
+    do: where(query, [e], e.type == ^event_type)
+
+  defp filter_by_event_type(query, event_types) when is_list(event_types),
+    do: where(query, [e], e.type in ^event_types)
+
+  defp filter_by_resource_id(query, nil), do: query
+
+  defp filter_by_resource_id(query, resource_id),
+    do: where(query, [e], e.resource_id == ^resource_id)
+
+  defp filter_by_resource_type(query, nil), do: query
+
+  defp filter_by_resource_type(query, resource_type),
+    do: where(query, [e], e.resource_type == ^resource_type)
+
+  defp filter_by_timestamp(query, nil), do: query
+
+  defp filter_by_timestamp(query, %{lt: timestamp}),
+    do: where(query, [e], e.timestamp < ^timestamp)
+
+  defp filter_by_timestamp(query, %{lte: timestamp}),
+    do: where(query, [e], e.timestamp <= ^timestamp)
+
+  defp filter_by_timestamp(query, %{gt: timestamp}),
+    do: where(query, [e], e.timestamp > ^timestamp)
+
+  defp filter_by_timestamp(query, %{gte: timestamp}),
+    do: where(query, [e], e.timestamp >= ^timestamp)
+
+  defp filter_by_timestamp(query, timestamp), do: where(query, [e], e.timestamp == ^timestamp)
+
+  defp filter_by_metadata(query, nil), do: query
+
+  defp filter_by_metadata(query, metadata) when is_map(metadata) do
+    Enum.reduce(metadata, query, fn {key, value}, acc ->
+      where(acc, [e], fragment("?->? = ?", e.metadata, ^key, ^value))
     end)
   end
 
-  defp apply_criterion({:metadata, metadata_criteria}, query) when is_map(metadata_criteria) do
-    Enum.reduce(metadata_criteria, query, fn {key, value}, q when is_binary(key) ->
-      where(q, [e], fragment("?->? = ?", e.metadata, ^key, ^to_string(value)))
+  defp apply_sort(query, nil), do: query
+
+  defp apply_sort(query, sort_criteria) when is_list(sort_criteria) do
+    Enum.reduce(sort_criteria, query, fn {field, direction}, acc ->
+      order_by(acc, [e], [{^direction, ^field}])
     end)
   end
 
-  defp apply_criterion(_, query), do: query
+  defp apply_limit(query, nil), do: query
+  defp apply_limit(query, limit) when is_integer(limit) and limit > 0, do: limit(query, ^limit)
 
-  defp apply_sort(query, %{sort: sort_criteria}) when is_list(sort_criteria) do
-    Enum.reduce(sort_criteria, query, fn
-      {:timestamp, :asc}, q -> order_by(q, [e], asc: e.timestamp)
-      {:timestamp, :desc}, q -> order_by(q, [e], desc: e.timestamp)
-      {:id, :asc}, q -> order_by(q, [e], asc: e.id)
-      {:id, :desc}, q -> order_by(q, [e], desc: e.id)
-      _, q -> q
-    end)
+  defp apply_offset(query, nil), do: query
+
+  defp apply_offset(query, offset) when is_integer(offset) and offset >= 0,
+    do: offset(query, ^offset)
+
+  def create_event(type, payload, metadata \\ %{}) do
+    event = %{
+      id: Ecto.UUID.generate(),
+      type: type,
+      payload: payload,
+      metadata: metadata,
+      timestamp: DateTime.utc_now()
+    }
+
+    EventBus.publish(type, event)
+    {:ok, event}
   end
 
-  defp apply_sort(query, _), do: query
+  def transform_event(event, transform_fn) do
+    case event do
+      %{type: type, payload: payload} ->
+        transformed_payload = transform_fn.(payload)
+        create_event(type, transformed_payload, event.metadata)
 
-  defp apply_pagination(query, %{limit: limit}) when is_integer(limit) and limit > 0 do
-    limit(query, ^limit)
+      _ ->
+        {:error, :invalid_event}
+    end
   end
 
-  defp apply_pagination(query, %{offset: offset}) when is_integer(offset) and offset >= 0 do
-    offset(query, ^offset)
-  end
+  def merge_events(events) when is_list(events) do
+    case events do
+      [] ->
+        {:error, :empty_events}
 
-  defp apply_pagination(query, _), do: query
-end 
+      [event | _] = events ->
+        merged_payload =
+          Enum.reduce(events, %{}, fn event, acc ->
+            Map.merge(acc, event.payload)
+          end)
+
+        create_event(event.type, merged_payload, event.metadata)
+
+      _ ->
+        {:error, :invalid_events}
+    end
+  end
+end

@@ -18,6 +18,7 @@ defmodule HydepwnsLiveview.Events.Adapters.DiscordAdapter do
       {:error, :invalid_channel} ->
         Logger.error("Invalid Discord channel ID: #{reminder.recipient}")
         {:error, "Invalid Discord channel ID"}
+
       {:error, reason} ->
         Logger.error("Failed to send Discord message: #{inspect(reason)}")
         {:error, "Failed to send Discord message"}
@@ -41,7 +42,7 @@ defmodule HydepwnsLiveview.Events.Adapters.DiscordAdapter do
       embed: %{
         title: reminder.title,
         description: "Encrypted message: #{encrypted_message}",
-        color: config.embed_color || 0x3498db,
+        color: config.embed_color || 0x3498DB,
         timestamp: DateTime.utc_now() |> DateTime.to_iso8601(),
         footer: %{
           text: "HydepwnsLiveview"
@@ -50,13 +51,15 @@ defmodule HydepwnsLiveview.Events.Adapters.DiscordAdapter do
     }
 
     # Add mentions if configured
-    message = case config.mentions do
-      mentions when is_list(mentions) ->
-        content = Enum.map_join(mentions, " ", &"<@#{&1}>")
-        Map.put(message, :content, "#{content}\n#{message.content}")
-      _ ->
-        message
-    end
+    message =
+      case config.mentions do
+        mentions when is_list(mentions) ->
+          content = Enum.map_join(mentions, " ", &"<@#{&1}>")
+          Map.put(message, :content, "#{content}\n#{message.content}")
+
+        _ ->
+          message
+      end
 
     {:ok, message}
   end
@@ -65,7 +68,7 @@ defmodule HydepwnsLiveview.Events.Adapters.DiscordAdapter do
     try do
       # Discord API endpoint
       url = "https://discord.com/api/v10/channels/#{channel_id}/messages"
-      
+
       # Prepare request body and headers
       body = Jason.encode!(message)
       headers = build_headers(config)
@@ -91,26 +94,26 @@ defmodule HydepwnsLiveview.Events.Adapters.DiscordAdapter do
   defp handle_discord_response({:ok, %HTTPoison.Response{status_code: 200, body: body}}) do
     parse_success_response(body)
   end
-  
+
   defp handle_discord_response({:ok, %HTTPoison.Response{status_code: 401}}) do
     Logger.error("Discord authentication error")
     {:error, "Discord authentication failed"}
   end
-  
+
   defp handle_discord_response({:ok, %HTTPoison.Response{status_code: 403}}) do
     Logger.error("Discord permission error")
     {:error, "Insufficient permissions to send message"}
   end
-  
+
   defp handle_discord_response({:ok, %HTTPoison.Response{status_code: 429, body: body}}) do
     handle_rate_limit(body)
   end
-  
+
   defp handle_discord_response({:ok, %HTTPoison.Response{status_code: status}}) do
     Logger.error("Discord HTTP error: #{status}")
     {:error, "Discord service error: HTTP #{status}"}
   end
-  
+
   defp handle_discord_response({:error, %HTTPoison.Error{reason: reason}}) do
     Logger.error("Discord request error: #{inspect(reason)}")
     {:error, "Failed to connect to Discord"}
@@ -120,9 +123,11 @@ defmodule HydepwnsLiveview.Events.Adapters.DiscordAdapter do
     case Jason.decode(body) do
       {:ok, %{"id" => message_id}} ->
         {:ok, %{message_id: message_id}}
+
       {:ok, error} ->
         Logger.error("Discord API error: #{inspect(error)}")
         {:error, "Failed to send Discord message"}
+
       {:error, _} ->
         Logger.error("Invalid Discord API response")
         {:error, "Invalid Discord API response"}
@@ -135,12 +140,14 @@ defmodule HydepwnsLiveview.Events.Adapters.DiscordAdapter do
         Logger.warning("Discord rate limit hit, retry after #{retry_after}ms")
         Process.sleep(retry_after)
         {:error, "Rate limited, please retry"}
+
       {:ok, error} ->
         Logger.error("Discord rate limit error: #{inspect(error)}")
         {:error, "Discord rate limit error"}
+
       {:error, _} ->
         Logger.error("Invalid Discord rate limit response")
         {:error, "Discord rate limit error"}
     end
   end
-end 
+end

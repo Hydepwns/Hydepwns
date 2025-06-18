@@ -18,6 +18,7 @@ defmodule HydepwnsLiveview.Events.Adapters.PushAdapter do
       {:error, :invalid_token} ->
         Logger.error("Invalid device token: #{reminder.recipient}")
         {:error, "Invalid device token"}
+
       {:error, reason} ->
         Logger.error("Failed to send push notification: #{inspect(reason)}")
         {:error, "Failed to send push notification"}
@@ -31,6 +32,7 @@ defmodule HydepwnsLiveview.Events.Adapters.PushAdapter do
     case token do
       token when is_binary(token) and byte_size(token) > 0 ->
         {:ok, token}
+
       _ ->
         {:error, :invalid_token}
     end
@@ -49,12 +51,14 @@ defmodule HydepwnsLiveview.Events.Adapters.PushAdapter do
     }
 
     # Add custom data if configured
-    notification = case config.custom_data do
-      data when is_map(data) ->
-        Map.update!(notification, :data, &Map.merge(&1, data))
-      _ ->
-        notification
-    end
+    notification =
+      case config.custom_data do
+        data when is_map(data) ->
+          Map.update!(notification, :data, &Map.merge(&1, data))
+
+        _ ->
+          notification
+      end
 
     {:ok, notification}
   end
@@ -71,18 +75,19 @@ defmodule HydepwnsLiveview.Events.Adapters.PushAdapter do
     try do
       # OneSignal API endpoint
       url = "https://onesignal.com/api/v1/notifications"
-      
+
       # Prepare request body
-      body = Jason.encode!(%{
-        app_id: config.app_id,
-        include_player_ids: [device_token],
-        headings: %{"en" => notification.title},
-        contents: %{"en" => notification.body},
-        data: notification.data,
-        android_channel_id: config.android_channel_id,
-        ios_badgeType: "Increase",
-        ios_badgeCount: 1
-      })
+      body =
+        Jason.encode!(%{
+          app_id: config.app_id,
+          include_player_ids: [device_token],
+          headings: %{"en" => notification.title},
+          contents: %{"en" => notification.body},
+          data: notification.data,
+          android_channel_id: config.android_channel_id,
+          ios_badgeType: "Increase",
+          ios_badgeCount: 1
+        })
 
       # Send request
       headers = [
@@ -95,19 +100,24 @@ defmodule HydepwnsLiveview.Events.Adapters.PushAdapter do
           case Jason.decode(response_body) do
             {:ok, %{"id" => notification_id}} ->
               {:ok, %{message_id: notification_id}}
+
             {:ok, %{"errors" => errors}} ->
               Logger.error("OneSignal API error: #{inspect(errors)}")
               {:error, "Failed to send OneSignal notification"}
+
             _ ->
               Logger.error("Unexpected OneSignal response: #{response_body}")
               {:error, "Unexpected response from OneSignal"}
           end
+
         {:ok, %HTTPoison.Response{status_code: 401}} ->
           Logger.error("OneSignal authentication error")
           {:error, "OneSignal authentication failed"}
+
         {:ok, %HTTPoison.Response{status_code: status}} ->
           Logger.error("OneSignal HTTP error: #{status}")
           {:error, "OneSignal service error: HTTP #{status}"}
+
         {:error, %HTTPoison.Error{reason: reason}} ->
           Logger.error("OneSignal request error: #{inspect(reason)}")
           {:error, "Failed to connect to OneSignal"}
@@ -123,30 +133,31 @@ defmodule HydepwnsLiveview.Events.Adapters.PushAdapter do
     try do
       # Firebase Cloud Messaging API endpoint
       url = "https://fcm.googleapis.com/v1/projects/#{config.project_id}/messages:send"
-      
+
       # Prepare request body
-      body = Jason.encode!(%{
-        message: %{
-          token: device_token,
-          notification: %{
-            title: notification.title,
-            body: notification.body
-          },
-          data: notification.data,
-          android: %{
+      body =
+        Jason.encode!(%{
+          message: %{
+            token: device_token,
             notification: %{
-              channel_id: config.android_channel_id
-            }
-          },
-          apns: %{
-            payload: %{
-              aps: %{
-                badge: 1
+              title: notification.title,
+              body: notification.body
+            },
+            data: notification.data,
+            android: %{
+              notification: %{
+                channel_id: config.android_channel_id
+              }
+            },
+            apns: %{
+              payload: %{
+                aps: %{
+                  badge: 1
+                }
               }
             }
           }
-        }
-      })
+        })
 
       # Send request
       headers = [
@@ -159,19 +170,24 @@ defmodule HydepwnsLiveview.Events.Adapters.PushAdapter do
           case Jason.decode(response_body) do
             {:ok, %{"name" => message_id}} ->
               {:ok, %{message_id: message_id}}
+
             {:ok, error} ->
               Logger.error("Firebase API error: #{inspect(error)}")
               {:error, "Failed to send Firebase notification"}
+
             {:error, _} ->
               Logger.error("Invalid Firebase API response")
               {:error, "Invalid Firebase API response"}
           end
+
         {:ok, %HTTPoison.Response{status_code: 401}} ->
           Logger.error("Firebase authentication error")
           {:error, "Firebase authentication failed"}
+
         {:ok, %HTTPoison.Response{status_code: status}} ->
           Logger.error("Firebase HTTP error: #{status}")
           {:error, "Firebase service error: HTTP #{status}"}
+
         {:error, %HTTPoison.Error{reason: reason}} ->
           Logger.error("Firebase request error: #{inspect(reason)}")
           {:error, "Failed to connect to Firebase"}
@@ -182,4 +198,4 @@ defmodule HydepwnsLiveview.Events.Adapters.PushAdapter do
         {:error, "Firebase service error"}
     end
   end
-end 
+end

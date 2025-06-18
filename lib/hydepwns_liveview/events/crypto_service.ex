@@ -40,7 +40,8 @@ defmodule HydepwnsLiveview.Events.CryptoService do
   Decrypts a message using Signal Protocol.
   Returns {:ok, decrypted_message} on success or {:error, reason} on failure.
   """
-  @spec decrypt_message(encrypted_message(), session_id()) :: {:ok, message()} | {:error, String.t()}
+  @spec decrypt_message(encrypted_message(), session_id()) ::
+          {:ok, message()} | {:error, String.t()}
   def decrypt_message(encrypted_message, session_id) do
     try do
       with {:ok, session} <- get_session(session_id),
@@ -105,4 +106,4 @@ defmodule HydepwnsLiveview.Events.CryptoService do
       :error -> {:error, "Invalid encrypted message format"}
     end
   end
-end 
+end

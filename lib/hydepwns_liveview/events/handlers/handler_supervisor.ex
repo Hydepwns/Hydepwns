@@ -48,8 +48,10 @@ defmodule HydepwnsLiveview.Events.Handlers.HandlerSupervisor do
     # These are distinct from the `opts` for the `handler_module` it will manage.
     name_opts =
       case Keyword.get(opts, :name) do
-        nil -> [] # No specific name for the HandlerProcess GenServer
-        name -> [name: name] # Register HandlerProcess GenServer with this name
+        # No specific name for the HandlerProcess GenServer
+        nil -> []
+        # Register HandlerProcess GenServer with this name
+        name -> [name: name]
       end
 
     # Ensure a unique ID for the child spec. 
@@ -63,8 +65,10 @@ defmodule HydepwnsLiveview.Events.Handlers.HandlerSupervisor do
       # `handler_module` is the actual handler like LoggingHandler.
       # `opts` are the business-logic options for `handler_module` (e.g., event_types it handles).
       # `name_opts` are the GenServer options for the `HandlerProcess` that wraps `handler_module` (e.g., its registered name).
-      type: :worker, # HandlerProcess is a GenServer, so it's a worker
-      restart: :permanent # Or :transient or :temporary as appropriate
+      # HandlerProcess is a GenServer, so it's a worker
+      type: :worker,
+      # Or :transient or :temporary as appropriate
+      restart: :permanent
     }
 
     DynamicSupervisor.start_child(__MODULE__, spec)

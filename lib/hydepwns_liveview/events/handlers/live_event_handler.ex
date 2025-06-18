@@ -136,7 +136,7 @@ defmodule HydepwnsLiveview.Events.Handlers.LiveEventHandler do
       defmodule EventReactiveAssign do
         @moduledoc """
         A dynamically generated module that handles event-reactive assigns.
-        
+
         This module subscribes to specified events and updates data when events are received.
         It's used internally by the event_reactive_assign macro to create reactive assign hooks.
         """

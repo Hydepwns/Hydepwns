@@ -81,7 +81,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResourceTest d
       {:ok, _} = TestResource.create(%{id: "123", initial_value: 10})
       timestamp = DateTime.utc_now()
       {:ok, _} = TestResource.execute("123", "increment", %{amount: 5})
-      
+
       assert {:ok, state} = TestResource.get_at("123", timestamp)
       assert state.value == 10
     end
@@ -121,7 +121,9 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResourceTest d
       assert {:error, :invalid_parameters} = TestResource.execute("", "increment", %{amount: 5})
       assert {:error, :invalid_parameters} = TestResource.execute("123", "", %{amount: 5})
       assert {:error, :invalid_parameters} = TestResource.execute("123", "increment", "not_a_map")
-      assert {:error, :invalid_parameters} = TestResource.execute("123", "increment", %{amount: 5}, "not_a_map")
+
+      assert {:error, :invalid_parameters} =
+               TestResource.execute("123", "increment", %{amount: 5}, "not_a_map")
     end
   end
 
@@ -164,14 +166,26 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResourceTest d
       ]
 
       initial_state = %{value: 0}
-      assert {:ok, final_state} = TestResource.rebuild_from_events(events, initial_state, &TestResource.apply_event/2)
+
+      assert {:ok, final_state} =
+               TestResource.rebuild_from_events(
+                 events,
+                 initial_state,
+                 &TestResource.apply_event/2
+               )
+
       assert final_state.value == 3
     end
 
     test "rejects invalid parameters" do
-      assert {:error, :invalid_parameters} = TestResource.rebuild_from_events("not_a_list", %{}, &TestResource.apply_event/2)
-      assert {:error, :invalid_parameters} = TestResource.rebuild_from_events([], "not_a_map", &TestResource.apply_event/2)
-      assert {:error, :invalid_parameters} = TestResource.rebuild_from_events([], %{}, "not_a_function")
+      assert {:error, :invalid_parameters} =
+               TestResource.rebuild_from_events("not_a_list", %{}, &TestResource.apply_event/2)
+
+      assert {:error, :invalid_parameters} =
+               TestResource.rebuild_from_events([], "not_a_map", &TestResource.apply_event/2)
+
+      assert {:error, :invalid_parameters} =
+               TestResource.rebuild_from_events([], %{}, "not_a_function")
     end
   end
-end 
+end

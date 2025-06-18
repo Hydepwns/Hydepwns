@@ -19,4 +19,4 @@ defmodule PasswordManagement do
     events = EventStore.get_events_for_resource(resource_type, resource_id)
     {:reply, events, state}
   end
-end 
+end

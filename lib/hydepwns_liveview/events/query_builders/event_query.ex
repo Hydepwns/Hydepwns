@@ -104,4 +104,4 @@ defmodule HydepwnsLiveview.Events.QueryBuilders.EventQuery do
   end
 
   defp apply_pagination(query, _), do: query
-end 
+end

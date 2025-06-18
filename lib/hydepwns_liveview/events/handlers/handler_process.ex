@@ -208,6 +208,7 @@ defmodule HydepwnsLiveview.Events.Handlers.HandlerProcess do
   # Initialize the handler
   defp initialize_handler(handler_module) do
     IO.inspect(handler_module, label: "[HandlerProcess initialize_handler - handler_module]")
+
     if function_exported?(handler_module, :init, 0) do
       try do
         apply(handler_module, :init, [])

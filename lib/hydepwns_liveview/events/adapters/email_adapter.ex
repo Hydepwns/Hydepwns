@@ -18,6 +18,7 @@ defmodule HydepwnsLiveview.Events.Adapters.EmailAdapter do
       {:error, :invalid_email} ->
         Logger.error("Invalid email address: #{reminder.recipient}")
         {:error, "Invalid email address"}
+
       {:error, reason} ->
         Logger.error("Failed to send email: #{inspect(reason)}")
         {:error, "Failed to send email"}
@@ -99,7 +100,7 @@ defmodule HydepwnsLiveview.Events.Adapters.EmailAdapter do
   end
 
   defp build_attachments(reminder, config) do
-    case config.attachments do
+    attachments = case config.attachments do
       attachments when is_list(attachments) ->
         Enum.map(attachments, fn attachment ->
           %{
@@ -108,18 +109,31 @@ defmodule HydepwnsLiveview.Events.Adapters.EmailAdapter do
             type: attachment.type
           }
         end)
+
+      _ ->
+        []
+    end
+
+    # Add reminder-specific attachments if any
+    reminder_attachments = case reminder.attachments do
+      attachments when is_list(attachments) -> attachments
       _ -> []
     end
+
+    attachments ++ reminder_attachments
   end
 
   defp send_email(email, content, config) do
     case config.provider do
       "sendgrid" ->
         send_sendgrid_email(email, content.subject, content.text, config.api_key)
+
       "smtp" ->
         send_smtp_email(email, content, config)
+
       "custom" ->
         send_custom_email(email, content, config)
+
       _ ->
         {:error, "Unsupported email provider"}
     end
@@ -127,22 +141,27 @@ defmodule HydepwnsLiveview.Events.Adapters.EmailAdapter do
 
   defp send_sendgrid_email(to, subject, body, api_key) do
     url = "https://api.sendgrid.com/v3/mail/send"
+
     headers = [
       {"Authorization", "Bearer #{api_key}"},
       {"Content-Type", "application/json"}
     ]
-    body = Jason.encode!(%{
-      personalizations: [%{to: [%{email: to}]}],
-      from: %{email: "noreply@hydepwns.com"},
-      subject: subject,
-      content: [%{type: "text/plain", value: body}]
-    })
+
+    body =
+      Jason.encode!(%{
+        personalizations: [%{to: [%{email: to}]}],
+        from: %{email: "noreply@hydepwns.com"},
+        subject: subject,
+        content: [%{type: "text/plain", value: body}]
+      })
 
     case HTTPoison.post(url, body, headers) do
       {:ok, %{status_code: status_code}} when status_code in 200..299 ->
         {:ok, "Email sent successfully"}
+
       {:ok, %{status_code: status_code}} ->
         {:error, "Failed to send email with status code: #{status_code}"}
+
       {:error, %HTTPoison.Error{reason: reason}} ->
         {:error, "Failed to send email: #{reason}"}
     end
@@ -175,6 +194,7 @@ defmodule HydepwnsLiveview.Events.Adapters.EmailAdapter do
       case Swoosh.Mailer.deliver(message, smtp_config) do
         {:ok, _response} ->
           {:ok, %{message_id: Ecto.UUID.generate()}}
+
         {:error, reason} ->
           Logger.error("SMTP error: #{inspect(reason)}")
           {:error, "Failed to send email via SMTP"}
@@ -192,6 +212,7 @@ defmodule HydepwnsLiveview.Events.Adapters.EmailAdapter do
       case config.custom_provider.send_email(email, content, config) do
         {:ok, response} ->
           {:ok, %{message_id: response.message_id}}
+
         {:error, reason} ->
           Logger.error("Custom provider error: #{inspect(reason)}")
           {:error, "Failed to send email via custom provider"}
@@ -202,4 +223,4 @@ defmodule HydepwnsLiveview.Events.Adapters.EmailAdapter do
         {:error, "Custom provider service error"}
     end
   end
-end 
+end

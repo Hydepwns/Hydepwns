@@ -11,4 +11,4 @@ defmodule HydepwnsLiveview.Events.Adapters.Adapter do
   @type result :: {:ok, String.t()} | {:error, String.t()}
 
   @callback send_reminder(reminder(), settings(), config(), encrypted_message()) :: result()
-end 
+end

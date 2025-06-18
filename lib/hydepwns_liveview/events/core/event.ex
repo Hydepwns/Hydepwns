@@ -70,6 +70,7 @@ defmodule HydepwnsLiveview.Events.Core.Event do
     |> validate_metadata()
     |> validate_timestamp()
   end
+
   def changeset(_event, _invalid_attrs), do: {:error, :invalid_attributes}
 
   @doc """
@@ -94,9 +95,10 @@ defmodule HydepwnsLiveview.Events.Core.Event do
   """
   @spec create(String.t(), map()) :: {:ok, __MODULE__.t()} | {:error, Ecto.Changeset.t()}
   def create(type, attrs \\ %{})
+
   def create(type, attrs)
-      when is_binary(type) and byte_size(type) >= 3 
-      and is_map(attrs) do
+      when is_binary(type) and byte_size(type) >= 3 and
+             is_map(attrs) do
     # Pre-process attributes
     attrs = Map.put(attrs, :type, type)
     attrs = set_default_timestamp(attrs)
@@ -123,6 +125,7 @@ defmodule HydepwnsLiveview.Events.Core.Event do
     |> validate_timestamp()
     |> apply_action(:create)
   end
+
   def create(_invalid_type, _invalid_attrs), do: {:error, :invalid_parameters}
 
   @doc """
@@ -140,9 +143,10 @@ defmodule HydepwnsLiveview.Events.Core.Event do
   """
   @spec create!(String.t(), map()) :: __MODULE__.t()
   def create!(type, attrs \\ %{})
+
   def create!(type, attrs)
-      when is_binary(type) and byte_size(type) >= 3 
-      and is_map(attrs) do
+      when is_binary(type) and byte_size(type) >= 3 and
+             is_map(attrs) do
     case create(type, attrs) do
       {:ok, event} ->
         event
@@ -151,7 +155,8 @@ defmodule HydepwnsLiveview.Events.Core.Event do
         raise Ecto.InvalidChangesetError, action: :create, changeset: changeset
     end
   end
-  def create!(_invalid_type, _invalid_attrs), do: raise ArgumentError, "Invalid event parameters"
+
+  def create!(_invalid_type, _invalid_attrs), do: raise(ArgumentError, "Invalid event parameters")
 
   @doc """
   Creates a follow-up event that preserves correlation context.

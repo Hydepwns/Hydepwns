@@ -41,25 +41,10 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
   * `{:error, reason}` - The event could not be published
   """
   @spec publish(Event.t(), Keyword.t()) :: :ok | {:error, any()}
-  def publish(%Event{} = event, opts \\ []) when is_list(opts) do
-    store? = Keyword.get(opts, :store, true)
-
-    # Store the event if requested
-    if store? do
-      case Events.store_event(event) do
-        {:ok, persisted_event} ->
-          GenServer.cast(__MODULE__, {:publish, persisted_event})
-
-        {:error, reason} = error ->
-          Logger.error("Failed to store event: #{inspect(reason)}")
-          error
-      end
-    else
-      GenServer.cast(__MODULE__, {:publish, event})
-    end
-
-    :ok
+  def publish(event, opts \\ %{}) do
+    GenServer.cast(__MODULE__, {:publish, event, opts})
   end
+
   def publish(_invalid_event, _opts), do: {:error, :invalid_event}
 
   @doc """
@@ -72,8 +57,8 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
   * `:ok` - Successfully subscribed
   * `{:error, reason}` - Failed to subscribe
   """
-  def subscribe(event_types \\ :all) do
-    GenServer.call(__MODULE__, {:subscribe, self(), event_types})
+  def subscribe(event_type) do
+    GenServer.call(__MODULE__, {:subscribe, event_type})
   end
 
   @doc """
@@ -87,8 +72,8 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
   * `:ok` - Successfully unsubscribed
   * `{:error, reason}` - Failed to unsubscribe
   """
-  def unsubscribe(subscriber, event_types \\ :all) do
-    GenServer.call(__MODULE__, {:unsubscribe, subscriber, event_types})
+  def unsubscribe(event_type) do
+    GenServer.call(__MODULE__, {:unsubscribe, event_type})
   end
 
   @doc """
@@ -106,6 +91,7 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
   def get_subscribers(event_type) when is_binary(event_type) and byte_size(event_type) > 0 do
     GenServer.call(__MODULE__, {:get_subscribers, event_type})
   end
+
   def get_subscribers(_invalid_type), do: {:error, :invalid_event_type}
 
   # GenServer callbacks
@@ -116,15 +102,15 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
   end
 
   @impl true
-  def handle_call({:subscribe, subscriber, event_types}, _from, state) do
-    new_state = update_subscribers(state, subscriber, event_types)
-    {:reply, :ok, new_state}
+  def handle_call({:subscribe, event_type}, _from, state) do
+    subscribers = Map.update(state.subscribers, event_type, [self()], &[self() | &1])
+    {:reply, :ok, %{state | subscribers: subscribers}}
   end
 
   @impl true
-  def handle_call({:unsubscribe, subscriber, event_types}, _from, state) do
-    new_state = remove_subscriber(state, subscriber)
-    {:reply, :ok, new_state}
+  def handle_call({:unsubscribe, event_type}, _from, state) do
+    subscribers = Map.update(state.subscribers, event_type, [], &List.delete(&1, self()))
+    {:reply, :ok, %{state | subscribers: subscribers}}
   end
 
   @impl true
@@ -134,31 +120,37 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
   end
 
   @impl true
-  def handle_cast({:publish, event}, state) do
-    subscribers = get_subscribers_for_type(state, event.type)
-    notify_subscribers(subscribers, event)
+  def handle_call({:register_event_type, event_type}, _from, state) do
+    event_types = Map.get(state, :event_types, MapSet.new())
+    event_types = MapSet.put(event_types, event_type)
+    {:reply, :ok, Map.put(state, :event_types, event_types)}
+  end
+
+  @impl true
+  def handle_call(:list_event_types, _from, state) do
+    event_types = Map.get(state, :event_types, MapSet.new())
+    {:reply, MapSet.to_list(event_types), state}
+  end
+
+  @impl true
+  def handle_cast({:publish, event, opts}, state) do
+    event_type = event.__struct__
+    subscribers = get_subscribers_for_type(state, event_type)
+    notify_subscribers(subscribers, event, opts)
     {:noreply, state}
   end
 
+  @impl true
+  def handle_info({:DOWN, _ref, :process, pid, _reason}, state) do
+    subscribers =
+      Enum.reduce(state.subscribers, %{}, fn {topic, pids}, acc ->
+        Map.put(acc, topic, List.delete(pids, pid))
+      end)
+
+    {:noreply, %{state | subscribers: subscribers}}
+  end
+
   # Private functions
-
-  defp update_subscribers(state, subscriber, :all) do
-    Map.update(state, :subscribers, %{subscriber => :all}, fn subscribers ->
-      Map.put(subscribers, subscriber, :all)
-    end)
-  end
-
-  defp update_subscribers(state, subscriber, event_types) when is_list(event_types) do
-    Map.update(state, :subscribers, %{subscriber => event_types}, fn subscribers ->
-      Map.put(subscribers, subscriber, event_types)
-    end)
-  end
-
-  defp remove_subscriber(state, subscriber) do
-    Map.update(state, :subscribers, %{}, fn subscribers ->
-      Map.delete(subscribers, subscriber)
-    end)
-  end
 
   defp get_subscribers_for_type(state, event_type) do
     state.subscribers
@@ -168,11 +160,21 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
     |> Enum.map(fn {subscriber, _types} -> subscriber end)
   end
 
-  defp notify_subscribers(subscribers, event) do
+  defp notify_subscribers(subscribers, event, opts) do
     Enum.each(subscribers, fn subscriber ->
       if is_pid(subscriber) and Process.alive?(subscriber) do
-        send(subscriber, {:event, event})
+        send(subscriber, {:event, event, opts})
       end
     end)
+  end
+
+  # Event Type Registration
+
+  def register_event_type(event_type) do
+    GenServer.call(__MODULE__, {:register_event_type, event_type})
+  end
+
+  def list_event_types do
+    GenServer.call(__MODULE__, :list_event_types)
   end
 end

@@ -391,7 +391,8 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   * `{:ok, snapshot}` - The snapshot was successfully stored
   * `{:error, changeset}` - The snapshot could not be stored
   """
-  @spec save_snapshot(String.t(), String.t(), map(), map()) :: {:ok, Snapshot.t()} | {:error, any()}
+  @spec save_snapshot(String.t(), String.t(), map(), map()) ::
+          {:ok, Snapshot.t()} | {:error, any()}
   def save_snapshot(resource_type, resource_id, state, metadata \\ %{}) do
     %Snapshot{}
     |> Snapshot.changeset(%{
@@ -738,7 +739,8 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   * `{:ok, versioned_state}` - The versioned state was created
   * `{:error, changeset}` - The versioned state could not be created
   """
-  @spec save_versioned_state(String.t(), String.t(), map(), map()) :: {:ok, VersionedState.t()} | {:error, any()}
+  @spec save_versioned_state(String.t(), String.t(), map(), map()) ::
+          {:ok, VersionedState.t()} | {:error, any()}
   def save_versioned_state(resource_type, resource_id, state, metadata \\ %{}) do
     %VersionedState{}
     |> VersionedState.changeset(%{
@@ -832,7 +834,8 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   * `{:ok, events}` - The events up to the specified timestamp
   * `{:error, reason}` - Error retrieving events
   """
-  @spec get_events_for_resource_at(String.t(), String.t(), DateTime.t()) :: {:ok, [Event.t()]} | {:error, any()}
+  @spec get_events_for_resource_at(String.t(), String.t(), DateTime.t()) ::
+          {:ok, [Event.t()]} | {:error, any()}
   def get_events_for_resource_at(resource_type, resource_id, timestamp) do
     query =
       from e in Event,

@@ -10,6 +10,7 @@ defmodule HydepwnsLiveview.Events.EventBus do
 
   # Delegate all public functions to the core implementation
   defdelegate subscribe(event_types \\ :all), to: CoreEventBus
+  defdelegate subscribe(subscriber, event_types), to: CoreEventBus
   defdelegate unsubscribe(subscriber, event_types \\ :all), to: CoreEventBus
   defdelegate publish(event), to: CoreEventBus
   defdelegate publish(event, opts), to: CoreEventBus

@@ -51,4 +51,4 @@ defmodule HydepwnsLiveview.Events.Schemas.Event do
     ])
     |> validate_required([:type, :data, :resource_type, :resource_id, :timestamp])
   end
-end 
+end

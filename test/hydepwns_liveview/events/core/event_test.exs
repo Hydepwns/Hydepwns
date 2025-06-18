@@ -10,11 +10,12 @@ defmodule HydepwnsLiveview.Events.Core.EventTest do
       resource_id = "123"
       resource_type = "test_resource"
 
-      assert {:ok, event} = Event.create(type, %{
-        resource_id: resource_id,
-        resource_type: resource_type,
-        data: data
-      })
+      assert {:ok, event} =
+               Event.create(type, %{
+                 resource_id: resource_id,
+                 resource_type: resource_type,
+                 data: data
+               })
 
       assert event.type == type
       assert event.data == data
@@ -38,29 +39,35 @@ defmodule HydepwnsLiveview.Events.Core.EventTest do
     end
 
     test "rejects invalid data" do
-      assert {:error, changeset} = Event.create("test_event", %{
-        resource_id: "123",
-        resource_type: "test_resource",
-        data: "not_a_map"
-      })
+      assert {:error, changeset} =
+               Event.create("test_event", %{
+                 resource_id: "123",
+                 resource_type: "test_resource",
+                 data: "not_a_map"
+               })
+
       assert "must be a map" in errors_on(changeset).data
     end
 
     test "rejects invalid metadata" do
-      assert {:error, changeset} = Event.create("test_event", %{
-        resource_id: "123",
-        resource_type: "test_resource",
-        metadata: "not_a_map"
-      })
+      assert {:error, changeset} =
+               Event.create("test_event", %{
+                 resource_id: "123",
+                 resource_type: "test_resource",
+                 metadata: "not_a_map"
+               })
+
       assert "must be a map" in errors_on(changeset).metadata
     end
 
     test "rejects invalid timestamp" do
-      assert {:error, changeset} = Event.create("test_event", %{
-        resource_id: "123",
-        resource_type: "test_resource",
-        timestamp: "not_a_datetime"
-      })
+      assert {:error, changeset} =
+               Event.create("test_event", %{
+                 resource_id: "123",
+                 resource_type: "test_resource",
+                 timestamp: "not_a_datetime"
+               })
+
       assert "must be a DateTime" in errors_on(changeset).timestamp
     end
   end
@@ -72,11 +79,12 @@ defmodule HydepwnsLiveview.Events.Core.EventTest do
       resource_id = "123"
       resource_type = "test_resource"
 
-      event = Event.create!(type, %{
-        resource_id: resource_id,
-        resource_type: resource_type,
-        data: data
-      })
+      event =
+        Event.create!(type, %{
+          resource_id: resource_id,
+          resource_type: resource_type,
+          data: data
+        })
 
       assert event.type == type
       assert event.data == data
@@ -165,4 +173,4 @@ defmodule HydepwnsLiveview.Events.Core.EventTest do
       assert "can't be blank" in errors_on(changeset).resource_type
     end
   end
-end 
+end

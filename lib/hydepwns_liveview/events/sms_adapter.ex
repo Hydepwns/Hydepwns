@@ -11,4 +11,4 @@ defmodule HydepwnsLiveview.Events.SMSAdapter do
     # For now, we'll just simulate a successful delivery
     {:ok, "SMS sent to #{reminder.recipient}"}
   end
-end 
+end

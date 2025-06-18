@@ -53,16 +53,22 @@ defmodule HydepwnsLiveview.Events.Projections.NotificationProjection do
   def handle_call(:rebuild, _from, _state) do
     # Get all notification events from the event store
     case EventStore.get_events(%{
-      event_type: ["notification_created", "notification_updated", "notification_deleted"],
-      sort: [timestamp: :asc]
-    }) do
+           event_type: ["notification_created", "notification_updated", "notification_deleted"],
+           sort: [timestamp: :asc]
+         }) do
       {:ok, events} ->
         # Rebuild state by applying all events
-        state = Enum.reduce(events, %{
-          notifications: [],
-          last_event_id: nil,
-          last_updated: nil
-        }, &update_state/2)
+        state =
+          Enum.reduce(
+            events,
+            %{
+              notifications: [],
+              last_event_id: nil,
+              last_updated: nil
+            },
+            &update_state/2
+          )
+
         {:reply, :ok, state}
 
       {:error, reason} ->
@@ -82,28 +88,31 @@ defmodule HydepwnsLiveview.Events.Projections.NotificationProjection do
   defp update_state(state, event) do
     case event do
       %{type: "notification_created", data: data} ->
-        %{state |
-          notifications: [data | state.notifications],
-          last_event_id: event.id,
-          last_updated: DateTime.utc_now()
+        %{
+          state
+          | notifications: [data | state.notifications],
+            last_event_id: event.id,
+            last_updated: DateTime.utc_now()
         }
 
       %{type: "notification_updated", notification_id: id, data: data} ->
         notifications = Enum.map(state.notifications, &update_notification(&1, id, data))
 
-        %{state |
-          notifications: notifications,
-          last_event_id: event.id,
-          last_updated: DateTime.utc_now()
+        %{
+          state
+          | notifications: notifications,
+            last_event_id: event.id,
+            last_updated: DateTime.utc_now()
         }
 
       %{type: "notification_deleted", notification_id: id} ->
         notifications = Enum.reject(state.notifications, &(&1.id == id))
 
-        %{state |
-          notifications: notifications,
-          last_event_id: event.id,
-          last_updated: DateTime.utc_now()
+        %{
+          state
+          | notifications: notifications,
+            last_event_id: event.id,
+            last_updated: DateTime.utc_now()
         }
 
       _ ->

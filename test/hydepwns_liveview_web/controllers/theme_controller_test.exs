@@ -39,7 +39,14 @@ defmodule HydepwnsLiveviewWeb.ThemeControllerTest do
       animations: false
     }
   }
-  @invalid_attrs %{name: nil, mode: nil, primary_color: nil, secondary_color: nil, background_color: nil, text_color: nil}
+  @invalid_attrs %{
+    name: nil,
+    mode: nil,
+    primary_color: nil,
+    secondary_color: nil,
+    background_color: nil,
+    text_color: nil
+  }
 
   def fixture(:theme) do
     {:ok, theme} = HydepwnsLiveview.ThemeSystem.create_theme(@create_attrs)
@@ -107,7 +114,9 @@ defmodule HydepwnsLiveviewWeb.ThemeControllerTest do
     setup [:create_theme]
 
     test "deletes chosen theme", %{conn: conn, theme: theme} do
-      assert is_map(theme) and Map.has_key?(theme, :id) and not is_nil(theme.id), "Test setup error: theme is nil or missing id"
+      assert is_map(theme) and Map.has_key?(theme, :id) and not is_nil(theme.id),
+             "Test setup error: theme is nil or missing id"
+
       conn = delete(conn, ~p"/themes/#{theme}")
       assert redirected_to(conn) == ~p"/themes"
 

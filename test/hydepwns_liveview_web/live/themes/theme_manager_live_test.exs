@@ -1,7 +1,7 @@
 defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
   @moduledoc """
   Test suite for the ThemeManagerLive module.
-  
+
   These tests verify theme management functionality including:
   - Theme creation, updating and deletion
   - Setting default themes
@@ -130,7 +130,8 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
     # Only check Current Themes section
     current_themes_html = html |> Floki.find(".mb-8 .grid") |> Floki.raw_html()
     # Assert the theme link for the dark theme is present
-    assert Floki.find(current_themes_html, ~s{a[data-test-id="theme-link-#{dark_theme.id}"]}) != []
+    assert Floki.find(current_themes_html, ~s{a[data-test-id="theme-link-#{dark_theme.id}"]}) !=
+             []
 
     # Delete the theme
     view
@@ -140,7 +141,9 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
     # Verify theme link is removed from Current Themes
     html = render(view)
     current_themes_html = html |> Floki.find(".mb-8 .grid") |> Floki.raw_html()
-    refute Floki.find(current_themes_html, ~s{a[data-test-id="theme-link-#{dark_theme.id}"]}) != []
+
+    refute Floki.find(current_themes_html, ~s{a[data-test-id="theme-link-#{dark_theme.id}"]}) !=
+             []
   end
 
   test "validates theme creation", %{conn: conn} do

@@ -40,22 +40,17 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeEditLive do
         <div class="space-y-6">
           <div>
             <h3 class="text-lg font-medium">Edit Theme</h3>
-            <.form
-              :let={f}
-              for={%{}}
-              id="theme-form"
-              phx-submit="save"
-            >
+            <.form :let={f} for={%{}} id="theme-form" phx-submit="save">
               <div class="space-y-4">
-          <div>
+                <div>
                   <.label for={f[:name].id}>Name</.label>
                   <.input field={f[:name]} type="text" value={@theme.name} />
-          </div>
+                </div>
 
-          <div>
+                <div>
                   <.label for={f[:mode].id}>Mode</.label>
                   <.input field={f[:mode]} type="select" options={[Light: "light", Dark: "dark", System: "system"]} value={@theme.mode} />
-          </div>
+                </div>
 
                 <div class="flex justify-end space-x-4">
                   <.link navigate={~p"/themes/#{@theme}"} class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
@@ -64,13 +59,13 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeEditLive do
                   <.button type="submit" phx-disable-with="Saving...">
                     Save Theme
                   </.button>
-          </div>
-          </div>
+                </div>
+              </div>
             </.form>
           </div>
         </div>
-        </div>
+      </div>
     </div>
     """
   end
-end 
+end

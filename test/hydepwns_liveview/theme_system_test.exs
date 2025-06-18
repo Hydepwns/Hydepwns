@@ -7,7 +7,16 @@ defmodule HydepwnsLiveview.ThemeSystemTest do
   describe "themes" do
     import HydepwnsLiveview.ThemeSystemFixtures
 
-    @invalid_attrs %{name: nil, mode: nil, primary_color: nil, secondary_color: nil, background_color: nil, text_color: nil, is_default: nil, settings: nil}
+    @invalid_attrs %{
+      name: nil,
+      mode: nil,
+      primary_color: nil,
+      secondary_color: nil,
+      background_color: nil,
+      text_color: nil,
+      is_default: nil,
+      settings: nil
+    }
 
     defp atomize_keys(map) when is_map(map) do
       map
@@ -68,10 +77,24 @@ defmodule HydepwnsLiveview.ThemeSystemTest do
 
       assert Map.from_struct(default_from_db)
              |> Map.update!(:settings, &atomize_keys/1)
-             |> Map.drop([:id, :inserted_at, :updated_at, :__meta__, :__unset_other_defaults__, :colors]) ==
+             |> Map.drop([
+               :id,
+               :inserted_at,
+               :updated_at,
+               :__meta__,
+               :__unset_other_defaults__,
+               :colors
+             ]) ==
                Map.from_struct(reloaded_light_theme)
                |> Map.update!(:settings, &atomize_keys/1)
-               |> Map.drop([:id, :inserted_at, :updated_at, :__meta__, :__unset_other_defaults__, :colors])
+               |> Map.drop([
+                 :id,
+                 :inserted_at,
+                 :updated_at,
+                 :__meta__,
+                 :__unset_other_defaults__,
+                 :colors
+               ])
 
       # Set dark theme as default and assert
       {:ok, _} = ThemeSystem.set_default_theme(dark_theme_fixture)
@@ -80,10 +103,24 @@ defmodule HydepwnsLiveview.ThemeSystemTest do
 
       assert Map.from_struct(default_from_db)
              |> Map.update!(:settings, &atomize_keys/1)
-             |> Map.drop([:id, :inserted_at, :updated_at, :__meta__, :__unset_other_defaults__, :colors]) ==
+             |> Map.drop([
+               :id,
+               :inserted_at,
+               :updated_at,
+               :__meta__,
+               :__unset_other_defaults__,
+               :colors
+             ]) ==
                Map.from_struct(reloaded_dark_theme)
                |> Map.update!(:settings, &atomize_keys/1)
-               |> Map.drop([:id, :inserted_at, :updated_at, :__meta__, :__unset_other_defaults__, :colors])
+               |> Map.drop([
+                 :id,
+                 :inserted_at,
+                 :updated_at,
+                 :__meta__,
+                 :__unset_other_defaults__,
+                 :colors
+               ])
     end
 
     test "create_theme/1 with valid data creates a theme" do
@@ -111,12 +148,13 @@ defmodule HydepwnsLiveview.ThemeSystemTest do
       assert theme.background_color == "#ffffff"
       assert theme.text_color == "#000000"
       assert theme.is_default == false
+
       assert theme.settings == %{
-        font_size: "medium",
-        line_height: "normal",
-        contrast: "normal",
-        animations: true
-      }
+               font_size: "medium",
+               line_height: "normal",
+               contrast: "normal",
+               animations: true
+             }
     end
 
     test "create_theme/1 with invalid data returns error changeset" do
@@ -196,10 +234,24 @@ defmodule HydepwnsLiveview.ThemeSystemTest do
 
       assert Map.from_struct(ThemeSystem.get_default_theme())
              |> Map.update!(:settings, &atomize_keys/1)
-             |> Map.drop([:id, :inserted_at, :updated_at, :__meta__, :__unset_other_defaults__, :colors]) ==
+             |> Map.drop([
+               :id,
+               :inserted_at,
+               :updated_at,
+               :__meta__,
+               :__unset_other_defaults__,
+               :colors
+             ]) ==
                Map.from_struct(reloaded_light_theme)
                |> Map.update!(:settings, &atomize_keys/1)
-               |> Map.drop([:id, :inserted_at, :updated_at, :__meta__, :__unset_other_defaults__, :colors])
+               |> Map.drop([
+                 :id,
+                 :inserted_at,
+                 :updated_at,
+                 :__meta__,
+                 :__unset_other_defaults__,
+                 :colors
+               ])
 
       # Set dark theme as default
       assert {:ok, _} = ThemeSystem.set_default_theme(dark_theme)
@@ -213,10 +265,24 @@ defmodule HydepwnsLiveview.ThemeSystemTest do
       # Verify dark theme is now default
       assert Map.from_struct(ThemeSystem.get_default_theme())
              |> Map.update!(:settings, &atomize_keys/1)
-             |> Map.drop([:id, :inserted_at, :updated_at, :__meta__, :__unset_other_defaults__, :colors]) ==
+             |> Map.drop([
+               :id,
+               :inserted_at,
+               :updated_at,
+               :__meta__,
+               :__unset_other_defaults__,
+               :colors
+             ]) ==
                Map.from_struct(reloaded_dark_theme)
                |> Map.update!(:settings, &atomize_keys/1)
-               |> Map.drop([:id, :inserted_at, :updated_at, :__meta__, :__unset_other_defaults__, :colors])
+               |> Map.drop([
+                 :id,
+                 :inserted_at,
+                 :updated_at,
+                 :__meta__,
+                 :__unset_other_defaults__,
+                 :colors
+               ])
     end
 
     test "validate_theme/1 validates theme parameters" do

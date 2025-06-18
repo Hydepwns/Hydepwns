@@ -48,12 +48,12 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeDetailLive do
           <div>
             <h3 class="text-lg font-medium">Theme Details</h3>
             <dl class="mt-4 space-y-4">
-    <div>
-            <dt class="text-sm font-medium text-gray-500">Name</dt>
-                <dd class="mt-1 text-sm text-gray-900"><%= @theme.name %></dd>
-          </div>
               <div>
-            <dt class="text-sm font-medium text-gray-500">Mode</dt>
+                <dt class="text-sm font-medium text-gray-500">Name</dt>
+                <dd class="mt-1 text-sm text-gray-900"><%= @theme.name %></dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Mode</dt>
                 <dd class="mt-1 text-sm text-gray-900"><%= @theme.mode %></dd>
               </div>
               <div>
@@ -71,7 +71,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeDetailLive do
               Back to Themes
             </.link>
           </div>
-          </div>
+        </div>
       </div>
     </div>
     """

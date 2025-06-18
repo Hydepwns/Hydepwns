@@ -27,12 +27,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeFormLive do
         <div class="space-y-6">
           <div>
             <h3 class="text-lg font-medium">New Theme</h3>
-            <.form
-              :let={f}
-              for={%{}}
-              id="theme-form"
-              phx-submit="save"
-            >
+            <.form :let={f} for={%{}} id="theme-form" phx-submit="save">
               <div class="space-y-4">
                 <div>
                   <.label for={f[:name].id}>Name</.label>
@@ -60,4 +55,4 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeFormLive do
     </div>
     """
   end
-end 
+end

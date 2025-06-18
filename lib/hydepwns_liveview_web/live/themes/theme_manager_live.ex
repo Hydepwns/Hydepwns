@@ -8,12 +8,14 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
   def mount(_params, _session, socket) do
     default_theme = ThemeSystem.ensure_default_theme()
     theme_class = "#{default_theme.mode}-theme"
-    {:ok, assign(socket, 
-      themes: ThemeSystem.list_themes(), 
-      theme_class: theme_class, 
-      default_theme: default_theme.mode,
-      page_title: "Theme Manager"
-    )}
+
+    {:ok,
+     assign(socket,
+       themes: ThemeSystem.list_themes(),
+       theme_class: theme_class,
+       default_theme: default_theme.mode,
+       page_title: "Theme Manager"
+     )}
   end
 
   @impl Phoenix.LiveView
@@ -73,6 +75,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
       nil ->
         {:ok, _theme} = ThemeSystem.create_theme(theme_params)
         {:noreply, assign(socket, :themes, ThemeSystem.list_themes())}
+
       theme ->
         {:ok, _theme} = ThemeSystem.update_theme(theme, theme_params)
         {:noreply, assign(socket, :themes, ThemeSystem.list_themes())}

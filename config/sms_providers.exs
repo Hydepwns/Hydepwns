@@ -15,4 +15,4 @@ config :hydepwns_liveview, :sms_providers,
     api_key: System.get_env("NEXMO_API_KEY"),
     api_secret: System.get_env("NEXMO_API_SECRET"),
     from_number: System.get_env("NEXMO_FROM_NUMBER")
-  } 
+  }

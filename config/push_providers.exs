@@ -12,4 +12,4 @@ config :hydepwns_liveview, :push_providers,
     app_id: System.get_env("ONESIGNAL_APP_ID"),
     api_key: System.get_env("ONESIGNAL_API_KEY"),
     android_channel_id: System.get_env("ONESIGNAL_ANDROID_CHANNEL_ID")
-  } 
+  }

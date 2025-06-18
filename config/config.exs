@@ -126,8 +126,7 @@ config :phoenix, :stacktrace_depth, 20
 config :phoenix, :plug_init_mode, :runtime
 
 # Configure reminder worker
-config :hydepwns_liveview, :reminder_worker,
-  check_interval: :timer.minutes(1)
+config :hydepwns_liveview, :reminder_worker, check_interval: :timer.minutes(1)
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

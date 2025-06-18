@@ -93,8 +93,8 @@ defmodule HydepwnsLiveview.MixProject do
       # Add UUID generation
       {:uuid, "~> 1.1"},
 
-      # Add Inflex for pluralization
-      {:inflex, "~> 2.0"},
+      # Add Inflectorex for pluralization
+      {:inflectorex, "~> 0.1.2"},
 
       # Documentation
       {:ex_doc, "~> 0.31", only: :dev, runtime: false},
@@ -109,15 +109,13 @@ defmodule HydepwnsLiveview.MixProject do
       {:dialyxir, "~> 1.3", only: [:dev], runtime: false},
 
       # Add Signal Protocol for secure messaging
-      {:libsignal_protocol_nif,
-       path: "lib/libsignal-protocol-nif",
-       manager: :rebar3},
+      {:libsignal_protocol_nif, path: "lib/libsignal-protocol-nif", manager: :rebar3},
       # {:signal_nif,
       #  path: "lib/signal-nif",
       #  manager: :rebar3},
 
       # Add bcrypt for password hashing
-      {:bcrypt_elixir, "~> 3.0"},
+      {:bcrypt_elixir, "~> 3.0"}
 
       # Authentication - Uncomment to add authentication
       # {:phx_gen_auth, "~> 0.7.1", only: [:dev], runtime: false},

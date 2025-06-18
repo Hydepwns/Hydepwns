@@ -31,4 +31,4 @@ config :hydepwns_liveview, :webhook_providers,
     },
     # Optional: Custom payload transformation
     payload_transform: {MyApp.WebhookTransformers, :transform_payload}
-  } 
+  }

@@ -25,4 +25,4 @@ config :hydepwns_liveview, :email_providers,
     from_email: System.get_env("CUSTOM_EMAIL_FROM_ADDRESS"),
     from_name: System.get_env("CUSTOM_EMAIL_FROM_NAME"),
     custom_provider: MyApp.CustomEmailProvider
-  } 
+  }

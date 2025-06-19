@@ -1,7 +1,7 @@
 defmodule HydepwnsLiveviewWeb.Themes.ThemeNewLive do
   use HydepwnsLiveviewWeb, :live_view
 
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label: 1]
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label_tag: 1]
 
   alias HydepwnsLiveview.ThemeSystem
   alias HydepwnsLiveview.ThemeSystem.Models.Theme
@@ -31,12 +31,12 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeNewLive do
             <.form :let={f} for={%{}} id="theme-form" phx-submit="save">
               <div class="space-y-4">
                 <div>
-                  <.label for={f[:name].id}>Name</.label>
+                  <.label_tag for={f[:name].id}>Name</.label_tag>
                   <.input field={f[:name]} type="text" />
                 </div>
 
                 <div>
-                  <.label for={f[:mode].id}>Mode</.label>
+                  <.label_tag for={f[:mode].id}>Mode</.label_tag>
                   <.input field={f[:mode]} type="select" options={[Light: "light", Dark: "dark", System: "system"]} />
                 </div>
 

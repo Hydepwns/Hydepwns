@@ -8,7 +8,7 @@ defmodule HydepwnsLiveviewWeb.User.UserFormLive do
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveview.Accounts.User
 
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label: 1]
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label_tag: 1]
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
@@ -90,12 +90,12 @@ defmodule HydepwnsLiveviewWeb.User.UserFormLive do
             <.form :let={f} for={@changeset} id="user-form" phx-change="validate" phx-submit="save">
               <div class="space-y-4">
                 <div>
-                  <.label for={f[:email].id}>Email</.label>
+                  <.label_tag for={f[:email].id}>Email</.label_tag>
                   <.input field={f[:email]} type="email" required />
                 </div>
 
                 <div>
-                  <.label for={f[:password].id}>Password</.label>
+                  <.label_tag for={f[:password].id}>Password</.label_tag>
                   <.input field={f[:password]} type="password" required />
                 </div>
 

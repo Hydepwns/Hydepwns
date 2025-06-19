@@ -41,7 +41,7 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
   * `{:error, reason}` - The event could not be published
   """
   @spec publish(Event.t(), Keyword.t()) :: :ok | {:error, any()}
-  def publish(event, opts \\ %{}) do
+  def publish(%Event{} = event, opts \\ %{}) do
     GenServer.cast(__MODULE__, {:publish, event, opts})
   end
 

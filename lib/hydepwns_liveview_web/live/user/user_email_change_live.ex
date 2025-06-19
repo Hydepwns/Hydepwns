@@ -1,7 +1,7 @@
 defmodule HydepwnsLiveviewWeb.UserEmailChangeLive do
   use HydepwnsLiveviewWeb, :live_view
 
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label: 1]
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label_tag: 1]
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
@@ -21,12 +21,12 @@ defmodule HydepwnsLiveviewWeb.UserEmailChangeLive do
             <.form :let={f} for={%{}} id="email-form" phx-submit="save">
               <div class="space-y-4">
                 <div>
-                  <.label for={f[:email].id}>Email</.label>
+                  <.label_tag for={f[:email].id}>Email</.label_tag>
                   <.input field={f[:email]} type="email" required />
                 </div>
 
                 <div>
-                  <.label for={f[:current_password].id}>Current Password</.label>
+                  <.label_tag for={f[:current_password].id}>Current Password</.label_tag>
                   <.input field={f[:current_password]} type="password" required />
                 </div>
 

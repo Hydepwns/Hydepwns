@@ -5,7 +5,7 @@ defmodule HydepwnsLiveviewWeb.Admin.EventSettingsLive do
 
   use HydepwnsLiveviewWeb, :live_view
 
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [label: 1]
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [label_tag: 1]
   alias HydepwnsLiveview.Events
 
   @impl Phoenix.LiveView
@@ -50,7 +50,7 @@ defmodule HydepwnsLiveviewWeb.Admin.EventSettingsLive do
             <.form :let={f} for={@changeset} id="settings-form" phx-submit="save">
               <div class="space-y-4">
                 <div>
-                  <.label for={f[:timezone].id}>Timezone</.label>
+                  <.label_tag for={f[:timezone].id}>Timezone</.label_tag>
                   <select name={f[:timezone].name} id={f[:timezone].id} class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     <%= for tz <- Events.list_timezones() do %>
                       <option value={tz}><%= tz %></option>

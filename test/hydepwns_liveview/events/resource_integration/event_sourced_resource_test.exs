@@ -23,7 +23,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResourceTest d
       Map.update!(state, :value, &(&1 - amount))
     end
 
-    def apply_event(state, _event), do: state
+    def apply_event(_state, _event), do: _state
 
     def create_events(params) do
       [
@@ -60,6 +60,8 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResourceTest d
         }
       ]
     end
+
+    def execute_command(_state, _command, _params), do: []
   end
 
   describe "get/1" do

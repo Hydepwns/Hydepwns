@@ -94,25 +94,21 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormatHelpers do
     |> String.capitalize()
   end
 
-  @doc """
-  Formats a percentage value.
-  """
+  @doc false
   def format_percentage(value) when is_number(value) do
     "#{Float.round(value * 100, 2)}%"
   end
+  @doc false
   def format_percentage(_), do: "N/A"
 
-  @doc """
-  Formats a rate value.
-  """
+  @doc false
   def format_rate(value) when is_number(value) do
     "#{Float.round(value, 2)}/s"
   end
+  @doc false
   def format_rate(_), do: "N/A"
 
-  @doc """
-  Formats a resource type.
-  """
+  @doc false
   def format_resource_type(type) do
     type
     |> to_string()
@@ -122,9 +118,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormatHelpers do
     |> String.capitalize()
   end
 
-  @doc """
-  Formats a resource.
-  """
+  @doc false
   def format_resource(resource) do
     case resource do
       %{name: name} -> name
@@ -133,9 +127,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormatHelpers do
     end
   end
 
-  @doc """
-  Formats a size change.
-  """
+  @doc false
   def format_size_change(change) when is_number(change) do
     cond do
       change > 0 -> "+#{format_bytes(change)}"
@@ -143,11 +135,10 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormatHelpers do
       true -> "0 B"
     end
   end
+  @doc false
   def format_size_change(_), do: "N/A"
 
-  @doc """
-  Formats a status.
-  """
+  @doc false
   def format_status(status) do
     status
     |> to_string()
@@ -155,17 +146,14 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormatHelpers do
     |> String.capitalize()
   end
 
-  @doc """
-  Formats a time value.
-  """
+  @doc false
   def format_time(time) when is_integer(time) do
     "#{time}ms"
   end
+  @doc false
   def format_time(_), do: "N/A"
 
-  @doc """
-  Formats a timestamp in short format.
-  """
+  @doc false
   def format_timestamp_short(timestamp) do
     case DateTime.from_iso8601(timestamp) do
       {:ok, datetime, _} -> Calendar.strftime(datetime, "%H:%M:%S")
@@ -173,9 +161,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormatHelpers do
     end
   end
 
-  @doc """
-  Formats a timestamp.
-  """
+  @doc false
   def format_timestamp(timestamp) do
     case DateTime.from_iso8601(timestamp) do
       {:ok, datetime, _} -> Calendar.strftime(datetime, "%Y-%m-%d %H:%M:%S")

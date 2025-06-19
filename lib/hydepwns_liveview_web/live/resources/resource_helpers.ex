@@ -4,13 +4,14 @@ defmodule HydepwnsLiveviewWeb.Resources.ResourceHelpers do
   """
 
   import Phoenix.LiveView
+  import Phoenix.Component
 
   def get_resource(socket, key) do
     get_in(socket.assigns, [key])
   end
 
   def update_resource(socket, key, value) do
-    {:ok, assign_new(socket, key, value)}
+    {:ok, assign(socket, key, value)}
   end
 
   def validate_role(role) when role in ["admin", "editor", "viewer"], do: :ok

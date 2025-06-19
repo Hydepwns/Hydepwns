@@ -19,6 +19,11 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
     quote do
       @behaviour HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource
 
+      import HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource, only: [
+        rebuild_from_events: 3,
+        __publish_events__: 3
+      ]
+
       def resource_type, do: __MODULE__
 
       def initial_state, do: %{}
@@ -35,96 +40,94 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
                      create_events: 1,
                      execute_command: 3
 
-      def get(_invalid_id) when is_binary(_invalid_id) and byte_size(_invalid_id) > 0 do
-        HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource.__get_resource__(
-          __MODULE__,
-          _invalid_id
-        )
+      def get(id) when is_binary(id) and byte_size(id) > 0 do
+        with {:ok, events} <- EventStore.get_events_for_resource(resource_type(), id) do
+          initial_state = initial_state()
+          state = rebuild_from_events(events, initial_state, &apply_event/2)
+          {:ok, state}
+        end
       end
 
-      def get(_invalid_id), do: {:error, :invalid_id}
+      def get(id), do: {:error, :invalid_id}
 
-      def get_at(_invalid_id, _invalid_timestamp)
-          when is_binary(_invalid_id) and byte_size(_invalid_id) > 0 and
-                 is_struct(_invalid_timestamp, DateTime) do
-        HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource.__get_resource_at__(
-          __MODULE__,
-          _invalid_id,
-          _invalid_timestamp
-        )
+      def get_at(id, timestamp)
+          when is_binary(id) and byte_size(id) > 0 and
+                 is_struct(timestamp, DateTime) do
+        with {:ok, events} <- EventStore.get_events_for_resource_at(resource_type(), id, timestamp) do
+          initial_state = initial_state()
+          state = rebuild_from_events(events, initial_state, &apply_event/2)
+          {:ok, state}
+        end
       end
 
-      def get_at(_invalid_id, _invalid_timestamp), do: {:error, :invalid_parameters}
+      def get_at(id, timestamp), do: {:error, :invalid_parameters}
 
-      def create(_invalid_params) when is_map(_invalid_params) do
-        HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource.__create_resource__(
-          __MODULE__,
-          _invalid_params
-        )
+      def create(params) when is_map(params) do
+        with {:ok, events} <- create_events(nil, params),
+             :ok <- __publish_events__(events, %{}, __MODULE__) do
+          state = rebuild_from_events(events, initial_state(), &apply_event/2)
+          {:ok, state}
+        end
       end
 
-      def create(_invalid_params), do: {:error, :invalid_parameters}
+      def create(params), do: {:error, :invalid_parameters}
 
-      def execute(_invalid_id, _invalid_command, _invalid_params, _invalid_metadata)
-          when is_binary(_invalid_id) and byte_size(_invalid_id) > 0 and
-                 is_binary(_invalid_command) and byte_size(_invalid_command) > 0 and
-                 is_map(_invalid_params) and
-                 is_map(_invalid_metadata) do
-        HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource.__execute_resource__(
-          __MODULE__,
-          _invalid_id,
-          _invalid_command,
-          _invalid_params,
-          _invalid_metadata
-        )
+      def execute(id, command, params, metadata)
+          when is_binary(id) and byte_size(id) > 0 and
+                 is_binary(command) and byte_size(command) > 0 and
+                 is_map(params) and
+                 is_map(metadata) do
+        with {:ok, resource} <- get(id),
+             events when is_list(events) <- execute_command(resource, command, params),
+             :ok <- __publish_events__(events, metadata, __MODULE__) do
+          updated_state = rebuild_from_events(events, resource, &apply_event/2)
+          {:ok, updated_state}
+        end
       end
 
-      def execute(_invalid_id, _invalid_command, _invalid_params, _invalid_metadata),
+      def execute(id, command, params, metadata),
         do: {:error, :invalid_parameters}
 
-      def get_history(_invalid_id, _invalid_opts \\ %{})
+      def get_history(id, opts \\ %{})
 
-      def get_history(_invalid_id, _invalid_opts)
-          when is_binary(_invalid_id) and byte_size(_invalid_id) > 0 and
-                 is_map(_invalid_opts) do
-        HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource.__get_history__(
-          __MODULE__,
-          _invalid_id,
-          _invalid_opts
-        )
+      def get_history(id, opts)
+          when is_binary(id) and byte_size(id) > 0 and
+                 is_map(opts) do
+        with {:ok, events} <- EventStore.get_events_for_resource(resource_type(), id, opts) do
+          {:ok, events}
+        end
       end
 
-      def get_history(_invalid_id, _invalid_opts), do: {:error, :invalid_parameters}
+      def get_history(id, opts), do: {:error, :invalid_parameters}
 
-      def delete(_invalid_id, _invalid_metadata \\ %{})
+      def delete(id, metadata \\ %{})
 
-      def delete(_invalid_id, _invalid_metadata)
-          when is_binary(_invalid_id) and byte_size(_invalid_id) > 0 and
-                 is_map(_invalid_metadata) do
-        HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource.__delete_resource__(
-          __MODULE__,
-          _invalid_id,
-          _invalid_metadata
-        )
+      def delete(id, metadata)
+          when is_binary(id) and byte_size(id) > 0 and
+                 is_map(metadata) do
+        with {:ok, events} <- create_delete_events(id, metadata),
+             :ok <- __publish_events__(events, metadata, __MODULE__) do
+          {:ok, events}
+        end
       end
 
-      def delete(_invalid_id, _invalid_metadata), do: {:error, :invalid_parameters}
+      def delete(id, metadata), do: {:error, :invalid_parameters}
 
-      def update(_invalid_id, _invalid_params, _invalid_metadata \\ %{})
+      def update(id, params, metadata \\ %{})
 
-      def update(_invalid_id, _invalid_params, _invalid_metadata)
-          when is_binary(_invalid_id) and byte_size(_invalid_id) > 0 and
-                 is_map(_invalid_params) and
-                 is_map(_invalid_metadata) do
-        HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource.__update_resource__(
-          __MODULE__,
-          _invalid_id,
-          _invalid_params,
-          _invalid_metadata
-        )
+      def update(id, params, metadata)
+          when is_binary(id) and byte_size(id) > 0 and
+                 is_map(params) and
+                 is_map(metadata) do
+        with {:ok, resource} <- get(id),
+             events when is_list(events) <- create_update_events(resource, params),
+             :ok <- __publish_events__(events, metadata, __MODULE__) do
+          updated_state = rebuild_from_events(events, resource, &apply_event/2)
+          {:ok, updated_state}
+        end
       end
 
-      def update(_invalid_id, _invalid_params, _invalid_metadata),
+      def update(id, params, metadata),
         do: {:error, :invalid_parameters}
     end
   end
@@ -147,54 +150,39 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
   * The final state after applying all events
   * `{:error, reason}` if any event fails to apply
   """
-  def rebuild_from_events(_invalid_events, _invalid_state, _invalid_fn)
-      when is_list(_invalid_events) and
-             is_map(_invalid_state) and
-             is_function(_invalid_fn, 2) do
-    try do
-      Enum.reduce(_invalid_events, _invalid_state, fn event, state ->
-        _invalid_fn.(state, event)
-      end)
-    rescue
-      e in RuntimeError ->
-        {:error, e.message}
-
-      e in FunctionClauseError ->
-        {:error, "Failed to apply event: #{inspect(e)}"}
-
-      e ->
-        {:error, "Unexpected error while rebuilding state: #{inspect(e)}"}
-    end
+  def rebuild_from_events(events, state, apply_event_fn)
+      when is_list(events) and
+             is_map(state) and
+             is_function(apply_event_fn, 2) do
+    Enum.reduce(events, state, fn event, state ->
+      apply_event_fn.(state, event)
+    end)
   end
 
-  def rebuild_from_events(_invalid_events, _invalid_state, _invalid_fn),
-    do: {:error, :invalid_parameters}
+  def rebuild_from_events(events, state, apply_event_fn),
+      do: {:error, :invalid_parameters}
 
-  def __get_resource__(_invalid_module, _invalid_id) when is_atom(_invalid_module) and is_binary(_invalid_id) and byte_size(_invalid_id) > 0 do
-    with {:ok, events} <- EventStore.get_events_for_resource(_invalid_module.resource_type(), _invalid_id) do
-      initial_state = _invalid_module.initial_state()
-      state = rebuild_from_events(events, initial_state, &_invalid_module.apply_event/2)
+  def __get_resource__(module, id) when is_atom(module) and is_binary(id) and byte_size(id) > 0 do
+    with {:ok, events} <- EventStore.get_events_for_resource(module.resource_type(), id) do
+      initial_state = module.initial_state()
+      state = rebuild_from_events(events, initial_state, &module.apply_event/2)
       {:ok, state}
     end
   end
 
-  def __get_resource__(_invalid_module, _invalid_id), do: {:error, :invalid_parameters}
+  def __get_resource__(module, id), do: {:error, :invalid_parameters}
 
-  def __get_resource_at__(_invalid_module, _invalid_id, _invalid_timestamp)
-      when is_atom(_invalid_module) and
-             is_binary(_invalid_id) and
-             byte_size(_invalid_id) > 0 and
-             is_struct(_invalid_timestamp, DateTime) do
-    with {:ok, events} <-
-           EventStore.get_events_for_resource_at(_invalid_module.resource_type(), _invalid_id, _invalid_timestamp) do
-      initial_state = _invalid_module.initial_state()
-      state = rebuild_from_events(events, initial_state, &_invalid_module.apply_event/2)
+  def __get_resource_at__(module, id, timestamp)
+      when is_atom(module) and is_binary(id) and byte_size(id) > 0 and
+             is_struct(timestamp, DateTime) do
+    with {:ok, events} <- EventStore.get_events_for_resource_at(module.resource_type(), id, timestamp) do
+      initial_state = module.initial_state()
+      state = rebuild_from_events(events, initial_state, &module.apply_event/2)
       {:ok, state}
     end
   end
 
-  def __get_resource_at__(_invalid_module, _invalid_id, _invalid_timestamp),
-    do: {:error, :invalid_parameters}
+  def __get_resource_at__(module, id, timestamp), do: {:error, :invalid_parameters}
 
   def __create_resource__(_invalid_module, _invalid_params) when is_atom(_invalid_module) and is_map(_invalid_params) do
     with {:ok, events} <- _invalid_module.create_events(_invalid_params) do
@@ -206,49 +194,49 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
 
   def __create_resource__(_invalid_module, _invalid_params), do: {:error, :invalid_parameters}
 
-  def __execute_resource__(_invalid_module, _invalid_id, _invalid_command, _invalid_params, _invalid_metadata)
-      when is_atom(_invalid_module) and
-             is_binary(_invalid_id) and
-             byte_size(_invalid_id) > 0 and
-             is_binary(_invalid_command) and
-             byte_size(_invalid_command) > 0 and
-             is_map(_invalid_params) and
-             is_map(_invalid_metadata) do
-    with {:ok, resource} <- __get_resource__(_invalid_module, _invalid_id),
-         events when is_list(events) <- _invalid_module.execute_command(resource, _invalid_command, _invalid_params),
-         :ok <- __publish_events__(events, _invalid_metadata, _invalid_module) do
-      updated_state = rebuild_from_events(events, resource, &_invalid_module.apply_event/2)
+  def __execute_resource__(module, id, command, params, metadata)
+      when is_atom(module) and
+             is_binary(id) and
+             byte_size(id) > 0 and
+             is_binary(command) and
+             byte_size(command) > 0 and
+             is_map(params) and
+             is_map(metadata) do
+    with {:ok, resource} <- __get_resource__(module, id),
+         events when is_list(events) <- module.execute_command(resource, command, params),
+         :ok <- __publish_events__(events, metadata, module) do
+      updated_state = rebuild_from_events(events, resource, &module.apply_event/2)
       {:ok, updated_state}
     end
   end
 
-  def __execute_resource__(_invalid_module, _invalid_id, _invalid_command, _invalid_params, _invalid_metadata),
+  def __execute_resource__(module, id, command, params, metadata),
       do: {:error, :invalid_parameters}
 
-  def __get_history__(_invalid_module, _invalid_id, _invalid_opts)
-      when is_atom(_invalid_module) and
-             is_binary(_invalid_id) and
-             byte_size(_invalid_id) > 0 and
-             is_map(_invalid_opts) do
-    resource_type = _invalid_module.resource_type()
-    criteria = Map.merge(%{resource_type: resource_type, resource_id: _invalid_id}, _invalid_opts)
+  def __get_history__(module, id, opts)
+      when is_atom(module) and
+             is_binary(id) and
+             byte_size(id) > 0 and
+             is_map(opts) do
+    resource_type = module.resource_type()
+    criteria = Map.merge(%{resource_type: resource_type, resource_id: id}, opts)
     EventStore.get_events(criteria)
   end
 
-  def __get_history__(_invalid_module, _invalid_id, _invalid_opts), do: {:error, :invalid_parameters}
+  def __get_history__(module, id, opts), do: {:error, :invalid_parameters}
 
-  def __create_events__(_invalid_module, _invalid_id, _invalid_params)
-      when is_atom(_invalid_module) and
-             is_binary(_invalid_id) and
-             byte_size(_invalid_id) > 0 and
-             is_map(_invalid_params) do
-    _invalid_module.create_events(_invalid_id, _invalid_params)
+  def __create_events__(module, id, params)
+      when is_atom(module) and
+             is_binary(id) and
+             byte_size(id) > 0 and
+             is_map(params) do
+    module.create_events(id, params)
   end
 
-  def __create_events__(_invalid_module, _invalid_id, _invalid_params),
+  def __create_events__(module, id, params),
     do: {:error, :invalid_parameters}
 
-  defp __publish_events__(events, metadata, _module)
+  def __publish_events__(events, metadata, module)
        when is_list(events) and
               is_map(metadata) do
     Enum.each(events, fn event ->
@@ -258,7 +246,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
     :ok
   end
 
-  defp __publish_events__(events, metadata, _module), do: {:ok, events}
+  def __publish_events__(events, metadata, module), do: {:ok, events}
 
   @doc """
   Gets the current state of a resource by replaying all events.
@@ -417,7 +405,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
     %{}
   end
 
-  defp apply_event(event, state) do
+  defp apply_event_to_state(event, state) do
     case event.type do
       "resource_created" ->
         Map.merge(state, event.data)

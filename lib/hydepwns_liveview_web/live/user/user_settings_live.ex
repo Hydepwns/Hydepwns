@@ -7,7 +7,7 @@ defmodule HydepwnsLiveviewWeb.UserSettingsLive do
 
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveviewWeb.UserAuth
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label: 1, error: 1]
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label_tag: 1, error: 1]
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
@@ -62,7 +62,7 @@ defmodule HydepwnsLiveviewWeb.UserSettingsLive do
         <div class="bg-white shadow rounded-lg p-6">
           <div class="space-y-6">
             <div>
-              <.label for={f[:name].id}>Name</.label>
+              <.label_tag for={f[:name].id}>Name</.label_tag>
               <.input field={f[:name]} type="text" />
               <.error :for={msg <- Keyword.get_values(f[:name].errors, :name)}>
                 <%= msg %>
@@ -70,7 +70,7 @@ defmodule HydepwnsLiveviewWeb.UserSettingsLive do
             </div>
 
             <div>
-              <.label for={f[:email].id}>Email</.label>
+              <.label_tag for={f[:email].id}>Email</.label_tag>
               <.input field={f[:email]} type="email" />
               <.error :for={msg <- Keyword.get_values(f[:email].errors, :email)}>
                 <%= msg %>
@@ -78,7 +78,7 @@ defmodule HydepwnsLiveviewWeb.UserSettingsLive do
             </div>
 
             <div>
-              <.label for={f[:bio].id}>Bio</.label>
+              <.label_tag for={f[:bio].id}>Bio</.label_tag>
               <.input field={f[:bio]} type="textarea" />
               <.error :for={msg <- Keyword.get_values(f[:bio].errors, :bio)}>
                 <%= msg %>
@@ -86,7 +86,7 @@ defmodule HydepwnsLiveviewWeb.UserSettingsLive do
             </div>
 
             <div>
-              <.label for={f[:theme].id}>Theme</.label>
+              <.label_tag for={f[:theme].id}>Theme</.label_tag>
               <.input field={f[:theme]} type="select" options={[Light: "light", Dark: "dark", System: "system"]} />
               <.error :for={msg <- Keyword.get_values(f[:theme].errors, :theme)}>
                 <%= msg %>

@@ -47,12 +47,12 @@ defmodule HydepwnsLiveview.Utils.ContextValidationTrackingTest do
       {:ok, updated_resource}
     end
 
-    def update_with_tracking(resource, changes, metadata) do
+    def update_with_tracking(_resource, _changes, _metadata) do
       # Simulate optimistic concurrency control
-      expected_version = Map.get(metadata, :expected_version)
+      expected_version = Map.get(_metadata, :expected_version)
 
       current_version =
-        resource
+        _resource
         |> Map.get(:__change_history__, [%{version: 1}])
         |> List.last()
         |> Map.get(:version, 1)
@@ -61,26 +61,26 @@ defmodule HydepwnsLiveview.Utils.ContextValidationTrackingTest do
         {:error, :stale_resource}
       else
         # Simulate context validation logic
-        if Map.get(metadata, :context_validation) do
+        if Map.get(_metadata, :context_validation) do
           # Simulate validation rules
-          validation_rules = Map.get(metadata, :validation_rules, [])
-          validation_context = Map.get(metadata, :validation_context, %{})
+          validation_rules = Map.get(_metadata, :validation_rules, [])
+          validation_context = Map.get(_metadata, :validation_context, %{})
 
           errors =
             Enum.reduce_while(validation_rules, [], fn rule, acc ->
               rule_fn = __validation_rules__()[rule]
 
-              case rule_fn.(Map.merge(resource, changes), validation_context) do
+              case rule_fn.(_resource, validation_context) do
                 :ok -> {:cont, acc}
                 {:error, msg} -> {:halt, [msg | acc]}
               end
             end)
 
           if errors == [],
-            do: update_with_tracking(resource, changes),
+            do: update_with_tracking(_resource, _changes),
             else: {:error, Enum.join(errors, ", ")}
         else
-          update_with_tracking(resource, changes)
+          update_with_tracking(_resource, _changes)
         end
       end
     end

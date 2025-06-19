@@ -5,7 +5,7 @@ defmodule HydepwnsLiveviewWeb.UserSessionLive do
 
   use HydepwnsLiveviewWeb, :live_view
 
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label: 1, error: 1]
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label_tag: 1, error: 1]
 
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveview.Accounts.User
@@ -67,7 +67,7 @@ defmodule HydepwnsLiveviewWeb.UserSessionLive do
         <div class="bg-white shadow rounded-lg p-6">
           <div class="space-y-6">
             <div>
-              <.label for={f[:email].id}>Email</.label>
+              <.label_tag for={f[:email].id}>Email</.label_tag>
               <.input field={f[:email]} type="email" />
               <.error :for={msg <- Keyword.get_values(f[:email].errors, :email)}>
                 <%= msg %>
@@ -75,7 +75,7 @@ defmodule HydepwnsLiveviewWeb.UserSessionLive do
             </div>
 
             <div>
-              <.label for={f[:password].id}>Password</.label>
+              <.label_tag for={f[:password].id}>Password</.label_tag>
               <.input field={f[:password]} type="password" />
               <.error :for={msg <- Keyword.get_values(f[:password].errors, :password)}>
                 <%= msg %>

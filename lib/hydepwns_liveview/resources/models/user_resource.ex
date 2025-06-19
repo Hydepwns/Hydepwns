@@ -7,6 +7,7 @@ defmodule HydepwnsLiveview.Resources.UserResource do
   """
 
   use HydepwnsLiveview.Utils.ResourceDSL
+  use HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource
 
   attribute(:id, :string, required: true)
   attribute(:name, :string, required: true)
@@ -53,24 +54,11 @@ defmodule HydepwnsLiveview.Resources.UserResource do
     end
   end)
 
-  defstruct [
-    :id,
-    :name,
-    :email,
-    :role,
-    :settings,
-    :permissions,
-    :active,
-    :last_login,
-    :team_id,
-    :__resource_module__
-  ]
-
   @doc """
   Returns the initial state for a user resource as a struct.
   """
   def initial_state do
-    %__MODULE__{
+    %{
       id: nil,
       name: nil,
       email: nil,
@@ -88,7 +76,6 @@ defmodule HydepwnsLiveview.Resources.UserResource do
   Applies an event to the user resource state, always returning a struct.
   """
   def apply_event(event, %__MODULE__{} = state) do
-    # Example: handle event types, fallback to merging event data
     case event.type do
       "user.created" ->
         struct(state, Map.merge(Map.from_struct(state), event.data))
@@ -106,14 +93,9 @@ defmodule HydepwnsLiveview.Resources.UserResource do
 
   @doc """
   Loads a user resource by ID.
-
-  This is a stub implementation for testing purposes.
-  In a real application, this would fetch the user from a database.
   """
   @spec load(String.t()) :: {:ok, map()} | {:error, any()}
   def load(id) do
-    # This is a simple stub that always returns a user with the given ID
-    # In a real application, this would query the database
     user = %{
       id: id,
       name: "User #{id}",
@@ -134,20 +116,10 @@ defmodule HydepwnsLiveview.Resources.UserResource do
   end
 
   @doc """
-  Updates a user resource with tracking (for audit/telemetry).
-
-  ## Parameters
-  * `resource` - The user resource to update
-  * `updates` - The update parameters
-  * `metadata` - Additional metadata for the update
-  * `opts` - Optional context/options (unused)
-
-  ## Returns
-  * `{:ok, updated_resource}` or `{:error, reason}`
+  Updates a user resource with tracking.
   """
   @spec update_with_tracking(map(), map(), map(), map()) :: {:ok, map()} | {:error, any()}
   def update_with_tracking(resource, updates, metadata, _opts \\ %{}) do
-    # If update/3 is defined, use it; otherwise, return error
     if function_exported?(__MODULE__, :update, 3) do
       apply(__MODULE__, :update, [resource, updates, metadata])
     else
@@ -160,7 +132,6 @@ defmodule HydepwnsLiveview.Resources.UserResource do
   """
   def resource_type, do: "user"
 
-  # Returns an Ecto.Changeset for use in LiveView forms
   def changeset(attrs) when is_map(attrs) do
     attrs = for {k, v} <- attrs, into: %{}, do: {to_string(k), v}
 
@@ -193,9 +164,7 @@ defmodule HydepwnsLiveview.Resources.UserResource do
   def changeset(_), do: Ecto.Changeset.change(%{})
 
   @doc """
-  Validates a user resource map or struct. Returns {:ok, struct} or {:error, errors}.
-
-  # NOTE: Do not use this directly in LiveView forms or controllers. Use `changeset/1` for form validation.
+  Validates a user resource map or struct.
   """
   def validate(attrs) when is_map(attrs) do
     errors = []
@@ -220,13 +189,6 @@ defmodule HydepwnsLiveview.Resources.UserResource do
 
   @doc """
   Executes a validation plan for the resource.
-
-  ## Parameters
-  * `resource` - The resource to validate
-  * `plan` - The validation plan to execute
-
-  ## Returns
-  * `{:ok, validated_resource}` or `{:error, errors}`
   """
   def execute_validation_plan(resource, plan) do
     case validate_deep(resource) do
@@ -237,39 +199,21 @@ defmodule HydepwnsLiveview.Resources.UserResource do
 
   @doc """
   Resolves a relationship for the resource.
-
-  ## Parameters
-  * `resource` - The resource to resolve the relationship for
-  * `relationship` - The relationship to resolve
-
-  ## Returns
-  * `{:ok, resolved_resource}` or `{:error, reason}`
   """
-  def resolve_relationship(resource, relationship) do
-    case relationship do
-      :team ->
-        if resource.team_id do
-          case HydepwnsLiveview.Resources.TeamResource.load(resource.team_id) do
-            {:ok, team} -> {:ok, Map.put(resource, :team, team)}
-            error -> error
-          end
-        else
-          {:ok, resource}
-        end
+  def resolve_relationship(resource, :team), do: resolve_team_relationship(resource)
+  def resolve_relationship(resource, :posts), do: {:ok, Map.put(resource, :posts, [])}
+  def resolve_relationship(resource, relationship), do: {:error, "Unknown relationship: #{relationship}"}
 
-      :posts ->
-        {:ok, Map.put(resource, :posts, [])}
-
-      _ ->
-        {:error, "Unknown relationship: #{relationship}"}
+  defp resolve_team_relationship(%{team_id: nil} = resource), do: {:ok, resource}
+  defp resolve_team_relationship(resource) do
+    case HydepwnsLiveview.Resources.TeamResource.load(resource.team_id) do
+      {:ok, team} -> {:ok, Map.put(resource, :team, team)}
+      error -> error
     end
   end
 
   @doc """
   Resolves validation dependencies for the resource.
-
-  ## Returns
-  * `{:ok, dependencies}` or `{:error, reason}`
   """
   def resolve_validation_dependencies do
     {:ok,
@@ -280,20 +224,11 @@ defmodule HydepwnsLiveview.Resources.UserResource do
   end
 
   @doc """
-  Performs deep validation of the resource, including nested attributes and relationships.
-
-  ## Parameters
-  * `resource` - The resource to validate
-
-  ## Returns
-  * `{:ok, validated_resource}` or `{:error, errors}`
+  Performs deep validation of the resource.
   """
   def validate_deep(resource) do
-    with {:ok, validated} <- validate(resource),
-         {:ok, with_team} <- resolve_relationship(validated, :team),
-         {:ok, with_posts} <- resolve_relationship(with_team, :posts) do
-      {:ok, with_posts}
-    else
+    case validate(resource) do
+      {:ok, validated} -> {:ok, validated}
       {:error, errors} -> {:error, errors}
     end
   end
@@ -318,4 +253,8 @@ defmodule HydepwnsLiveview.Resources.UserResource do
   defp validate_plan(_plan) do
     :ok
   end
+
+  def create_events(_params, _metadata), do: {:ok, []}
+  def create_update_events(_params, _metadata), do: {:ok, []}
+  def create_delete_events(_params, _metadata), do: {:ok, []}
 end

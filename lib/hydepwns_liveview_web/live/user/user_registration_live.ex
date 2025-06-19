@@ -7,7 +7,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLive do
 
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveview.Accounts.User
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label: 1, error: 1]
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label_tag: 1, error: 1]
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
@@ -62,7 +62,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLive do
         <div class="bg-white shadow rounded-lg p-6">
           <div class="space-y-6">
             <div>
-              <.label for={f[:email].id}>Email</.label>
+              <.label_tag for={f[:email].id}>Email</.label_tag>
               <.input field={f[:email]} type="email" />
               <.error :for={msg <- Keyword.get_values(f[:email].errors, :email)}>
                 <%= msg %>
@@ -70,7 +70,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLive do
             </div>
 
             <div>
-              <.label for={f[:name].id}>Name</.label>
+              <.label_tag for={f[:name].id}>Name</.label_tag>
               <.input field={f[:name]} type="text" />
               <.error :for={msg <- Keyword.get_values(f[:name].errors, :name)}>
                 <%= msg %>
@@ -78,7 +78,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLive do
             </div>
 
             <div>
-              <.label for={f[:password].id}>Password</.label>
+              <.label_tag for={f[:password].id}>Password</.label_tag>
               <.input field={f[:password]} type="password" />
               <.error :for={msg <- Keyword.get_values(f[:password].errors, :password)}>
                 <%= msg %>
@@ -86,7 +86,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLive do
             </div>
 
             <div>
-              <.label for={f[:password_confirmation].id}>Confirm Password</.label>
+              <.label_tag for={f[:password_confirmation].id}>Confirm Password</.label_tag>
               <.input field={f[:password_confirmation]} type="password" />
               <.error :for={msg <- Keyword.get_values(f[:password_confirmation].errors, :password_confirmation)}>
                 <%= msg %>

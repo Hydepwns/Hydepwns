@@ -317,6 +317,7 @@ defmodule HydepwnsLiveview.Components.TransformationMetricsViewer do
 
   defp get_transformation_name(_), do: "Unknown"
 
+  @doc false
   defp format_time(time_ms) when is_integer(time_ms) do
     cond do
       time_ms < 1000 -> "#{time_ms}ms"
@@ -325,24 +326,33 @@ defmodule HydepwnsLiveview.Components.TransformationMetricsViewer do
     end
   end
 
+  @doc false
   defp format_time(_), do: "N/A"
 
+  @doc false
   defp format_timestamp(%DateTime{} = timestamp) do
     Calendar.strftime(timestamp, "%Y-%m-%d %H:%M:%S")
   end
 
+  @doc false
   defp format_timestamp(_), do: "N/A"
 
+  @doc false
   defp format_status(:ok), do: "Success"
+  @doc false
   defp format_status(:error), do: "Error"
+  @doc false
   defp format_status(_), do: "Unknown"
 
+  @doc false
   defp format_percentage(value) when is_number(value) do
     "#{Float.round(value * 100, 1)}%"
   end
 
+  @doc false
   defp format_percentage(_), do: "N/A"
 
+  @doc false
   defp format_size_change(value) when is_number(value) do
     cond do
       value > 0 -> "+#{value}%"
@@ -351,5 +361,6 @@ defmodule HydepwnsLiveview.Components.TransformationMetricsViewer do
     end
   end
 
+  @doc false
   defp format_size_change(_), do: "N/A"
 end

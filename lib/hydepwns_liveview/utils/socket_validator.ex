@@ -122,13 +122,6 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
   end
 
   @doc """
-  Validates a list against a type specification.
-  """
-  def validate_list_type(item_type, value) do
-    TypeValidation.validate_list_type(item_type, value)
-  end
-
-  @doc """
   Validates a map against a schema.
   """
   def validate_map_type(field_types, value) do

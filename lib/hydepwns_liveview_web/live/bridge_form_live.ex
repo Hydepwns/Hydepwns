@@ -1,7 +1,7 @@
 defmodule HydepwnsLiveviewWeb.BridgeFormLive do
   use HydepwnsLiveviewWeb, :live_view
 
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label: 1]
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label_tag: 1]
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
@@ -21,12 +21,12 @@ defmodule HydepwnsLiveviewWeb.BridgeFormLive do
             <.form :let={f} for={%{}} id="bridge-form" phx-submit="save">
               <div class="space-y-4">
                 <div>
-                  <.label for={f[:name].id}>Name</.label>
+                  <.label_tag for={f[:name].id}>Name</.label_tag>
                   <.input field={f[:name]} type="text" required />
                 </div>
 
                 <div>
-                  <.label for={f[:type].id}>Type</.label>
+                  <.label_tag for={f[:type].id}>Type</.label_tag>
                   <.input field={f[:type]} type="select" options={[Type1: "type1", Type2: "type2"]} required />
                 </div>
 

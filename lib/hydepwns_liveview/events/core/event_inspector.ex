@@ -423,21 +423,21 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
     end
   end
 
-  defp check_event_type(event) do
-    case event.__struct__ do
-      type when is_atom(type) -> :ok
-      _ -> {:error, "Invalid event type"}
+  @doc false
+  defp check_event_type(event_type) do
+    case event_type do
+      type when is_binary(type) -> {:ok, type}
+      _ -> {:error, :invalid_event_type}
     end
   end
 
-  defp validate_event_data(event) do
-    required_fields = [:timestamp, :source, :correlation_id]
-    
-    case Enum.all?(required_fields, &Map.has_key?(event, &1)) do
-      true -> :ok
-      false -> {:error, "Missing required event fields"}
-    end
+  @doc false
+  defp validate_event_data(data) when is_map(data) do
+    {:ok, data}
   end
+
+  @doc false
+  defp validate_event_data(_), do: {:error, :invalid_event_data}
 
   defp validate_event_sequence(events) do
     case Enum.all?(events, &validate_event/1) do

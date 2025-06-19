@@ -97,7 +97,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
 
     ~H"""
     <div data-test-id={"#{@id}-container"}>
-      <.label for={@id}>{@label}</.label>
+      <.label_tag for={@id}>{@label}</.label_tag>
       <select id={@id} name={@name} class="mt-2 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm" multiple={@multiple} data-test-id={@id} {@rest}>
         <option :if={@prompt} value=""><%= @prompt %></option>
         {options_for_select(@options, @value)}
@@ -110,7 +110,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
   def input(%{type: "textarea"} = assigns) do
     ~H"""
     <div data-test-id={"#{@id}-container"}>
-      <.label for={@id}>{@label}</.label>
+      <.label_tag for={@id}>{@label}</.label_tag>
       <textarea
         id={@id}
         name={@name}
@@ -130,9 +130,9 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
   def input(assigns) do
     ~H"""
     <div class="form-group">
-      <%= label(f, @field) %>
-      <%= input(f, @field, class: "form-control #{if @errors != [], do: "is-invalid"}") %>
-      <%= error_tag(f, @field) %>
+      <%= Phoenix.HTML.Form.label(@form, @field) %>
+      <%= Phoenix.HTML.Form.input(@form, @field, class: "form-control #{if @errors != [], do: "is-invalid"}") %>
+      <%= error_tag(@form, @field) %>
     </div>
     """
   end
@@ -140,14 +140,14 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
   defp error_tag(form, field) do
     errors = if input_value(form, field), do: form.errors[field], else: []
     Enum.map(errors, fn error ->
-      content_tag(:span, translate_error(error),
+      Phoenix.HTML.Tag.content_tag(:span, translate_error(error),
         class: "invalid-feedback",
         phx_feedback_for: input_name(form, field)
       )
     end)
   end
 
-  def label(assigns) do
+  def label_tag(assigns) do
     ~H"""
     <label for={@for} class="block text-sm font-semibold leading-6 text-zinc-800" data-test-id={"#{@for}-label"}>
       {render_slot(@inner_block)}

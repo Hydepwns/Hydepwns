@@ -6,7 +6,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoForm do
   use Phoenix.Component
 
   import HydepwnsLiveviewWeb.Components.UI.FormComponents,
-    only: [simple_form: 1, input: 1, button: 1, label: 1, error: 1]
+    only: [simple_form: 1, input: 1, button: 1, label_tag: 1, error: 1]
 
   attr :for, :any, required: true, doc: "the data structure for the form"
   attr :as, :any, default: nil, doc: "the server side parameter to collect all input under"
@@ -55,9 +55,9 @@ defmodule HydepwnsLiveviewWeb.Components.UI.MonoForm do
   """
   def mono_label(assigns) do
     ~H"""
-    <.label for={@for} class="mono-label">
+    <.label_tag for={@for} class="mono-label">
       {render_slot(@inner_block)}
-    </.label>
+    </.label_tag>
     """
   end
 

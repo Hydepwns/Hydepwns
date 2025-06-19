@@ -67,7 +67,7 @@ defmodule HydepwnsLiveviewWeb.TestHelpers do
 
   # Private helper functions
 
-  defp has_element?(view, selector) do
+  defp check_element_exists?(view, selector) do
     case render(view) do
       html when is_binary(html) ->
         case Floki.parse_document(html) do

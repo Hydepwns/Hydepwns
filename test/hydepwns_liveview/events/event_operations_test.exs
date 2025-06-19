@@ -6,7 +6,7 @@ defmodule HydepwnsLiveview.Events.EventOperationsTest do
 
   describe "store_event/1" do
     test "stores a valid event" do
-      event = %Event{
+      _event = %Event{
         type: "test_event",
         resource_id: "123",
         resource_type: "test_resource",
@@ -14,11 +14,11 @@ defmodule HydepwnsLiveview.Events.EventOperationsTest do
         timestamp: DateTime.utc_now()
       }
 
-      assert {:ok, stored_event} = EventOperations.store_event(event)
-      assert stored_event.type == event.type
-      assert stored_event.data == event.data
-      assert stored_event.resource_id == event.resource_id
-      assert stored_event.resource_type == event.resource_type
+      assert {:ok, stored_event} = EventOperations.store_event(_event)
+      assert stored_event.type == _event.type
+      assert stored_event.data == _event.data
+      assert stored_event.resource_id == _event.resource_id
+      assert stored_event.resource_type == _event.resource_type
     end
 
     test "rejects invalid event" do

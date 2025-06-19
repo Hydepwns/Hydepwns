@@ -205,6 +205,7 @@ defmodule HydepwnsLiveview.Utils.TransformationMetrics do
     :erlang.term_to_binary(resource) |> byte_size()
   end
 
+  @doc false
   defp get_transformation_name(transformation_module) do
     try do
       if function_exported?(transformation_module, :info, 0) do

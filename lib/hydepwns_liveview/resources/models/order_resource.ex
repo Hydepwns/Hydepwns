@@ -473,4 +473,58 @@ defmodule HydepwnsLiveview.Resources.OrderResource do
   end
 
   def changeset(_), do: Ecto.Changeset.change(%{})
+
+  @doc """
+  Creates events for a new order.
+  """
+  @spec create_events(String.t() | nil, map()) :: {:ok, [Event.t()]} | {:error, any()}
+  def create_events(id, params) do
+    {:ok,
+     [
+       %Event{
+         type: "order_created",
+         resource_id: id,
+         resource_type: resource_type(),
+         data: Map.merge(params, %{
+           created_at: DateTime.utc_now()
+         })
+       }
+     ]}
+  end
+
+  @doc """
+  Creates events for updating an order.
+  """
+  @spec create_update_events(map(), map()) :: {:ok, [Event.t()]} | {:error, any()}
+  def create_update_events(resource, params) do
+    {:ok,
+     [
+       %Event{
+         type: "order_updated",
+         resource_id: resource.id,
+         resource_type: resource_type(),
+         data: Map.merge(params, %{
+           updated_at: DateTime.utc_now()
+         })
+       }
+     ]}
+  end
+
+  @doc """
+  Creates events for deleting an order.
+  """
+  @spec create_delete_events(String.t(), map()) :: {:ok, [Event.t()]} | {:error, any()}
+  def create_delete_events(id, metadata) do
+    {:ok,
+     [
+       %Event{
+         type: "order_deleted",
+         resource_id: id,
+         resource_type: resource_type(),
+         data: Map.merge(metadata, %{
+           deleted_at: DateTime.utc_now()
+         })
+       }
+     ]}
+  end
 end

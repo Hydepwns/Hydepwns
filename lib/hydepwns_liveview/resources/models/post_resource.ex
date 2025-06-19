@@ -6,6 +6,7 @@ defmodule HydepwnsLiveview.Resources.PostResource do
   """
 
   use HydepwnsLiveview.Utils.ResourceDSL
+  use HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource
 
   attribute(:id, :string, required: true)
   attribute(:title, :string, required: true)
@@ -75,23 +76,11 @@ defmodule HydepwnsLiveview.Resources.PostResource do
     HydepwnsLiveview.Utils.ChangeTracker.track_change(resource, updates, metadata)
   end
 
-  defstruct [
-    :id,
-    :title,
-    :content,
-    :published,
-    :created_at,
-    :updated_at,
-    :author_id,
-    :team_id,
-    :__resource_module__
-  ]
-
   @doc """
   Returns the initial state for a post resource as a struct.
   """
   def initial_state do
-    %__MODULE__{
+    %{
       id: nil,
       title: nil,
       content: nil,
@@ -173,4 +162,9 @@ defmodule HydepwnsLiveview.Resources.PostResource do
   end
 
   def changeset(_), do: Ecto.Changeset.change(%{})
+
+  # Stubbed event creation functions for EventSourcedResource compliance
+  def create_events(_params, _metadata), do: {:ok, []}
+  def create_update_events(_params, _metadata), do: {:ok, []}
+  def create_delete_events(_params, _metadata), do: {:ok, []}
 end

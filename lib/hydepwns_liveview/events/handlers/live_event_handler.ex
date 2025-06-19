@@ -163,30 +163,36 @@ defmodule HydepwnsLiveview.Events.Handlers.LiveEventHandler do
   # Private functions
 
   # Builds a filter function for event subscription
+  @doc false
   defp build_filter(:all, nil, nil) do
     fn _ -> true end
   end
 
+  @doc false
   defp build_filter(:all, resource_type, nil) do
     fn event -> event.resource_type == resource_type end
   end
 
+  @doc false
   defp build_filter(:all, resource_type, resource_id) do
     fn event ->
       event.resource_type == resource_type && event.resource_id == resource_id
     end
   end
 
+  @doc false
   defp build_filter(event_types, nil, nil) when is_list(event_types) do
     fn event -> Enum.member?(event_types, event.type) end
   end
 
+  @doc false
   defp build_filter(event_types, resource_type, nil) when is_list(event_types) do
     fn event ->
       Enum.member?(event_types, event.type) && event.resource_type == resource_type
     end
   end
 
+  @doc false
   defp build_filter(event_types, resource_type, resource_id) when is_list(event_types) do
     fn event ->
       Enum.member?(event_types, event.type) &&

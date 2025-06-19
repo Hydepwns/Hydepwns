@@ -146,14 +146,14 @@ defmodule HydepwnsLiveview.Events.EventStore do
   end
 
   @doc """
-  Lists all events.
+  Lists all events in the event store.
 
   ## Returns
   * `{:ok, events}` - List of all events
   * `{:error, reason}` - Error retrieving events
   """
-  @spec list_events() :: {:ok, [Event.t()]} | {:error, any()}
-  def list_events do
+  @spec list_all_events() :: {:ok, [Event.t()]} | {:error, any()}
+  def list_all_events do
     EventOperations.get_events(%{})
   end
 

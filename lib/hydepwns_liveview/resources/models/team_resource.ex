@@ -6,6 +6,7 @@ defmodule HydepwnsLiveview.Resources.TeamResource do
   """
 
   use HydepwnsLiveview.Utils.ResourceDSL
+  use HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource
 
   attribute(:id, :string, required: true)
   attribute(:name, :string, required: true)
@@ -67,20 +68,11 @@ defmodule HydepwnsLiveview.Resources.TeamResource do
     HydepwnsLiveview.Utils.ChangeTracker.track_change(resource, updates, metadata)
   end
 
-  defstruct [
-    :id,
-    :name,
-    :description,
-    :created_at,
-    :active,
-    :__resource_module__
-  ]
-
   @doc """
   Returns the initial state for a team resource as a struct.
   """
   def initial_state do
-    %__MODULE__{
+    %{
       id: nil,
       name: nil,
       description: nil,
@@ -156,4 +148,9 @@ defmodule HydepwnsLiveview.Resources.TeamResource do
   end
 
   def changeset(_), do: Ecto.Changeset.change(%{})
+
+  # TODO: Stubbed event creation functions for EventSourcedResource compliance
+  def create_events(_params, _metadata), do: {:ok, []}
+  def create_update_events(_params, _metadata), do: {:ok, []}
+  def create_delete_events(_params, _metadata), do: {:ok, []}
 end

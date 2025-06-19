@@ -1,7 +1,7 @@
 defmodule HydepwnsLiveviewWeb.UserEmailConfirmationLive do
   use HydepwnsLiveviewWeb, :live_view
 
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label: 1]
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label_tag: 1]
 
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveview.Accounts.User
@@ -48,7 +48,7 @@ defmodule HydepwnsLiveviewWeb.UserEmailConfirmationLive do
             <.form :let={f} for={%{}} id="email-confirmation-form" phx-submit="confirm">
               <div class="space-y-4">
                 <div>
-                  <.label for={f[:token].id}>Confirmation Token</.label>
+                  <.label_tag for={f[:token].id}>Confirmation Token</.label_tag>
                   <.input field={f[:token]} type="text" required />
                 </div>
 

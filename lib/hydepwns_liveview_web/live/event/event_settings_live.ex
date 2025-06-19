@@ -8,7 +8,7 @@ defmodule HydepwnsLiveviewWeb.Event.EventSettingsLive do
   alias HydepwnsLiveview.Events
   alias HydepwnsLiveview.Events.EventSettings
 
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label: 1]
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label_tag: 1]
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
@@ -94,17 +94,17 @@ defmodule HydepwnsLiveviewWeb.Event.EventSettingsLive do
             <.form :let={f} for={@changeset} id="event-settings-form" phx-change="validate" phx-submit="save">
               <div class="space-y-4">
                 <div>
-                  <.label for={f[:reminder_time].id}>Reminder Time (minutes before event)</.label>
+                  <.label_tag for={f[:reminder_time].id}>Reminder Time (minutes before event)</.label_tag>
                   <.input field={f[:reminder_time]} type="number" min="0" required />
                 </div>
 
                 <div>
-                  <.label for={f[:reminder_type].id}>Reminder Type</.label>
+                  <.label_tag for={f[:reminder_type].id}>Reminder Type</.label_tag>
                   <.input field={f[:reminder_type]} type="select" options={[Email: "email", SMS: "sms"]} required />
                 </div>
 
                 <div>
-                  <.label for={f[:reminder_message].id}>Reminder Message</.label>
+                  <.label_tag for={f[:reminder_message].id}>Reminder Message</.label_tag>
                   <.input field={f[:reminder_message]} type="textarea" required />
                 </div>
 

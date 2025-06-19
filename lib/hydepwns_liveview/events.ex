@@ -11,11 +11,52 @@ defmodule HydepwnsLiveview.Events do
 
   @doc """
   Returns the list of all events.
+
+  ## Parameters
+  * `filters` - Map of filters to apply (default: %{})
+  * `opts` - Additional options (default: [])
+
+  ## Returns
+  * List of events matching the filters
   """
-  def list_events do
-    case EventOperations.get_events(%{}) do
-      {:ok, events} -> events
-      {:error, _} -> []
+  def list_events(filters \\ %{}, opts \\ []) do
+    query = from(e in Event)
+
+    query =
+      Enum.reduce(filters, query, fn
+        {:start_date, date}, q ->
+          from(e in q, where: e.start_time >= ^date)
+
+        {:end_date, date}, q ->
+          from(e in q, where: e.start_time <= ^date)
+
+        {:status, status}, q ->
+          from(e in q, where: e.status == ^status)
+
+        {:type, type}, q ->
+          from(e in q, where: e.type == ^type)
+
+        _, q ->
+          q
+      end)
+
+    query =
+      if opts[:order_by] do
+        from(e in query, order_by: ^opts[:order_by])
+      else
+        from(e in query, order_by: [desc: e.inserted_at])
+      end
+
+    query =
+      if opts[:limit] do
+        from(e in query, limit: ^opts[:limit])
+      else
+        query
+      end
+
+    case Repo.all(query) do
+      events when is_list(events) -> events
+      _ -> []
     end
   end
 
@@ -134,8 +175,8 @@ defmodule HydepwnsLiveview.Events do
   @doc """
   Returns a changeset for event notification template.
   """
-  def change_event_notification_template(event \\ %Event{}, attrs \\ %{}) do
-    Event.notification_template_changeset(event, attrs)
+  def change_event_notification_template(template \\ %EventNotification{}, attrs \\ %{}) do
+    EventNotification.changeset(template, attrs)
   end
 
   @doc """
@@ -222,7 +263,7 @@ defmodule HydepwnsLiveview.Events do
   end
 
   @doc """
-  Returns a changeset for event reminder.
+  Returns a changeset for an event reminder.
   """
   def change_event_reminder(reminder \\ %EventReminder{}, attrs \\ %{}) do
     EventReminder.changeset(reminder, attrs)
@@ -231,33 +272,10 @@ defmodule HydepwnsLiveview.Events do
   @doc """
   Creates an event reminder.
   """
-  def create_event_reminder(attrs) do
+  def create_event_reminder(attrs \\ %{}) do
     %EventReminder{}
     |> EventReminder.changeset(attrs)
     |> Repo.insert()
-  end
-
-  @doc """
-  Gets a single event reminder.
-  """
-  def get_event_reminder!(id) do
-    Repo.get!(EventReminder, id)
-  end
-
-  @doc """
-  Returns the list of event reminders.
-  """
-  def list_events_reminders do
-    Repo.all(EventReminder)
-  end
-
-  @doc """
-  Updates an event reminder.
-  """
-  def update_event_reminder(%EventReminder{} = reminder, attrs) do
-    reminder
-    |> EventReminder.changeset(attrs)
-    |> Repo.update()
   end
 
   @doc """
@@ -265,6 +283,18 @@ defmodule HydepwnsLiveview.Events do
   """
   def delete_event_reminder(%EventReminder{} = reminder) do
     Repo.delete(reminder)
+  end
+
+  @doc """
+  Gets a single event reminder. Raises if not found.
+  """
+  def get_event_reminder!(id), do: Repo.get!(EventReminder, id)
+
+  @doc """
+  Returns the list of all event reminders.
+  """
+  def list_event_reminders do
+    Repo.all(EventReminder)
   end
 
   @doc """
@@ -285,15 +315,15 @@ defmodule HydepwnsLiveview.Events do
 
   @doc """
   Gets a single event notification.
+
+  Raises `Ecto.NoResultsError` if the EventNotification does not exist.
   """
-  def get_event_notification!(id) do
-    Repo.get!(EventNotification, id)
-  end
+  def get_event_notification!(id), do: Repo.get!(EventNotification, id)
 
   @doc """
   Returns the list of event notifications.
   """
-  def list_events_notifications do
+  def list_event_notifications do
     Repo.all(EventNotification)
   end
 
@@ -366,13 +396,6 @@ defmodule HydepwnsLiveview.Events do
       "Asia/Shanghai",
       "Australia/Sydney"
     ]
-  end
-
-  @doc """
-  Returns the list of all event reminders.
-  """
-  def list_event_reminders do
-    Repo.all(EventReminder)
   end
 
   @doc """
@@ -473,66 +496,34 @@ defmodule HydepwnsLiveview.Events do
   @doc """
   Generates an event report.
   """
-  def generate_event_report(event_id) do
-    event = get_event!(event_id)
-    reminders = list_due_reminders(event_id)
-    notifications = list_events_notifications()
+  def generate_event_report(report_id) do
+    events = list_events()
+    filename = "report_#{report_id}.csv"
 
-    report = %{
-      event_id: event_id,
-      event_details: %{
-        title: event.title,
-        start_time: event.start_time,
-        end_time: event.end_time,
-        description: event.description,
-        status: event.status
-      },
-      reminders: reminders,
-      notifications: notifications,
-      generated_at: DateTime.utc_now()
-    }
+    headers = ["ID", "Title", "Start Time", "End Time", "Description", "Status"]
 
-    {:ok, report}
-  end
-
-  @doc """
-  Lists events with optional filters.
-  """
-  def list_events(filters \\ %{}, opts \\ []) do
-    query = from(e in Event)
-
-    query =
-      Enum.reduce(filters, query, fn
-        {:start_date, date}, q ->
-          from(e in q, where: e.start_time >= ^date)
-
-        {:end_date, date}, q ->
-          from(e in q, where: e.start_time <= ^date)
-
-        {:status, status}, q ->
-          from(e in q, where: e.status == ^status)
-
-        {:type, type}, q ->
-          from(e in q, where: e.type == ^type)
-
-        _, q ->
-          q
+    rows =
+      Enum.map(events, fn event ->
+        [
+          event.id,
+          event.title,
+          event.start_time,
+          event.end_time,
+          event.description,
+          event.status
+        ]
       end)
 
-    query =
-      if opts[:order_by] do
-        from(e in query, order_by: ^opts[:order_by])
-      else
-        from(e in query, order_by: [desc: e.inserted_at])
-      end
+    content =
+      [headers | rows]
+      |> Enum.map_join("\n", &Enum.join(&1, ","))
 
-    query =
-      if opts[:limit] do
-        from(e in query, limit: ^opts[:limit])
-      else
-        query
-      end
-
-    Repo.all(query)
+    case File.write(filename, content) do
+      :ok -> {:ok, filename}
+      {:error, reason} -> {:error, reason}
+    end
   end
+
+  # Wrapper for compatibility: create_event/2
+  def create_event(type, attrs), do: EventOperations.store_event(type, attrs)
 end

@@ -7,7 +7,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
 
   alias HydepwnsLiveview.Resources
   alias HydepwnsLiveview.Resources.Resource
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label: 1, error: 1]
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label_tag: 1, error: 1]
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
@@ -86,7 +86,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
         <div class="bg-white shadow rounded-lg p-6">
           <div class="space-y-6">
             <div>
-              <.label for={f[:name].id}>Name</.label>
+              <.label_tag for={f[:name].id}>Name</.label_tag>
               <.input field={f[:name]} type="text" id="name" data-test-id="name-input" required />
               <.error :for={msg <- Keyword.get_values(f[:name].errors, :name)} data-test-id="error-message">
                 <%= msg %>
@@ -94,7 +94,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
             </div>
 
             <div>
-              <.label for={f[:type].id}>Type</.label>
+              <.label_tag for={f[:type].id}>Type</.label_tag>
               <.input field={f[:type]} type="select" id="type" data-test-id="type-input" options={[Folder: "folder", Document: "document"]} required />
               <.error :for={msg <- Keyword.get_values(f[:type].errors, :type)} data-test-id="error-message">
                 <%= msg %>
@@ -102,7 +102,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
             </div>
 
             <div>
-              <.label for={f[:parent_id].id}>Parent Resource</.label>
+              <.label_tag for={f[:parent_id].id}>Parent Resource</.label_tag>
               <.input field={f[:parent_id]} type="select" id="parent_id" data-test-id="parent-id-select" options={Resources.list_resources() |> Enum.map(&{&1.name, &1.id})} />
               <.error :for={msg <- Keyword.get_values(f[:parent_id].errors, :parent_id)} data-test-id="error-message">
                 <%= msg %>
@@ -110,7 +110,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
             </div>
 
             <div>
-              <.label for={f[:description].id}>Description</.label>
+              <.label_tag for={f[:description].id}>Description</.label_tag>
               <.input field={f[:description]} type="textarea" id="description" data-test-id="description-input" />
               <.error :for={msg <- Keyword.get_values(f[:description].errors, :description)} data-test-id="error-message">
                 <%= msg %>
@@ -118,7 +118,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
             </div>
 
             <div>
-              <.label for={f[:status].id}>Status</.label>
+              <.label_tag for={f[:status].id}>Status</.label_tag>
               <.input field={f[:status]} type="select" id="status" data-test-id="status-input" options={[Active: "active", Inactive: "inactive"]} required />
               <.error :for={msg <- Keyword.get_values(f[:status].errors, :status)} data-test-id="error-message">
                 <%= msg %>

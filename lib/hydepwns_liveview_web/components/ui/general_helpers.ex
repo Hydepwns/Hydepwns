@@ -80,9 +80,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.GeneralHelpers do
     end
   end
 
-  @doc """
-  Gets the transformation name from a transformation struct.
-  """
+  @doc false
   def get_transformation_name(transformation) do
     case transformation do
       %{name: name} -> name
@@ -138,45 +136,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.GeneralHelpers do
     """
   end
 
-  @doc """
-  Renders metrics charts.
-  """
-  def render_metrics_charts(assigns) do
-    ~H"""
-    <div class="metrics-charts">
-      <%= for chart <- @metrics.charts do %>
-        <div class="chart-container">
-          <h4 class="chart-title"><%= chart.title %></h4>
-          <div class="chart-content">
-            <%= chart.content %>
-          </div>
-        </div>
-      <% end %>
-    </div>
-    """
-  end
-
-  @doc """
-  Renders metrics comparison.
-  """
-  def render_metrics_comparison(assigns) do
-    ~H"""
-    <div class="metrics-comparison">
-      <%= for comparison <- @metrics.comparisons do %>
-        <div class="comparison-item">
-          <h4 class="comparison-title"><%= comparison.title %></h4>
-          <div class="comparison-content">
-            <%= comparison.content %>
-          </div>
-        </div>
-      <% end %>
-    </div>
-    """
-  end
-
-  @doc """
-  Renders metrics detail.
-  """
+  @doc false
   def render_metrics_detail(assigns) do
     ~H"""
     <div class="metrics-detail">
@@ -192,9 +152,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.GeneralHelpers do
     """
   end
 
-  @doc """
-  Renders performance summary.
-  """
+  @doc false
   def render_performance_summary(assigns) do
     ~H"""
     <div class="performance-summary">
@@ -215,19 +173,15 @@ defmodule HydepwnsLiveviewWeb.Components.UI.GeneralHelpers do
   """
   def render_validation_status(assigns) do
     ~H"""
-    <div class={"validation-status #{@type} #{if @valid, do: "valid", else: "invalid"}"}>
-      <div class="status-icon">
-        <%= if @valid do %>
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-        <% else %>
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        <% end %>
-      </div>
-      <div class="status-message"><%= @message %></div>
+    <div class="validation-status">
+      <%= for status <- @validation.statuses do %>
+        <div class="status-item">
+          <h4 class="status-title"><%= status.title %></h4>
+          <div class="status-content">
+            <%= status.content %>
+          </div>
+        </div>
+      <% end %>
     </div>
     """
   end

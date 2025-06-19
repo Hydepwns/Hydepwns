@@ -52,20 +52,20 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
     @primary_key {:id, :binary_id, autogenerate: true}
     @timestamps_opts [type: :utc_datetime_usec]
     schema "resource_snapshots" do
-      field :resource_type, :string
-      field :resource_id, :string
-      field :state, :map
-      field :metadata, :map, default: %{}
+      field :_resource_type, :string
+      field :_resource_id, :string
+      field :_state, :map
+      field :_metadata, :map, default: %{}
 
       timestamps()
     end
 
     @type t :: %__MODULE__{
             id: Ecto.UUID.t() | binary(),
-            resource_type: String.t(),
-            resource_id: String.t(),
-            state: map(),
-            metadata: map(),
+            _resource_type: String.t(),
+            _resource_id: String.t(),
+            _state: map(),
+            _metadata: map(),
             inserted_at: NaiveDateTime.t() | nil,
             updated_at: NaiveDateTime.t() | nil
           }
@@ -73,8 +73,8 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
     @spec changeset(t(), map()) :: Ecto.Changeset.t()
     def changeset(snapshot, attrs) do
       snapshot
-      |> cast(attrs, [:resource_type, :resource_id, :state, :metadata])
-      |> validate_required([:resource_type, :resource_id, :state])
+      |> cast(attrs, [:_resource_type, :_resource_id, :_state, :_metadata])
+      |> validate_required([:_resource_type, :_resource_id, :_state])
     end
   end
 
@@ -90,13 +90,11 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
     @timestamps_opts [type: :utc_datetime_usec]
     schema "event_replay_sessions" do
       field :name, :string
-      field :resource_type, :string
-      field :resource_id, :string
-      field :start_event_id, :binary_id
-      field :end_event_id, :binary_id
-      field :status, :string, default: "pending"
-      field :metadata, :map, default: %{}
-      field :results, :map, default: %{}
+      field :_resource_type, :string
+      field :_resource_id, :string
+      field :status, :string
+      field :result, :map
+      field :_metadata, :map, default: %{}
 
       timestamps()
     end
@@ -104,13 +102,11 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
     @type t :: %__MODULE__{
             id: Ecto.UUID.t() | binary(),
             name: String.t(),
-            resource_type: String.t(),
-            resource_id: String.t(),
-            start_event_id: Ecto.UUID.t() | binary() | nil,
-            end_event_id: Ecto.UUID.t() | binary() | nil,
+            _resource_type: String.t(),
+            _resource_id: String.t(),
             status: String.t(),
-            metadata: map(),
-            results: map(),
+            result: map(),
+            _metadata: map(),
             inserted_at: NaiveDateTime.t() | nil,
             updated_at: NaiveDateTime.t() | nil
           }
@@ -120,16 +116,13 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
       session
       |> cast(attrs, [
         :name,
-        :resource_type,
-        :resource_id,
-        :start_event_id,
-        :end_event_id,
+        :_resource_type,
+        :_resource_id,
         :status,
-        :metadata,
-        :results
+        :result,
+        :_metadata
       ])
-      |> validate_required([:name, :resource_type, :resource_id])
-      |> validate_inclusion(:status, ["pending", "running", "completed", "failed"])
+      |> validate_required([:name, :_resource_type, :_resource_id])
     end
   end
 
@@ -142,44 +135,42 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
     import Ecto.Changeset
 
     @primary_key {:id, :binary_id, autogenerate: true}
-    @timestamps_opts [type: :utc_datetime_usec, inserted_at: :created_at, updated_at: false]
+    @timestamps_opts [type: :utc_datetime_usec]
     schema "versioned_states" do
-      field :resource_type, :string
-      field :resource_id, :string
-      field :state, :map
+      field :_resource_type, :string
+      field :_resource_id, :string
+      field :_state, :map
       field :label, :string
-      field :replay_id, :binary_id
-      field :point_in_time, :utc_datetime_usec
-      field :metadata, :map, default: %{}
       field :created_at, :utc_datetime_usec
+      field :_metadata, :map, default: %{}
+
+      timestamps()
     end
 
     @type t :: %__MODULE__{
             id: Ecto.UUID.t() | binary(),
-            resource_type: String.t(),
-            resource_id: String.t(),
-            state: map(),
+            _resource_type: String.t(),
+            _resource_id: String.t(),
+            _state: map(),
             label: String.t(),
-            replay_id: Ecto.UUID.t() | binary() | nil,
-            point_in_time: DateTime.t() | nil,
-            metadata: map(),
-            created_at: NaiveDateTime.t() | nil
+            created_at: DateTime.t(),
+            _metadata: map(),
+            inserted_at: NaiveDateTime.t() | nil,
+            updated_at: NaiveDateTime.t() | nil
           }
 
     @spec changeset(t(), map()) :: Ecto.Changeset.t()
     def changeset(versioned_state, attrs) do
       versioned_state
       |> cast(attrs, [
-        :resource_type,
-        :resource_id,
-        :state,
+        :_resource_type,
+        :_resource_id,
+        :_state,
         :label,
-        :replay_id,
-        :point_in_time,
-        :metadata,
-        :created_at
+        :created_at,
+        :_metadata
       ])
-      |> validate_required([:resource_type, :resource_id, :state, :label, :created_at])
+      |> validate_required([:_resource_type, :_resource_id, :_state, :label, :created_at])
     end
   end
 
@@ -396,10 +387,10 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   def save_snapshot(resource_type, resource_id, state, metadata \\ %{}) do
     %Snapshot{}
     |> Snapshot.changeset(%{
-      resource_type: resource_type,
-      resource_id: resource_id,
-      state: state,
-      metadata: metadata
+      _resource_type: resource_type,
+      _resource_id: resource_id,
+      _state: state,
+      _metadata: metadata
     })
     |> Repo.insert()
   end
@@ -419,7 +410,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   def get_latest_snapshot(resource_type, resource_id) do
     query =
       from s in Snapshot,
-        where: s.resource_type == ^resource_type and s.resource_id == ^resource_id,
+        where: s._resource_type == ^resource_type and s._resource_id == ^resource_id,
         order_by: [desc: s.inserted_at],
         limit: 1
 
@@ -445,7 +436,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
     case get_latest_snapshot(resource_type, resource_id) do
       {:ok, snapshot} ->
         # Get the event ID from the snapshot metadata
-        event_id = get_in(snapshot.metadata, [:event_id])
+        event_id = get_in(snapshot._metadata, [:event_id])
 
         if event_id do
           # Count events after the snapshot's event
@@ -556,12 +547,11 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   def create_replay_session(name, resource_type, resource_id, opts \\ []) do
     attrs = %{
       name: name,
-      resource_type: resource_type,
-      resource_id: resource_id,
-      start_event_id: Keyword.get(opts, :start_event_id),
-      end_event_id: Keyword.get(opts, :end_event_id),
+      _resource_type: resource_type,
+      _resource_id: resource_id,
       status: "pending",
-      metadata: Keyword.get(opts, :metadata, %{})
+      result: %{},
+      _metadata: Keyword.get(opts, :metadata, %{})
     }
 
     %ReplaySession{}
@@ -614,7 +604,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
         changeset =
           ReplaySession.changeset(session, %{
             status: "completed",
-            results: results
+            result: results
           })
 
         Repo.update(changeset)
@@ -643,7 +633,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
         changeset =
           ReplaySession.changeset(session, %{
             status: "failed",
-            results: %{error: error_details}
+            result: %{error: error_details}
           })
 
         Repo.update(changeset)
@@ -678,7 +668,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
 
   defp build_base_query(session) do
     from e in Event,
-      where: e.resource_type == ^session.resource_type and e.resource_id == ^session.resource_id
+      where: e._resource_type == ^session._resource_type and e._resource_id == ^session._resource_id
   end
 
   defp add_start_event_constraint(query, session) do
@@ -744,10 +734,10 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   def save_versioned_state(resource_type, resource_id, state, metadata \\ %{}) do
     %VersionedState{}
     |> VersionedState.changeset(%{
-      resource_type: resource_type,
-      resource_id: resource_id,
-      state: state,
-      metadata: metadata,
+      _resource_type: resource_type,
+      _resource_id: resource_id,
+      _state: state,
+      _metadata: metadata,
       created_at: DateTime.utc_now()
     })
     |> Repo.insert()
@@ -774,7 +764,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
 
       session ->
         attrs = %{status: new_status}
-        attrs = if results, do: Map.put(attrs, :results, results), else: attrs
+        attrs = if results, do: Map.put(attrs, :result, results), else: attrs
 
         session
         |> ReplaySession.changeset(attrs)
@@ -797,7 +787,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   def get_snapshots(resource_type, resource_id) do
     query =
       from s in Snapshot,
-        where: s.resource_type == ^resource_type and s.resource_id == ^resource_id,
+        where: s._resource_type == ^resource_type and s._resource_id == ^resource_id,
         order_by: [asc: s.inserted_at]
 
     try do
@@ -839,7 +829,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   def get_events_for_resource_at(resource_type, resource_id, timestamp) do
     query =
       from e in Event,
-        where: e.resource_type == ^resource_type and e.resource_id == ^resource_id,
+        where: e._resource_type == ^resource_type and e._resource_id == ^resource_id,
         where: e.inserted_at <= ^timestamp,
         order_by: [asc: e.inserted_at]
 
@@ -886,13 +876,13 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   end
 
   defp apply_criterion({:resource_id, resource_id}, query) do
-    where(query, [e], e.resource_id == ^resource_id)
+    where(query, [e], e._resource_id == ^resource_id)
   end
 
   defp apply_criterion({:timestamp, timestamp_criteria}, query) when is_map(timestamp_criteria) do
     Enum.reduce(timestamp_criteria, query, fn
-      {:after, time}, q -> where(q, [e], e.timestamp >= ^time)
-      {:before, time}, q -> where(q, [e], e.timestamp <= ^time)
+      {:after, time}, q -> where(q, [e], e.inserted_at >= ^time)
+      {:before, time}, q -> where(q, [e], e.inserted_at <= ^time)
       _, q -> q
     end)
   end
@@ -908,8 +898,8 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   # Applies sorting to the query
   defp apply_sort(query, %{sort: sort_criteria}) when is_list(sort_criteria) do
     Enum.reduce(sort_criteria, query, fn
-      {:timestamp, :asc}, q -> order_by(q, [e], asc: e.timestamp)
-      {:timestamp, :desc}, q -> order_by(q, [e], desc: e.timestamp)
+      {:timestamp, :asc}, q -> order_by(q, [e], asc: e.inserted_at)
+      {:timestamp, :desc}, q -> order_by(q, [e], desc: e.inserted_at)
       {:id, :asc}, q -> order_by(q, [e], asc: e.id)
       {:id, :desc}, q -> order_by(q, [e], desc: e.id)
       _, q -> q

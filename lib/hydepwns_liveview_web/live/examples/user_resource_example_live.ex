@@ -13,6 +13,7 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceExampleLive do
   alias HydepwnsLiveview.Resources.UserResource
   alias HydepwnsLiveview.Resources
   alias HydepwnsLiveview.Resources.Resource
+  alias HydepwnsLiveview.Resources.ResourceHelpers
 
   # Valid roles that can be assigned to users
   @valid_roles ["admin", "editor", "viewer"]

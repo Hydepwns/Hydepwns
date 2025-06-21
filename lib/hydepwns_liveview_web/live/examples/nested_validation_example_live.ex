@@ -12,7 +12,6 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
 
   alias HydepwnsLiveview.Resources.UserResource
 
-  @impl true
   def mount(_params, _session, socket) do
     # Create a sample user with a team and posts
     user = create_sample_user()
@@ -40,9 +39,9 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
 
   def handle_event("validate_user_with_context", _params, socket) do
     user = socket.assigns.user
-    context = %{current_user: socket.assigns.current_user}
+    # context = %{current_user: socket.assigns.current_user}
 
-    case UserResource.validate_deep(user, context: context) do
+    case UserResource.validate_deep(user) do
       :ok ->
         {:noreply, assign(socket, :validation_result, "Valid with context")}
 
@@ -215,7 +214,6 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
     }
   end
 
-  @impl true
   def render(assigns) do
     ~H"""
     <div class="nested-validation-example p-6">

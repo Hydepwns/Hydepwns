@@ -7,7 +7,6 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceLive do
 
   alias HydepwnsLiveview.Resources.EctoUserResource
 
-  @impl true
   def mount(_params, _session, socket) do
     {:ok, assign(socket, :user, EctoUserResource.new())}
   end
@@ -50,7 +49,6 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceLive do
     {:noreply, assign(socket, :permissions, updated_permissions)}
   end
 
-  @impl true
   def render(assigns) do
     ~H"""
     <div class="container mx-auto">

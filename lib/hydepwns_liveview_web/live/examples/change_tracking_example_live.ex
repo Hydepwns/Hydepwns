@@ -11,7 +11,6 @@ defmodule HydepwnsLiveviewWeb.Examples.ChangeTrackingExampleLive do
   alias HydepwnsLiveview.Resources.UserResource
   import HydepwnsLiveviewWeb.Components.ChangeHistoryViewer
 
-  @impl true
   def mount(_params, _session, socket) do
     # Create an initial user resource
     initial_user = %{
@@ -43,7 +42,6 @@ defmodule HydepwnsLiveviewWeb.Examples.ChangeTrackingExampleLive do
     {:ok, socket}
   end
 
-  @impl true
   def render(assigns) do
     ~H"""
     <div class="container mx-auto p-4">
@@ -139,7 +137,6 @@ defmodule HydepwnsLiveviewWeb.Examples.ChangeTrackingExampleLive do
     """
   end
 
-  @impl true
   def handle_event("update_user", params, socket) do
     # Extract form data
     updates = %{
@@ -206,7 +203,6 @@ defmodule HydepwnsLiveviewWeb.Examples.ChangeTrackingExampleLive do
     end
   end
 
-  @impl true
   def handle_event("view_version", %{"version" => version_str}, socket) do
     version = String.to_integer(version_str)
 
@@ -229,7 +225,6 @@ defmodule HydepwnsLiveviewWeb.Examples.ChangeTrackingExampleLive do
     end
   end
 
-  @impl true
   def handle_event("diff_versions", %{"version1" => v1_str, "version2" => v2_str}, socket) do
     v1 = String.to_integer(v1_str)
     v2 = String.to_integer(v2_str)
@@ -248,7 +243,6 @@ defmodule HydepwnsLiveviewWeb.Examples.ChangeTrackingExampleLive do
     end
   end
 
-  @impl true
   def handle_event("reset_user", _params, socket) do
     # Create fresh user with no change history
     initial_user = %{
@@ -279,7 +273,6 @@ defmodule HydepwnsLiveviewWeb.Examples.ChangeTrackingExampleLive do
     {:noreply, socket}
   end
 
-  @impl true
   def handle_event("set_view_mode", %{"mode" => mode}, socket)
       when mode in ["timeline", "list", "audit"] do
     {:noreply, assign(socket, :view_mode, mode)}
@@ -305,7 +298,6 @@ defmodule HydepwnsLiveviewWeb.Examples.ChangeTrackingExampleLive do
     end
   end
 
-  @impl true
   def handle_info(_msg, socket) do
     {:noreply, socket}
   end

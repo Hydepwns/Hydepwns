@@ -10,12 +10,10 @@ defmodule HydepwnsLiveviewWeb.Examples.EctoResourceExampleLive do
 
   alias HydepwnsLiveview.Resources.EctoUserResource
 
-  @impl true
   def mount(_params, _session, socket) do
     {:ok, assign(socket, :user, EctoUserResource.new())}
   end
 
-  @impl true
   def render(assigns) do
     ~H"""
     <div class="ecto-resource-example">

@@ -55,7 +55,7 @@ defmodule HydepwnsLiveviewWeb.UserAuth do
     if socket.assigns.current_user do
       {:halt,
        Phoenix.LiveView.redirect(socket,
-         to: Routes.user_path(socket, :show, socket.assigns.current_user)
+         to: ~p"/users/#{socket.assigns.current_user}"
        )}
     else
       {:cont, socket}

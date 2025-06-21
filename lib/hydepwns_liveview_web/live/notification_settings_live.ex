@@ -7,7 +7,6 @@ defmodule HydepwnsLiveviewWeb.NotificationSettingsLive do
     do_mount(params, session, socket)
   end
 
-  @impl true
   def do_mount(_params, _session, socket) do
     socket
     |> assign(:myself, self())

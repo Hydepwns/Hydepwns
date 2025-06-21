@@ -53,7 +53,7 @@ defmodule HydepwnsLiveviewWeb.UserSessionLive do
         {:noreply,
          socket
          |> put_flash(:error, "Invalid email or password")
-         |> assign(:changeset, UserAuth.change_user_session(%{}))}
+         |> assign(:changeset, Accounts.change_user_session(%{}))}
     end
   end
 

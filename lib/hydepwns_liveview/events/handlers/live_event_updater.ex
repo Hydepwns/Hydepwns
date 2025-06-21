@@ -12,7 +12,7 @@ defmodule HydepwnsLiveview.Events.Handlers.LiveEventUpdater do
   alias HydepwnsLiveview.Events.Core.Event
   alias HydepwnsLiveview.Events.LiveEventHandler
   import Phoenix.Component
-  import Phoenix.LiveView
+  # import Phoenix.LiveView
 
   @doc """
   Creates a LiveComponent that updates based on events.

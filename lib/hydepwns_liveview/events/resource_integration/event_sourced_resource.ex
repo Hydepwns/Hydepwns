@@ -11,7 +11,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
 
   alias HydepwnsLiveview.Events.Core.Event
   alias HydepwnsLiveview.Events.EventStore
-  alias HydepwnsLiveview.Events.{EventOperations, SnapshotOperations}
+  alias HydepwnsLiveview.Events.EventOperations
 
   require Logger
 
@@ -93,9 +93,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
       def get_history(id, opts)
           when is_binary(id) and byte_size(id) > 0 and
                  is_map(opts) do
-        with {:ok, events} <- EventStore.get_events_for_resource(resource_type(), id) do
-          {:ok, events}
-        end
+        EventStore.get_events_for_resource(resource_type(), id)
       end
 
       def get_history(id, opts), do: {:error, :invalid_parameters}
@@ -159,7 +157,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
     end)
   end
 
-  def rebuild_from_events(events, state, apply_event_fn),
+  def rebuild_from_events(_events, _state, _apply_event_fn),
       do: {:error, :invalid_parameters}
 
   def __get_resource__(module, id) when is_atom(module) and is_binary(id) and byte_size(id) > 0 do
@@ -170,7 +168,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
     end
   end
 
-  def __get_resource__(module, id), do: {:error, :invalid_parameters}
+  def __get_resource__(_module, _id), do: {:error, :invalid_parameters}
 
   def __get_resource_at__(module, id, timestamp)
       when is_atom(module) and is_binary(id) and byte_size(id) > 0 and
@@ -182,12 +180,12 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
     end
   end
 
-  def __get_resource_at__(module, id, timestamp), do: {:error, :invalid_parameters}
+  def __get_resource_at__(_module, _id, _timestamp), do: {:error, :invalid_parameters}
 
-  def __create_resource__(_invalid_module, _invalid_params) when is_atom(_invalid_module) and is_map(_invalid_params) do
-    with {:ok, events} <- _invalid_module.create_events(_invalid_params) do
-      initial_state = _invalid_module.initial_state()
-      state = rebuild_from_events(events, initial_state, &_invalid_module.apply_event/2)
+  def __create_resource__(invalid_module, invalid_params) when is_atom(invalid_module) and is_map(invalid_params) do
+    with {:ok, events} <- invalid_module.create_events(invalid_params) do
+      initial_state = invalid_module.initial_state()
+      state = rebuild_from_events(events, initial_state, &invalid_module.apply_event/2)
       {:ok, state}
     end
   end
@@ -210,7 +208,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
     end
   end
 
-  def __execute_resource__(module, id, command, params, metadata),
+  def __execute_resource__(_module, _id, _command, _params, _metadata),
       do: {:error, :invalid_parameters}
 
   def __get_history__(module, id, opts)
@@ -223,7 +221,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
     EventStore.get_events(criteria)
   end
 
-  def __get_history__(module, id, opts), do: {:error, :invalid_parameters}
+  def __get_history__(_module, _id, _opts), do: {:error, :invalid_parameters}
 
   def __create_events__(module, id, params)
       when is_atom(module) and
@@ -233,10 +231,10 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
     module.create_events(id, params)
   end
 
-  def __create_events__(module, id, params),
+  def __create_events__(_module, _id, _params),
     do: {:error, :invalid_parameters}
 
-  def __publish_events__(events, metadata, module)
+  def __publish_events__(events, metadata, _module)
        when is_list(events) and
               is_map(metadata) do
     Enum.each(events, fn event ->
@@ -246,7 +244,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
     :ok
   end
 
-  def __publish_events__(events, metadata, module), do: {:ok, events}
+  def __publish_events__(events, _metadata, _module), do: {:ok, events}
 
   @doc """
   Gets the current state of a resource by replaying all events.
@@ -388,7 +386,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
     end
   end
 
-  defp store_and_apply_command_event(resource_type, resource_id, command, state) do
+  defp store_and_apply_command_event(resource_type, resource_id, command, _state) do
     event = %Event{
       type: "command_executed",
       resource_type: resource_type,
@@ -403,25 +401,6 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
 
   defp initial_state do
     %{}
-  end
-
-  defp apply_event_to_state(event, state) do
-    case event.type do
-      "resource_created" ->
-        Map.merge(state, event.data)
-
-      "resource_updated" ->
-        Map.merge(state, event.data)
-
-      "resource_deleted" ->
-        %{deleted: true}
-
-      "command_executed" ->
-        apply_command(event.data, state)
-
-      _ ->
-        state
-    end
   end
 
   defp validate_command(_command, _state) do

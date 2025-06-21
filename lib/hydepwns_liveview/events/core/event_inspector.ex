@@ -139,7 +139,7 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
   """
   @spec get_replay_status(any()) :: {:ok, any()} | {:error, any()}
   def get_replay_status(session_id) do
-    case Repo.get(EventStore.ReplaySession, session_id, timeout: 5000) do
+    case HydepwnsLiveview.RepoHelper.get(EventStore.ReplaySession, session_id, timeout: 5000) do
       nil -> {:error, :not_found}
       session -> {:ok, session}
     end
@@ -422,22 +422,6 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
       _ -> {:error, "Invalid event structure"}
     end
   end
-
-  @doc false
-  defp check_event_type(event_type) do
-    case event_type do
-      type when is_binary(type) -> {:ok, type}
-      _ -> {:error, :invalid_event_type}
-    end
-  end
-
-  @doc false
-  defp validate_event_data(data) when is_map(data) do
-    {:ok, data}
-  end
-
-  @doc false
-  defp validate_event_data(_), do: {:error, :invalid_event_data}
 
   defp validate_event_sequence(events) do
     case Enum.all?(events, &validate_event/1) do

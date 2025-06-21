@@ -1,6 +1,7 @@
 defmodule SMSNotifications do
   use GenServer
   require Logger
+  alias HydepwnsLiveview.Events.EventStore
 
   # Client API
   def start_link(opts \\ []) do

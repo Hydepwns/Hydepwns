@@ -48,7 +48,7 @@ defmodule HydepwnsLiveview.Events.ReplayOperations do
   """
   @spec get_session(String.t()) :: {:ok, ReplaySession.t()} | {:error, :not_found}
   def get_session(id) when is_binary(id) do
-    case Repo.get(ReplaySession, id) do
+    case HydepwnsLiveview.RepoHelper.get(ReplaySession, id) do
       nil -> {:error, :not_found}
       session -> {:ok, session}
     end

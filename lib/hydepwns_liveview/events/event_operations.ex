@@ -22,11 +22,11 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   * `{:error, reason}` - The event could not be stored
   """
   @spec store_event(Event.t()) :: {:ok, Event.t()} | {:error, Ecto.Changeset.t()}
-  def store_event(%Event{} = event) when is_struct(event, Event) do
+  def store_event(event) when is_struct(event, Event) do
     Repo.insert(event)
   end
 
-  def store_event(_invalid_event), do: {:error, :invalid_event}
+  def store_event(_), do: {:error, :invalid_event}
 
   @doc """
   Stores an event in the event store with type and data.

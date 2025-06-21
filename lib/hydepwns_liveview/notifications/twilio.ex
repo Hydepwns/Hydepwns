@@ -49,6 +49,8 @@ defmodule HydepwnsLiveview.Notifications.Twilio do
     end
   end
 
+  def message_create(_invalid_client, _invalid_params), do: {:error, :invalid_parameters}
+
   def send_sms(phone_number, message) do
     case validate_phone_number(phone_number) do
       :ok ->
@@ -74,7 +76,7 @@ defmodule HydepwnsLiveview.Notifications.Twilio do
     end
   end
 
-  defp send_sms_message(phone_number, message) do
+  defp send_sms_message(_phone_number, _message) do
     # TODO: Implement actual Twilio SMS sending logic
     # This is a placeholder that simulates SMS sending
     case :rand.uniform(10) do
@@ -82,8 +84,6 @@ defmodule HydepwnsLiveview.Notifications.Twilio do
       _ -> {:ok, %{message_id: Ecto.UUID.generate()}}
     end
   end
-
-  def message_create(_invalid_client, _invalid_params), do: {:error, :invalid_parameters}
 
   # Private functions
 

@@ -30,7 +30,7 @@ defmodule HydepwnsLiveview.Notifications.MessageBird do
     end
   end
 
-  defp send_sms_message(phone_number, message) do
+  defp send_sms_message(_phone_number, _message) do
     # TODO: Implement actual MessageBird SMS sending logic
     # This is a placeholder that simulates SMS sending
     case :rand.uniform(10) do
@@ -41,5 +41,4 @@ defmodule HydepwnsLiveview.Notifications.MessageBird do
 
   def message_create(_invalid_client, _invalid_params), do: {:error, :invalid_parameters}
 
-  defp validate_params(_invalid_params), do: {:error, :invalid_params}
 end 

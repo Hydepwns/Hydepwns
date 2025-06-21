@@ -30,7 +30,7 @@ defmodule HydepwnsLiveview.Events.SMSNotifications do
     end
   end
 
-  defp send_sms(phone_number, message) do
+  defp send_sms(_phone_number, _message) do
     # TODO: Implement actual SMS sending logic
     # This is a placeholder that simulates SMS sending
     case :rand.uniform(10) do

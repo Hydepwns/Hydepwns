@@ -92,6 +92,21 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
   end
 
   @doc """
+  Unsubscribes a specific process from events.
+
+  ## Parameters
+  * `subscriber` - The process to unsubscribe (pid or registered name)
+  * `event_types` - List of event types to unsubscribe from, or :all for all events
+
+  ## Returns
+  * `:ok` - Successfully unsubscribed
+  * `{:error, reason}` - Failed to unsubscribe
+  """
+  def unsubscribe(subscriber, event_types) do
+    GenServer.call(__MODULE__, {:unsubscribe_process, subscriber, event_types})
+  end
+
+  @doc """
   Gets the list of subscribers for a specific event type.
 
   ## Parameters
@@ -131,6 +146,12 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
   @impl true
   def handle_call({:unsubscribe, event_type}, _from, state) do
     subscribers = Map.update(state.subscribers, event_type, [], &List.delete(&1, self()))
+    {:reply, :ok, %{state | subscribers: subscribers}}
+  end
+
+  @impl true
+  def handle_call({:unsubscribe_process, subscriber, event_types}, _from, state) do
+    subscribers = Map.update(state.subscribers, event_types, [subscriber], &List.delete(&1, subscriber))
     {:reply, :ok, %{state | subscribers: subscribers}}
   end
 

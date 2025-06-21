@@ -10,7 +10,6 @@ defmodule HydepwnsLiveview.Events.Projections.EventProjection do
   use GenServer
   require Logger
 
-  alias HydepwnsLiveview.Events
   alias HydepwnsLiveview.Events.EventBus
 
   # Client API
@@ -50,8 +49,24 @@ defmodule HydepwnsLiveview.Events.Projections.EventProjection do
 
   @impl true
   def handle_call(:rebuild, _from, _state) do
-    # TODO: Implement rebuilding from event store
-    {:reply, :ok, %{events: [], last_event_id: nil, last_updated: nil}}
+    # Fetch all events from the event store
+    case HydepwnsLiveview.Events.EventStore.get_events(%{sort: [timestamp: :asc]}) do
+      {:ok, events} ->
+        state = Enum.reduce(events, %{events: [], last_event_id: nil, last_updated: nil}, fn event, acc ->
+          %{
+            acc
+            | events: [event | acc.events],
+              last_event_id: event.id,
+              last_updated: DateTime.utc_now()
+          }
+        end)
+        {:reply, :ok, state}
+
+      {:error, reason} ->
+        require Logger
+        Logger.error("Failed to rebuild event projection: #{inspect(reason)}")
+        {:reply, {:error, reason}, %{events: [], last_event_id: nil, last_updated: nil}}
+    end
   end
 
   @impl true

@@ -22,7 +22,7 @@ defmodule HydepwnsLiveview.Events.CryptoService do
   def encrypt_message(reminder, settings) do
     try do
       # Generate a unique session ID for this message
-      session_id = generate_session_id()
+      _session_id = generate_session_id()
 
       # Get or create a session for the recipient
       with {:ok, session} <- get_or_create_session(settings.recipient_id),
@@ -85,7 +85,7 @@ defmodule HydepwnsLiveview.Events.CryptoService do
     {:ok, %{recipient_id: recipient_id, session_id: generate_session_id()}}
   end
 
-  defp encrypt_with_session(session, message) do
+  defp encrypt_with_session(_session, message) do
     # TODO: Implement actual Signal Protocol encryption
     # This would involve:
     # 1. Getting the session cipher
@@ -95,7 +95,7 @@ defmodule HydepwnsLiveview.Events.CryptoService do
     {:ok, encrypted}
   end
 
-  defp decrypt_with_session(session, encrypted_message) do
+  defp decrypt_with_session(_session, encrypted_message) do
     # TODO: Implement actual Signal Protocol decryption
     # This would involve:
     # 1. Getting the session cipher

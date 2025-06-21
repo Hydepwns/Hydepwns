@@ -10,7 +10,6 @@ defmodule HydepwnsLiveview.Events.Projections.NotificationProjection do
   use GenServer
   require Logger
 
-  alias HydepwnsLiveview.Events.Core.Event
   alias HydepwnsLiveview.Events.EventBus
   alias HydepwnsLiveview.Events.EventStore
 

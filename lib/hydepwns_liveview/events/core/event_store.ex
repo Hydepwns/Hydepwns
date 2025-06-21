@@ -274,7 +274,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   """
   @spec get_event(any()) :: {:ok, Event.t()} | {:error, any()}
   def get_event(id) do
-    case Repo.get(Event, id, timeout: 5000) do
+    case HydepwnsLiveview.RepoHelper.get(Event, id, timeout: 5000) do
       nil -> {:error, :not_found}
       event -> {:ok, event}
     end
@@ -571,7 +571,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   """
   @spec start_replay_session(any()) :: {:ok, any()} | {:error, any()}
   def start_replay_session(session_id) do
-    case Repo.get(ReplaySession, session_id, timeout: 5000) do
+    case HydepwnsLiveview.RepoHelper.get(ReplaySession, session_id, timeout: 5000) do
       nil ->
         {:error, :not_found}
 
@@ -595,7 +595,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   """
   @spec complete_replay_session(any(), map()) :: {:ok, any()} | {:error, any()}
   def complete_replay_session(session_id, results) do
-    case Repo.get(ReplaySession, session_id, timeout: 5000) do
+    case HydepwnsLiveview.RepoHelper.get(ReplaySession, session_id, timeout: 5000) do
       nil ->
         {:error, :not_found}
 
@@ -624,7 +624,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   """
   @spec fail_replay_session(any(), any()) :: {:ok, any()} | {:error, any()}
   def fail_replay_session(session_id, error_details) do
-    case Repo.get(ReplaySession, session_id, timeout: 5000) do
+    case HydepwnsLiveview.RepoHelper.get(ReplaySession, session_id, timeout: 5000) do
       nil ->
         {:error, :not_found}
 
@@ -706,7 +706,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   """
   @spec get_replay_session(any()) :: {:ok, any()} | {:error, any()}
   def get_replay_session(session_id) do
-    case Repo.get(ReplaySession, session_id, timeout: 5000) do
+    case HydepwnsLiveview.RepoHelper.get(ReplaySession, session_id) do
       nil -> {:error, :not_found}
       session -> {:ok, session}
     end
@@ -758,7 +758,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   @spec update_replay_session_status(Ecto.UUID.t() | binary(), String.t(), map() | nil) ::
           {:ok, ReplaySession.t()} | {:error, any()}
   def update_replay_session_status(session_id, new_status, results \\ nil) do
-    case Repo.get(ReplaySession, session_id) do
+    case HydepwnsLiveview.RepoHelper.get(ReplaySession, session_id) do
       nil ->
         {:error, :not_found}
 

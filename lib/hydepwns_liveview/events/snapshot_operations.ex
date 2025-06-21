@@ -41,8 +41,9 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
     |> Repo.insert()
   end
 
-  def save_snapshot(_invalid_type, _invalid_id, _invalid_state, _invalid_metadata),
-    do: {:error, :invalid_parameters}
+  def save_snapshot(resource_type, resource_id, state, metadata) when not (is_binary(resource_type) and byte_size(resource_type) > 0 and is_binary(resource_id) and byte_size(resource_id) > 0 and is_map(state) and is_map(metadata)) do
+    {:error, :invalid_parameters}
+  end
 
   @doc """
   Retrieves the latest snapshot for a resource.
@@ -80,7 +81,9 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
     end
   end
 
-  def get_latest_snapshot(_invalid_type, _invalid_id), do: {:error, :invalid_parameters}
+  def get_latest_snapshot(resource_type, resource_id) when not (is_binary(resource_type) and byte_size(resource_type) > 0 and is_binary(resource_id) and byte_size(resource_id) > 0) do
+    {:error, :invalid_parameters}
+  end
 
   @doc """
   Counts the number of events since the last snapshot for a resource.
@@ -133,8 +136,9 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
     end
   end
 
-  def count_events_since_last_snapshot(_invalid_type, _invalid_id),
-    do: {:error, :invalid_parameters}
+  def count_events_since_last_snapshot(resource_type, resource_id) when not (is_binary(resource_type) and byte_size(resource_type) > 0 and is_binary(resource_id) and byte_size(resource_id) > 0) do
+    {:error, :invalid_parameters}
+  end
 
   @doc """
   Saves a versioned state for a resource.
@@ -172,8 +176,9 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
     |> Repo.insert()
   end
 
-  def save_versioned_state(_invalid_type, _invalid_id, _invalid_state, _invalid_opts),
-    do: {:error, :invalid_parameters}
+  def save_versioned_state(resource_type, resource_id, state, opts) when not (is_binary(resource_type) and byte_size(resource_type) > 0 and is_binary(resource_id) and byte_size(resource_id) > 0 and is_map(state) and is_list(opts)) do
+    {:error, :invalid_parameters}
+  end
 
   @doc """
   Retrieves all snapshots for a resource.
@@ -204,7 +209,9 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
     end
   end
 
-  def get_snapshots(_invalid_type, _invalid_id), do: {:error, :invalid_parameters}
+  def get_snapshots(resource_type, resource_id) when not (is_binary(resource_type) and byte_size(resource_type) > 0 and is_binary(resource_id) and byte_size(resource_id) > 0) do
+    {:error, :invalid_parameters}
+  end
 
   @doc """
   Creates a new snapshot for a resource.
@@ -233,8 +240,9 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
     |> Repo.insert()
   end
 
-  def create_snapshot(_invalid_type, _invalid_id, _invalid_state, _invalid_metadata),
-    do: {:error, :invalid_parameters}
+  def create_snapshot(resource_type, resource_id, state, metadata) when not (is_binary(resource_type) and is_binary(resource_id) and is_map(state) and is_map(metadata)) do
+    {:error, :invalid_parameters}
+  end
 
   @doc """
   Lists all snapshots for a resource.
@@ -276,7 +284,9 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
     end
   end
 
-  def list_snapshots(_invalid_type, _invalid_id, _invalid_opts), do: {:error, :invalid_parameters}
+  def list_snapshots(resource_type, resource_id, _opts) when not (is_binary(resource_type) and is_binary(resource_id)) do
+    {:error, :invalid_parameters}
+  end
 
   def create_snapshot(resource, version) do
     with :ok <- validate_resource(resource),

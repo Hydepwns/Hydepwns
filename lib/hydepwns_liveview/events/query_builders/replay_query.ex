@@ -53,7 +53,7 @@ defmodule HydepwnsLiveview.Events.QueryBuilders.ReplayQuery do
   end
 
   defp get_event(id) do
-    case HydepwnsLiveview.Repo.get(Event, id, timeout: 5000) do
+    case HydepwnsLiveview.RepoHelper.get(Event, id, timeout: 5000) do
       nil -> {:error, :not_found}
       event -> {:ok, event}
     end

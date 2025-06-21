@@ -40,7 +40,7 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
   Gets a resource by id.
   """
   def get_resource(id) do
-    case Repo.get(Resource, id) do
+    case HydepwnsLiveview.RepoHelper.get(Resource, id) do
       nil -> {:error, :not_found}
       resource -> {:ok, resource}
     end
@@ -50,7 +50,7 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
   Updates a resource by id with new attributes.
   """
   def update_resource(id, attrs) do
-    case Repo.get(Resource, id) do
+    case HydepwnsLiveview.RepoHelper.get(Resource, id) do
       nil ->
         {:error, :not_found}
 
@@ -65,7 +65,7 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
   Deletes a resource by id.
   """
   def delete_resource(id) do
-    case Repo.get(Resource, id) do
+    case HydepwnsLiveview.RepoHelper.get(Resource, id) do
       nil ->
         {:error, :not_found}
 

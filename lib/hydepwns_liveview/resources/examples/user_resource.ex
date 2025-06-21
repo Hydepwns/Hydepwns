@@ -241,7 +241,9 @@ defmodule HydepwnsLiveview.Resources.Examples.UserResource do
     end
   end
 
-  def update(_invalid_id, _invalid_params, _invalid_metadata), do: {:error, :invalid_parameters}
+  def update(id, params, metadata) when not (is_binary(id) and is_map(params) and is_map(metadata)) do
+    {:error, :invalid_parameters}
+  end
 
   @doc """
   Updates a user resource with tracking (for audit/telemetry).

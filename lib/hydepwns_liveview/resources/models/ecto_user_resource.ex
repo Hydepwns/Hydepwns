@@ -13,6 +13,16 @@ defmodule HydepwnsLiveview.Resources.EctoUserResource do
   adapter(HydepwnsLiveview.Utils.EctoAdapter, schema: HydepwnsLiveview.Schemas.User)
 
   @impl HydepwnsLiveview.Utils.LiveViewResource
+  def attributes do
+    []
+  end
+
+  @impl HydepwnsLiveview.Utils.LiveViewResource
+  def relationships do
+    []
+  end
+
+  @impl HydepwnsLiveview.Utils.LiveViewResource
   def __resource_schema__ do
     %{
       id: :id,

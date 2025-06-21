@@ -191,17 +191,16 @@ defmodule HydepwnsLiveview.Resources do
     resources = list_resources()
 
     Enum.flat_map(resources, fn resource ->
-      case resource.parent_id do
-        nil ->
-          []
-
-        parent_id ->
-          case get_resource(parent_id) do
-            nil -> []
-            parent -> [{parent, resource}]
-          end
-      end
+      build_relationship_for_resource(resource)
     end)
+  end
+
+  defp build_relationship_for_resource(%{parent_id: nil}), do: []
+  defp build_relationship_for_resource(resource) do
+    case get_resource(resource.parent_id) do
+      nil -> []
+      parent -> [{parent, resource}]
+    end
   end
 
   @doc """

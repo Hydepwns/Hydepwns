@@ -115,7 +115,10 @@ defmodule HydepwnsLiveview.MixProject do
       #  manager: :rebar3},
 
       # Add bcrypt for password hashing
-      {:bcrypt_elixir, "~> 3.0"}
+      {:bcrypt_elixir, "~> 3.0"},
+
+      # Add timezone support
+      {:tzdata, "~> 1.1"}
 
       # Authentication - Uncomment to add authentication
       # {:phx_gen_auth, "~> 0.7.1", only: [:dev], runtime: false},

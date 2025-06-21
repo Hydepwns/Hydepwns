@@ -40,6 +40,7 @@ defmodule HydepwnsLiveview.Utils.LiveViewAPI do
   alias Phoenix.LiveView.Socket
   alias HydepwnsLiveview.Utils.LiveViewResource
   alias HydepwnsLiveview.Utils.ChangeTracker
+  alias HydepwnsLiveview.Utils.SocketValidator
 
   @doc """
   Gets a value directly from socket assigns.
@@ -63,6 +64,74 @@ defmodule HydepwnsLiveview.Utils.LiveViewAPI do
   """
   def get(%Socket{} = socket, field, default \\ nil) when is_atom(field) do
     Map.get(socket.assigns, field, default)
+  end
+
+  @doc """
+  Gets a value directly from socket assigns (alias for get/2).
+
+  ## Parameters
+
+  - `socket` - The LiveView socket.
+  - `field` - The field to get from the assigns.
+
+  ## Returns
+
+  The value of the specified field, or nil if it doesn't exist.
+
+  ## Examples
+
+  ```elixir
+  # Get the current user
+  user = LiveViewAPI.get_assign(socket, :user)
+  ```
+  """
+  def get_assign(%Socket{} = socket, field) when is_atom(field) do
+    Map.get(socket.assigns, field)
+  end
+
+  @doc """
+  Updates a specific field in socket assigns.
+
+  ## Parameters
+
+  - `socket` - The LiveView socket.
+  - `field` - The field to update.
+  - `value` - The new value for the field.
+  - `opts` - Options for the update operation.
+    - `:validate` - Whether to validate the value before updating. Defaults to `true`.
+
+  ## Returns
+
+  - `{:ok, socket}` - If the update was successful.
+  - `{:error, message, socket}` - If the update failed.
+
+  ## Examples
+
+  ```elixir
+  # Update a single field
+  case LiveViewAPI.update_field(socket, :theme, "dark") do
+    {:ok, updated_socket} ->
+      {:noreply, updated_socket}
+    
+    {:error, message, socket} ->
+      {:noreply, put_flash(socket, :error, message)}
+  end
+  ```
+  """
+  def update_field(%Socket{} = socket, field, value, opts \\ []) when is_atom(field) do
+    validate = Keyword.get(opts, :validate, true)
+
+    if validate do
+      case validate_single_field_update(socket, field, value) do
+        {:ok, validated_value} ->
+          {:ok, Phoenix.Component.assign(socket, field, validated_value)}
+
+        {:error, message} ->
+          {:error, message, socket}
+      end
+    else
+      {:ok, Phoenix.Component.assign(socket, field, value)}
+    end
   end
 
   @doc """
@@ -387,7 +456,7 @@ defmodule HydepwnsLiveview.Utils.LiveViewAPI do
 
       type_spec ->
         case SocketValidator.validate_type(value, type_spec) do
-          {:ok, _} -> nil
+          :ok -> nil
           {:error, message} -> message
         end
     end
@@ -645,5 +714,22 @@ defmodule HydepwnsLiveview.Utils.LiveViewAPI do
 
   defp validate_resource_create(%Socket{} = _socket, _resource, values) do
     {:ok, values}
+  end
+
+  defp validate_single_field_update(%Socket{} = _socket, field, value) do
+    case field do
+      :theme ->
+        case SocketValidator.validate_type(value, :string) do
+          :ok -> {:ok, value}
+          {:error, message} -> {:error, message, _socket}
+        end
+      :sidebar_open ->
+        case SocketValidator.validate_type(value, :boolean) do
+          :ok -> {:ok, value}
+          {:error, message} -> {:error, message, _socket}
+        end
+      _ ->
+        {:ok, value}
+    end
   end
 end

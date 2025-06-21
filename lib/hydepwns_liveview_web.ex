@@ -102,7 +102,8 @@ defmodule HydepwnsLiveviewWeb do
   defp html_helpers do
     quote do
       # Core UI components and translation
-      import HydepwnsLiveviewWeb.Components.Common.CoreComponents, except: [theme_toggle: 1]
+      import HydepwnsLiveviewWeb.Components.Common.CoreComponents, 
+        except: [input: 1, header: 1, error: 1, simple_form: 1, theme_toggle: 1]
       import HydepwnsLiveviewWeb.Gettext
       import HydepwnsLiveviewWeb.Components.Common.ThemeToggle, only: [theme_toggle: 1]
 

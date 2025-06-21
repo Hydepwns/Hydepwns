@@ -395,7 +395,7 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
                       <td>{resource.id}</td>
                       <!-- Dynamic fields -->
                       <%= if @selected_resource_type do %>
-                        <%= for field <- get_display_fields(@selected_resource_type) do %>
+                        <%= for _field <- get_display_fields(@selected_resource_type) do %>
                           <td>{display_field_value(resource, field)}</td>
                         <% end %>
                       <% end %>
@@ -428,7 +428,7 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
               </div>
 
               <div class="resource-properties">
-                <%= for {key, _value} <- Map.drop(@current_resource, [:__struct__, :__resource_module__]) do %>
+                <%= for {_key, _value} <- Map.drop(@current_resource, [:__struct__, :__resource_module__]) do %>
                   <div class="property">
                     <div class="property-name">{humanize(key)}</div>
                     <div class="property-value">{display_field_value(@current_resource, key)}</div>
@@ -509,7 +509,7 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
                       <!-- Add more field types as needed -->
                       <input type="text" id={to_string(field)} name={"resource[#{field}]"} value={Ecto.Changeset.get_field(@changeset, field) || ""} />
                     <% end %>
-                    <%= if error = @changeset.errors[field] do %>
+                    <%= if _error = @changeset.errors[field] do %>
                       <div class="error-message" data-test-id="error-message">{elem(error, 0)}</div>
                     <% end %>
                   </div>
@@ -587,24 +587,6 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
     # This would typically be based on the resource definition
     # For this example, we'll return some basic fields
     [:name, :status, :created_at, :updated_at]
-  end
-
-  defp display_field_value(resource, field) do
-    value = Map.get(resource, field)
-
-    case value do
-      %DateTime{} -> format_datetime(value)
-      value when is_map(value) -> "#{map_size(value)} properties"
-      value when is_list(value) -> "#{length(value)} items"
-      nil -> "-"
-      _ -> to_string(value)
-    end
-  end
-
-  defp format_datetime(nil), do: "-"
-
-  defp format_datetime(%DateTime{} = dt) do
-    Calendar.strftime(dt, "%Y-%m-%d %H:%M:%S")
   end
 
   # Helper functions for resource creation and update

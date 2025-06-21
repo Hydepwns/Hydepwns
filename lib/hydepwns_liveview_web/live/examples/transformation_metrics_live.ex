@@ -88,6 +88,17 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationMetricsLive do
     {:noreply, socket}
   end
 
+  @impl Phoenix.LiveView
+  def handle_event(event, params, socket) when event not in ["generate_successful_transformations", "generate_failed_transformations", "generate_mixed_transformations"] do
+    require Logger
+
+    Logger.warning(
+      "Unhandled event in TransformationMetricsLive: #{inspect(event)} with params: #{inspect(params)}"
+    )
+
+    {:noreply, put_flash(socket, :warning, "Unhandled event: #{event}")}
+  end
+
   # Private functions
 
   defp generate_test_metrics(count, outcome_type) do

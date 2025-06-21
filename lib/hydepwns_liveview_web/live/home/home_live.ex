@@ -230,7 +230,7 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
           <div class="table-of-contents">
             <h2>Contents</h2>
             <ul>
-              <%= for {id, label} <- @toc_items do %>
+              <%= for {id, _label} <- @toc_items do %>
                 <li>
                   <a href={"##{id}"}>{label}</a>
                 </li>

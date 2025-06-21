@@ -18,7 +18,7 @@ defmodule HydepwnsLiveviewWeb.ResourceSubscriptionLive do
      assign(socket, :selected_events, events) |> assign(:status, "Subscriptions updated!")}
   end
 
-  def handle_event("save_subscriptions", _params, socket) do
+  def handle_event("save_subscriptions", params, socket) when not Map.has_key?(params, "events") do
     {:noreply, assign(socket, :selected_events, []) |> assign(:status, "Subscriptions updated!")}
   end
 

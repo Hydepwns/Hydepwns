@@ -3,7 +3,6 @@ defmodule HydepwnsLiveviewWeb.Resources.ResourceHelpers do
   Helper functions for resource-oriented LiveViews.
   """
 
-  import Phoenix.LiveView
   import Phoenix.Component
 
   def get_resource(socket, key) do

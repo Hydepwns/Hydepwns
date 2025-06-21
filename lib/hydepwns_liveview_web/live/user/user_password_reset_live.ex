@@ -5,12 +5,19 @@ defmodule HydepwnsLiveviewWeb.UserPasswordResetLive do
   alias HydepwnsLiveview.Accounts.User
 
   import HydepwnsLiveviewWeb.Components.UI.LayoutComponents, only: [header: 1]
-  import HydepwnsLiveviewWeb.Components.Common.CoreComponents, only: [button: 1]
+  # import HydepwnsLiveviewWeb.Components.Common.CoreComponents, only: [button: 1]
 
   @impl true
   def mount(_params, _session, socket) do
     {:ok, assign(socket, :changeset, Accounts.change_user_password(%User{}, %{}))}
   end
+
+  @impl true
+  def handle_params(params, _url, socket) do
+    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  end
+
+  defp apply_action(socket, _action, _params), do: socket
 
   @impl true
   def handle_event("validate", %{"user" => user_params}, socket) do

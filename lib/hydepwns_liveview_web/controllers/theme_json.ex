@@ -15,13 +15,19 @@ defmodule HydepwnsLiveviewWeb.ThemeJSON do
     %{data: data(theme)}
   end
 
-  defp data(%Theme{} = theme) do
+  @doc """
+  Renders a theme.
+  """
+  def data(%Theme{} = theme) do
     %{
       id: theme.id,
       name: theme.name,
-      mode: theme.mode,
+      description: theme.description,
       colors: theme.colors,
-      is_default: theme.is_default,
+      fonts: theme.fonts,
+      spacing: theme.spacing,
+      border_radius: theme.border_radius,
+      shadows: theme.shadows,
       inserted_at: theme.inserted_at,
       updated_at: theme.updated_at
     }

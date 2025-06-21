@@ -7,7 +7,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
 
   alias HydepwnsLiveview.Resources.ResourceSystem
   alias HydepwnsLiveview.Resources.Resource
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, button: 1, label: 1]
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, button: 1]
 
   @impl true
   def update(%{resource: resource} = assigns, socket) do

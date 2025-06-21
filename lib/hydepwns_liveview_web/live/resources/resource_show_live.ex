@@ -59,9 +59,9 @@ defmodule HydepwnsLiveviewWeb.ResourceShowLive do
               <.link navigate={~p"/resources/#{@resource}/edit"} class="text-blue-600 hover:text-blue-800" data-test-id="edit-resource-link">
                 Edit
               </.link>
-              <.link phx-click="delete" phx-value-id={@resource.id} data-confirm="Are you sure?" class="text-red-600 hover:text-red-800" data-test-id="delete-resource-button">
+              <button phx-click="delete" phx-value-id={@resource.id} data-confirm="Are you sure?" class="text-red-600 hover:text-red-800" data-test-id="delete-resource-button">
                 Delete
-              </.link>
+              </button>
             </div>
           </div>
 

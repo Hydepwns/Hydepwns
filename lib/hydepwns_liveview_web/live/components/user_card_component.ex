@@ -16,6 +16,7 @@ defmodule HydepwnsLiveviewWeb.LiveComponents.UserCardComponent do
 
   Fetches the user resource if it's not already provided.
   """
+  @impl true
   def update(assigns, socket) do
     socket =
       socket
@@ -38,6 +39,7 @@ defmodule HydepwnsLiveviewWeb.LiveComponents.UserCardComponent do
   @doc """
   Render the user card component.
   """
+  @impl true
   def render(assigns) do
     ~H"""
     <div id={@id} phx-hook="EventDrivenComponent" class="event-driven-component user-card">
@@ -85,6 +87,7 @@ defmodule HydepwnsLiveviewWeb.LiveComponents.UserCardComponent do
   @doc """
   Handle user actions like activate, deactivate, edit.
   """
+  @impl true
   def handle_event("user-activate", _params, socket) do
     _resource_id = socket.assigns.resource_id
     current_resource = socket.assigns.resource
@@ -103,6 +106,7 @@ defmodule HydepwnsLiveviewWeb.LiveComponents.UserCardComponent do
     end
   end
 
+  @impl true
   def handle_event("user-deactivate", _params, socket) do
     _resource_id = socket.assigns.resource_id
     current_resource = socket.assigns.resource
@@ -121,12 +125,14 @@ defmodule HydepwnsLiveviewWeb.LiveComponents.UserCardComponent do
     end
   end
 
+  @impl true
   def handle_event("user-edit", _params, socket) do
     # Send a message to the parent LiveView to show the edit form
     send(self(), {:show_edit_user_form, socket.assigns.resource_id})
     {:noreply, socket}
   end
 
+  @impl true
   def handle_event("update_role", %{"role" => role}, socket) do
     case HydepwnsLiveview.Resources.UserResource.update(socket.assigns.resource, %{role: role}) do
       {:ok, updated_resource} ->
@@ -137,6 +143,7 @@ defmodule HydepwnsLiveviewWeb.LiveComponents.UserCardComponent do
     end
   end
 
+  @impl true
   def handle_event("update_theme", %{"theme" => theme}, socket) do
     case HydepwnsLiveview.Resources.UserResource.update(socket.assigns.resource, %{theme: theme}) do
       {:ok, updated_resource} ->
@@ -150,6 +157,7 @@ defmodule HydepwnsLiveviewWeb.LiveComponents.UserCardComponent do
   @doc """
   Handle event updates from the event system.
   """
+  @impl true
   def handle_info({:event, event}, socket) do
     # Get the current resource
     resource = socket.assigns.resource
@@ -179,13 +187,5 @@ defmodule HydepwnsLiveviewWeb.LiveComponents.UserCardComponent do
       end
 
     {:noreply, socket}
-  end
-
-  # Helper function to format datetime values
-  defp format_datetime(nil), do: "Never"
-
-  defp format_datetime(datetime) do
-    # In a real app, you would use a proper datetime formatter
-    "#{datetime.year}-#{datetime.month}-#{datetime.day} #{datetime.hour}:#{datetime.minute}"
   end
 end

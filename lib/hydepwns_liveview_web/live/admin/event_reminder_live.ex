@@ -139,9 +139,9 @@ defmodule HydepwnsLiveviewWeb.Admin.EventReminderLive do
                     </p>
                   </div>
                   <div class="flex space-x-2">
-                    <.link phx-click="delete" phx-value-id={reminder.id} data-confirm="Are you sure?" class="text-red-600 hover:text-red-900">
+                    <button phx-click="delete" phx-value-id={reminder.id} data-confirm="Are you sure?" class="text-red-600 hover:text-red-900">
                       Delete
-                    </.link>
+                    </button>
                   </div>
                 </div>
                 <div class="mt-4">

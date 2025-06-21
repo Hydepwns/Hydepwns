@@ -9,6 +9,13 @@ defmodule HydepwnsLiveviewWeb.UserEmailChangeLive do
   end
 
   @impl Phoenix.LiveView
+  def handle_params(params, _url, socket) do
+    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  end
+
+  defp apply_action(socket, _action, _params), do: socket
+
+  @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
     <div class="container mx-auto px-4 py-8">

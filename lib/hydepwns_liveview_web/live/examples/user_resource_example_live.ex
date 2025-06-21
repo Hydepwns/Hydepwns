@@ -189,7 +189,7 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceExampleLive do
   end
 
   @impl Phoenix.LiveView
-  def handle_event(event, params, socket) do
+  def handle_event(event, params, socket) when event not in ["update_role", "update_theme", "toggle_notifications"] do
     require Logger
 
     Logger.warning(

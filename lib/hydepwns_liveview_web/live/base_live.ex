@@ -35,11 +35,11 @@ defmodule HydepwnsLiveviewWeb.BaseLive do
     quote do
       use HydepwnsLiveviewWeb, :live_view
 
-      import Phoenix.LiveView
+      # import Phoenix.LiveView
       import Phoenix.Component
-      import Phoenix.LiveView.Helpers
-      import Phoenix.LiveView.Router
-      import Phoenix.VerifiedRoutes
+      # import Phoenix.LiveView.Helpers
+      # import Phoenix.LiveView.Router
+      # import Phoenix.VerifiedRoutes
 
       @impl Phoenix.LiveView
       def mount(params, session, socket) do

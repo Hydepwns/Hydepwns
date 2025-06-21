@@ -58,26 +58,25 @@ defmodule HydepwnsLiveviewWeb.ImageHelper do
     HydepwnsLiveviewWeb.Endpoint.static_path(image_path)
   end
 
-  # Private helper to extract path components
+  # Helper function to extract path information from image path
   defp extract_path_info(image_path) do
-    # Handle paths with or without leading slash
-    path = Path.dirname(image_path)
-    path = if path == ".", do: "", else: "#{path}/"
-
-    # Get filename and extension
-    filename = Path.basename(image_path, Path.extname(image_path))
-    ext = Path.extname(image_path)
-
-    {path, filename, ext}
+    # Split the path to get directory and filename
+    path_parts = String.split(image_path, "/")
+    filename_with_ext = List.last(path_parts)
+    directory = Enum.slice(path_parts, 0, -1) |> Enum.join("/")
+    
+    # Extract filename and extension
+    case String.split(filename_with_ext, ".") do
+      [filename, ext] -> {directory <> "/", filename, "." <> ext}
+      [filename] -> {directory <> "/", filename, ""}
+      _ -> {directory <> "/", filename_with_ext, ""}
+    end
   end
 
-  # Check if the WebP version exists in priv/static
+  # Helper function to check if WebP file exists
   defp webp_file_exists?(webp_path) do
-    static_dir = Application.app_dir(:hydepwns_liveview, "priv/static")
-    # Remove leading slash if present
-    clean_path = String.replace_leading(webp_path, "/", "")
-    webp_file_path = Path.join(static_dir, clean_path)
-
-    File.exists?(webp_file_path)
+    # Convert to absolute path for filesystem check
+    absolute_path = Path.join([:code.priv_dir(:hydepwns_liveview_web), "static", webp_path])
+    File.exists?(absolute_path)
   end
 end

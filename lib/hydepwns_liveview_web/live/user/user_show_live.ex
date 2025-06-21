@@ -56,6 +56,11 @@ defmodule HydepwnsLiveviewWeb.UserShowLive do
     end
   end
 
+  @impl true
+  def handle_info({:user_updated, {:error, changeset}}, socket) do
+    {:noreply, assign(socket, :changeset, changeset)}
+  end
+
   @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
@@ -66,9 +71,9 @@ defmodule HydepwnsLiveviewWeb.UserShowLive do
           <.link navigate={~p"/users/#{@user}/edit"} class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
             Edit
           </.link>
-          <.link phx-click="delete" phx-value-id={@user.id} data-confirm="Are you sure?" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+          <button phx-click="delete" phx-value-id={@user.id} data-confirm="Are you sure?" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
             Delete
-          </.link>
+          </button>
         </div>
       </div>
 

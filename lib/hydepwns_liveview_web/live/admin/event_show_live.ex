@@ -41,6 +41,11 @@ defmodule HydepwnsLiveviewWeb.Admin.EventShowLive do
   end
 
   @impl Phoenix.LiveView
+  def handle_info({:event_updated, {:error, changeset}}, socket) do
+    {:noreply, assign(socket, :changeset, changeset)}
+  end
+
+  @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
     <div class="container mx-auto px-4 py-8">
@@ -51,9 +56,9 @@ defmodule HydepwnsLiveviewWeb.Admin.EventShowLive do
             <.link navigate={~p"/admin/events/#{@event}/edit"} class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
               Edit
             </.link>
-            <.link phx-click="delete" phx-value-id={@event.id} data-confirm="Are you sure?" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+            <button phx-click="delete" phx-value-id={@event.id} data-confirm="Are you sure?" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
               Delete
-            </.link>
+            </button>
           </div>
         </div>
 

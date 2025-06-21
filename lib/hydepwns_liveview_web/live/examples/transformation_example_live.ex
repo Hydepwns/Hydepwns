@@ -47,15 +47,18 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
 
   # Define resource using the LiveViewResource behavior
   use LiveViewResource
+  import HydepwnsLiveview.Utils.ResourceAssigns, only: [attributes: 1]
 
-  attribute(:resource, :map, default: @example_resource)
-  attribute(:original_resource, :map, default: @example_resource)
-  attribute(:transformation_result, :any, default: nil)
-  attribute(:transformation_context, :any, default: nil)
-  attribute(:form_data, :map, default: %{})
-  attribute(:available_transformers, :list, default: [])
-  attribute(:selected_transformers, :list, default: [])
-  attribute(:execution_error, :string, default: nil)
+  attributes do
+    attribute(:resource, :map, default: @example_resource)
+    attribute(:original_resource, :map, default: @example_resource)
+    attribute(:transformation_result, :any, default: nil)
+    attribute(:transformation_context, :any, default: nil)
+    attribute(:form_data, :map, default: %{})
+    attribute(:available_transformers, :list, default: [])
+    attribute(:selected_transformers, :list, default: [])
+    attribute(:execution_error, :string, default: nil)
+  end
 
   @impl HydepwnsLiveview.Utils.LiveViewResource
   def __resource_schema__ do
@@ -397,7 +400,19 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
     # (in a real application, you might not want to clear all transformations)
     clear_example_transformations()
 
-    # Register each selected transformation with appropriate priority and options
+    # Register each selected transformation
+    register_email_transformer(selected_transformers)
+    register_phone_transformer(selected_transformers, form_data)
+    register_trim_transformer(selected_transformers, form_data)
+    register_type_converter(selected_transformers, form_data)
+    register_html_sanitizer(selected_transformers, form_data)
+    register_field_remover(selected_transformers, form_data)
+    register_uuid_adder(selected_transformers)
+    register_defaults_setter(selected_transformers)
+    register_custom_transformer(form_data)
+  end
+
+  defp register_email_transformer(selected_transformers) do
     if "format_email" in selected_transformers do
       TransformationRegistry.register(
         "format_email",
@@ -408,7 +423,9 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
         priority: 10
       )
     end
+  end
 
+  defp register_phone_transformer(selected_transformers, form_data) do
     if "format_phone" in selected_transformers do
       format_option =
         case Map.get(form_data, "phone_format", "digits_only") do
@@ -416,7 +433,6 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
           _ -> :digits_only
         end
 
-      # This transformer needs a custom function to handle the format option
       TransformationRegistry.register(
         "format_phone",
         fn resource, context ->
@@ -428,12 +444,13 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
         priority: 20
       )
     end
+  end
 
+  defp register_trim_transformer(selected_transformers, form_data) do
     if "trim_strings" in selected_transformers do
       fields = Map.get(form_data, "trim_fields", [])
       fields_atoms = fields |> Enum.map(&String.to_existing_atom/1)
 
-      # Register with fields from form
       TransformationRegistry.register(
         "trim_strings",
         fn resource, context ->
@@ -442,11 +459,12 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
         resource_type: :example,
         operation: :update,
         phase: :before_validation,
-        # Run early to clean input for other transformers
         priority: 5
       )
     end
+  end
 
+  defp register_type_converter(selected_transformers, form_data) do
     if "convert_types" in selected_transformers do
       type_conversions =
         @type_schema
@@ -463,12 +481,13 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
         resource_type: :example,
         operation: :update,
         phase: :before_validation,
-        # Run after string formatting
         priority: 30,
         dependencies: ["format_email", "format_phone", "trim_strings"]
       )
     end
+  end
 
+  defp register_html_sanitizer(selected_transformers, form_data) do
     if "sanitize_html" in selected_transformers do
       fields = Map.get(form_data, "html_fields", [])
       fields_atoms = fields |> Enum.map(&String.to_existing_atom/1)
@@ -484,27 +503,29 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
         priority: 40
       )
     end
+  end
 
-    if "remove_fields" in selected_transformers do
-      field_to_remove = Map.get(form_data, "field_to_remove")
+  defp register_field_remover(selected_transformers, form_data) do
+    unless "remove_fields" in selected_transformers, do: :ok
+    
+    field_to_remove = Map.get(form_data, "field_to_remove")
+    if field_to_remove == "", do: :ok
 
-      if field_to_remove != "" do
-        fields = [String.to_existing_atom(field_to_remove)]
+    fields = [String.to_existing_atom(field_to_remove)]
 
-        TransformationRegistry.register(
-          "remove_fields",
-          fn resource, context ->
-            StandardTransformers.remove_fields(resource, context, fields: fields)
-          end,
-          resource_type: :example,
-          operation: :update,
-          phase: :before_validation,
-          # Run near the end
-          priority: 90
-        )
-      end
-    end
+    TransformationRegistry.register(
+      "remove_fields",
+      fn resource, context ->
+        StandardTransformers.remove_fields(resource, context, fields: fields)
+      end,
+      resource_type: :example,
+      operation: :update,
+      phase: :before_validation,
+      priority: 90
+    )
+  end
 
+  defp register_uuid_adder(selected_transformers) do
     if "add_uuid" in selected_transformers do
       TransformationRegistry.register(
         "add_uuid",
@@ -517,7 +538,9 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
         priority: 50
       )
     end
+  end
 
+  defp register_defaults_setter(selected_transformers) do
     if "set_defaults" in selected_transformers do
       defaults = %{last_login: DateTime.utc_now()}
 
@@ -532,8 +555,9 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
         priority: 60
       )
     end
+  end
 
-    # Register custom transformations if they exist in the form data
+  defp register_custom_transformer(form_data) do
     custom_name = Map.get(form_data, "custom_name", "")
     custom_code = Map.get(form_data, "custom_code", "")
 

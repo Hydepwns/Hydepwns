@@ -17,8 +17,8 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLive do
   end
 
   @impl Phoenix.LiveView
-  def handle_params(_params, _url, socket) do
-    {:noreply, apply_action(socket, socket.assigns.live_action, _params)}
+  def handle_params(params, _url, socket) do
+    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
   defp apply_action(socket, :new, _params) do
@@ -41,7 +41,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLive do
   @impl Phoenix.LiveView
   def handle_event("save", %{"user" => user_params}, socket) do
     case Accounts.register_user(user_params) do
-      {:ok, user} ->
+      {:ok, _user} ->
         {:noreply,
          socket
          |> put_flash(:info, "User created successfully")

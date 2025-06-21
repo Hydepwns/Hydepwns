@@ -162,6 +162,16 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
     end
   end
 
+  def handle_event(event, params, socket) when event not in ["select_tab", "generate_test_data", "publish_event", "view_projection", "rebuild_projection"] do
+    require Logger
+
+    Logger.warning(
+      "Unhandled event in EventSystemExampleLive: #{inspect(event)} with params: #{inspect(params)}"
+    )
+
+    {:noreply, put_flash(socket, :warning, "Unhandled event: #{event}")}
+  end
+
   def handle_info(_msg, socket) do
     {:noreply, socket}
   end

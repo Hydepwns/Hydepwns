@@ -9,8 +9,8 @@ defmodule HydepwnsLiveviewWeb.ResourceDSL do
     quote do
       use HydepwnsLiveviewWeb, :live_view
       import HydepwnsLiveviewWeb.ResourceDSL
-      import Phoenix.LiveView
-      import Phoenix.LiveView.Helpers
+      # import Phoenix.LiveView
+      # import Phoenix.LiveView.Helpers
       alias HydepwnsLiveview.Utils.LiveViewAPI
 
       Module.register_attribute(__MODULE__, :resource_attributes, accumulate: true)

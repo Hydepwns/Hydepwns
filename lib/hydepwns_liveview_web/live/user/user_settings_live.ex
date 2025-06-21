@@ -6,7 +6,6 @@ defmodule HydepwnsLiveviewWeb.UserSettingsLive do
   use HydepwnsLiveviewWeb, :live_view
 
   alias HydepwnsLiveview.Accounts
-  alias HydepwnsLiveviewWeb.UserAuth
   import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label_tag: 1, error: 1]
 
   @impl Phoenix.LiveView

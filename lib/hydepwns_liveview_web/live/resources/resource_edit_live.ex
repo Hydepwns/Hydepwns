@@ -2,7 +2,6 @@ defmodule HydepwnsLiveviewWeb.ResourceEditLive do
   use HydepwnsLiveviewWeb, :live_view
 
   alias HydepwnsLiveview.Resources.ResourceSystem
-  alias HydepwnsLiveview.Resources.Resource
 
   @impl true
   def mount(_params, _session, socket) do

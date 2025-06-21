@@ -2,7 +2,6 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
   use HydepwnsLiveviewWeb, :live_view
 
   alias HydepwnsLiveview.ThemeSystem
-  alias HydepwnsLiveview.ThemeSystem.Models.Theme
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
@@ -19,27 +18,19 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
   end
 
   @impl Phoenix.LiveView
-  def handle_params(params, _url, socket) do
+  def handle_params(%{"id" => id} = _params, _url, socket) do
+    socket =
+      socket
+      |> assign(:page_title, "Edit Theme")
+      |> assign(:theme, ThemeSystem.get_theme!(id))
+
+    {:noreply, socket}
+  end
+
+  @impl Phoenix.LiveView
+  def handle_params(_params, _url, socket) do
     themes = ThemeSystem.list_themes()
     {:noreply, assign(socket, :themes, themes)}
-  end
-
-  defp apply_action(socket, :index, _params) do
-    socket
-    |> assign(:page_title, "Theme Manager")
-    |> assign(:theme, nil)
-  end
-
-  defp apply_action(socket, :new, _params) do
-    socket
-    |> assign(:page_title, "New Theme")
-    |> assign(:theme, %Theme{})
-  end
-
-  defp apply_action(socket, :edit, %{"id" => id}) do
-    socket
-    |> assign(:page_title, "Edit Theme")
-    |> assign(:theme, ThemeSystem.get_theme!(id))
   end
 
   @impl true

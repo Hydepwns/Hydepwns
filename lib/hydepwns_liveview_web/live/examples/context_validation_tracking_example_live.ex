@@ -348,8 +348,7 @@ defmodule HydepwnsLiveviewWeb.Examples.ContextValidationTrackingExampleLive do
     end
   end
 
-  def handle_event("set_view_mode", %{"mode" => mode}, socket)
-      when mode in ["timeline", "list", "audit"] do
+  def handle_event("set_view_mode", %{"mode" => mode}, socket) when mode in ["timeline", "list", "audit"] do
     {:noreply, assign(socket, :view_mode, mode)}
   end
 
@@ -404,5 +403,15 @@ defmodule HydepwnsLiveviewWeb.Examples.ContextValidationTrackingExampleLive do
       |> assign(:success_message, nil)
 
     {:noreply, socket}
+  end
+
+  def handle_event(event, params, socket) when event not in ["set_view_mode", "view_version", "diff_versions", "reset_form", "toggle_admin_mode", "update_user"] do
+    require Logger
+
+    Logger.warning(
+      "Unhandled event in ContextValidationTrackingExampleLive: #{inspect(event)} with params: #{inspect(params)}"
+    )
+
+    {:noreply, put_flash(socket, :warning, "Unhandled event: #{event}")}
   end
 end

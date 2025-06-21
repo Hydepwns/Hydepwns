@@ -104,7 +104,7 @@ defmodule HydepwnsLiveviewWeb.Examples.EctoResourceExampleLive do
     updated_user = Map.merge(socket.assigns.user, params)
 
     # Validate the updated user data against the Ecto schema via the adapter
-    case EctoUserResource.validate(updated_user) do
+    case EctoUserResource.validate_resource(updated_user) do
       {:ok, validated_user} ->
         socket =
           socket
@@ -132,7 +132,7 @@ defmodule HydepwnsLiveviewWeb.Examples.EctoResourceExampleLive do
     test_user = Map.put(socket.assigns.user, :email, email)
 
     # Validate the test user against the EctoUserResource
-    case EctoUserResource.validate(test_user) do
+    case EctoUserResource.validate_resource(test_user) do
       {:ok, _} ->
         socket =
           socket

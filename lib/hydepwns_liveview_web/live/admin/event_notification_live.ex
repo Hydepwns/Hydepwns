@@ -146,9 +146,9 @@ defmodule HydepwnsLiveviewWeb.Admin.EventNotificationLive do
                     <p class="mt-1 text-sm text-gray-500">Recipients: <%= Enum.join(notification.recipients, ", ") %></p>
                   </div>
                   <div class="flex space-x-2">
-                    <.link phx-click="delete" phx-value-id={notification.id} data-confirm="Are you sure?" class="text-red-600 hover:text-red-900">
+                    <button phx-click="delete" phx-value-id={notification.id} data-confirm="Are you sure?" class="text-red-600 hover:text-red-900">
                       Delete
-                    </.link>
+                    </button>
                   </div>
                 </div>
                 <div class="mt-4">

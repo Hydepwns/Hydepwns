@@ -78,9 +78,9 @@ defmodule HydepwnsLiveviewWeb.Admin.EventDashboardLive do
                       <.link navigate={~p"/admin/events/#{event}/edit"} class="ml-6 font-medium text-blue-600 hover:text-blue-500">
                         Edit
                       </.link>
-                      <.link phx-click="delete" phx-value-id={event.id} data-confirm="Are you sure?" class="ml-6 font-medium text-red-600 hover:text-red-500">
+                      <button phx-click="delete" phx-value-id={event.id} data-confirm="Are you sure?" class="ml-6 font-medium text-red-600 hover:text-red-500">
                         Delete
-                      </.link>
+                      </button>
                     </div>
                   </div>
                   <div class="mt-2 sm:flex sm:justify-between">

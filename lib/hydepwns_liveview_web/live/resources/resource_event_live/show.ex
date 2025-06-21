@@ -51,4 +51,9 @@ defmodule HydepwnsLiveviewWeb.ResourceEventLive.Show do
   def handle_event("back", _params, socket) do
     {:noreply, push_navigate(socket, to: ~p"/resources/#{socket.assigns.event.resource_id}/events")}
   end
+
+  @impl true
+  def handle_info({:event_updated, {:error, changeset}}, socket) do
+    {:noreply, assign(socket, :changeset, changeset)}
+  end
 end

@@ -163,6 +163,16 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
     {:noreply, assign(socket, :include_resource_ids, !socket.assigns.include_resource_ids)}
   end
 
+  def handle_event(event, params, socket) when event not in ["validate_user", "validate_user_with_context", "validate_with_dependencies", "introduce_errors", "reset_user", "set_error_view_mode", "toggle_resource_ids"] do
+    require Logger
+
+    Logger.warning(
+      "Unhandled event in NestedValidationExampleLive: #{inspect(event)} with params: #{inspect(params)}"
+    )
+
+    {:noreply, put_flash(socket, :warning, "Unhandled event: #{event}")}
+  end
+
   defp create_sample_user do
     # Create a team
     team = %{

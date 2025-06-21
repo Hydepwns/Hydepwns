@@ -147,31 +147,6 @@ defmodule HydepwnsLiveviewWeb.Helpers.TocHelper do
     {[], []}
   end
 
-  defp do_build_hierarchy([current_heading | rest_headings], parent_level) do
-    # If the current heading is a direct child of the parent_level
-    if current_heading.level == parent_level + 1 do
-      # Recursively find children for the current_heading (its level is current_heading.level)
-      {children_of_current, remaining_after_children} =
-        do_build_hierarchy(rest_headings, current_heading.level)
-
-      # Add the current heading (with its children) to the list of siblings
-      node_with_children = Map.put(current_heading, :children, children_of_current)
-
-      # Continue processing for more siblings at the same parent_level
-      {other_siblings, remaining_after_siblings} =
-        do_build_hierarchy(remaining_after_children, parent_level)
-
-      {[node_with_children | other_siblings], remaining_after_siblings}
-    else
-      # If the current heading is not a direct child (either deeper or shallower),
-      # it means we are done finding children for the *current* parent_level.
-      # Return an empty list of children for this level, and pass back the
-      # current_heading and rest_headings to be processed by the caller
-      # (which might be looking for headings at a different level).
-      {[], [current_heading | rest_headings]}
-    end
-  end
-
   @doc """
   Sanitizes heading text content by removing HTML tags and normalizing whitespace.
   """

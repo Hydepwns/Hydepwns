@@ -3,6 +3,8 @@ defmodule HydepwnsLiveview.Resources.ResourceHelpers do
   Provides helper functions for resource management.
   """
 
+  import Phoenix.Component, only: [assign: 3]
+
   def validate_role(role) when role in ["admin", "user", "guest"] do
     :ok
   end
@@ -19,6 +21,6 @@ defmodule HydepwnsLiveview.Resources.ResourceHelpers do
   def validate_theme(_), do: {:error, "Invalid theme format"}
 
   def update_resource(socket, key, value) do
-    {:ok, Phoenix.LiveView.assign(socket, key, value)}
+    {:ok, assign(socket, key, value)}
   end
 end 

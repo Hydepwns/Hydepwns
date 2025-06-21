@@ -25,12 +25,29 @@ defmodule HydepwnsLiveview.Resources.EctoUserResource do
     }
   end
 
+  @doc """
+  Creates a new EctoUserResource with default values.
+  """
+  def new do
+    %{
+      id: nil,
+      name: "",
+      email: "",
+      role: "viewer",
+      active: true,
+      inserted_at: nil,
+      updated_at: nil,
+      __resource_module__: __MODULE__
+    }
+  end
+
   # We don't need to define attributes, relationships, or validations here
   # since they are extracted from the User schema by the EctoAdapter.
   # However, we can override or add to them if needed:
 
   # Define validations directly in the function
   @spec validations() :: [map()]
+  @impl true
   def validations do
     [
       %{

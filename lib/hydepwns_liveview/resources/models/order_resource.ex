@@ -219,7 +219,6 @@ defmodule HydepwnsLiveview.Resources.OrderResource do
   """
   @spec handle_command(any(), map(), String.t()) ::
           {:ok, [HydepwnsLiveview.Events.Core.Event.t()]} | {:error, any()}
-  @impl true
   def handle_command(command, _state, id) do
     case command do
       {:create_order, customer_id} ->

@@ -62,6 +62,21 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
   end
 
   @doc """
+  Subscribes a specific process to events.
+
+  ## Parameters
+  * `subscriber` - The process to subscribe (pid or registered name)
+  * `event_types` - List of event types to subscribe to, or :all for all events
+
+  ## Returns
+  * `:ok` - Successfully subscribed
+  * `{:error, reason}` - Failed to subscribe
+  """
+  def subscribe(subscriber, event_types) do
+    GenServer.call(__MODULE__, {:subscribe_process, subscriber, event_types})
+  end
+
+  @doc """
   Unsubscribes from events.
 
   ## Parameters
@@ -104,6 +119,12 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
   @impl true
   def handle_call({:subscribe, event_type}, _from, state) do
     subscribers = Map.update(state.subscribers, event_type, [self()], &[self() | &1])
+    {:reply, :ok, %{state | subscribers: subscribers}}
+  end
+
+  @impl true
+  def handle_call({:subscribe_process, subscriber, event_types}, _from, state) do
+    subscribers = Map.update(state.subscribers, event_types, [subscriber], &[subscriber | &1])
     {:reply, :ok, %{state | subscribers: subscribers}}
   end
 

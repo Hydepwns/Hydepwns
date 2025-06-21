@@ -100,20 +100,7 @@ defmodule HydepwnsLiveview.Events.ProjectionSupervisor do
   Registers standard projections for the event system.
   """
   def register_standard_projections do
-    standard_projections = [
-      HydepwnsLiveview.Events.Projections.EventProjection,
-      HydepwnsLiveview.Events.Projections.ResourceProjection,
-      HydepwnsLiveview.Events.Projections.NotificationProjection
-    ]
-
-    Enum.each(standard_projections, fn projection ->
-      DynamicSupervisor.start_child(
-        __MODULE__,
-        {projection, []}
-      )
-    end)
-
-    :ok
+    CoreProjectionSupervisor.register_standard_projections()
   end
 
   # Server Callbacks

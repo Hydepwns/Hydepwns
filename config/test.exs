@@ -41,6 +41,7 @@ config :phoenix_live_view,
 # Configure Mox
 config :hydepwns_liveview, :http_client, HydepwnsLiveview.MockHTTPClient
 config :hydepwns_liveview, :external_api, HydepwnsLiveview.MockExternalAPI
+config :hydepwns_liveview, :repo, HydepwnsLiveview.RepoMock
 # Set Mox to global mode to allow stubs to be used from concurrent tests
 config :mox, :global_stubs_only, true
 

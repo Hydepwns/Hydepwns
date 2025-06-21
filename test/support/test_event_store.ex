@@ -7,11 +7,13 @@ defmodule HydepwnsLiveview.Events.EventStore do
   """
 
   alias HydepwnsLiveview.TestSupport.MockEventStore
+  alias HydepwnsLiveview.Events.Core.Event
 
   @doc """
   Stores a single event in the mock event store.
   """
-  def store_event(event, metadata \\ %{}) do
+  def store_event(%Event{} = event), do: store_event(event, %{})
+  def store_event(event, metadata) do
     MockEventStore.store_event(event, metadata)
   end
 
@@ -26,6 +28,17 @@ defmodule HydepwnsLiveview.Events.EventStore do
       resource_type: data[:resource_type] || "unknown"
     }
     MockEventStore.store_event(event, %{})
+  end
+
+  @doc """
+  Stores multiple events in a transaction.
+  """
+  def store_events(events) do
+    results = Enum.map(events, &store_event/1)
+    case Enum.find(results, fn {status, _} -> status == :error end) do
+      nil -> {:ok, Enum.map(results, fn {:ok, event} -> event end)}
+      error -> error
+    end
   end
 
   @doc """
@@ -64,6 +77,13 @@ defmodule HydepwnsLiveview.Events.EventStore do
   end
 
   @doc """
+  Deletes an event by its ID.
+  """
+  def delete_event(id) do
+    {:ok, %Event{id: id}}
+  end
+
+  @doc """
   Lists all events in the mock event store.
   """
   def list_all_events do
@@ -73,7 +93,7 @@ defmodule HydepwnsLiveview.Events.EventStore do
   @doc """
   Creates a new replay session (stub implementation for tests).
   """
-  def create_replay_session(name, resource_type, resource_id, opts \\ []) do
+  def create_replay_session(name, resource_type, resource_id, _opts \\ []) do
     {:ok, %{id: "test-session-#{System.unique_integer()}", name: name, resource_type: resource_type, resource_id: resource_id}}
   end
 
@@ -92,23 +112,100 @@ defmodule HydepwnsLiveview.Events.EventStore do
   end
 
   @doc """
+  Completes a replay session (stub implementation for tests).
+  """
+  def complete_replay_session(session_id, final_state) do
+    {:ok, %{id: session_id, status: "completed", final_state: final_state}}
+  end
+
+  @doc """
+  Gets replay session events (stub implementation for tests).
+  """
+  def get_replay_session_events(_session_id) do
+    {:ok, []}
+  end
+
+  @doc """
+  Updates replay session status (stub implementation for tests).
+  """
+  def update_replay_session_status(session_id, status, results \\ %{}) do
+    {:ok, %{id: session_id, status: status, results: results}}
+  end
+
+  @doc """
   Gets snapshots for a resource (stub implementation for tests).
   """
-  def get_snapshots(resource_type, resource_id) do
+  def get_snapshots(_resource_type, _resource_id) do
     {:ok, []}
   end
 
   @doc """
   Gets the latest snapshot for a resource (stub implementation for tests).
   """
-  def get_latest_snapshot(resource_type, resource_id) do
+  def get_latest_snapshot(_resource_type, _resource_id) do
     {:error, :not_found}
   end
 
   @doc """
   Saves a snapshot (stub implementation for tests).
   """
-  def save_snapshot(resource_type, resource_id, state, metadata) do
+  def save_snapshot(resource_type, resource_id, _state, _metadata) do
     {:ok, %{id: "snapshot-#{System.unique_integer()}", resource_type: resource_type, resource_id: resource_id}}
+  end
+
+  @doc """
+  Gets a snapshot by ID (stub implementation for tests).
+  """
+  def get_snapshot(id) do
+    {:ok, %{id: id, resource_type: "test", resource_id: "test"}}
+  end
+
+  @doc """
+  Lists snapshots for a resource (stub implementation for tests).
+  """
+  def list_snapshots(_resource_type, _resource_id) do
+    {:ok, []}
+  end
+
+  @doc """
+  Deletes a snapshot (stub implementation for tests).
+  """
+  def delete_snapshot(id) do
+    {:ok, %{id: id, resource_type: "test", resource_id: "test"}}
+  end
+
+  @doc """
+  Saves versioned state (stub implementation for tests).
+  """
+  def save_versioned_state(resource_type, resource_id, _state, _metadata \\ %{}) do
+    {:ok, %{id: "versioned-state-#{System.unique_integer()}", resource_type: resource_type, resource_id: resource_id}}
+  end
+
+  @doc """
+  Gets versioned state by ID (stub implementation for tests).
+  """
+  def get_versioned_state(id) do
+    {:ok, %{id: id, resource_type: "test", resource_id: "test"}}
+  end
+
+  @doc """
+  Gets latest versioned state for a resource (stub implementation for tests).
+  """
+  def get_latest_versioned_state(resource_type, resource_id) do
+    {:ok, %{id: "latest-versioned-state", resource_type: resource_type, resource_id: resource_id}}
+  end
+
+  @doc """
+  Lists versioned states for a resource (stub implementation for tests).
+  """
+  def list_versioned_states(_resource_type, _resource_id) do
+    {:ok, []}
+  end
+
+  @doc """
+  Deletes versioned state (stub implementation for tests).
+  """
+  def delete_versioned_state(id) do
+    {:ok, %{id: id, resource_type: "test", resource_id: "test"}}
   end
 end 

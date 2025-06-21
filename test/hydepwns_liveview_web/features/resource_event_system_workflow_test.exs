@@ -65,7 +65,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
 
       # Update the resource
       session
-      |> fill_in(Query.textarea("resource[description]"), with: "Updated description")
+      |> fill_in(Query.text_field("resource[description]"), with: "Updated description")
       |> click(button("Save"))
 
       # Verify update success

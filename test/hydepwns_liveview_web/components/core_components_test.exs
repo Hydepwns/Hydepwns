@@ -1,6 +1,5 @@
 defmodule HydepwnsLiveviewWeb.CoreComponentsTest do
   use ExUnit.Case, async: true
-  import Phoenix.Component
   import Phoenix.LiveViewTest
 
   alias HydepwnsLiveviewWeb.Components.Common.CoreComponents
@@ -199,7 +198,7 @@ defmodule HydepwnsLiveviewWeb.CoreComponentsTest do
           id: "table-id",
           rows: [%{name: "Alice"}, %{name: "Bob"}],
           row_click: fn _row -> :ok end,
-          row_item: fn _item -> _item end
+          row_item: fn item -> item end
         })
 
       assert html =~ "table-id"

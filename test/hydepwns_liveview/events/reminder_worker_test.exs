@@ -2,7 +2,7 @@ defmodule HydepwnsLiveview.Events.ReminderWorkerTest do
   use HydepwnsLiveview.DataCase, async: true
 
   alias HydepwnsLiveview.Events
-  alias HydepwnsLiveview.Events.{Event, EventSettings, EventReminder, ReminderWorker}
+  alias HydepwnsLiveview.Events.ReminderWorker
 
   setup do
     # Start the reminder worker

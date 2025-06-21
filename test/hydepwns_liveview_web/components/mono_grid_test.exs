@@ -1,7 +1,6 @@
 defmodule HydepwnsLiveviewWeb.Components.MonoGridTest do
   use HydepwnsLiveviewWeb.ConnCase, async: true
   import Phoenix.LiveViewTest
-  import Phoenix.Component
   alias HydepwnsLiveviewWeb.Components.MonoGrid
 
   describe "mono_grid/1" do

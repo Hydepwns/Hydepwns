@@ -25,7 +25,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
   alias HydepwnsLiveview.TestSupport.ThemeFixtures
   alias HydepwnsLiveviewWeb.MockHelper
 
-  setup %{session: session} = context do
+  setup %{session: session} = _context do
     HydepwnsLiveview.ThemeSystem.list_themes()
     |> Enum.each(&HydepwnsLiveview.ThemeSystem.delete_theme/1)
 
@@ -34,7 +34,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
     {:ok, system_theme} = HydepwnsLiveview.ThemeSystemFixtures.system_theme_fixture()
     {:ok, dim_theme} = HydepwnsLiveview.ThemeSystemFixtures.dim_theme_fixture()
     # Add a Test Theme for Wallaby selector
-    {:ok, test_theme} =
+    {:ok, _test_theme} =
       HydepwnsLiveview.ThemeSystem.create_theme(%{
         name: "Test Theme",
         mode: "light",
@@ -84,7 +84,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
   end
 
   describe "theme management and application" do
-    test "theme can be created and applied", %{session: session, theme: theme} do
+    test "_theme can be created and applied", %{session: session, _theme: _theme} do
       # Navigate to theme creation
       session
       |> click(button("Create Theme"))
@@ -113,7 +113,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       Wallaby.Browser.assert_has(session, css(".theme-type", text: "dark"))
     end
 
-    test "theme can be edited and updated", %{session: session, theme: theme} do
+    test "_theme can be edited and updated", %{session: session, _theme: _theme} do
       # Debug: print all theme names in DB before clicking link
       themes = HydepwnsLiveview.ThemeSystem.list_themes()
       IO.puts("\n[DEBUG] Themes in DB before click: #{inspect(Enum.map(themes, & &1.name))}\n")
@@ -369,7 +369,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       )
     end
 
-    test "theme switching is smooth", %{session: session, theme: theme} do
+    test "_theme switching is smooth", %{session: session, _theme: _theme} do
       # Create second theme
       session
       |> click(button("Create Theme"))
@@ -423,7 +423,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       )
     end
 
-    test "theme supports reduced motion", %{session: session, theme: theme} do
+    test "_theme supports reduced motion", %{session: session, _theme: _theme} do
       # Enable reduced motion
       try do
         session |> click(css("[data-test-id='theme-link-test-theme']"))

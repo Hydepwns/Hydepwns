@@ -3,7 +3,6 @@ defmodule HydepwnsLiveviewWeb.HomeLiveTest do
   @router HydepwnsLiveviewWeb.Router
   use HydepwnsLiveviewWeb.ConnCase, async: true
   import Phoenix.LiveViewTest
-  import Phoenix.Component
   import Phoenix.VerifiedRoutes
   alias HydepwnsLiveviewWeb.MockHelper
 

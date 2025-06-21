@@ -7,12 +7,6 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
   import HydepwnsLiveview.TestSupport.ResourceSystemHelper
   import Wallaby.Query
 
-  import HydepwnsLiveviewWeb.Components.Common.CoreComponents
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents
-
-  alias HydepwnsLiveview.Resources
-  alias HydepwnsLiveview.Resources.Resource
-
   defp accept_confirm(session) do
     # Wallaby 0.30+ does not have accept_confirm, so we simulate clicking confirm
     # If you use a custom modal, you may need to adjust this
@@ -46,7 +40,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
   end
 
   test "user can delete a resource", %{session: session} do
-    {:ok, resource} = create_test_resource(%{})
+    {:ok, _resource} = create_test_resource(%{})
 
     session
     |> visit("/resources")

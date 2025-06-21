@@ -161,7 +161,7 @@ defmodule HydepwnsLiveview.EnhancedErrorReportingTest do
     # These tests can only be fully tested with a running server
     # We'll do basic checks to ensure the code doesn't error
 
-    test "SocketValidationDebugGrid module functions without errors", %{conn: conn} do
+    test "SocketValidationDebugGrid module functions without errors", %{_conn: _conn} do
       import HydepwnsLiveview.Utils.SocketValidationDebugGrid
 
       socket =
@@ -195,7 +195,7 @@ defmodule HydepwnsLiveview.EnhancedErrorReportingTest do
       # Only test this in development mode
       if Mix.env() == :dev do
         # Mount LiveView with valid data
-        {:ok, view, html} = live(conn, "/test") |> assert_live_ok()
+        {:ok, view, _html} = live(conn, "/test") |> assert_live_ok()
 
         # Verify the socket validation debug data is set
         assigns = :sys.get_state(view.pid).socket.assigns

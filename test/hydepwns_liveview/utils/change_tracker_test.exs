@@ -147,7 +147,7 @@ defmodule HydepwnsLiveview.Utils.ChangeTrackerTest do
 
       # Simulate tracking this change to build a resource with history
       # This will be our resource_at_v2
-      {:ok, tracked_resource_to_v2} =
+      {:ok, _tracked_resource_to_v2} =
         ChangeTracker.track_change(resource_v1_data, changes_to_v2, %{actor: "test"})
 
       # To make the test more direct for diffing v1 and v2 from tracked_resource_to_v2,

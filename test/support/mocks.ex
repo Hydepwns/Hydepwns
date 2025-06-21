@@ -43,14 +43,14 @@ defmodule HydepwnsLiveview.Mocks do
     @behaviour HTTPClientBehaviour
 
     @impl true
-    def get(url, headers \\ [], opts \\ []) do
+    def get(_url, _headers \\ [], _opts \\ []) do
       # This would be a real HTTP request in production
       # We're providing a simple implementation for use with mocks
       {:ok, %{status: 200, body: "{}", headers: []}}
     end
 
     @impl true
-    def post(url, body, headers \\ [], opts \\ []) do
+    def post(_url, _body, _headers \\ [], _opts \\ []) do
       # This would be a real HTTP request in production
       {:ok, %{status: 201, body: "{}", headers: []}}
     end
@@ -87,7 +87,7 @@ defmodule HydepwnsLiveview.Mocks do
     end
 
     @impl true
-    def delete_resource(id) do
+    def delete_resource(_id) do
       # Real implementation would call external API
       :ok
     end

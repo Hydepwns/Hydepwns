@@ -1,11 +1,24 @@
 defmodule HydepwnsLiveview.Utils.ContextValidationTrackingTest do
   use ExUnit.Case, async: true
-  alias HydepwnsLiveview.Utils.ChangeTracker
-  alias HydepwnsLiveview.Utils.ContextValidation
 
   # Define a simple resource module for testing
   defmodule TestResource do
     use HydepwnsLiveview.Utils.LiveViewResource
+
+    @impl true
+    def attributes do
+      []
+    end
+
+    @impl true
+    def relationships do
+      []
+    end
+
+    @impl true
+    def validations do
+      []
+    end
 
     # Define validation rules
     def __validation_rules__ do
@@ -47,12 +60,12 @@ defmodule HydepwnsLiveview.Utils.ContextValidationTrackingTest do
       {:ok, updated_resource}
     end
 
-    def update_with_tracking(_resource, _changes, _metadata) do
+    def update_with_tracking(resource, changes, metadata) do
       # Simulate optimistic concurrency control
-      expected_version = Map.get(_metadata, :expected_version)
+      expected_version = Map.get(metadata, :expected_version)
 
       current_version =
-        _resource
+        resource
         |> Map.get(:__change_history__, [%{version: 1}])
         |> List.last()
         |> Map.get(:version, 1)
@@ -61,26 +74,26 @@ defmodule HydepwnsLiveview.Utils.ContextValidationTrackingTest do
         {:error, :stale_resource}
       else
         # Simulate context validation logic
-        if Map.get(_metadata, :context_validation) do
+        if Map.get(metadata, :context_validation) do
           # Simulate validation rules
-          validation_rules = Map.get(_metadata, :validation_rules, [])
-          validation_context = Map.get(_metadata, :validation_context, %{})
+          validation_rules = Map.get(metadata, :validation_rules, [])
+          validation_context = Map.get(metadata, :validation_context, %{})
 
           errors =
             Enum.reduce_while(validation_rules, [], fn rule, acc ->
               rule_fn = __validation_rules__()[rule]
 
-              case rule_fn.(_resource, validation_context) do
+              case rule_fn.(resource, validation_context) do
                 :ok -> {:cont, acc}
                 {:error, msg} -> {:halt, [msg | acc]}
               end
             end)
 
           if errors == [],
-            do: update_with_tracking(_resource, _changes),
+            do: update_with_tracking(resource, changes),
             else: {:error, Enum.join(errors, ", ")}
         else
-          update_with_tracking(_resource, _changes)
+          update_with_tracking(resource, changes)
         end
       end
     end

@@ -2,12 +2,12 @@ defmodule HydepwnsLiveview.Events.ReminderDeliveryTest do
   use HydepwnsLiveview.DataCase
 
   alias HydepwnsLiveview.Events
-  alias HydepwnsLiveview.Events.{Event, EventSettings, EventReminder, ReminderDelivery}
+  alias HydepwnsLiveview.Events.ReminderDelivery
 
   describe "send_reminder/1" do
     setup do
       # Create an event
-      {:ok, _event} =
+      {:ok, event} =
         Events.create_event(%{
           title: "Test Event",
           description: "Test Description",
@@ -16,9 +16,9 @@ defmodule HydepwnsLiveview.Events.ReminderDeliveryTest do
         })
 
       # Create event settings
-      {:ok, _settings} =
+      {:ok, settings} =
         Events.create_event_settings(%{
-          event_id: _event.id,
+          event_id: event.id,
           reminder_time: 30,
           reminder_type: "email",
           reminder_message: "Test reminder message"
@@ -27,13 +27,13 @@ defmodule HydepwnsLiveview.Events.ReminderDeliveryTest do
       # Create a reminder
       {:ok, reminder} =
         Events.create_event_reminder(%{
-          event_id: _event.id,
+          event_id: event.id,
           reminder_time: DateTime.utc_now() |> DateTime.add(-60, :second),
           status: "pending",
           recipient: "test@example.com"
         })
 
-      %{event: _event, settings: _settings, reminder: reminder}
+      %{event: event, settings: settings, reminder: reminder}
     end
 
     test "successfully sends a reminder", %{reminder: reminder} do

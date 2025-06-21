@@ -102,7 +102,7 @@ defmodule HydepwnsLiveviewWeb.ResourceLiveTest do
         </div>
 
         <div id="items">
-          <%= for item <- @items do %>
+          <%= for _item <- @items do %>
             <div class="item">{item}</div>
           <% end %>
         </div>

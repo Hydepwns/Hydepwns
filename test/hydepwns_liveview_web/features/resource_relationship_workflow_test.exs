@@ -161,7 +161,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
 
     test "relationship constraints are enforced", %{
       session: session,
-      parent: parent,
+      parent: _parent,
       child: child
     } do
       # Try to create invalid relationship type

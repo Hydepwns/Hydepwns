@@ -19,7 +19,7 @@ defmodule HydepwnsLiveview.Events.BridgeConsistencyTest do
         # Get all public functions from the bridge module
         bridge_functions = get_module_functions(bridge_module)
         # Get all public functions from the core module
-        core_functions = get_module_functions(core_module)
+        _core_functions = get_module_functions(core_module)
 
         # For each bridge function (except direct implementations), check if a matching core function exists
         for {name, arity} <- bridge_functions,

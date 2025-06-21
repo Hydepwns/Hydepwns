@@ -51,7 +51,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
 
   test "renders theme manager page", %{conn: conn} do
     ensure_theme_exists()
-    {:ok, view, html} = live(conn, "/themes")
+    {:ok, _view, html} = live(conn, "/themes")
     assert html =~ "Theme Manager"
     assert html =~ "Current Themes"
     assert html =~ "Add New Theme"
@@ -63,7 +63,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
     dark_theme: dark_theme
   } do
     ensure_theme_exists()
-    {:ok, view, html} = live(conn, "/themes")
+    {:ok, _view, html} = live(conn, "/themes")
     # Only check Current Themes section
     current_themes_html = html |> Floki.find(".mb-8 .grid") |> Floki.raw_html()
     assert current_themes_html =~ light_theme.name

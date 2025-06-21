@@ -60,7 +60,7 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
       resource_id = "123"
 
       # Ensure the resource exists in the ResourceSystem Agent for the test
-      create_result =
+      _create_result =
         HydepwnsLiveview.Resources.ResourceSystem.create_resource(%{
           "id" => resource_id,
           "name" => "Test Resource",

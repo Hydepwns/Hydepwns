@@ -1,10 +1,6 @@
 defmodule HydepwnsLiveview.Transformations.ExamplesTest do
   use HydepwnsLiveview.DataCase, async: true
 
-  alias HydepwnsLiveview.TransformationRegistry
-  alias HydepwnsLiveview.Transformations.NormalizeEmail
-  alias HydepwnsLiveview.Transformations.GenerateUsername
-
   # The following setup and tests are commented out because they rely on an outdated
   # TransformationRegistry API (e.g., TransformationRegistry.new(), instance methods).
   # The current HydepwnsLiveview.Transformations.TransformationRegistry is a GenServer

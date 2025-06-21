@@ -43,7 +43,16 @@ defmodule HydepwnsLiveviewWeb.Components.UI.GeneralHelpers do
   Returns the appropriate icon for an error level.
   """
   def error_icon(level) do
-    HydepwnsLiveviewWeb.Components.UI.ComponentHelpers.render_icon(level)
+    case level do
+      :critical -> "✗"
+      :warning -> "!"
+      :info -> "i"
+      "success" -> "✓"
+      "error" -> "✗"
+      "warning" -> "!"
+      "info" -> "i"
+      _ -> "•"
+    end
   end
 
   @doc """
@@ -136,34 +145,132 @@ defmodule HydepwnsLiveviewWeb.Components.UI.GeneralHelpers do
     """
   end
 
-  @doc false
-  def render_metrics_detail(assigns) do
-    ~H"""
-    <div class="metrics-detail">
-      <%= for detail <- @metrics.details do %>
-        <div class="detail-item">
-          <h4 class="detail-title"><%= detail.title %></h4>
-          <div class="detail-content">
-            <%= detail.content %>
-          </div>
-        </div>
-      <% end %>
+  @doc """
+  Renders errors with specific parameters.
+  """
+  def render_errors(errors, level, title, content) do
+    """
+    <div class="error-container #{level}">
+      <h3 class="error-title">#{title}</h3>
+      <div class="error-content">#{content}</div>
+      <ul class="error-list">
+        #{Enum.map_join(errors, "", fn error -> "<li class=\"error-item\">#{get_error_message(error)}</li>" end)}
+      </ul>
     </div>
     """
   end
 
-  @doc false
-  def render_performance_summary(assigns) do
+  @doc """
+  Builds a filter component.
+  """
+  def build_filter(assigns) do
     ~H"""
-    <div class="performance-summary">
-      <%= for summary <- @metrics.summaries do %>
-        <div class="summary-item">
-          <h4 class="summary-title"><%= summary.title %></h4>
-          <div class="summary-content">
-            <%= summary.content %>
+    <div class="filter-container">
+      <div class="filter-header">
+        <h4 class="filter-title"><%= @title %></h4>
+      </div>
+      <div class="filter-content">
+        <%= for filter <- @filters do %>
+          <div class="filter-item">
+            <label class="filter-label"><%= filter.label %></label>
+            <input type="text" class="filter-input" placeholder={filter.placeholder} />
           </div>
+        <% end %>
+      </div>
+    </div>
+    """
+  end
+
+  @doc """
+  Creates a filter map with field, operator, and value.
+  """
+  def build_filter(field, operator, value) do
+    %{field: field, operator: operator, value: value}
+  end
+
+  @doc """
+  Renders metrics charts.
+  """
+  def render_metrics_charts(metrics) do
+    charts_html = Enum.map_join(metrics, "", fn {title, value} -> 
+      """
+      <div class="chart-container">
+        <h4 class="chart-title">#{title}</h4>
+        <div class="chart-content">
+          #{value}
         </div>
-      <% end %>
+      </div>
+      """
+    end)
+    
+    """
+    <div class="metrics-charts">
+      #{charts_html}
+    </div>
+    """
+  end
+
+  @doc """
+  Renders metrics comparison.
+  """
+  def render_metrics_comparison(metrics) do
+    comparisons_html = Enum.map_join(metrics, "", fn {title, {current, previous}} -> 
+      """
+      <div class="comparison-item">
+        <h4 class="comparison-title">#{title}</h4>
+        <div class="comparison-content">
+          #{current} vs #{previous}
+        </div>
+      </div>
+      """
+    end)
+    
+    """
+    <div class="metrics-comparison">
+      #{comparisons_html}
+    </div>
+    """
+  end
+
+  @doc """
+  Renders metrics detail with specific parameters.
+  """
+  def render_metrics_detail(metrics) do
+    details_html = Enum.map_join(metrics, "", fn {title, value} -> 
+      """
+      <div class="detail-item">
+        <h4 class="detail-title">#{title}</h4>
+        <div class="detail-content">
+          #{value}
+        </div>
+      </div>
+      """
+    end)
+    """
+    <div class="metrics-detail">
+      #{details_html}
+    </div>
+    """
+  end
+
+  @doc """
+  Renders performance summary with specific parameters.
+  """
+  def render_performance_summary(metrics) do
+    summaries_html = Enum.map_join(metrics, "", fn {title, value} -> 
+      """
+      <div class="summary-item">
+        <h4 class="summary-title">#{title}</h4>
+        <div class="summary-content">
+          #{value}
+        </div>
+      </div>
+      """
+    end)
+    """
+    <div class="performance-summary">
+      <h3>Performance Summary</h3>
+      #{summaries_html}
     </div>
     """
   end
@@ -182,6 +289,26 @@ defmodule HydepwnsLiveviewWeb.Components.UI.GeneralHelpers do
           </div>
         </div>
       <% end %>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders validation status with specific parameters.
+  """
+  def render_validation_status(valid, message, type) do
+    bg_class = if valid, do: "bg-green-50", else: "bg-red-50"
+    text_class = if valid, do: "text-green-800", else: "text-red-800"
+    
+    """
+    <div class="#{bg_class} border border-gray-200 rounded-md p-4">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <span class="#{text_class} text-sm font-medium">
+            #{type}: #{message}
+          </span>
+        </div>
+      </div>
     </div>
     """
   end
@@ -215,7 +342,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.GeneralHelpers do
   """
   def truncate_message(message, length) when is_binary(message) do
     if String.length(message) > length do
-      String.slice(message, 0, length) <> "..."
+      String.trim_trailing(String.slice(message, 0, length)) <> "..."
     else
       message
     end

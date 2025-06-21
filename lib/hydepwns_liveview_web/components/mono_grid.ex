@@ -256,19 +256,6 @@ defmodule HydepwnsLiveviewWeb.Components.MonoGrid do
     """
   end
 
-  # Helper function for rendering dynamic HTML tags
-  def custom_dynamic_tag(assigns) do
-    tag = assigns[:name] || :div
-    attrs_map = assigns |> Map.drop([:name, :inner_block, :tag]) |> Map.to_list()
-
-    assigns = assign(assigns, :tag, tag)
-    assigns = assign(assigns, :attrs_map, attrs_map)
-
-    ~H"""
-    {Tag.content_tag(@tag, render_slot(@inner_block), @attrs_map)}
-    """
-  end
-
   # Helper function to generate grid container styles
   defp grid_style(cols, cell_width, cell_height) do
     """
@@ -349,5 +336,42 @@ defmodule HydepwnsLiveviewWeb.Components.MonoGrid do
     height = length(lines)
 
     "#{content} [#{width}×#{height}]"
+  end
+
+  def custom_dynamic_tag(assigns) do
+    assigns = Map.put_new(assigns, :rest, %{})
+    do_custom_dynamic_tag(assigns)
+  end
+
+  defp do_custom_dynamic_tag(%{name: :div} = assigns) do
+    ~H"""
+    <div id={@id} class={@class} style={@style} {@rest}>
+      {render_slot(@inner_block)}
+    </div>
+    """
+  end
+
+  defp do_custom_dynamic_tag(%{name: :pre} = assigns) do
+    ~H"""
+    <pre id={@id} class={@class} style={@style} {@rest}>
+      {render_slot(@inner_block)}
+    </pre>
+    """
+  end
+
+  defp do_custom_dynamic_tag(%{name: :code} = assigns) do
+    ~H"""
+    <code id={@id} class={@class} style={@style} {@rest}>
+      {render_slot(@inner_block)}
+    </code>
+    """
+  end
+
+  defp do_custom_dynamic_tag(assigns) do
+    ~H"""
+    <div id={@id} class={@class} style={@style} {@rest}>
+      {render_slot(@inner_block)}
+    </div>
+    """
   end
 end

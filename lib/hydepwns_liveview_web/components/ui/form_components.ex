@@ -130,9 +130,16 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
   def input(assigns) do
     ~H"""
     <div class="form-group">
-      <%= Phoenix.HTML.Form.label(@form, @field) %>
-      <%= Phoenix.HTML.Form.input(@form, @field, class: "form-control #{if @errors != [], do: "is-invalid"}") %>
-      <%= error_tag(@form, @field) %>
+      <.label_tag for={@id}>{@label}</.label_tag>
+      <input 
+        type={@type_input}
+        id={@id} 
+        name={@name} 
+        value={@value} 
+        class={["form-control", @errors != [] && "is-invalid"]}
+        {@rest}
+      />
+      <.error :for={msg <- @errors}>{msg}</.error>
     </div>
     """
   end
@@ -152,6 +159,12 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
     <label for={@for} class="block text-sm font-semibold leading-6 text-zinc-800" data-test-id={"#{@for}-label"}>
       {render_slot(@inner_block)}
     </label>
+    """
+  end
+
+  def label(assigns) do
+    ~H"""
+    <label><%= assigns[:for] || "Label" %></label>
     """
   end
 

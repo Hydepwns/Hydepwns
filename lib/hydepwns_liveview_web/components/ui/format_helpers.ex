@@ -96,7 +96,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormatHelpers do
 
   @doc false
   def format_percentage(value) when is_number(value) do
-    "#{Float.round(value * 100, 2)}%"
+    "#{round(value * 100)}%"
   end
   @doc false
   def format_percentage(_), do: "N/A"
@@ -130,8 +130,8 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormatHelpers do
   @doc false
   def format_size_change(change) when is_number(change) do
     cond do
-      change > 0 -> "+#{format_bytes(change)}"
-      change < 0 -> "-#{format_bytes(abs(change))}"
+      change > 0 -> format_bytes(change)
+      change < 0 -> "-" <> format_bytes(abs(change))
       true -> "0 B"
     end
   end
@@ -149,6 +149,14 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormatHelpers do
   @doc false
   def format_time(time) when is_integer(time) do
     "#{time}ms"
+  end
+  @doc false
+  def format_time(%DateTime{} = datetime) do
+    Calendar.strftime(datetime, "%H:%M")
+  end
+  @doc false
+  def format_time(%NaiveDateTime{} = datetime) do
+    Calendar.strftime(datetime, "%H:%M")
   end
   @doc false
   def format_time(_), do: "N/A"
@@ -185,12 +193,10 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormatHelpers do
 
   # Private helper functions
 
-  defp format_bytes(bytes) when is_integer(bytes) do
-    cond do
-      bytes >= 1_000_000_000 -> "#{Float.round(bytes / 1_000_000_000, 2)} GB"
-      bytes >= 1_000_000 -> "#{Float.round(bytes / 1_000_000, 2)} MB"
-      bytes >= 1_000 -> "#{Float.round(bytes / 1_000, 2)} KB"
-      true -> "#{bytes} B"
-    end
-  end
+  @doc false
+  def format_bytes(bytes) when is_number(bytes) and bytes < 1024, do: "#{bytes} B"
+  def format_bytes(bytes) when is_number(bytes) and bytes < 1024 * 1024, do: "#{round(bytes / 1024)} KB"
+  def format_bytes(bytes) when is_number(bytes) and bytes < 1024 * 1024 * 1024, do: "#{round(bytes / 1024 / 1024)} MB"
+  def format_bytes(bytes) when is_number(bytes), do: "#{round(bytes / 1024 / 1024 / 1024)} GB"
+  def format_bytes(_), do: "N/A"
 end 

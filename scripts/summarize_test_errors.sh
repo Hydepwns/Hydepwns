@@ -37,8 +37,10 @@ categorize_issues() {
   echo "" >> "$output_file"
 
   # Count total issues
-  local total_warnings=$(grep -c "warning:" "$input_file")
-  local total_errors=$(grep -c "error:" "$input_file")
+  local total_warnings
+  local total_errors
+  total_warnings=$(grep -c "warning:" "$input_file")
+  total_errors=$(grep -c "error:" "$input_file")
   
   echo "=== Summary ===" >> "$output_file"
   echo "Total Warnings: $total_warnings" >> "$output_file"
@@ -64,31 +66,36 @@ categorize_issues() {
   echo "=== Warnings by Category ===" >> "$output_file"
   
   # Unused Variables
-  local unused_vars=$(count_occurrences "variable \".*\" is unused" "$input_file")
+  local unused_vars
+  unused_vars=$(count_occurrences "variable \".*\" is unused" "$input_file")
   echo "Unused Variables ($unused_vars):" >> "$output_file"
   grep -E "variable \".*\" is unused" "$input_file" | sort -u >> "$output_file"
   echo "" >> "$output_file"
   
   # Unused Functions
-  local unused_funcs=$(count_occurrences "function .* is unused" "$input_file")
+  local unused_funcs
+  unused_funcs=$(count_occurrences "function .* is unused" "$input_file")
   echo "Unused Functions ($unused_funcs):" >> "$output_file"
   grep -E "function .* is unused" "$input_file" | sort -u >> "$output_file"
   echo "" >> "$output_file"
   
   # Unused Aliases/Imports
-  local unused_imports=$(count_occurrences "unused (alias|import)" "$input_file")
+  local unused_imports
+  unused_imports=$(count_occurrences "unused (alias|import)" "$input_file")
   echo "Unused Aliases/Imports ($unused_imports):" >> "$output_file"
   grep -E "unused (alias|import)" "$input_file" | sort -u >> "$output_file"
   echo "" >> "$output_file"
   
   # Pattern Matching Issues
-  local pattern_issues=$(count_occurrences "this clause .* cannot match|the underscored variable .* is used after being set" "$input_file")
+  local pattern_issues
+  pattern_issues=$(count_occurrences "this clause .* cannot match|the underscored variable .* is used after being set" "$input_file")
   echo "Pattern Matching Issues ($pattern_issues):" >> "$output_file"
   grep -E "this clause .* cannot match|the underscored variable .* is used after being set" "$input_file" | sort -u >> "$output_file"
   echo "" >> "$output_file"
   
   # Other Warnings
-  local other_warnings=$(grep -E "warning:" "$input_file" | grep -v -E "variable .* is unused|function .* is unused|unused (alias|import)|this clause .* cannot match|the underscored variable .* is used after being set|is undefined|is undefined or private" | wc -l | tr -d ' ')
+  local other_warnings
+  other_warnings=$(grep -E "warning:" "$input_file" | grep -v -E "variable .* is unused|function .* is unused|unused (alias|import)|this clause .* cannot match|the underscored variable .* is used after being set|is undefined|is undefined or private" | wc -l | tr -d ' ')
   echo "Other Warnings ($other_warnings):" >> "$output_file"
   grep -E "warning:" "$input_file" | grep -v -E "variable .* is unused|function .* is unused|unused (alias|import)|this clause .* cannot match|the underscored variable .* is used after being set|is undefined|is undefined or private" | sort -u >> "$output_file"
   echo "" >> "$output_file"

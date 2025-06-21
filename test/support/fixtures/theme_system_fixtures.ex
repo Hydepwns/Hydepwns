@@ -25,8 +25,7 @@ defmodule HydepwnsLiveview.ThemeSystemFixtures do
         }
       })
 
-    {:ok, theme} = HydepwnsLiveview.ThemeSystem.create_theme(attrs)
-    theme
+    HydepwnsLiveview.ThemeSystem.create_theme(attrs)
   end
 
   @doc """
@@ -50,8 +49,7 @@ defmodule HydepwnsLiveview.ThemeSystemFixtures do
         }
       })
 
-    {:ok, theme} = HydepwnsLiveview.ThemeSystem.create_theme(attrs)
-    theme
+    HydepwnsLiveview.ThemeSystem.create_theme(attrs)
   end
 
   @doc """
@@ -75,8 +73,7 @@ defmodule HydepwnsLiveview.ThemeSystemFixtures do
         }
       })
 
-    {:ok, theme} = HydepwnsLiveview.ThemeSystem.create_theme(attrs)
-    theme
+    HydepwnsLiveview.ThemeSystem.create_theme(attrs)
   end
 
   @doc """
@@ -172,8 +169,7 @@ defmodule HydepwnsLiveview.ThemeSystemFixtures do
         }
       })
 
-    {:ok, theme} = HydepwnsLiveview.ThemeSystem.create_theme(attrs)
-    theme
+    HydepwnsLiveview.ThemeSystem.create_theme(attrs)
   end
 
   @doc """

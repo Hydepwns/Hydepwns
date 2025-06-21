@@ -64,7 +64,7 @@ defmodule HydepwnsLiveviewWeb.ResourceLiveTest do
     defp apply_update(socket, field_string, value, opts \\ []) do
       field = String.to_atom(field_string)
 
-      case LiveViewAPI.update(socket, field, value, opts) do
+      case LiveViewAPI.update_field(socket, field, value, opts) do
         {:ok, updated_socket} -> updated_socket
         {:error, _message, error_socket} -> error_socket
       end

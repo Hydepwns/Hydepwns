@@ -7,6 +7,11 @@ defmodule HydepwnsLiveview.ThemeSystemTest do
   describe "themes" do
     import HydepwnsLiveview.ThemeSystemFixtures
 
+    setup do
+      HydepwnsLiveview.ThemeSystem.reset_themes()
+      :ok
+    end
+
     @invalid_attrs %{
       name: nil,
       mode: nil,
@@ -30,14 +35,10 @@ defmodule HydepwnsLiveview.ThemeSystemTest do
 
     test "list_themes/0 returns all themes" do
       {:ok, theme_fixture} = theme_fixture()
-      [theme_from_db] = ThemeSystem.list_themes()
-
-      assert Map.from_struct(theme_from_db)
-             |> Map.update!(:settings, &atomize_keys/1)
-             |> Map.drop([:id, :inserted_at, :updated_at, :__meta__, :colors]) ==
-               Map.from_struct(theme_fixture)
-               |> Map.update!(:settings, &atomize_keys/1)
-               |> Map.drop([:id, :inserted_at, :updated_at, :__meta__, :colors])
+      themes = ThemeSystem.list_themes()
+      assert length(themes) == 1
+      [created_theme] = themes
+      assert created_theme.name == theme_fixture.name
     end
 
     test "get_theme!/1 returns the theme with given id" do

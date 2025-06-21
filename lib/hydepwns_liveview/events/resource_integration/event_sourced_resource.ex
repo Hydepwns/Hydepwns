@@ -93,7 +93,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
       def get_history(id, opts)
           when is_binary(id) and byte_size(id) > 0 and
                  is_map(opts) do
-        with {:ok, events} <- EventStore.get_events_for_resource(resource_type(), id, opts) do
+        with {:ok, events} <- EventStore.get_events_for_resource(resource_type(), id) do
           {:ok, events}
         end
       end
@@ -155,7 +155,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
              is_map(state) and
              is_function(apply_event_fn, 2) do
     Enum.reduce(events, state, fn event, state ->
-      apply_event_fn.(state, event)
+      apply_event_fn.(event, state)
     end)
   end
 

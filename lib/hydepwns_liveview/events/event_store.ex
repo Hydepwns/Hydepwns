@@ -1,437 +1,436 @@
-defmodule HydepwnsLiveview.Events.EventStore do
-  @moduledoc """
-  The main EventStore module that serves as the public API for event sourcing operations.
-  This module delegates to specialized modules for different concerns while providing
-  a unified interface for clients.
-  """
+unless Mix.env() == :test do
+  defmodule HydepwnsLiveview.Events.EventStore do
+    @moduledoc """
+    The main EventStore module that serves as the public API for event sourcing operations.
+    This module delegates to specialized modules for different concerns while providing
+    a unified interface for clients.
+    """
 
-  alias HydepwnsLiveview.Events.EventOperations
-  alias HydepwnsLiveview.Events.ReplayOperations
-  alias HydepwnsLiveview.Events.SnapshotOperations
-  alias HydepwnsLiveview.Events.Schemas.{ReplaySession, Snapshot, VersionedState}
-  alias HydepwnsLiveview.Events.Core.Event
-  import Ecto.Query, warn: false
-  alias HydepwnsLiveview.Repo
-  alias HydepwnsLiveview.Events.Core.EventStore, as: CoreEventStore
+    alias HydepwnsLiveview.Events.EventOperations
+    alias HydepwnsLiveview.Events.ReplayOperations
+    alias HydepwnsLiveview.Events.SnapshotOperations
+    alias HydepwnsLiveview.Events.Schemas.{ReplaySession, Snapshot, VersionedState}
+    alias HydepwnsLiveview.Events.Core.Event
+    import Ecto.Query, warn: false
+    alias HydepwnsLiveview.Repo
+    alias HydepwnsLiveview.Events.Core.EventStore, as: CoreEventStore
 
-  # Event Operations
+    # Event Operations
 
-  @doc """
-  Stores a single event in the event store.
+    @doc """
+    Stores a single event in the event store.
 
-  ## Parameters
-  * `event` - The event to store
+    ## Parameters
+    * `event` - The event to store
 
-  ## Returns
-  * `{:ok, event}` - The event was successfully stored
-  * `{:error, changeset}` - The event could not be stored
-  """
-  @spec store_event(Event.t()) :: {:ok, Event.t()} | {:error, Ecto.Changeset.t()}
-  def store_event(event), do: EventOperations.store_event(event)
+    ## Returns
+    * `{:ok, event}` - The event was successfully stored
+    * `{:error, changeset}` - The event could not be stored
+    """
+    @spec store_event(Event.t()) :: {:ok, Event.t()} | {:error, Ecto.Changeset.t()}
+    def store_event(event), do: EventOperations.store_event(event)
 
-  @doc """
-  Stores a single event with the given type and data.
+    @doc """
+    Stores a single event with the given type and data.
 
-  ## Parameters
-  * `type` - The type of event
-  * `data` - The event data
+    ## Parameters
+    * `type` - The type of event
+    * `data` - The event data
 
-  ## Returns
-  * `{:ok, event}` - The event was successfully stored
-  * `{:error, changeset}` - The event could not be stored
-  """
-  @spec store_event(String.t(), map()) :: {:ok, Event.t()} | {:error, Ecto.Changeset.t()}
-  def store_event(type, data), do: EventOperations.store_event(type, data)
+    ## Returns
+    * `{:ok, event}` - The event was successfully stored
+    * `{:error, changeset}` - The event could not be stored
+    """
+    @spec store_event(String.t(), map()) :: {:ok, Event.t()} | {:error, Ecto.Changeset.t()}
+    def store_event(type, data), do: EventOperations.store_event(type, data)
 
-  @doc """
-  Stores multiple events in a transaction.
+    @doc """
+    Stores multiple events in a transaction.
 
-  ## Parameters
-  * `events` - List of events to store
+    ## Parameters
+    * `events` - List of events to store
 
-  ## Returns
-  * `{:ok, events}` - All events were successfully stored
-  * `{:error, reason}` - The events could not be stored
-  """
-  @spec store_events([Event.t()]) :: {:ok, [Event.t()]} | {:error, any()}
-  def store_events(events), do: EventOperations.store_events(events)
+    ## Returns
+    * `{:ok, events}` - All events were successfully stored
+    * `{:error, reason}` - The events could not be stored
+    """
+    @spec store_events([Event.t()]) :: {:ok, [Event.t()]} | {:error, any()}
+    def store_events(events), do: EventOperations.store_events(events)
 
-  @doc """
-  Retrieves events based on the given criteria.
+    @doc """
+    Retrieves events based on the given criteria.
 
-  ## Parameters
-  * `criteria` - Map of criteria to filter events
+    ## Parameters
+    * `criteria` - Map of criteria to filter events
 
-  ## Returns
-  * `{:ok, events}` - The events matching the criteria
-  * `{:error, reason}` - Error retrieving events
-  """
-  @spec get_events(map()) :: {:ok, [Event.t()]} | {:error, any()}
-  def get_events(criteria), do: EventOperations.get_events(criteria)
+    ## Returns
+    * `{:ok, events}` - The events matching the criteria
+    * `{:error, reason}` - Error retrieving events
+    """
+    @spec get_events(map()) :: {:ok, [Event.t()]} | {:error, any()}
+    def get_events(criteria), do: EventOperations.get_events(criteria)
 
-  @doc """
-  Retrieves all events for a specific resource.
+    @doc """
+    Retrieves all events for a specific resource.
 
-  ## Parameters
-  * `resource_type` - The type of resource
-  * `resource_id` - The ID of the resource
+    ## Parameters
+    * `resource_type` - The type of resource
+    * `resource_id` - The ID of the resource
 
-  ## Returns
-  * `{:ok, events}` - All events for the resource
-  * `{:error, reason}` - Error retrieving events
-  """
-  @spec get_events_for_resource(String.t(), String.t()) :: {:ok, [Event.t()]} | {:error, any()}
-  def get_events_for_resource(resource_type, resource_id) do
-    # TODO: Implement actual event storage/retrieval
-    []
-  end
+    ## Returns
+    * `{:ok, events}` - All events for the resource
+    * `{:error, reason}` - Error retrieving events
+    """
+    @spec get_events_for_resource(String.t(), String.t()) :: {:ok, [Event.t()]} | {:error, any()}
+    def get_events_for_resource(_type, _id), do: {:ok, []}
 
-  @doc """
-  Retrieves events for a resource up to a specific point in time.
+    @doc """
+    Retrieves events for a resource up to a specific point in time.
 
-  ## Parameters
-  * `resource_type` - The type of resource
-  * `resource_id` - The ID of the resource
-  * `timestamp` - The timestamp to get events up to (inclusive)
+    ## Parameters
+    * `resource_type` - The type of resource
+    * `resource_id` - The ID of the resource
+    * `timestamp` - The timestamp to get events up to (inclusive)
 
-  ## Returns
-  * `{:ok, events}` - The events up to the specified timestamp
-  * `{:error, reason}` - Error retrieving events
-  """
-  @spec get_events_for_resource_at(String.t(), String.t(), DateTime.t()) ::
-          {:ok, [Event.t()]} | {:error, any()}
-  def get_events_for_resource_at(resource_type, resource_id, timestamp) do
-    EventOperations.get_events(%{
-      resource_type: resource_type,
-      resource_id: resource_id,
-      timestamp: timestamp
-    })
-  end
-
-  @doc """
-  Retrieves a single event by its ID.
-
-  ## Parameters
-  * `id` - The ID of the event
-
-  ## Returns
-  * `{:ok, event}` - The event was found
-  * `{:error, :not_found}` - The event was not found
-  """
-  @spec get_event(String.t()) :: {:ok, Event.t()} | {:error, :not_found}
-  def get_event(id), do: EventOperations.get_event(id)
-
-  @doc """
-  Deletes an event by its ID.
-
-  ## Parameters
-  * `id` - The ID of the event to delete
-
-  ## Returns
-  * `{:ok, event}` - The event was deleted
-  * `{:error, :not_found}` - The event was not found
-  """
-  @spec delete_event(String.t()) :: {:ok, Event.t()} | {:error, :not_found}
-  def delete_event(id) do
-    case get_event(id) do
-      {:ok, event} ->
-        case Repo.delete(event) do
-          {:ok, deleted_event} -> {:ok, deleted_event}
-          {:error, _} -> {:error, :delete_failed}
-        end
-
-      {:error, :not_found} ->
-        {:error, :not_found}
+    ## Returns
+    * `{:ok, events}` - The events up to the specified timestamp
+    * `{:error, reason}` - Error retrieving events
+    """
+    @spec get_events_for_resource_at(String.t(), String.t(), DateTime.t()) ::
+            {:ok, [Event.t()]} | {:error, any()}
+    def get_events_for_resource_at(resource_type, resource_id, timestamp) do
+      EventOperations.get_events(%{
+        resource_type: resource_type,
+        resource_id: resource_id,
+        timestamp: timestamp
+      })
     end
-  end
 
-  @doc """
-  Lists all events in the event store.
+    @doc """
+    Retrieves a single event by its ID.
 
-  ## Returns
-  * `{:ok, events}` - List of all events
-  * `{:error, reason}` - Error retrieving events
-  """
-  @spec list_all_events() :: {:ok, [Event.t()]} | {:error, any()}
-  def list_all_events do
-    EventOperations.get_events(%{})
-  end
+    ## Parameters
+    * `id` - The ID of the event
 
-  # Replay Operations
+    ## Returns
+    * `{:ok, event}` - The event was found
+    * `{:error, :not_found}` - The event was not found
+    """
+    @spec get_event(String.t()) :: {:ok, Event.t()} | {:error, :not_found}
+    def get_event(id), do: EventOperations.get_event(id)
 
-  @doc """
-  Creates a new replay session.
+    @doc """
+    Deletes an event by its ID.
 
-  ## Parameters
-  * `name` - The name of the replay session
-  * `resource_type` - The type of resource to replay
-  * `resource_id` - The ID of the resource to replay
-  * `opts` - Additional options for the replay session
+    ## Parameters
+    * `id` - The ID of the event to delete
 
-  ## Returns
-  * `{:ok, session}` - The replay session was created
-  * `{:error, reason}` - The session could not be created
-  """
-  @spec create_replay_session(String.t(), String.t(), String.t(), Keyword.t()) ::
-          {:ok, ReplaySession.t()} | {:error, any()}
-  def create_replay_session(name, resource_type, resource_id, opts \\ []) do
-    ReplayOperations.create_session(name, resource_type, resource_id, opts)
-  end
+    ## Returns
+    * `{:ok, event}` - The event was deleted
+    * `{:error, :not_found}` - The event was not found
+    """
+    @spec delete_event(String.t()) :: {:ok, Event.t()} | {:error, :not_found}
+    def delete_event(id) do
+      case get_event(id) do
+        {:ok, event} ->
+          case Repo.delete(event) do
+            {:ok, deleted_event} -> {:ok, deleted_event}
+            {:error, _} -> {:error, :delete_failed}
+          end
 
-  @doc """
-  Gets a replay session by ID.
+        {:error, :not_found} ->
+          {:error, :not_found}
+      end
+    end
 
-  ## Parameters
-  * `id` - The ID of the replay session
+    @doc """
+    Lists all events in the event store.
 
-  ## Returns
-  * `{:ok, session}` - The replay session was found
-  * `{:error, :not_found}` - The session was not found
-  """
-  @spec get_replay_session(String.t()) :: {:ok, ReplaySession.t()} | {:error, :not_found}
-  def get_replay_session(session_id) do
-    # TODO: Implement actual session retrieval
-    {:ok, %{id: session_id, status: "pending"}}
-  end
+    ## Returns
+    * `{:ok, events}` - List of all events
+    * `{:error, reason}` - Error retrieving events
+    """
+    @spec list_all_events() :: {:ok, [Event.t()]} | {:error, any()}
+    def list_all_events do
+      EventOperations.get_events(%{})
+    end
 
-  @doc """
-  Lists all replay sessions.
+    # Replay Operations
 
-  ## Returns
-  * `{:ok, sessions}` - List of all replay sessions
-  * `{:error, reason}` - Error retrieving sessions
-  """
-  @spec list_replay_sessions() :: {:ok, [ReplaySession.t()]} | {:error, any()}
-  def list_replay_sessions do
-    ReplayOperations.list_sessions()
-  end
+    @doc """
+    Creates a new replay session.
 
-  @doc """
-  Completes a replay session by marking it as finished and storing the final state.
+    ## Parameters
+    * `name` - The name of the replay session
+    * `resource_type` - The type of resource to replay
+    * `resource_id` - The ID of the resource to replay
+    * `opts` - Additional options for the replay session
 
-  ## Parameters
-  * `session_id` - The ID of the replay session
-  * `final_state` - The final state after replaying all events
+    ## Returns
+    * `{:ok, session}` - The replay session was created
+    * `{:error, reason}` - The session could not be created
+    """
+    @spec create_replay_session(String.t(), String.t(), String.t(), Keyword.t()) ::
+            {:ok, ReplaySession.t()} | {:error, any()}
+    def create_replay_session(name, resource_type, resource_id, opts \\ []) do
+      ReplayOperations.create_session(name, resource_type, resource_id, opts)
+    end
 
-  ## Returns
-  * `{:ok, session}` - The replay session was completed successfully
-  * `{:error, reason}` - The session could not be completed
-  """
-  @spec complete_replay_session(String.t(), map()) :: {:ok, ReplaySession.t()} | {:error, any()}
-  def complete_replay_session(session_id, final_state) when is_binary(session_id) and is_map(final_state) do
-    ReplayOperations.complete_session(session_id, final_state)
-  end
+    @doc """
+    Gets a replay session by ID.
 
-  def complete_replay_session(_invalid_id, _invalid_state), do: {:error, :invalid_parameters}
+    ## Parameters
+    * `id` - The ID of the replay session
 
-  @doc """
-  Gets the latest snapshot for a resource.
+    ## Returns
+    * `{:ok, session}` - The replay session was found
+    * `{:error, :not_found}` - The session was not found
+    """
+    @spec get_replay_session(String.t()) :: {:ok, ReplaySession.t()} | {:error, :not_found}
+    def get_replay_session(session_id) do
+      # TODO: Implement actual session retrieval
+      {:ok, %{id: session_id, status: "pending"}}
+    end
 
-  ## Parameters
-  * `resource_type` - The type of resource
-  * `resource_id` - The ID of the resource
+    @doc """
+    Lists all replay sessions.
 
-  ## Returns
-  * `{:ok, snapshot}` - The latest snapshot was found
-  * `{:error, :not_found}` - No snapshot exists for the resource
-  * `{:error, reason}` - Error retrieving the snapshot
-  """
-  @spec get_latest_snapshot(String.t(), String.t()) :: {:ok, Snapshot.t()} | {:error, any()}
-  def get_latest_snapshot(resource_type, resource_id) 
-      when is_binary(resource_type) and is_binary(resource_id) do
-    SnapshotOperations.get_latest_snapshot(resource_type, resource_id)
-  end
+    ## Returns
+    * `{:ok, sessions}` - List of all replay sessions
+    * `{:error, reason}` - Error retrieving sessions
+    """
+    @spec list_replay_sessions() :: {:ok, [ReplaySession.t()]} | {:error, any()}
+    def list_replay_sessions do
+      ReplayOperations.list_sessions()
+    end
 
-  def get_latest_snapshot(_invalid_type, _invalid_id), do: {:error, :invalid_parameters}
+    @doc """
+    Completes a replay session by marking it as finished and storing the final state.
 
-  @doc """
-  Gets all events for a replay session.
+    ## Parameters
+    * `session_id` - The ID of the replay session
+    * `final_state` - The final state after replaying all events
 
-  ## Parameters
-  * `session_id` - The ID of the replay session
+    ## Returns
+    * `{:ok, session}` - The replay session was completed successfully
+    * `{:error, reason}` - The session could not be completed
+    """
+    @spec complete_replay_session(String.t(), map()) :: {:ok, ReplaySession.t()} | {:error, any()}
+    def complete_replay_session(session_id, final_state) when is_binary(session_id) and is_map(final_state) do
+      ReplayOperations.complete_session(session_id, final_state)
+    end
 
-  ## Returns
-  * `{:ok, events}` - The events for the session
-  * `{:error, :not_found}` - The session was not found
-  * `{:error, reason}` - Error retrieving the events
-  """
-  @spec get_replay_session_events(String.t()) :: {:ok, [Event.t()]} | {:error, any()}
-  def get_replay_session_events(session_id) when is_binary(session_id) do
-    ReplayOperations.get_session_events(session_id)
-  end
+    def complete_replay_session(_invalid_id, _invalid_state), do: {:error, :invalid_parameters}
 
-  def get_replay_session_events(_invalid_id), do: {:error, :invalid_parameters}
+    @doc """
+    Gets the latest snapshot for a resource.
 
-  # Snapshot Operations
+    ## Parameters
+    * `resource_type` - The type of resource
+    * `resource_id` - The ID of the resource
 
-  @doc """
-  Saves a snapshot of a resource's state.
+    ## Returns
+    * `{:ok, snapshot}` - The latest snapshot was found
+    * `{:error, :not_found}` - No snapshot exists for the resource
+    * `{:error, reason}` - Error retrieving the snapshot
+    """
+    @spec get_latest_snapshot(String.t(), String.t()) :: {:ok, Snapshot.t()} | {:error, any()}
+    def get_latest_snapshot(resource_type, resource_id) 
+        when is_binary(resource_type) and is_binary(resource_id) do
+      SnapshotOperations.get_latest_snapshot(resource_type, resource_id)
+    end
 
-  ## Parameters
-  * `resource_type` - The type of resource
-  * `resource_id` - The ID of the resource
-  * `state` - The current state to snapshot
-  * `metadata` - Additional metadata about the snapshot
+    def get_latest_snapshot(_invalid_type, _invalid_id), do: {:error, :invalid_parameters}
 
-  ## Returns
-  * `{:ok, snapshot}` - The snapshot was successfully stored
-  * `{:error, changeset}` - The snapshot could not be stored
-  """
-  @spec save_snapshot(String.t(), String.t(), map(), map()) ::
-          {:ok, Snapshot.t()} | {:error, any()}
-  def save_snapshot(resource_type, resource_id, state, metadata \\ %{}) do
-    SnapshotOperations.save_snapshot(resource_type, resource_id, state, metadata)
-  end
+    @doc """
+    Gets all events for a replay session.
 
-  @doc """
-  Gets a snapshot by ID.
+    ## Parameters
+    * `session_id` - The ID of the replay session
 
-  ## Parameters
-  * `id` - The ID of the snapshot
+    ## Returns
+    * `{:ok, events}` - The events for the session
+    * `{:error, :not_found}` - The session was not found
+    * `{:error, reason}` - Error retrieving the events
+    """
+    @spec get_replay_session_events(String.t()) :: {:ok, [Event.t()]} | {:error, any()}
+    def get_replay_session_events(session_id) when is_binary(session_id) do
+      ReplayOperations.get_session_events(session_id)
+    end
 
-  ## Returns
-  * `{:ok, snapshot}` - The snapshot was found
-  * `{:error, :not_found}` - The snapshot was not found
-  """
-  @spec get_snapshot(String.t()) :: {:ok, Snapshot.t()} | {:error, :not_found}
-  def get_snapshot(id) do
-    SnapshotOperations.get_snapshot(id)
-  end
+    def get_replay_session_events(_invalid_id), do: {:error, :invalid_parameters}
 
-  @doc """
-  Lists all snapshots for a resource.
+    # Snapshot Operations
 
-  ## Parameters
-  * `resource_type` - The type of resource
-  * `resource_id` - The ID of the resource
+    @doc """
+    Saves a snapshot of a resource's state.
 
-  ## Returns
-  * `{:ok, snapshots}` - List of all snapshots for the resource
-  * `{:error, reason}` - Error retrieving snapshots
-  """
-  @spec list_snapshots(String.t(), String.t()) :: {:ok, [Snapshot.t()]} | {:error, any()}
-  def list_snapshots(resource_type, resource_id) do
-    SnapshotOperations.get_snapshots(resource_type, resource_id)
-  end
+    ## Parameters
+    * `resource_type` - The type of resource
+    * `resource_id` - The ID of the resource
+    * `state` - The current state to snapshot
+    * `metadata` - Additional metadata about the snapshot
 
-  @doc """
-  Gets all snapshots for a resource.
+    ## Returns
+    * `{:ok, snapshot}` - The snapshot was successfully stored
+    * `{:error, changeset}` - The snapshot could not be stored
+    """
+    @spec save_snapshot(String.t(), String.t(), map(), map()) ::
+            {:ok, Snapshot.t()} | {:error, any()}
+    def save_snapshot(resource_type, resource_id, state, metadata \\ %{}) do
+      SnapshotOperations.save_snapshot(resource_type, resource_id, state, metadata)
+    end
 
-  ## Parameters
-  * `resource_type` - The type of resource
-  * `resource_id` - The ID of the resource
+    @doc """
+    Gets a snapshot by ID.
 
-  ## Returns
-  * `{:ok, snapshots}` - List of all snapshots for the resource
-  * `{:error, reason}` - Error retrieving snapshots
-  """
-  @spec get_snapshots(String.t(), String.t()) :: {:ok, [Snapshot.t()]} | {:error, any()}
-  def get_snapshots(resource_type, resource_id) do
-    SnapshotOperations.get_snapshots(resource_type, resource_id)
-  end
+    ## Parameters
+    * `id` - The ID of the snapshot
 
-  @doc """
-  Deletes a snapshot by ID.
+    ## Returns
+    * `{:ok, snapshot}` - The snapshot was found
+    * `{:error, :not_found}` - The snapshot was not found
+    """
+    @spec get_snapshot(String.t()) :: {:ok, Snapshot.t()} | {:error, :not_found}
+    def get_snapshot(id) do
+      SnapshotOperations.get_snapshot(id)
+    end
 
-  ## Parameters
-  * `id` - The ID of the snapshot to delete
+    @doc """
+    Lists all snapshots for a resource.
 
-  ## Returns
-  * `{:ok, snapshot}` - The snapshot was deleted
-  * `{:error, :not_found}` - The snapshot was not found
-  """
-  @spec delete_snapshot(String.t()) :: {:ok, Snapshot.t()} | {:error, :not_found}
-  def delete_snapshot(id) do
-    SnapshotOperations.delete_snapshot(id)
-  end
+    ## Parameters
+    * `resource_type` - The type of resource
+    * `resource_id` - The ID of the resource
 
-  # Versioned State Operations
+    ## Returns
+    * `{:ok, snapshots}` - List of all snapshots for the resource
+    * `{:error, reason}` - Error retrieving snapshots
+    """
+    @spec list_snapshots(String.t(), String.t()) :: {:ok, [Snapshot.t()]} | {:error, any()}
+    def list_snapshots(resource_type, resource_id) do
+      SnapshotOperations.get_snapshots(resource_type, resource_id)
+    end
 
-  @doc """
-  Saves a versioned state for a resource.
+    @doc """
+    Gets all snapshots for a resource.
 
-  ## Parameters
-  * `resource_type` - The type of resource
-  * `resource_id` - The ID of the resource
-  * `state` - The current state to save
-  * `metadata` - Additional metadata about the state
+    ## Parameters
+    * `resource_type` - The type of resource
+    * `resource_id` - The ID of the resource
 
-  ## Returns
-  * `{:ok, state}` - The state was successfully stored
-  * `{:error, changeset}` - The state could not be stored
-  """
-  @spec save_versioned_state(String.t(), String.t(), map(), map()) ::
-          {:ok, VersionedState.t()} | {:error, any()}
-  def save_versioned_state(resource_type, resource_id, state, metadata \\ %{}) do
-    SnapshotOperations.save_versioned_state(resource_type, resource_id, state, metadata)
-  end
+    ## Returns
+    * `{:ok, snapshots}` - List of all snapshots for the resource
+    * `{:error, reason}` - Error retrieving snapshots
+    """
+    @spec get_snapshots(String.t(), String.t()) :: {:ok, [Snapshot.t()]} | {:error, any()}
+    def get_snapshots(resource_type, resource_id) do
+      SnapshotOperations.get_snapshots(resource_type, resource_id)
+    end
 
-  @doc """
-  Gets a versioned state by ID.
+    @doc """
+    Deletes a snapshot by ID.
 
-  ## Parameters
-  * `id` - The ID of the versioned state
+    ## Parameters
+    * `id` - The ID of the snapshot to delete
 
-  ## Returns
-  * `{:ok, versioned_state}` - The state was found
-  * `{:error, :not_found}` - The state was not found
-  """
-  @spec get_versioned_state(String.t()) :: {:ok, VersionedState.t()} | {:error, :not_found}
-  def get_versioned_state(id) do
-    SnapshotOperations.get_versioned_state(id)
-  end
+    ## Returns
+    * `{:ok, snapshot}` - The snapshot was deleted
+    * `{:error, :not_found}` - The snapshot was not found
+    """
+    @spec delete_snapshot(String.t()) :: {:ok, Snapshot.t()} | {:error, :not_found}
+    def delete_snapshot(id) do
+      SnapshotOperations.delete_snapshot(id)
+    end
 
-  @doc """
-  Gets the latest versioned state for a resource.
+    # Versioned State Operations
 
-  ## Parameters
-  * `resource_type` - The type of resource
-  * `resource_id` - The ID of the resource
+    @doc """
+    Saves a versioned state for a resource.
 
-  ## Returns
-  * `{:ok, versioned_state}` - The latest state was found
-  * `{:error, :not_found}` - No state was found
-  """
-  @spec get_latest_versioned_state(String.t(), String.t()) ::
-          {:ok, VersionedState.t()} | {:error, :not_found}
-  def get_latest_versioned_state(resource_type, resource_id) do
-    SnapshotOperations.get_latest_versioned_state(resource_type, resource_id)
-  end
+    ## Parameters
+    * `resource_type` - The type of resource
+    * `resource_id` - The ID of the resource
+    * `state` - The current state to save
+    * `metadata` - Additional metadata about the state
 
-  @doc """
-  Lists all versioned states for a resource.
+    ## Returns
+    * `{:ok, state}` - The state was successfully stored
+    * `{:error, changeset}` - The state could not be stored
+    """
+    @spec save_versioned_state(String.t(), String.t(), map(), map()) ::
+            {:ok, VersionedState.t()} | {:error, any()}
+    def save_versioned_state(resource_type, resource_id, state, metadata \\ %{}) do
+      SnapshotOperations.save_versioned_state(resource_type, resource_id, state, metadata)
+    end
 
-  ## Parameters
-  * `resource_type` - The type of resource
-  * `resource_id` - The ID of the resource
+    @doc """
+    Gets a versioned state by ID.
 
-  ## Returns
-  * `{:ok, versioned_states}` - List of all versioned states for the resource
-  * `{:error, reason}` - Error retrieving states
-  """
-  @spec list_versioned_states(String.t(), String.t()) ::
-          {:ok, [VersionedState.t()]} | {:error, any()}
-  def list_versioned_states(resource_type, resource_id) do
-    SnapshotOperations.list_versioned_states(resource_type, resource_id)
-  end
+    ## Parameters
+    * `id` - The ID of the versioned state
 
-  @doc """
-  Deletes a versioned state by ID.
+    ## Returns
+    * `{:ok, versioned_state}` - The state was found
+    * `{:error, :not_found}` - The state was not found
+    """
+    @spec get_versioned_state(String.t()) :: {:ok, VersionedState.t()} | {:error, :not_found}
+    def get_versioned_state(id) do
+      SnapshotOperations.get_versioned_state(id)
+    end
 
-  ## Parameters
-  * `id` - The ID of the versioned state to delete
+    @doc """
+    Gets the latest versioned state for a resource.
 
-  ## Returns
-  * `{:ok, versioned_state}` - The state was deleted
-  * `{:error, :not_found}` - The state was not found
-  """
-  @spec delete_versioned_state(String.t()) :: {:ok, VersionedState.t()} | {:error, :not_found}
-  def delete_versioned_state(id) do
-    SnapshotOperations.delete_versioned_state(id)
-  end
+    ## Parameters
+    * `resource_type` - The type of resource
+    * `resource_id` - The ID of the resource
 
-  def update_replay_session_status(session_id, status, results \\ %{}) do
-    # TODO: Implement actual session status update
-    {:ok, %{id: session_id, status: status, results: results}}
+    ## Returns
+    * `{:ok, versioned_state}` - The latest state was found
+    * `{:error, :not_found}` - No state was found
+    """
+    @spec get_latest_versioned_state(String.t(), String.t()) ::
+            {:ok, VersionedState.t()} | {:error, :not_found}
+    def get_latest_versioned_state(resource_type, resource_id) do
+      SnapshotOperations.get_latest_versioned_state(resource_type, resource_id)
+    end
+
+    @doc """
+    Lists all versioned states for a resource.
+
+    ## Parameters
+    * `resource_type` - The type of resource
+    * `resource_id` - The ID of the resource
+
+    ## Returns
+    * `{:ok, versioned_states}` - List of all versioned states for the resource
+    * `{:error, reason}` - Error retrieving states
+    """
+    @spec list_versioned_states(String.t(), String.t()) ::
+            {:ok, [VersionedState.t()]} | {:error, any()}
+    def list_versioned_states(resource_type, resource_id) do
+      SnapshotOperations.list_versioned_states(resource_type, resource_id)
+    end
+
+    @doc """
+    Deletes a versioned state by ID.
+
+    ## Parameters
+    * `id` - The ID of the versioned state to delete
+
+    ## Returns
+    * `{:ok, versioned_state}` - The state was deleted
+    * `{:error, :not_found}` - The state was not found
+    """
+    @spec delete_versioned_state(String.t()) :: {:ok, VersionedState.t()} | {:error, :not_found}
+    def delete_versioned_state(id) do
+      SnapshotOperations.delete_versioned_state(id)
+    end
+
+    def update_replay_session_status(session_id, status, results \\ %{}) do
+      # TODO: Implement actual session status update
+      {:ok, %{id: session_id, status: status, results: results}}
+    end
   end
 end

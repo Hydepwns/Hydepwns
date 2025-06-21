@@ -368,14 +368,16 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
     resource1 = snapshot1.resource
     resource2 = snapshot2.resource
 
-    %{
-      version_diff: snapshot2.version - snapshot1.version,
-      time_diff: DateTime.diff(
-        DateTime.from_iso8601!(snapshot2.timestamp),
-        DateTime.from_iso8601!(snapshot1.timestamp)
-      ),
-      resource_changes: compute_resource_changes(resource1, resource2)
-    }
+    with {:ok, datetime1, _} <- DateTime.from_iso8601(snapshot1.timestamp),
+         {:ok, datetime2, _} <- DateTime.from_iso8601(snapshot2.timestamp) do
+      %{
+        version_diff: snapshot2.version - snapshot1.version,
+        time_diff: DateTime.diff(datetime2, datetime1),
+        resource_changes: compute_resource_changes(resource1, resource2)
+      }
+    else
+      _ -> {:error, "Invalid timestamp format"}
+    end
   end
 
   defp compute_resource_changes(resource1, resource2) do

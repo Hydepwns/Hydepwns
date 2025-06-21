@@ -173,10 +173,35 @@ defmodule HydepwnsLiveview.Events do
   end
 
   @doc """
+  Returns a changeset for event notification.
+  """
+  def change_event_notification(notification \\ %EventNotification{}, attrs \\ %{}) do
+    EventNotification.changeset(notification, attrs)
+  end
+
+  @doc """
   Returns a changeset for event notification template.
   """
   def change_event_notification_template(template \\ %EventNotification{}, attrs \\ %{}) do
     EventNotification.changeset(template, attrs)
+  end
+
+  @doc """
+  Creates an event notification.
+  """
+  def create_event_notification(attrs) do
+    %EventNotification{}
+    |> EventNotification.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Creates an event notification template.
+  """
+  def create_event_notification_template(attrs \\ %{}) do
+    %EventNotification{}
+    |> EventNotification.changeset(attrs)
+    |> Repo.insert()
   end
 
   @doc """
@@ -279,6 +304,15 @@ defmodule HydepwnsLiveview.Events do
   end
 
   @doc """
+  Updates an event reminder.
+  """
+  def update_event_reminder(%EventReminder{} = reminder, attrs) do
+    reminder
+    |> EventReminder.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
   Deletes an event reminder.
   """
   def delete_event_reminder(%EventReminder{} = reminder) do
@@ -295,22 +329,6 @@ defmodule HydepwnsLiveview.Events do
   """
   def list_event_reminders do
     Repo.all(EventReminder)
-  end
-
-  @doc """
-  Returns a changeset for event notification.
-  """
-  def change_event_notification(notification \\ %EventNotification{}, attrs \\ %{}) do
-    EventNotification.changeset(notification, attrs)
-  end
-
-  @doc """
-  Creates an event notification.
-  """
-  def create_event_notification(attrs) do
-    %EventNotification{}
-    |> EventNotification.changeset(attrs)
-    |> Repo.insert()
   end
 
   @doc """
@@ -366,6 +384,23 @@ defmodule HydepwnsLiveview.Events do
   """
   def get_event_settings_by_event_id(event_id) do
     Repo.get_by(EventSettings, event_id: event_id)
+  end
+
+  @doc """
+  Deletes event settings.
+  """
+  def delete_event_settings(%EventSettings{} = settings) do
+    Repo.delete(settings)
+  end
+
+  @doc """
+  Deletes event settings by event id.
+  """
+  def delete_event_settings(event_id) when is_integer(event_id) do
+    case get_event_settings_by_event_id(event_id) do
+      nil -> {:error, :not_found}
+      settings -> delete_event_settings(settings)
+    end
   end
 
   @doc """
@@ -438,15 +473,6 @@ defmodule HydepwnsLiveview.Events do
   end
 
   def list_due_reminders(_invalid_id), do: {:error, :invalid_event_id}
-
-  @doc """
-  Creates an event notification template.
-  """
-  def create_event_notification_template(attrs \\ %{}) do
-    %EventNotification{}
-    |> EventNotification.changeset(attrs)
-    |> Repo.insert()
-  end
 
   @doc """
   Imports events from a file.

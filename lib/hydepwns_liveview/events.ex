@@ -246,7 +246,7 @@ defmodule HydepwnsLiveview.Events do
   Gets the current event settings.
   """
   def get_event_settings do
-    case Repo.get(EventSettings, 1) do
+    case HydepwnsLiveview.RepoHelper.get(EventSettings, 1) do
       nil -> %EventSettings{}
       settings -> settings
     end

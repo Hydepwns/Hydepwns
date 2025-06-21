@@ -191,33 +191,29 @@ defmodule HydepwnsLiveview.Utils.ChangeTracker do
         {:error, "Version must be at least 1"}
 
       true ->
-        # Get history
-        {:ok, history} = get_history(resource)
-
-        # Calculate how many changes to apply from the current state
-        changes_to_revert = current_version - version
-
-        # Start with the current resource and apply changes in reverse
-        reverted =
-          Enum.reduce(Enum.take(history, changes_to_revert), resource, fn change, acc ->
-            # For each change, remove the changes made
-            # This is a simplified implementation and may not handle all cases correctly
-            changes = change.changes
-
-            # Create an "inverse" changes map
-            inverse_changes =
-              Enum.map(changes, fn {key, _value} ->
-                original_value = Map.get(change.before, key)
-                {key, original_value}
-              end)
-              |> Map.new()
-
-            # Apply inverse changes
-            Map.merge(acc, inverse_changes)
-          end)
-
-        {:ok, reverted}
+        revert_to_version(resource, version, current_version)
     end
+  end
+
+  defp revert_to_version(resource, target_version, current_version) do
+    {:ok, history} = get_history(resource)
+    changes_to_revert = current_version - target_version
+
+    reverted =
+      Enum.reduce(Enum.take(history, changes_to_revert), resource, fn change, acc ->
+        changes = change.changes
+
+        inverse_changes =
+          Enum.map(changes, fn {key, _value} ->
+            original_value = Map.get(change.before, key)
+            {key, original_value}
+          end)
+          |> Map.new()
+
+        Map.merge(acc, inverse_changes)
+      end)
+
+    {:ok, reverted}
   end
 
   @doc """
@@ -537,17 +533,7 @@ defmodule HydepwnsLiveview.Utils.ChangeTracker do
       length(value1) == length(value2) ->
         # If lists are the same length, compare items by position
         Enum.with_index(Enum.zip(value1, value2))
-        |> Enum.reduce(%{}, fn {{item1, item2}, index}, acc ->
-          if item1 != item2 do
-            Map.put(acc, "item_#{index}", %{
-              before: item1,
-              after: item2,
-              nested_diff: create_nested_diff(item1, item2)
-            })
-          else
-            acc
-          end
-        end)
+        |> Enum.reduce(%{}, &compare_list_items/2)
 
       length(value1) > length(value2) ->
         # Some items were removed
@@ -578,5 +564,17 @@ defmodule HydepwnsLiveview.Utils.ChangeTracker do
   defp create_nested_diff(_value1, _value2) do
     # For primitive values or incompatible types, no nested diff is created
     nil
+  end
+
+  defp compare_list_items({{item1, item2}, index}, acc) do
+    if item1 != item2 do
+      Map.put(acc, "item_#{index}", %{
+        before: item1,
+        after: item2,
+        nested_diff: create_nested_diff(item1, item2)
+      })
+    else
+      acc
+    end
   end
 end

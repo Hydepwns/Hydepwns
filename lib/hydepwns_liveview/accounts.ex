@@ -122,6 +122,11 @@ defmodule HydepwnsLiveview.Accounts do
   def get_user!(id), do: Repo.get!(User, id)
 
   @doc """
+  Gets a user by id (returns nil if not found).
+  """
+  def get_user(id), do: Repo.get(User, id)
+
+  @doc """
   Gets a user by email.
   """
   def get_user_by_email(email) do

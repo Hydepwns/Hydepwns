@@ -209,23 +209,25 @@ defmodule HydepwnsLiveview.Utils.ContextValidation do
       initial_result = {:ok, validation_state}
 
       # Validate each relationship and accumulate results
-      Enum.reduce(relationships, initial_result, fn relationship, acc ->
-        case acc do
-          {:ok, current_state} ->
-            validate_related_resource(
-              resource,
-              relationship,
-              current_state,
-              max_depth,
-              exclude_relationships,
-              include_only,
-              rules
-            )
+      Enum.reduce(relationships, initial_result, &process_relationship_validation(&1, &2, resource, max_depth, exclude_relationships, include_only, rules))
+    end
+  end
 
-          error ->
-            error
-        end
-      end)
+  defp process_relationship_validation(relationship, acc, resource, max_depth, exclude_relationships, include_only, rules) do
+    case acc do
+      {:ok, current_state} ->
+        validate_related_resource(
+          resource,
+          relationship,
+          current_state,
+          max_depth,
+          exclude_relationships,
+          include_only,
+          rules
+        )
+
+      error ->
+        error
     end
   end
 
@@ -389,20 +391,21 @@ defmodule HydepwnsLiveview.Utils.ContextValidation do
       filtered_rules = filter_rules(resource_rules, rules)
 
       # Validate with each rule
-      errors =
-        Enum.flat_map(filtered_rules, fn {rule_name, rule_fn} ->
-          case apply_rule(rule_fn, resource, context) do
-            :ok -> []
-            {:error, message} -> [{rule_name, message}]
-            {:error, messages} when is_list(messages) -> Enum.map(messages, &{rule_name, &1})
-          end
-        end)
+      errors = Enum.flat_map(filtered_rules, &process_rule_result(&1, resource, context))
 
       if Enum.empty?(errors) do
         {:ok, resource}
       else
         {:error, errors}
       end
+    end
+  end
+
+  defp process_rule_result({rule_name, rule_fn}, resource, context) do
+    case apply_rule(rule_fn, resource, context) do
+      :ok -> []
+      {:error, message} -> [{rule_name, message}]
+      {:error, messages} when is_list(messages) -> Enum.map(messages, &{rule_name, &1})
     end
   end
 
@@ -464,15 +467,13 @@ defmodule HydepwnsLiveview.Utils.ContextValidation do
 
   # Get a unique identifier for a resource
   defp get_resource_id(resource) do
-    cond do
+    if Map.has_key?(resource, :id) do
       # Use ID if available
-      Map.has_key?(resource, :id) ->
-        {Map.get(resource, :__resource_module__), Map.get(resource, :id)}
-
+      {Map.get(resource, :__resource_module__), Map.get(resource, :id)}
+    else
       # Use the resource itself as a last resort
-      true ->
-        # This might not be ideal for memory usage, but ensures uniqueness
-        resource
+      # This might not be ideal for memory usage, but ensures uniqueness
+      resource
     end
   end
 

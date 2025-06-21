@@ -147,7 +147,7 @@ defmodule HydepwnsLiveview.Utils.EctoAdapter do
 
     if repo do
       # Try to load the data
-      case repo.get(schema, id) do
+      case HydepwnsLiveview.RepoHelper.get(schema, id) do
         nil -> {:error, "Record not found"}
         data -> {:ok, data}
       end

@@ -86,6 +86,13 @@ defmodule HydepwnsLiveview.Utils.MemoryAdapter do
     types = Map.get(schema, :types, %{})
 
     # Check required fields
+    case validate_required_fields(required, values) do
+      {:error, message} -> {:error, message}
+      :ok -> validate_type_fields(types, values)
+    end
+  end
+
+  defp validate_required_fields(required, values) do
     missing =
       Enum.filter(required, fn field ->
         is_nil(Map.get(values, field)) && is_nil(Map.get(values, to_string(field)))
@@ -95,28 +102,29 @@ defmodule HydepwnsLiveview.Utils.MemoryAdapter do
       missing_fields = Enum.map_join(missing, ", ", &to_string/1)
       {:error, "Missing required fields: #{missing_fields}"}
     else
-      # Check types
-      type_errors =
-        Enum.filter(Map.keys(values), fn field ->
-          atom_field = to_atom_key(field)
-
-          if Map.has_key?(types, atom_field) do
-            expected_type = Map.get(types, atom_field)
-            value = Map.get(values, field)
-            !matches_type?(value, expected_type)
-          else
-            false
-          end
-        end)
-
-      if length(type_errors) > 0 do
-        type_error_fields = Enum.map_join(type_errors, ", ", &to_string/1)
-        {:error, "Type mismatch for fields: #{type_error_fields}"}
-      else
-        # All validations passed
-        {:ok, values}
-      end
+      :ok
     end
+  end
+
+  defp validate_type_fields(types, values) do
+    type_errors =
+      Enum.filter(Map.keys(values), fn field ->
+        atom_field = to_atom_key(field)
+        Map.has_key?(types, atom_field) && !matches_field_type(values, field, types, atom_field)
+      end)
+
+    if length(type_errors) > 0 do
+      type_error_fields = Enum.map_join(type_errors, ", ", &to_string/1)
+      {:error, "Type mismatch for fields: #{type_error_fields}"}
+    else
+      {:ok, values}
+    end
+  end
+
+  defp matches_field_type(values, field, types, atom_field) do
+    expected_type = Map.get(types, atom_field)
+    value = Map.get(values, field)
+    matches_type?(value, expected_type)
   end
 
   @doc """

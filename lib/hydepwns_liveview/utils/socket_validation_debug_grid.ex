@@ -51,13 +51,7 @@ defmodule HydepwnsLiveview.Utils.SocketValidationDebugGrid do
       validation_results = validate_type_specs(socket, type_specs)
 
       # Calculate overall validation status
-      overall_status =
-        if required_status == :ok and
-             Enum.all?(validation_results, fn {_, status, _} -> status == :ok end) do
-          :ok
-        else
-          :error
-        end
+      overall_status = calculate_overall_status(required_status, validation_results)
 
       # Format data for Debug Grid
       validation_data = %{
@@ -73,6 +67,15 @@ defmodule HydepwnsLiveview.Utils.SocketValidationDebugGrid do
       assign_debug_grid_data(socket, :socket_validation, validation_data)
     else
       socket
+    end
+  end
+
+  defp calculate_overall_status(required_status, validation_results) do
+    if required_status == :ok and
+         Enum.all?(validation_results, fn {_, status, _} -> status == :ok end) do
+      :ok
+    else
+      :error
     end
   end
 
@@ -148,17 +151,12 @@ defmodule HydepwnsLiveview.Utils.SocketValidationDebugGrid do
       # Filter to errors
       errors = Enum.filter(results, fn %{status: status} -> status == "error" end)
 
-      # If selector is provided, filter to matching errors
-      errors =
-        if selector do
-          Enum.filter(errors, fn %{selector: s} -> s == selector end)
-        else
-          errors
-        end
+      # Filter by selector if provided
+      filtered_errors = filter_errors_by_selector(errors, selector)
 
       # Generate highlight data
       highlight_data =
-        Enum.map(errors, fn %{assign: key, message: message} ->
+        Enum.map(filtered_errors, fn %{assign: key, message: message} ->
           %{
             selector: selector || "[data-assign='#{key}']",
             color: "rgba(255, 100, 100, 0.2)",
@@ -172,6 +170,11 @@ defmodule HydepwnsLiveview.Utils.SocketValidationDebugGrid do
     else
       socket
     end
+  end
+
+  defp filter_errors_by_selector(errors, nil), do: errors
+  defp filter_errors_by_selector(errors, selector) do
+    Enum.filter(errors, fn %{selector: s} -> s == selector end)
   end
 
   # Private helper functions

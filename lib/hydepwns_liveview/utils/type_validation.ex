@@ -5,8 +5,6 @@ defmodule HydepwnsLiveview.Utils.TypeValidation do
 
   require Logger
 
-  alias HydepwnsLiveview.Utils.SocketValidator, as: Validator
-
   @doc """
   Validates a value against a type specification.
   """

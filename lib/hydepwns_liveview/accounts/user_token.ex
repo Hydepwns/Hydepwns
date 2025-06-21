@@ -132,8 +132,9 @@ defmodule HydepwnsLiveview.Accounts.UserToken do
     build_hashed_token(user, context, sent_to, user.email)
   end
 
-  def build_hashed_token(_invalid_user, _invalid_context, _invalid_sent_to),
-    do: {:error, :invalid_parameters}
+  def build_hashed_token(_user, context, sent_to) when not (is_binary(context) and is_binary(sent_to)) do
+    {:error, :invalid_parameters}
+  end
 
   def build_hashed_token(user, context, sent_to, email)
       when is_binary(context) and is_binary(sent_to) and is_binary(email) do
@@ -149,8 +150,9 @@ defmodule HydepwnsLiveview.Accounts.UserToken do
      }}
   end
 
-  def build_hashed_token(_invalid_user, _invalid_context, _invalid_sent_to, _invalid_email),
-    do: {:error, :invalid_parameters}
+  def build_hashed_token(_user, context, sent_to, email) when not (is_binary(context) and is_binary(sent_to) and is_binary(email)) do
+    {:error, :invalid_parameters}
+  end
 
   @doc """
   Returns the token struct for the given token value.

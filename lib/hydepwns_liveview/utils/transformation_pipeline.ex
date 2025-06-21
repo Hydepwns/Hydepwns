@@ -260,7 +260,8 @@ defmodule HydepwnsLiveview.Utils.TransformationPipeline do
       resource: resource,
       context: context,
       metrics: %{},
-      errors: []
+      errors: [],
+      pipeline_name: pipeline.name
     }
 
     # Apply transformations at each hook
@@ -335,76 +336,74 @@ defmodule HydepwnsLiveview.Utils.TransformationPipeline do
 
   # Apply transformations at a specific hook
   defp apply_hook(transformations, state, collect_metrics) do
-    # Apply each transformation in sequence
     Enum.reduce_while(transformations, {:ok, state}, fn step, {:ok, current_state} ->
-      # Check if the transformation should be applied
       if should_apply_transformation?(step, current_state) do
-        # Apply the transformation with metrics collection if enabled
-        if collect_metrics do
-          # Use TransformationMetrics to track the transformation execution
-          transformation_module = get_transformation_module(step)
-
-          {result, metrics} =
-            TransformationMetrics.track(
-              transformation_module,
-              fn -> apply_transformation(step, current_state) end,
-              current_state.resource,
-              metadata: %{
-                pipeline_name: state.pipeline_name,
-                hook: step.hook,
-                step_name: step.name
-              }
-            )
-
-          # Process the result
-          case result do
-            {:ok, new_resource} ->
-              # Store execution time in the pipeline metrics for backward compatibility
-              pipeline_metrics =
-                Map.put(current_state.metrics, step.name, metrics.execution_time_ms / 1000)
-
-              updated_state = %{
-                current_state
-                | resource: new_resource,
-                  metrics: pipeline_metrics
-              }
-
-              {:cont, {:ok, updated_state}}
-
-            {:error, reason} ->
-              # Store execution time in the pipeline metrics for backward compatibility
-              pipeline_metrics =
-                Map.put(current_state.metrics, step.name, metrics.execution_time_ms / 1000)
-
-              error_state = %{
-                current_state
-                | errors: [%{step: step.name, reason: reason} | current_state.errors],
-                  metrics: pipeline_metrics
-              }
-
-              {:halt, {:error, error_state}}
-          end
-        else
-          # Apply without metrics
-          case apply_transformation(step, current_state) do
-            {:ok, new_resource} ->
-              updated_state = %{current_state | resource: new_resource}
-              {:cont, {:ok, updated_state}}
-
-            {:error, reason} ->
-              error_state = %{
-                current_state
-                | errors: [%{step: step.name, reason: reason} | current_state.errors]
-              }
-
-              {:halt, {:error, error_state}}
-          end
-        end
+        apply_single_transformation(step, current_state, collect_metrics)
       else
-        # Skip this transformation
         {:cont, {:ok, current_state}}
       end
     end)
+  end
+
+  # Apply a single transformation with or without metrics
+  defp apply_single_transformation(step, current_state, true) do
+    apply_with_metrics(step, current_state)
+  end
+
+  defp apply_single_transformation(step, current_state, false) do
+    apply_without_metrics(step, current_state)
+  end
+
+  # Apply transformation with metrics collection
+  defp apply_with_metrics(step, current_state) do
+    transformation_module = get_transformation_module(step)
+
+    {result, metrics} =
+      TransformationMetrics.track(
+        transformation_module,
+        fn -> apply_transformation(step, current_state) end,
+        current_state.resource,
+        metadata: %{
+          pipeline_name: current_state.pipeline_name,
+          hook: step.hook,
+          step_name: step.name
+        }
+      )
+
+    process_transformation_result(result, current_state, step, metrics)
+  end
+
+  # Apply transformation without metrics
+  defp apply_without_metrics(step, current_state) do
+    case apply_transformation(step, current_state) do
+      {:ok, new_resource} ->
+        updated_state = %{current_state | resource: new_resource}
+        {:cont, {:ok, updated_state}}
+
+      {:error, reason} ->
+        error_state = %{
+          current_state
+          | errors: [%{step: step.name, reason: reason} | current_state.errors]
+        }
+        {:halt, {:error, error_state}}
+    end
+  end
+
+  # Process transformation result with metrics
+  defp process_transformation_result({:ok, new_resource}, current_state, step, metrics) do
+    pipeline_metrics = Map.put(current_state.metrics, step.name, metrics.execution_time_ms / 1000)
+    updated_state = %{current_state | resource: new_resource, metrics: pipeline_metrics}
+    {:cont, {:ok, updated_state}}
+  end
+
+  defp process_transformation_result({:error, reason}, current_state, step, metrics) do
+    pipeline_metrics = Map.put(current_state.metrics, step.name, metrics.execution_time_ms / 1000)
+    error_state = %{
+      current_state
+      | errors: [%{step: step.name, reason: reason} | current_state.errors],
+        metrics: pipeline_metrics
+    }
+    {:halt, {:error, error_state}}
   end
 
   # Get the transformation module from a step
@@ -455,84 +454,90 @@ defmodule HydepwnsLiveview.Utils.TransformationPipeline do
 
   # Visualize the pipeline as text
   defp visualize_as_text(pipeline) do
-    # Start with the pipeline name and description
-    header =
-      if pipeline.name do
-        name_str = "Pipeline: #{pipeline.name}"
-
-        desc_str =
-          if pipeline.description do
-            "\nDescription: #{pipeline.description}"
-          else
-            ""
-          end
-
-        name_str <> desc_str <> "\n"
-      else
-        "Unnamed Pipeline\n"
-      end
-
-    # Format each hook
-    hooks_text =
-      Enum.map(pipeline.hooks, fn {hook_name, steps} ->
-        hook_header = "Hook: #{hook_name}\n"
-
-        # Format each step in the hook
-        steps_text =
-          Enum.map_join(steps, "\n", fn step ->
-            condition_text =
-              if step.condition do
-                " (conditional)"
-              else
-                ""
-              end
-
-            "  - #{step.name}#{condition_text}"
-          end)
-
-        hook_header <> steps_text
-      end)
-      |> Enum.join("\n\n")
-
-    # Combine header and hooks text
+    header = build_pipeline_header(pipeline)
+    hooks_text = build_hooks_text(pipeline.hooks)
     header <> "\n" <> hooks_text
   end
 
+  # Build the pipeline header
+  defp build_pipeline_header(pipeline) do
+    if pipeline.name do
+      name_str = "Pipeline: #{pipeline.name}"
+      desc_str = build_description_text(pipeline.description)
+      name_str <> desc_str <> "\n"
+    else
+      "Unnamed Pipeline\n"
+    end
+  end
+
+  # Build description text
+  defp build_description_text(nil), do: ""
+  defp build_description_text(description), do: "\nDescription: #{description}"
+
+  # Build hooks text
+  defp build_hooks_text(hooks) do
+    Enum.map_join(hooks, "\n\n", fn {hook_name, steps} ->
+      hook_header = "Hook: #{hook_name}\n"
+      steps_text = build_steps_text(steps)
+      hook_header <> steps_text
+    end)
+  end
+
+  # Build steps text
+  defp build_steps_text(steps) do
+    Enum.map_join(steps, "\n", fn step ->
+      condition_text = build_condition_text(step.condition)
+      "  - #{step.name}#{condition_text}"
+    end)
+  end
+
+  # Build condition text
+  defp build_condition_text(nil), do: ""
+  defp build_condition_text(_condition), do: " (conditional)"
+
   # Visualize the pipeline as GraphViz DOT
   defp visualize_as_dot(pipeline) do
-    nodes =
-      Enum.map_join("\n", pipeline.hooks, fn {hook_name, steps} ->
-        step_nodes =
-          Enum.map_join("\n", steps, fn step ->
-            "  \"#{hook_name}_#{step.name}\" [label=\"#{step.name}\"];"
-          end)
-
-        "subgraph cluster_#{hook_name} {\n    label = \"#{hook_name}\";\n#{step_nodes}\n  }"
-      end)
-
-    edges =
-      Enum.flat_map(pipeline.hooks, fn {hook_name, steps} ->
-        # Create edges between steps within the same hook
-        intra_hook_edges =
-          if length(steps) > 1 do
-            Enum.zip(steps, tl(steps))
-            |> Enum.map_join("\n", fn {step1, step2} ->
-              "  \"#{hook_name}_#{step1.name}\" -> \"#{hook_name}_#{step2.name}\";"
-            end)
-          else
-            ""
-          end
-
-        # Create edges between the last step of one hook and the first of the next (if applicable)
-        # This requires knowing the order of hooks, which is implicit here (pre_validation then post_validation)
-        # A more robust solution would define explicit hook order.
-        inter_hook_edges = ""
-
-        [intra_hook_edges, inter_hook_edges]
-      end)
-      |> Enum.reject(&(&1 == ""))
-      |> Enum.join("\n")
-
+    nodes = build_dot_nodes(pipeline.hooks)
+    edges = build_dot_edges(pipeline.hooks)
     "digraph TransformationPipeline {\n  rankdir=LR;\n  node [shape=box];\n#{nodes}\n#{edges}\n}"
   end
+
+  # Build DOT nodes
+  defp build_dot_nodes(hooks) do
+    Enum.map_join("\n", hooks, fn {hook_name, steps} ->
+      step_nodes = build_step_nodes(hook_name, steps)
+      "subgraph cluster_#{hook_name} {\n    label = \"#{hook_name}\";\n#{step_nodes}\n  }"
+    end)
+  end
+
+  # Build step nodes for a hook
+  defp build_step_nodes(hook_name, steps) do
+    Enum.map_join("\n", steps, fn step ->
+      "  \"#{hook_name}_#{step.name}\" [label=\"#{step.name}\"];"
+    end)
+  end
+
+  # Build DOT edges
+  defp build_dot_edges(hooks) do
+    Enum.flat_map(hooks, fn {hook_name, steps} ->
+      [build_intra_hook_edges(hook_name, steps), build_inter_hook_edges()]
+    end)
+    |> Enum.reject(&(&1 == ""))
+    |> Enum.join("\n")
+  end
+
+  # Build edges within a hook
+  defp build_intra_hook_edges(hook_name, steps) do
+    if length(steps) > 1 do
+      Enum.zip(steps, tl(steps))
+      |> Enum.map_join("\n", fn {step1, step2} ->
+        "  \"#{hook_name}_#{step1.name}\" -> \"#{hook_name}_#{step2.name}\";"
+      end)
+    else
+      ""
+    end
+  end
+
+  # Build edges between hooks (placeholder for future implementation)
+  defp build_inter_hook_edges, do: ""
 end

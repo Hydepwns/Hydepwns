@@ -726,7 +726,7 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
     end
   end
 
-  defp generate_schema_error_suggestions(schema_errors, key, value) do
+  defp generate_schema_error_suggestions(schema_errors, _key, value) do
     Enum.map_join(schema_errors, "\n", fn %{path: path, error: error} ->
       field_path = String.split(path, ".")
       suggested_fix = suggest_fix_for_schema_error(field_path, error, value)

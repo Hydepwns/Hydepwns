@@ -974,7 +974,7 @@ defmodule HydepwnsLiveview.Utils.ValidationDependencyResolver do
 
     {updated_dependencies, _} =
       Enum.reduce_while(edges_to_remove, {dependencies, cycles}, fn {from, to},
-                                                                    {deps, remaining_cycles} ->
+                                                                    {deps, _remaining_cycles} ->
         # Remove edge
         from_deps = Map.get(deps, from, [])
         updated_from_deps = Enum.filter(from_deps, &(&1 != to))

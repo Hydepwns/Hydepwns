@@ -716,17 +716,17 @@ defmodule HydepwnsLiveview.Utils.LiveViewAPI do
     {:ok, values}
   end
 
-  defp validate_single_field_update(%Socket{} = _socket, field, value) do
+  defp validate_single_field_update(%Socket{} = socket, field, value) do
     case field do
       :theme ->
         case SocketValidator.validate_type(value, :string) do
           :ok -> {:ok, value}
-          {:error, message} -> {:error, message, _socket}
+          {:error, message} -> {:error, message, socket}
         end
       :sidebar_open ->
         case SocketValidator.validate_type(value, :boolean) do
           :ok -> {:ok, value}
-          {:error, message} -> {:error, message, _socket}
+          {:error, message} -> {:error, message, socket}
         end
       _ ->
         {:ok, value}

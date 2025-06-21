@@ -129,69 +129,56 @@ defmodule HydepwnsLiveview.Utils.RelationshipValidator do
 
   # Validates a belongs_to relationship
   defp validate_belongs_to(resource, relationship, check_referential_integrity, deep) do
-    # Get the foreign key value
     foreign_key = relationship.foreign_key || :"#{relationship.name}_id"
     foreign_key_value = Map.get(resource, foreign_key)
 
-    errors = []
+    []
+    |> validate_required_relationship(relationship, foreign_key_value)
+    |> validate_referential_integrity(relationship, foreign_key, foreign_key_value, check_referential_integrity)
+    |> validate_deep_relationship(resource, relationship, foreign_key_value, deep, check_referential_integrity)
+  end
 
-    # Check required relationship
-    errors =
-      if relationship.required && is_nil(foreign_key_value) do
-        [%{relationship: relationship.name, error: "Required relationship is nil"} | errors]
-      else
-        errors
+  defp validate_required_relationship(errors, relationship, foreign_key_value) do
+    if relationship.required && is_nil(foreign_key_value) do
+      [%{relationship: relationship.name, error: "Required relationship is nil"} | errors]
+    else
+      errors
+    end
+  end
+
+  defp validate_referential_integrity(errors, relationship, foreign_key, foreign_key_value, check_referential_integrity) do
+    if check_referential_integrity && !is_nil(foreign_key_value) do
+      case relationship.resource.load(foreign_key_value) do
+        {:ok, _} -> errors
+        {:error, reason} ->
+          [%{
+            relationship: relationship.name,
+            error: "Referenced entity not found: #{reason}",
+            foreign_key: foreign_key,
+            foreign_key_value: foreign_key_value
+          } | errors]
       end
+    else
+      errors
+    end
+  end
 
-    # Check referential integrity if enabled
-    errors =
-      if check_referential_integrity && !is_nil(foreign_key_value) do
-        case relationship.resource.load(foreign_key_value) do
-          {:ok, _} ->
-            errors
-
-          {:error, reason} ->
-            [
-              %{
-                relationship: relationship.name,
-                error: "Referenced entity not found: #{reason}",
-                foreign_key: foreign_key,
-                foreign_key_value: foreign_key_value
-              }
-              | errors
-            ]
-        end
-      else
-        errors
+  defp validate_deep_relationship(errors, resource, relationship, foreign_key_value, deep, check_referential_integrity) do
+    if deep && !is_nil(foreign_key_value) do
+      case RelationshipResolver.resolve_relationship(resource, relationship.name) do
+        {:ok, related} when not is_nil(related) ->
+          case validate_relationships(related, check_referential_integrity: check_referential_integrity) do
+            :ok -> errors
+            {:error, related_errors} ->
+              Enum.map(related_errors, fn error ->
+                Map.put(error, :relationship_path, [relationship.name | Map.get(error, :relationship_path, [])])
+              end) ++ errors
+          end
+        _ -> errors
       end
-
-    # Check deep validation if enabled
-    errors =
-      if deep && !is_nil(foreign_key_value) do
-        case RelationshipResolver.resolve_relationship(resource, relationship.name) do
-          {:ok, related} when not is_nil(related) ->
-            case validate_relationships(related,
-                   check_referential_integrity: check_referential_integrity
-                 ) do
-              :ok ->
-                errors
-
-              {:error, related_errors} ->
-                Enum.map(related_errors, fn error ->
-                  Map.put(error, :relationship_path, [
-                    relationship.name | Map.get(error, :relationship_path, [])
-                  ])
-                end) ++ errors
-            end
-
-          _ ->
-            errors
-        end
-      else
-        errors
-      end
-
-    errors
+    else
+      errors
+    end
   end
 
   # Validates a has_many relationship
@@ -258,166 +245,131 @@ defmodule HydepwnsLiveview.Utils.RelationshipValidator do
 
   # Validates a through relationship
   defp validate_through(resource, relationship, check_referential_integrity, deep) do
-    errors = []
-
-    # Validate the intermediate relationship
     through_name = relationship.through
 
-    through_errors =
-      validate_relationship(resource, through_name, check_referential_integrity, false)
-
-    errors = through_errors ++ errors
+    # Validate the intermediate relationship
+    through_errors = validate_relationship(resource, through_name, check_referential_integrity, false)
 
     if Enum.empty?(through_errors) && deep do
-      # If the intermediate is valid, validate the target relationship on each intermediate entity
-      case RelationshipResolver.resolve_relationship(resource, through_name) do
-        {:ok, intermediates} ->
-          intermediates = if is_list(intermediates), do: intermediates, else: [intermediates]
+      validate_through_targets(resource, relationship, through_name, check_referential_integrity, deep, through_errors)
+    else
+      through_errors
+    end
+  end
 
-          filtered_intermediates = Enum.filter(intermediates, &(&1 != nil))
+  defp validate_through_targets(resource, relationship, through_name, check_referential_integrity, deep, errors) do
+    case RelationshipResolver.resolve_relationship(resource, through_name) do
+      {:ok, intermediates} ->
+        target_errors = validate_intermediate_targets(intermediates, relationship, through_name, check_referential_integrity, deep)
+        target_errors ++ errors
+      _ ->
+        errors
+    end
+  end
 
-          target_errors =
-            Enum.flat_map(filtered_intermediates, fn intermediate ->
-              target_name = relationship.target
+  defp validate_intermediate_targets(intermediates, relationship, through_name, check_referential_integrity, deep) do
+    intermediates_list = if is_list(intermediates), do: intermediates, else: [intermediates]
+    filtered_intermediates = Enum.filter(intermediates_list, &(&1 != nil))
 
-              target_errors =
-                validate_relationship(
-                  intermediate,
-                  target_name,
-                  check_referential_integrity,
-                  deep
-                )
+    Enum.flat_map(filtered_intermediates, fn intermediate ->
+      target_name = relationship.target
+      target_errors = validate_relationship(intermediate, target_name, check_referential_integrity, deep)
 
-              Enum.map(target_errors, fn error ->
-                Map.put(error, :relationship_path, [
-                  relationship.name,
-                  through_name | Map.get(error, :relationship_path, [])
-                ])
-              end)
-            end)
+      Enum.map(target_errors, fn error ->
+        Map.put(error, :relationship_path, [
+          relationship.name,
+          through_name | Map.get(error, :relationship_path, [])
+        ])
+      end)
+    end)
+  end
 
-          _errors = target_errors ++ errors
+  # Validates a polymorphic relationship
+  defp validate_polymorphic(resource, relationship, check_referential_integrity, deep) do
+    base_name = relationship.polymorphic_name || relationship.name
+    id_field = :"#{base_name}_id"
+    type_field = :"#{base_name}_type"
+    id_value = Map.get(resource, id_field)
+    type_value = Map.get(resource, type_field)
 
-        _ ->
-          errors
+    []
+    |> validate_polymorphic_required(relationship, id_value, type_value, id_field, type_field)
+    |> validate_polymorphic_type(relationship, type_value, type_field)
+    |> validate_polymorphic_integrity(resource, relationship, id_value, type_value, id_field, type_field, check_referential_integrity)
+    |> validate_polymorphic_deep(resource, relationship, id_value, type_value, deep, check_referential_integrity)
+  end
+
+  defp validate_polymorphic_required(errors, relationship, id_value, type_value, id_field, type_field) do
+    if relationship.required && (is_nil(id_value) || is_nil(type_value)) do
+      [%{
+        relationship: relationship.name,
+        error: "Required polymorphic relationship has nil id or type",
+        id_field: id_field,
+        type_field: type_field
+      } | errors]
+    else
+      errors
+    end
+  end
+
+  defp validate_polymorphic_type(errors, relationship, type_value, type_field) do
+    if !is_nil(type_value) && relationship.allowed_types &&
+         !Enum.any?(relationship.allowed_types, &(to_string(&1) == to_string(type_value))) do
+      [%{
+        relationship: relationship.name,
+        error: "Invalid polymorphic type: #{type_value}, allowed types: #{inspect(relationship.allowed_types)}",
+        type_field: type_field,
+        type_value: type_value
+      } | errors]
+    else
+      errors
+    end
+  end
+
+  defp validate_polymorphic_integrity(errors, resource, relationship, id_value, type_value, id_field, type_field, check_referential_integrity) do
+    if check_referential_integrity && !is_nil(id_value) && !is_nil(type_value) do
+      case RelationshipResolver.resolve_relationship(resource, relationship.name) do
+        {:ok, nil} ->
+          [%{
+            relationship: relationship.name,
+            error: "Referenced polymorphic entity not found",
+            id_field: id_field,
+            id_value: id_value,
+            type_field: type_field,
+            type_value: type_value
+          } | errors]
+        {:ok, _} -> errors
+        {:error, reason} ->
+          [%{
+            relationship: relationship.name,
+            error: "Error resolving polymorphic relationship: #{reason}",
+            id_field: id_field,
+            id_value: id_value,
+            type_field: type_field,
+            type_value: type_value
+          } | errors]
       end
     else
       errors
     end
   end
 
-  # Validates a polymorphic relationship
-  defp validate_polymorphic(resource, relationship, check_referential_integrity, deep) do
-    errors = []
-
-    # Get the base name for the polymorphic relation
-    base_name = relationship.polymorphic_name || relationship.name
-
-    # Get the ID and type values
-    id_field = :"#{base_name}_id"
-    type_field = :"#{base_name}_type"
-
-    id_value = Map.get(resource, id_field)
-    type_value = Map.get(resource, type_field)
-
-    # Check required relationship
-    errors =
-      if relationship.required && (is_nil(id_value) || is_nil(type_value)) do
-        [
-          %{
-            relationship: relationship.name,
-            error: "Required polymorphic relationship has nil id or type",
-            id_field: id_field,
-            type_field: type_field
-          }
-          | errors
-        ]
-      else
-        errors
+  defp validate_polymorphic_deep(errors, resource, relationship, id_value, type_value, deep, check_referential_integrity) do
+    if deep && !is_nil(id_value) && !is_nil(type_value) do
+      case RelationshipResolver.resolve_relationship(resource, relationship.name) do
+        {:ok, related} when not is_nil(related) ->
+          case validate_relationships(related, check_referential_integrity: check_referential_integrity) do
+            :ok -> errors
+            {:error, related_errors} ->
+              Enum.map(related_errors, fn error ->
+                Map.put(error, :relationship_path, [relationship.name | Map.get(error, :relationship_path, [])])
+              end) ++ errors
+          end
+        _ -> errors
       end
-
-    # Validate the type is allowed
-    errors =
-      if !is_nil(type_value) && relationship.allowed_types &&
-           !Enum.any?(relationship.allowed_types, &(to_string(&1) == to_string(type_value))) do
-        [
-          %{
-            relationship: relationship.name,
-            error:
-              "Invalid polymorphic type: #{type_value}, allowed types: #{inspect(relationship.allowed_types)}",
-            type_field: type_field,
-            type_value: type_value
-          }
-          | errors
-        ]
-      else
-        errors
-      end
-
-    # Check referential integrity if enabled
-    errors =
-      if check_referential_integrity && !is_nil(id_value) && !is_nil(type_value) do
-        case RelationshipResolver.resolve_relationship(resource, relationship.name) do
-          {:ok, nil} ->
-            [
-              %{
-                relationship: relationship.name,
-                error: "Referenced polymorphic entity not found",
-                id_field: id_field,
-                id_value: id_value,
-                type_field: type_field,
-                type_value: type_value
-              }
-              | errors
-            ]
-
-          {:ok, _} ->
-            errors
-
-          {:error, reason} ->
-            [
-              %{
-                relationship: relationship.name,
-                error: "Error resolving polymorphic relationship: #{reason}",
-                id_field: id_field,
-                id_value: id_value,
-                type_field: type_field,
-                type_value: type_value
-              }
-              | errors
-            ]
-        end
-      else
-        errors
-      end
-
-    # Check deep validation if enabled
-    errors =
-      if deep && !is_nil(id_value) && !is_nil(type_value) do
-        case RelationshipResolver.resolve_relationship(resource, relationship.name) do
-          {:ok, related} when not is_nil(related) ->
-            case validate_relationships(related,
-                   check_referential_integrity: check_referential_integrity
-                 ) do
-              :ok ->
-                errors
-
-              {:error, related_errors} ->
-                Enum.map(related_errors, fn error ->
-                  Map.put(error, :relationship_path, [
-                    relationship.name | Map.get(error, :relationship_path, [])
-                  ])
-                end) ++ errors
-            end
-
-          _ ->
-            errors
-        end
-      else
-        errors
-      end
-
-    errors
+    else
+      errors
+    end
   end
 
   @doc """
@@ -471,72 +423,79 @@ defmodule HydepwnsLiveview.Utils.RelationshipValidator do
 
   # Validates cascading updates
   defp validate_cascade_updates(original, updated, updates) do
-    # Get the resource module
     resource_module = Map.get(original, :__resource_module__)
-
-    # Get all relationships
     relationships = RelationshipResolver.get_relationships(resource_module)
-
-    # Find relationships affected by the updates
-    affected_relationships =
-      Enum.filter(relationships, fn relationship ->
-        # For belongs_to, the foreign key might be updated
-        if relationship.type == :belongs_to do
-          foreign_key = relationship.foreign_key || :"#{relationship.name}_id"
-          Map.has_key?(updates, foreign_key)
-        else
-          false
-        end
-      end)
-
-    # Validate each affected relationship
-    errors =
-      Enum.flat_map(affected_relationships, fn relationship ->
-        foreign_key = relationship.foreign_key || :"#{relationship.name}_id"
-        old_value = Map.get(original, foreign_key)
-        new_value = Map.get(updated, foreign_key)
-
-        if old_value != new_value do
-          # Foreign key has changed - validate the new reference
-          if is_nil(new_value) do
-            if relationship.required do
-              [
-                %{
-                  relationship: relationship.name,
-                  operation: :update,
-                  error: "Cannot set required foreign key to nil",
-                  foreign_key: foreign_key
-                }
-              ]
-            else
-              []
-            end
-          else
-            case relationship.resource.load(new_value) do
-              {:ok, _} ->
-                []
-
-              {:error, reason} ->
-                [
-                  %{
-                    relationship: relationship.name,
-                    operation: :update,
-                    error: "Referenced entity not found: #{reason}",
-                    foreign_key: foreign_key,
-                    foreign_key_value: new_value
-                  }
-                ]
-            end
-          end
-        else
-          []
-        end
-      end)
+    affected_relationships = find_affected_relationships(relationships, updates)
+    errors = validate_affected_relationships(affected_relationships, original, updated)
 
     if Enum.empty?(errors) do
       :ok
     else
       {:error, errors}
+    end
+  end
+
+  defp find_affected_relationships(relationships, updates) do
+    Enum.filter(relationships, fn relationship ->
+      relationship.type == :belongs_to && has_foreign_key_update?(relationship, updates)
+    end)
+  end
+
+  defp has_foreign_key_update?(relationship, updates) do
+    foreign_key = relationship.foreign_key || :"#{relationship.name}_id"
+    Map.has_key?(updates, foreign_key)
+  end
+
+  defp validate_affected_relationships(affected_relationships, original, updated) do
+    Enum.flat_map(affected_relationships, fn relationship ->
+      validate_relationship_update(relationship, original, updated)
+    end)
+  end
+
+  defp validate_relationship_update(relationship, original, updated) do
+    foreign_key = relationship.foreign_key || :"#{relationship.name}_id"
+    old_value = Map.get(original, foreign_key)
+    new_value = Map.get(updated, foreign_key)
+
+    if old_value != new_value do
+      validate_foreign_key_change(relationship, foreign_key, new_value)
+    else
+      []
+    end
+  end
+
+  defp validate_foreign_key_change(relationship, foreign_key, new_value) do
+    if is_nil(new_value) do
+      validate_nil_foreign_key(relationship, foreign_key)
+    else
+      validate_foreign_key_reference(relationship, foreign_key, new_value)
+    end
+  end
+
+  defp validate_nil_foreign_key(relationship, foreign_key) do
+    if relationship.required do
+      [%{
+        relationship: relationship.name,
+        operation: :update,
+        error: "Cannot set required foreign key to nil",
+        foreign_key: foreign_key
+      }]
+    else
+      []
+    end
+  end
+
+  defp validate_foreign_key_reference(relationship, foreign_key, new_value) do
+    case relationship.resource.load(new_value) do
+      {:ok, _} -> []
+      {:error, reason} ->
+        [%{
+          relationship: relationship.name,
+          operation: :update,
+          error: "Referenced entity not found: #{reason}",
+          foreign_key: foreign_key,
+          foreign_key_value: new_value
+        }]
     end
   end
 
@@ -570,40 +529,44 @@ defmodule HydepwnsLiveview.Utils.RelationshipValidator do
     cascade = Keyword.get(opts, :cascade, false)
     force = Keyword.get(opts, :force, false)
 
-    # If force is enabled, allow deletion without validation
     if force do
       :ok
     else
-      # Get the resource module
-      resource_module = Map.get(resource, :__resource_module__)
-
-      if is_nil(resource_module) do
-        {:error, [%{error: "Resource does not have a __resource_module__ attribute"}]}
-      else
-        # Find all reverse relationships (resources that depend on this one)
-        reverse_relationships = find_reverse_relationships(resource)
-
-        if Enum.empty?(reverse_relationships) do
-          :ok
-        else
-          if cascade do
-            # With cascade, check that all reverse relationships can be deleted
-            validate_cascade_delete(resource, reverse_relationships)
-          else
-            # Without cascade, any existing reverse relationship prevents deletion
-            {:error,
-             Enum.map(reverse_relationships, fn {rel_resource, rel_def} ->
-               %{
-                 relationship: rel_def.name,
-                 resource: rel_resource.__struct__,
-                 error:
-                   "Cannot delete because it is referenced by #{inspect(rel_resource.__struct__)}"
-               }
-             end)}
-          end
-        end
-      end
+      validate_delete_with_checks(resource, cascade)
     end
+  end
+
+  defp validate_delete_with_checks(resource, cascade) do
+    resource_module = Map.get(resource, :__resource_module__)
+
+    if is_nil(resource_module) do
+      {:error, [%{error: "Resource does not have a __resource_module__ attribute"}]}
+    else
+      reverse_relationships = find_reverse_relationships(resource)
+      validate_reverse_relationships(reverse_relationships, cascade, resource)
+    end
+  end
+
+  defp validate_reverse_relationships([], _cascade, _resource) do
+    :ok
+  end
+
+  defp validate_reverse_relationships(reverse_relationships, cascade, resource) do
+    if cascade do
+      validate_cascade_delete(resource, reverse_relationships)
+    else
+      {:error, build_reverse_relationship_errors(reverse_relationships)}
+    end
+  end
+
+  defp build_reverse_relationship_errors(reverse_relationships) do
+    Enum.map(reverse_relationships, fn {rel_resource, rel_def} ->
+      %{
+        relationship: rel_def.name,
+        resource: rel_resource.__struct__,
+        error: "Cannot delete because it is referenced by #{inspect(rel_resource.__struct__)}"
+      }
+    end)
   end
 
   # Find all resources that have a relationship to this resource

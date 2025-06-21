@@ -85,41 +85,46 @@ defmodule HydepwnsLiveview.Utils.RelationshipResolver do
     # Get the resource module
     resource_module = Map.get(resource, :__resource_module__)
 
-    if is_nil(resource_module) do
-      {:error,
-       "Cannot resolve relationship: Resource does not have a __resource_module__ attribute"}
+    with {:ok, resource_module} <- validate_resource_module(resource_module),
+         {:ok, relationship} <- get_relationship_definition(resource_module, relationship_name) do
+      resolve_relationship_data(resource, relationship, lazy, cache)
     else
-      # Get relationship definition
-      relationship = get_relationship_definition(resource_module, relationship_name)
+      {:error, reason} -> {:error, reason}
+    end
+  end
 
-      if is_nil(relationship) do
-        {:error, "Relationship #{relationship_name} not found in #{inspect(resource_module)}"}
-      else
-        if lazy do
-          # Return a lazy loader function
-          {:ok,
-           fn ->
-             case do_resolve_relationship(resource, relationship, cache: cache) do
-               {:ok, related_data, _updated_resource} -> {:ok, related_data}
-               {:error, reason, _resource} -> {:error, reason}
-             end
-           end}
-        else
-          # Resolve immediately
-          case do_resolve_relationship(resource, relationship, cache: cache) do
-            {:ok, related_data, updated_resource} ->
-              # For testing purposes, store the updated resource in the process dictionary
-              if Application.get_env(:hydepwns_liveview, :testing) do
-                Process.put({:resource_cache, resource_module, resource.id}, updated_resource)
-              end
+  defp validate_resource_module(nil) do
+    {:error, "Cannot resolve relationship: Resource does not have a __resource_module__ attribute"}
+  end
 
-              # Return the related data
-              {:ok, related_data}
+  defp validate_resource_module(resource_module) do
+    {:ok, resource_module}
+  end
 
-            {:error, reason, _resource} ->
-              {:error, reason}
+  defp resolve_relationship_data(resource, relationship, lazy, cache) do
+    if lazy do
+      # Return a lazy loader function
+      {:ok,
+       fn ->
+         case do_resolve_relationship(resource, relationship, cache: cache) do
+           {:ok, related_data, _updated_resource} -> {:ok, related_data}
+           {:error, reason, _resource} -> {:error, reason}
+         end
+       end}
+    else
+      # Resolve immediately
+      case do_resolve_relationship(resource, relationship, cache: cache) do
+        {:ok, related_data, updated_resource} ->
+          # For testing purposes, store the updated resource in the process dictionary
+          if Application.get_env(:hydepwns_liveview, :testing) do
+            Process.put({:resource_cache, resource.__resource_module__, resource.id}, updated_resource)
           end
-        end
+
+          # Return the related data
+          {:ok, related_data}
+
+        {:error, reason, _resource} ->
+          {:error, reason}
       end
     end
   end
@@ -169,24 +174,31 @@ defmodule HydepwnsLiveview.Utils.RelationshipResolver do
       {:error, "Cannot eager load: Resource does not have a __resource_module__ attribute"}
     else
       # Get relationship definitions
-      relationship_defs =
-        Enum.map(relationships, fn rel_name ->
-          {rel_name, get_relationship_definition(resource_module, rel_name)}
-        end)
-        |> Enum.reject(fn {_, rel_def} -> is_nil(rel_def) end)
+      relationship_defs = get_relationship_definitions(resource_module, relationships)
 
       # Load each relationship
-      Enum.reduce_while(relationship_defs, {:ok, resource}, fn {rel_name, _rel_def},
-                                                               {:ok, acc_resource} ->
-        case resolve_relationship(acc_resource, rel_name) do
-          {:ok, related} ->
-            # Add the resolved relationship to the resource
-            {:cont, {:ok, Map.put(acc_resource, rel_name, related)}}
+      Enum.reduce_while(relationship_defs, {:ok, resource}, &load_relationship_reducer/2)
+    end
+  end
 
-          {:error, reason} ->
-            {:halt, {:error, "Failed to load relationship #{rel_name}: #{reason}"}}
-        end
-      end)
+  defp get_relationship_definitions(resource_module, relationships) do
+    Enum.map(relationships, fn rel_name ->
+      case get_relationship_definition(resource_module, rel_name) do
+        {:ok, rel_def} -> {rel_name, rel_def}
+        {:error, _} -> nil
+      end
+    end)
+    |> Enum.reject(&is_nil/1)
+  end
+
+  defp load_relationship_reducer({rel_name, _rel_def}, {:ok, acc_resource}) do
+    case resolve_relationship(acc_resource, rel_name) do
+      {:ok, related} ->
+        # Add the resolved relationship to the resource
+        {:cont, {:ok, Map.put(acc_resource, rel_name, related)}}
+
+      {:error, reason} ->
+        {:halt, {:error, "Failed to load relationship #{rel_name}: #{reason}"}}
     end
   end
 
@@ -196,24 +208,24 @@ defmodule HydepwnsLiveview.Utils.RelationshipResolver do
   ## Examples
 
       iex> get_relationship_definition(MyApp.UserResource, :posts)
-      %{name: :posts, type: :has_many, resource: MyApp.PostResource, foreign_key: :user_id, cardinality: :many}
+      {:ok, %{name: :posts, type: :has_many, resource: MyApp.PostResource, foreign_key: :user_id, cardinality: :many}}
   """
-  @spec get_relationship_definition(module(), atom()) :: map() | nil
+  @spec get_relationship_definition(module(), atom()) :: {:ok, map()} | {:error, String.t()}
   def get_relationship_definition(resource_module, relationship_name)
       when is_atom(resource_module) do
     # Get all relationships
     relationships = get_relationships(resource_module)
 
     # Find the specific relationship
-    Enum.find(relationships, fn relationship ->
+    case Enum.find(relationships, fn relationship ->
       relationship.name == relationship_name
-    end)
+    end) do
+      nil -> {:error, "Relationship #{relationship_name} not found in #{inspect(resource_module)}"}
+      relationship -> {:ok, relationship}
+    end
   end
 
   # Handle different relationship definition formats
-  defp relationship_name_from_def(%{name: name}), do: name
-  defp relationship_name_from_def({name, _type, _resource, _opts}), do: name
-  defp relationship_name_from_def(_def), do: nil
 
   # Implements the actual relationship resolution logic
   defp do_resolve_relationship(resource, relationship, opts) do
@@ -418,51 +430,50 @@ defmodule HydepwnsLiveview.Utils.RelationshipResolver do
 
     # First, get the intermediate relationship definition
     resource_module = Map.get(resource, :__resource_module__)
-    through_relationship = get_relationship_definition(resource_module, through)
+    
+    case get_relationship_definition(resource_module, through) do
+      {:ok, through_relationship} ->
+        # First load the intermediate relationship
+        case do_resolve_relationship(resource, through_relationship, cache: false) do
+          {:ok, intermediates, updated_resource} ->
+            # Handle collection or single intermediate
+            intermediates_list = if is_list(intermediates), do: intermediates, else: [intermediates]
 
-    if is_nil(through_relationship) do
-      {:error, "Through relationship #{through} not found in #{inspect(resource_module)}",
-       resource}
-    else
-      # First load the intermediate relationship
-      case do_resolve_relationship(resource, through_relationship, cache: false) do
-        {:ok, intermediates, updated_resource} ->
-          # Handle collection or single intermediate
-          intermediates_list = if is_list(intermediates), do: intermediates, else: [intermediates]
-
-          # Then load the target relationships from each intermediate
-          related =
-            intermediates_list
-            |> Enum.filter(&(&1 != nil))
-            |> Enum.flat_map(fn intermediate ->
-              # Get the target relationship definition
-              intermediate_module = Map.get(intermediate, :__resource_module__)
-              target_relationship = get_relationship_definition(intermediate_module, target)
-
-              if is_nil(target_relationship) do
-                []
-              else
-                case do_resolve_relationship(intermediate, target_relationship, cache: false) do
-                  {:ok, targets, _} -> if is_list(targets), do: targets, else: [targets]
-                  {:error, _, _} -> []
+            # Then load the target relationships from each intermediate
+            related =
+              intermediates_list
+              |> Enum.filter(&(&1 != nil))
+              |> Enum.flat_map(fn intermediate ->
+                # Get the target relationship definition
+                intermediate_module = Map.get(intermediate, :__resource_module__)
+                
+                case get_relationship_definition(intermediate_module, target) do
+                  {:ok, target_relationship} ->
+                    case do_resolve_relationship(intermediate, target_relationship, cache: false) do
+                      {:ok, targets, _} -> if is_list(targets), do: targets, else: [targets]
+                      {:error, _, _} -> []
+                    end
+                  {:error, _} -> []
                 end
+              end)
+              |> Enum.reject(&is_nil/1)
+
+            # Cache if needed
+            final_resource =
+              if cache do
+                cache_relationship(updated_resource, relationship.name, related)
+              else
+                updated_resource
               end
-            end)
-            |> Enum.reject(&is_nil/1)
 
-          # Cache if needed
-          final_resource =
-            if cache do
-              cache_relationship(updated_resource, relationship.name, related)
-            else
-              updated_resource
-            end
+            {:ok, related, final_resource}
 
-          {:ok, related, final_resource}
+          {:error, reason, _} ->
+            {:error, "Failed to load through relationship: #{reason}", resource}
+        end
 
-        {:error, reason, _} ->
-          {:error, "Failed to load through relationship: #{reason}", resource}
-      end
+      {:error, reason} ->
+        {:error, "Through relationship #{through} not found in #{inspect(resource_module)}: #{reason}", resource}
     end
   end
 

@@ -44,7 +44,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventLive do
         {:noreply,
          socket
          |> put_flash(:info, "Event deleted successfully")
-         |> push_navigate(to: ~p"/resource_events")}
+         |> push_navigate(to: ~p"/resources/#{socket.assigns.resource_id}/events")}
 
       {:error, reason} ->
         {:noreply,

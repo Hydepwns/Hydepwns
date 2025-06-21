@@ -6,11 +6,12 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
   use HydepwnsLiveviewWeb, :live_component
 
   alias HydepwnsLiveview.Resources.ResourceSystem
+  alias HydepwnsLiveview.Resources.Resource
   import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, button: 1, label: 1]
 
   @impl true
   def update(%{resource: resource} = assigns, socket) do
-    changeset = ResourceSystem.changeset(resource, %{})
+    changeset = Resource.changeset(resource, %{})
 
     {:ok,
      socket
@@ -22,7 +23,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
   def handle_event("validate", %{"resource" => resource_params}, socket) do
     changeset =
       socket.assigns.resource
-      |> ResourceSystem.changeset(resource_params)
+      |> Resource.changeset(resource_params)
       |> Map.put(:action, :validate)
 
     {:noreply, assign(socket, :changeset, changeset)}

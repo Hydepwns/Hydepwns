@@ -66,35 +66,148 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
           | {:union, list()}
           | {:custom, (any() -> boolean() | {:error, String.t()})}
           | {:map, map()}
+          | {:optional, any()}
+          | {:nested_list, any()}
+          | {:list_of_maps, map()}
+          | {:map_with_lists, map()}
         ) ::
           {:ok, any()} | {:error, String.t()}
   def validate_type(value, type_spec) do
     case type_spec do
-      :string when is_binary(value) -> :ok
-      :integer when is_integer(value) -> :ok
-      :float when is_float(value) -> :ok
-      :boolean when is_boolean(value) -> :ok
-      :map when is_map(value) -> :ok
-      :list when is_list(value) -> :ok
+      :string when is_binary(value) -> {:ok, value}
+      :string -> {:error, "expected string, got: #{inspect(value)}"}
+      :integer when is_integer(value) -> {:ok, value}
+      :integer -> {:error, "expected integer, got: #{inspect(value)}"}
+      :float when is_float(value) -> {:ok, value}
+      :float -> {:error, "expected float, got: #{inspect(value)}"}
+      :boolean when is_boolean(value) -> {:ok, value}
+      :boolean -> {:error, "expected boolean, got: #{inspect(value)}"}
+      :map when is_map(value) -> {:ok, value}
+      :map -> {:error, "expected map, got: #{inspect(value)}"}
+      :list when is_list(value) -> {:ok, value}
+      :list -> {:error, "expected list, got: #{inspect(value)}"}
+      :atom when is_atom(value) -> {:ok, value}
+      :atom -> {:error, "expected atom, got: #{inspect(value)}"}
+      :function when is_function(value) -> {:ok, value}
+      :function -> {:error, "expected function, got: #{inspect(value)}"}
+      :number when is_number(value) -> {:ok, value}
+      :number -> {:error, "expected number, got: #{inspect(value)}"}
       {:list, type} when is_list(value) -> validate_list_type(value, type)
-      {:map, key_type, value_type} when is_map(value) -> validate_map_types(value, key_type, value_type)
-      _ -> {:error, "Invalid type"}
+      {:list, _type} -> {:error, "expected list, got: #{inspect(value)}"}
+      {:map, schema} when is_map(value) -> validate_map_schema(value, schema)
+      {:map, _schema} -> {:error, "expected map, got: #{inspect(value)}"}
+      {:one_of, allowed} -> validate_one_of(value, allowed)
+      {:union, types} -> validate_union(value, types)
+      {:custom, validator} -> validate_custom(value, validator)
+      {:optional, type} -> validate_optional(value, type)
+      {:nested_list, type} when is_list(value) -> validate_nested_list(value, type)
+      {:nested_list, _type} -> {:error, "expected list, got: #{inspect(value)}"}
+      {:list_of_maps, schema} when is_list(value) -> validate_list_of_maps(value, schema)
+      {:list_of_maps, _schema} -> {:error, "expected list, got: #{inspect(value)}"}
+      {:map_with_lists, schema} when is_map(value) -> validate_map_with_lists(value, schema)
+      {:map_with_lists, _schema} -> {:error, "expected map, got: #{inspect(value)}"}
+      # Handle map schemas (when type_spec is a map)
+      schema when is_map(schema) and is_map(value) -> validate_map_schema(value, schema)
+      schema when is_map(schema) -> {:error, "expected map, got: #{inspect(value)}"}
+      _ -> {:error, "unsupported type specification: #{inspect(type_spec)}"}
     end
   end
 
-  defp validate_list_type(list, type) do
-    if Enum.all?(list, &validate_type(&1, type) == :ok) do
-      :ok
+  defp validate_optional(value, type) do
+    if is_nil(value) do
+      {:ok, value}
     else
-      {:error, "List contains invalid elements"}
+      validate_type(value, type)
     end
+  end
+
+  defp validate_nested_list(list, type) do
+    case list do
+      [] -> {:ok, list}
+      [head | tail] when is_list(head) ->
+        case validate_list_type(head, type) do
+          {:ok, _} -> validate_nested_list(tail, type)
+          {:error, message} -> {:error, "nested_list validation failed: #{message}"}
+        end
+      _ -> {:error, "nested_list validation failed: expected list of lists"}
+    end
+  end
+
+  defp validate_list_of_maps(value, schema) do
+    Enum.with_index(value)
+    |> Enum.reduce_while({:ok, value}, fn {item, index}, _acc ->
+      case validate_map_schema(item, schema) do
+        {:ok, _} -> {:cont, {:ok, value}}
+        {:error, message} ->
+          error_message = "item at index #{index}: #{message}"
+          {:halt, {:error, error_message}}
+      end
+    end)
+  end
+
+  defp validate_map_with_lists(map, schema) do
+    validate_map_schema(map, schema)
+  end
+
+  defp validate_map_schema(value, schema) when is_map(value) and is_map(schema) do
+    # Check for required fields first
+    required_fields = Enum.filter(schema, fn {_key, type_spec} -> 
+      !match?({:optional, _}, type_spec)
+    end)
+    
+    missing_fields = Enum.filter(required_fields, fn {key, _} ->
+      !Map.has_key?(value, key)
+    end)
+    
+    if Enum.empty?(missing_fields) do
+      # Validate all fields
+      Enum.reduce_while(schema, {:ok, value}, fn {key, type_spec}, _acc ->
+        case Map.fetch(value, key) do
+          {:ok, field_value} ->
+            case validate_type(field_value, type_spec) do
+              {:ok, _} -> {:cont, {:ok, value}}
+              {:error, message} -> {:halt, {:error, "#{key}: #{message}"}}
+            end
+          :error ->
+            case type_spec do
+              {:optional, _} -> {:cont, {:ok, value}}
+              _ -> {:halt, {:error, "missing field: #{key}"}}
+            end
+        end
+      end)
+    else
+      missing_field_names = Enum.map(missing_fields, fn {key, _} -> key end)
+      {:error, "missing required fields: #{Enum.join(missing_field_names, ", ")}"}
+    end
+  end
+
+  defp validate_map_schema(value, schema) when is_map(schema) do
+    {:error, "expected map, got: #{inspect(value)}"}
+  end
+
+  defp validate_list_type(value, type) do
+    Enum.with_index(value)
+    |> Enum.reduce_while({:ok, value}, fn {item, index}, _acc ->
+      case validate_type(item, type) do
+        {:ok, _} -> {:cont, {:ok, value}}
+        {:error, message} ->
+          error_message = "item at index #{index}: #{message}"
+          {:halt, {:error, error_message}}
+      end
+    end)
   end
 
   defp validate_map_types(map, key_type, value_type) do
-    if Enum.all?(map, fn {key, value} ->
-      validate_type(key, key_type) == :ok && validate_type(value, value_type) == :ok
+    results = Enum.map(map, fn {key, value} ->
+      key_result = validate_type(key, key_type)
+      value_result = validate_type(value, value_type)
+      {key_result, value_result}
+    end)
+    
+    if Enum.all?(results, fn {key_result, value_result} ->
+      match?({:ok, _}, key_result) && match?({:ok, _}, value_result)
     end) do
-      :ok
+      {:ok, map}
     else
       {:error, "Map contains invalid keys or values"}
     end
@@ -102,23 +215,28 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
 
   def validate_one_of(value, allowed) when is_list(allowed) do
     if value in allowed do
-      :ok
+      {:ok, value}
     else
-      {:error, "Value not in allowed list"}
+      {:error, "expected one of #{inspect(allowed)}, got: #{inspect(value)}"}
     end
   end
 
   def validate_union(value, types) when is_list(types) do
-    Enum.find_value(types, {:error, "Value matches no allowed types"}, fn type ->
+    Enum.find_value(types, {:error, "Value matched none of the union types: #{inspect(types)}"}, fn type ->
       case validate_type(value, type) do
-        :ok -> :ok
+        {:ok, _} -> {:ok, value}
         _ -> nil
       end
     end)
   end
 
   def validate_custom(value, validator) when is_function(validator, 1) do
-    validator.(value)
+    case validator.(value) do
+      true -> {:ok, value}
+      false -> {:error, "custom validation failed"}
+      {:error, message} -> {:error, message}
+      other -> {:error, "custom validator returned unexpected result: #{inspect(other)}"}
+    end
   end
 
   @doc """
@@ -213,9 +331,17 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
   ```
   """
   @spec type_validation(Phoenix.LiveView.Socket.t(), atom(), any()) ::
-          {:ok, Phoenix.LiveView.Socket.t()} | {:error, String.t(), Phoenix.LiveView.Socket.t()}
+          {:ok, any()} | {:error, String.t()}
   def type_validation(socket, key, type_spec) do
-    TypeValidation.type_validation(socket, key, type_spec)
+    case Map.fetch(socket.assigns, key) do
+      {:ok, value} ->
+        case validate_type(value, type_spec) do
+          {:ok, value} -> {:ok, value}
+          {:error, message} -> {:error, message}
+        end
+      :error ->
+        {:error, "Missing required assign: #{key}"}
+    end
   end
 
   @doc """
@@ -511,7 +637,7 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
   end
 
   # Helper functions for extracting information from error messages
-  defp extract_expected_type(message) do
+  defp extract_expected_type(message) when is_binary(message) do
     type_patterns = %{
       "expected string" => ":string",
       "expected integer" => ":integer",
@@ -531,7 +657,9 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
     end)
   end
 
-  defp extract_enum_type(message) do
+  defp extract_expected_type(_), do: "unknown"
+
+  defp extract_enum_type(message) when is_binary(message) do
     case Regex.run(~r/expected one of: (.+)/, message) do
       [_, values_str] when is_binary(values_str) ->
         trimmed = String.trim(values_str)
@@ -542,12 +670,25 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
     end
   end
 
-  defp extract_enum_values(type_spec) do
+  defp extract_enum_type(_), do: nil
+
+  defp extract_union_type(message) when is_binary(message) do
+    case Regex.run(~r/matched none of the union types: (.+)/, message) do
+      [_, types_str] -> "{:union, [#{types_str}]}"
+      _ -> nil
+    end
+  end
+
+  defp extract_union_type(_), do: nil
+
+  defp extract_enum_values(type_spec) when is_binary(type_spec) do
     case Regex.run(~r/{:one_of, \[(.*)\]}/, type_spec) do
       [_, values_str] -> process_values_string(values_str)
       _ -> []
     end
   end
+
+  defp extract_enum_values(_), do: []
 
   defp process_values_string(values_str) when is_binary(values_str) do
     trimmed = String.trim(values_str)
@@ -563,13 +704,6 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
   end
 
   defp process_values_string(_), do: []
-
-  defp extract_union_type(message) do
-    case Regex.run(~r/matched none of the union types: (.+)/, message) do
-      [_, types_str] -> "{:union, [#{types_str}]}"
-      _ -> nil
-    end
-  end
 
   defp extract_union_types(type_spec) do
     case Regex.run(~r/{:union, \[(.+)\]}/, type_spec) do

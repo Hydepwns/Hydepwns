@@ -1,6 +1,7 @@
 defmodule HydepwnsLiveviewWeb.Themes.ThemeEditLive do
   use HydepwnsLiveviewWeb, :live_view
 
+  alias HydepwnsLiveview.ThemeSystem
   import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label_tag: 1]
 
   @impl Phoenix.LiveView

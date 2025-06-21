@@ -69,7 +69,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ModalComponents do
   def flash(assigns) do
     ~H"""
     <div
-      :if={msg = render_slot(@inner_block) || Phoenix.Flash.get(@flash, @kind)}
+      :if={_msg = render_slot(@inner_block) || Phoenix.Flash.get(@flash, @kind)}
       id={@id || "flash-#{@kind}"}
       phx-mounted={@autoshow && show("##{@id || "flash-#{@kind}"}")}
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id || "flash-#{@kind}"}")}

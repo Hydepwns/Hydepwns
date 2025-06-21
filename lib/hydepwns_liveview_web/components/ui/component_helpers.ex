@@ -4,7 +4,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ComponentHelpers do
   """
 
   import Phoenix.Component
-  import Phoenix.LiveView.Helpers
+  # import Phoenix.LiveView.Helpers
 
   @doc """
   Returns the appropriate color classes for action buttons based on the style.
@@ -43,18 +43,6 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ComponentHelpers do
       :info -> "bg-blue-100 dark:bg-blue-900 dark:bg-opacity-30"
       :success -> "bg-green-100 dark:bg-green-900 dark:bg-opacity-30"
       _ -> "bg-gray-100 dark:bg-gray-800"
-    end
-  end
-
-  @doc """
-  Returns the appropriate color classes for resource status.
-  """
-  def resource_status_class(status) do
-    case status do
-      "draft" -> "bg-gray-100 text-gray-800"
-      "published" -> "bg-green-100 text-green-800"
-      "archived" -> "bg-red-100 text-red-800"
-      _ -> "bg-gray-100 text-gray-800"
     end
   end
 

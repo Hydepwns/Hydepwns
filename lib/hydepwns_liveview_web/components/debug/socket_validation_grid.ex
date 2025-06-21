@@ -16,6 +16,7 @@ defmodule HydepwnsLiveviewWeb.Components.Debug.SocketValidationGrid do
   - id: Component ID (required)
   - data: Validation data from SocketValidationDebugGrid (required)
   """
+  @impl true
   def render(assigns) do
     ~H"""
     <div id={@id} class="debug-grid-validation-panel" data-testid="socket-validation-grid">
@@ -90,21 +91,25 @@ defmodule HydepwnsLiveviewWeb.Components.Debug.SocketValidationGrid do
   end
 
   @doc false
+  @impl true
   def mount(socket) do
     {:ok, socket |> assign(:show_details, false)}
   end
 
   @doc false
+  @impl true
   def update(assigns, socket) do
     {:ok, socket |> assign(assigns)}
   end
 
   @doc false
+  @impl true
   def handle_event("toggle-validation-details", _, socket) do
     {:noreply, socket |> assign(:show_details, !socket.assigns.show_details)}
   end
 
   @doc false
+  @impl true
   def handle_event("highlight-validation-errors", _, socket) do
     # Send a message to the parent LiveView to highlight errors
     send(self(), {:highlight_validation_errors, socket.assigns.data.validation_results})
@@ -112,14 +117,10 @@ defmodule HydepwnsLiveviewWeb.Components.Debug.SocketValidationGrid do
   end
 
   @doc false
+  @impl true
   def handle_event("open-validation-panel", _, socket) do
     # Send a message to the parent LiveView to open the validation panel
     send(self(), :open_validation_panel)
     {:noreply, socket}
   end
-
-  # Helper functions for rendering status icons
-  defp status_icon(:ok), do: "✅"
-  defp status_icon(:error), do: "❌"
-  defp status_icon(_unknown), do: "❓"
 end

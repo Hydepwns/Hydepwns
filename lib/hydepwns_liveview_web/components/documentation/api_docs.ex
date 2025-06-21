@@ -110,7 +110,7 @@ defmodule HydepwnsLiveviewWeb.Components.Documentation.ApiDocs do
 
       <div :if={length(@examples) > 0}>
         <h5>Examples</h5>
-        <div :for={example <- @examples} class="api-example">
+        <div :for={_example <- @examples} class="api-_example">
           <h6>{example.title}</h6>
           <p>{example.description}</p>
           <pre><code class="language-heex">{example.code}</code></pre>
@@ -120,7 +120,7 @@ defmodule HydepwnsLiveviewWeb.Components.Documentation.ApiDocs do
       <div :if={length(@notes) > 0}>
         <h5>Notes</h5>
         <ul class="api-notes">
-          <li :for={note <- @notes}>{note}</li>
+          <li :for={_note <- @notes}>{_note}</li>
         </ul>
       </div>
     </div>

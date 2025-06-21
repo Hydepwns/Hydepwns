@@ -110,7 +110,7 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
       <div :if={@diff} class="diff-view mb-6">
         <h4 class="text-lg font-semibold mb-2">Showing diff</h4>
         <div class="diff-details bg-gray-100 p-3 rounded">
-          <div :for={{key, values} <- @diff.changes} class="diff-item mb-4 border-b pb-2">
+          <div :for={{_key, values} <- @diff.changes} class="diff-item mb-4 border-b pb-2">
             <div class="diff-key font-bold mb-1">{Atom.to_string(key)}</div>
             <div class="diff-values grid grid-cols-2 gap-4">
               <div class="diff-old">
@@ -122,7 +122,7 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
             </div>
             <div :if={values[:nested_diff] && map_size(values.nested_diff) > 0} class="mt-2 pl-4 border-l-2 border-gray-300">
               <div class="text-sm font-medium mb-1">Nested Changes:</div>
-              <div :for={{nested_key, nested_values} <- values.nested_diff} class="diff-item mb-2">
+              <div :for={{_nested_key, _nested_values} <- values.nested_diff} class="diff-item mb-2">
                 <div class="diff-key font-medium text-sm">{Atom.to_string(nested_key)}</div>
                 <div class="diff-values grid grid-cols-2 gap-4 text-sm">
                   <div class="diff-old">
@@ -227,7 +227,7 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
         </div>
       </div>
       <div class="timeline-labels flex justify-between w-full mt-2">
-        <div :for={change <- @change_history} class="text-xs text-gray-500">
+        <div :for={_change <- @change_history} class="text-xs text-gray-500">
           {format_timestamp_short(Map.get(change.metadata, :timestamp))}
         </div>
       </div>
@@ -262,7 +262,7 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
             <td class="table-cell">{Map.get(change_item.metadata, :reason) || "No reason provided"}</td>
             <td class="table-cell">
               <ul class="list-disc pl-5">
-                <li :for={{key, value} <- change_item.changes}>{Atom.to_string(key)}</li>
+                <li :for={{_key, _value} <- change_item.changes}>{Atom.to_string(_key)}</li>
               </ul>
             </td>
             <td class="table-cell">
@@ -345,41 +345,12 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
   # Utility functions for formatting
   defp format_timestamp(nil), do: "N/A"
 
-  defp format_timestamp(timestamp) when is_binary(timestamp) do
-    case DateTime.from_iso8601(timestamp) do
-      {:ok, datetime, _} ->
-        Calendar.strftime(datetime, "%Y-%m-%d %H:%M:%S %Z")
-
-      # Fallback to original string if parsing fails
-      _ ->
-        timestamp
-    end
-  end
-
   defp format_timestamp(timestamp) do
     # Assuming it's already a DateTime
     Calendar.strftime(timestamp, "%Y-%m-%d %H:%M:%S %Z")
   end
 
-  defp format_timestamp_short(nil), do: "N/A"
-
-  defp format_timestamp_short(timestamp) when is_binary(timestamp) do
-    case DateTime.from_iso8601(timestamp) do
-      {:ok, datetime, _} -> Calendar.strftime(datetime, "%b %d, %H:%M")
-      _ -> timestamp
-    end
-  end
-
-  # Assuming DateTime
   defp format_timestamp_short(timestamp) do
     Calendar.strftime(timestamp, "%b %d, %H:%M")
-  end
-
-  defp format_nested_changes(_nested_key, _nested_values) do
-    # TODO: Implementation
-  end
-
-  defp format_change(_key, _change) do
-    # TODO: Implementation
   end
 end

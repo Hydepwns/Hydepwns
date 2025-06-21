@@ -10,7 +10,7 @@ defmodule HydepwnsLiveviewWeb.Components.Layouts.Layout do
   """
   use HydepwnsLiveviewWeb, :html
   use Phoenix.Component
-  import Phoenix.Controller, only: [get_csrf_token: 0]
+  # import Phoenix.Controller, only: [get_csrf_token: 0]
 
   # Keep the MobileNav alias which is used in the template
   alias HydepwnsLiveviewWeb.Components.Layouts.MobileNav

@@ -241,30 +241,37 @@ defmodule HydepwnsLiveview.ThemeSystem do
   def create_theme(params) do
     ensure_ets_table()
     
-    # Validate the params
     case validate_theme_params(params) do
       {:ok, validated_params} ->
-        id = get_next_id()
-        theme = %MockTheme{
-          id: id,
-          name: validated_params[:name] || "Theme #{id}",
-          mode: validated_params[:mode] || "light",
-          primary_color: validated_params[:primary_color] || "#3B82F6",
-          secondary_color: validated_params[:secondary_color] || "#10B981",
-          background_color: validated_params[:background_color] || "#FFFFFF",
-          text_color: validated_params[:text_color] || "#1F2937",
-          is_default: validated_params[:is_default] || false,
-          settings: validated_params[:settings] || %{},
-          colors: validated_params[:colors] || %{},
-          inserted_at: DateTime.utc_now(),
-          updated_at: DateTime.utc_now()
-        }
-        set_theme(theme)
-        set_next_id(id + 1)
-        {:ok, mock_to_theme(theme)}
+        create_validated_theme(validated_params)
       {:error, changeset} ->
         {:error, changeset}
     end
+  end
+
+  defp create_validated_theme(validated_params) do
+    id = get_next_id()
+    theme = build_theme_struct(id, validated_params)
+    set_theme(theme)
+    set_next_id(id + 1)
+    {:ok, mock_to_theme(theme)}
+  end
+
+  defp build_theme_struct(id, params) do
+    %MockTheme{
+      id: id,
+      name: params[:name] || "Theme #{id}",
+      mode: params[:mode] || "light",
+      primary_color: params[:primary_color] || "#3B82F6",
+      secondary_color: params[:secondary_color] || "#10B981",
+      background_color: params[:background_color] || "#FFFFFF",
+      text_color: params[:text_color] || "#1F2937",
+      is_default: params[:is_default] || false,
+      settings: params[:settings] || %{},
+      colors: params[:colors] || %{},
+      inserted_at: DateTime.utc_now(),
+      updated_at: DateTime.utc_now()
+    }
   end
 
   def change_theme(theme) do
@@ -310,7 +317,19 @@ defmodule HydepwnsLiveview.ThemeSystem do
 
   # Private validation function
   defp validate_theme_params(params) do
-    # Check required fields
+    with {:ok, _} <- validate_required_fields(params),
+         {:ok, _} <- validate_mode(params),
+         {:ok, _} <- validate_colors(params) do
+      # Convert string keys to atoms for consistency
+      validated_params = for {k, v} <- params, into: %{} do
+        key = if is_binary(k), do: String.to_atom(k), else: k
+        {key, v}
+      end
+      {:ok, validated_params}
+    end
+  end
+
+  defp validate_required_fields(params) do
     required_fields = [:name, :mode, :primary_color, :secondary_color, :background_color, :text_color]
     missing_fields = Enum.filter(required_fields, fn field -> 
       value = Map.get(params, field) || Map.get(params, to_string(field))
@@ -327,45 +346,46 @@ defmodule HydepwnsLiveview.ThemeSystem do
       }
       {:error, changeset}
     else
-      # Validate mode
-      mode = Map.get(params, :mode) || Map.get(params, "mode")
-      valid_modes = ["light", "dark", "dim", "system", "synthwave"]
-      
-      if mode && mode not in valid_modes do
-        changeset = %Ecto.Changeset{
-          data: nil,
-          changes: %{},
-          errors: [{:mode, {"is invalid", [validation: :inclusion, enum: valid_modes]}}],
-          valid?: false,
-          action: :validate
-        }
-        {:error, changeset}
-      else
-        # Validate color format
-        color_fields = [:primary_color, :secondary_color, :background_color, :text_color]
-        invalid_colors = Enum.filter(color_fields, fn field ->
-          color = Map.get(params, field) || Map.get(params, to_string(field))
-          color && !Regex.match?(~r/^#[0-9A-Fa-f]{6}$/, color)
-        end)
-        
-        if invalid_colors != [] do
-          changeset = %Ecto.Changeset{
-            data: nil,
-            changes: %{},
-            errors: Enum.map(invalid_colors, fn field -> {field, {"must be a valid hex color", [validation: :format]}} end),
-            valid?: false,
-            action: :validate
-          }
-          {:error, changeset}
-        else
-          # Convert string keys to atoms for consistency
-          validated_params = for {k, v} <- params, into: %{} do
-            key = if is_binary(k), do: String.to_atom(k), else: k
-            {key, v}
-          end
-          {:ok, validated_params}
-        end
-      end
+      {:ok, params}
+    end
+  end
+
+  defp validate_mode(params) do
+    mode = Map.get(params, :mode) || Map.get(params, "mode")
+    valid_modes = ["light", "dark", "dim", "system", "synthwave"]
+    
+    if mode && mode not in valid_modes do
+      changeset = %Ecto.Changeset{
+        data: nil,
+        changes: %{},
+        errors: [{:mode, {"is invalid", [validation: :inclusion, enum: valid_modes]}}],
+        valid?: false,
+        action: :validate
+      }
+      {:error, changeset}
+    else
+      {:ok, params}
+    end
+  end
+
+  defp validate_colors(params) do
+    color_fields = [:primary_color, :secondary_color, :background_color, :text_color]
+    invalid_colors = Enum.filter(color_fields, fn field ->
+      color = Map.get(params, field) || Map.get(params, to_string(field))
+      color && !Regex.match?(~r/^#[0-9A-Fa-f]{6}$/, color)
+    end)
+    
+    if invalid_colors != [] do
+      changeset = %Ecto.Changeset{
+        data: nil,
+        changes: %{},
+        errors: Enum.map(invalid_colors, fn field -> {field, {"must be a valid hex color", [validation: :format]}} end),
+        valid?: false,
+        action: :validate
+      }
+      {:error, changeset}
+    else
+      {:ok, params}
     end
   end
 end

@@ -20,10 +20,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ValidationHelpers do
   Validates a plan.
   """
   def validate_plan(plan) do
-    with :ok <- validate_required_fields(plan),
-         :ok <- validate_plan_structure(plan) do
-      :ok
-    end
+    validate_required_fields(plan) and validate_plan_structure(plan)
   end
 
   @doc """
@@ -56,10 +53,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ValidationHelpers do
   Validates a rule.
   """
   def validate_rule(rule, context) do
-    with :ok <- validate_rule_function(rule),
-         :ok <- validate_rule_context(context, [:resource, :user, :params]) do
-      :ok
-    end
+    validate_rule_function(rule) and validate_rule_context(context, [:resource, :user, :params])
   end
 
   @doc """
@@ -81,7 +75,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ValidationHelpers do
   """
   def validate_socket(socket, required_keys) do
     case socket do
-      %Phoenix.LiveView.Socket{} = socket ->
+      %Phoenix.LiveView.Socket{} = _socket ->
         missing_keys = Enum.filter(required_keys, &(is_nil(socket.assigns[&1])))
         if Enum.empty?(missing_keys) do
           :ok
@@ -147,20 +141,24 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ValidationHelpers do
   end
 
   defp validate_type(value, type) do
-    case type do
-      :string when is_binary(value) -> :ok
-      :integer when is_integer(value) -> :ok
-      :float when is_float(value) -> :ok
-      :boolean when is_boolean(value) -> :ok
-      :list when is_list(value) -> :ok
-      :map when is_map(value) -> :ok
-      :atom when is_atom(value) -> :ok
-      :function when is_function(value) -> :ok
-      :pid when is_pid(value) -> :ok
-      :reference when is_reference(value) -> :ok
-      :port when is_port(value) -> :ok
-      :tuple when is_tuple(value) -> :ok
-      _ -> {:error, "Invalid type"}
+    type_validators = %{
+      string: &is_binary/1,
+      integer: &is_integer/1,
+      float: &is_float/1,
+      boolean: &is_boolean/1,
+      list: &is_list/1,
+      map: &is_map/1,
+      atom: &is_atom/1,
+      function: &is_function/1,
+      pid: &is_pid/1,
+      reference: &is_reference/1,
+      port: &is_port/1,
+      tuple: &is_tuple/1
+    }
+
+    case Map.get(type_validators, type) do
+      nil -> {:error, "Invalid type"}
+      validator -> if validator.(value), do: :ok, else: {:error, "Invalid type"}
     end
   end
 end 

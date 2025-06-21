@@ -4,7 +4,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.GeneralHelpers do
   """
 
   import Phoenix.Component
-  import Phoenix.LiveView.Helpers
+  # import Phoenix.LiveView.Helpers
 
   @doc """
   Displays a field value with proper formatting.

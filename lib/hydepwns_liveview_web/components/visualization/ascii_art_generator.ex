@@ -15,6 +15,7 @@ defmodule HydepwnsLiveviewWeb.Components.Visualization.AsciiArtGenerator do
   @doc """
   Mount function for AsciiArtGenerator LiveComponent
   """
+  @impl true
   def mount(socket) do
     {:ok, socket}
   end
@@ -22,6 +23,7 @@ defmodule HydepwnsLiveviewWeb.Components.Visualization.AsciiArtGenerator do
   @doc """
   Update function for AsciiArtGenerator LiveComponent
   """
+  @impl true
   def update(assigns, socket) do
     socket =
       socket
@@ -41,6 +43,7 @@ defmodule HydepwnsLiveviewWeb.Components.Visualization.AsciiArtGenerator do
   @doc """
   Renders the ASCII art generator component
   """
+  @impl true
   def render(assigns) do
     ~H"""
     <div id={@id} class="ascii-art-generator" phx-hook="AsciiArtGenerator">
@@ -119,6 +122,7 @@ defmodule HydepwnsLiveviewWeb.Components.Visualization.AsciiArtGenerator do
   @doc """
   Handle events from the user interface
   """
+  @impl true
   def handle_event(
         "update_ascii_art",
         %{
@@ -148,6 +152,7 @@ defmodule HydepwnsLiveviewWeb.Components.Visualization.AsciiArtGenerator do
     {:noreply, socket}
   end
 
+  @impl true
   def handle_event("copy_ascii_art", _params, socket) do
     {:noreply,
      push_event(socket, "copy-to-clipboard", %{
@@ -156,6 +161,7 @@ defmodule HydepwnsLiveviewWeb.Components.Visualization.AsciiArtGenerator do
      })}
   end
 
+  @impl true
   def handle_event("toggle_code_view", _params, socket) do
     {:noreply, assign(socket, :show_code, !socket.assigns.show_code)}
   end

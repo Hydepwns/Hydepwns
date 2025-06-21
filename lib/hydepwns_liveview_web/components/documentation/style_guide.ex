@@ -2,6 +2,7 @@ defmodule HydepwnsLiveviewWeb.Components.Documentation.StyleGuide do
   use HydepwnsLiveviewWeb, :live_component
   import Phoenix.Component
 
+  @impl true
   def render(assigns) do
     ~H"""
     <div class="style-guide" id={@id}>
@@ -62,10 +63,12 @@ defmodule HydepwnsLiveviewWeb.Components.Documentation.StyleGuide do
     """
   end
 
+  @impl true
   def mount(socket) do
     {:ok, socket}
   end
 
+  @impl true
   def update(assigns, socket) do
     socket =
       socket

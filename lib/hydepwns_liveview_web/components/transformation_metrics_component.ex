@@ -129,7 +129,7 @@ defmodule HydepwnsLiveviewWeb.Components.TransformationMetricsComponent do
             </thead>
             <tbody>
               <tr :for={{_name, stats} <- sort_transformation_stats(@metrics.transformation_stats)}>
-                <% avg_time = stats.total_execution_time_ms / stats.execution_count %>
+                <% _avg_time = stats.total_execution_time_ms / stats.execution_count %>
                 <% success_rate = stats.success_count / stats.execution_count %>
                 <td>{_name}</td>
                 <td>{stats.execution_count}</td>
@@ -162,7 +162,7 @@ defmodule HydepwnsLiveviewWeb.Components.TransformationMetricsComponent do
             </thead>
             <tbody>
               <tr :for={{_type, stats} <- sort_resource_stats(@metrics.resource_type_stats)}>
-                <% avg_time = stats.total_execution_time_ms / stats.execution_count %>
+                <% _avg_time = stats.total_execution_time_ms / stats.execution_count %>
                 <% success_rate = stats.success_count / stats.execution_count %>
                 <td>{format_resource_type(_type)}</td>
                 <td>{stats.execution_count}</td>
@@ -195,7 +195,7 @@ defmodule HydepwnsLiveviewWeb.Components.TransformationMetricsComponent do
             </thead>
             <tbody>
               <tr :for={{_operation, stats} <- sort_operation_stats(@metrics.operation_stats)}>
-                <% avg_time = stats.total_execution_time_ms / stats.execution_count %>
+                <% _avg_time = stats.total_execution_time_ms / stats.execution_count %>
                 <% success_rate = stats.success_count / stats.execution_count %>
                 <td>{format_operation(_operation)}</td>
                 <td>{stats.execution_count}</td>
@@ -227,7 +227,7 @@ defmodule HydepwnsLiveviewWeb.Components.TransformationMetricsComponent do
               </tr>
             </thead>
             <tbody>
-              <tr :for={error <- @recent_errors}>
+              <tr :for={_error <- @recent_errors}>
                 <td>{error.transformation_name}</td>
                 <td>{format_resource_type(error.resource_type)}</td>
                 <td>{format_operation(error.operation)}</td>
@@ -288,6 +288,12 @@ defmodule HydepwnsLiveviewWeb.Components.TransformationMetricsComponent do
       |> assign(:recent_errors, recent_errors)
 
     {:noreply, socket}
+  end
+
+  @impl true
+  def update(_assigns, socket) do
+    # Implement the update/2 callback if needed
+    {:ok, socket}
   end
 
   # Helper functions

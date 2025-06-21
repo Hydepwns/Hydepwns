@@ -5,6 +5,8 @@ defmodule HydepwnsLiveviewWeb.Admin.EventNotificationLive do
 
   use HydepwnsLiveviewWeb, :live_view
 
+  alias HydepwnsLiveview.Events
+
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
     default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()

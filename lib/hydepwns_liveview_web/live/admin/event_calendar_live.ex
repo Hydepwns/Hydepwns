@@ -97,8 +97,8 @@ defmodule HydepwnsLiveviewWeb.Admin.EventCalendarLive do
   defp calendar_days(date) do
     first_day = Date.new!(date.year, date.month, 1)
     last_day = Date.end_of_month(date)
-    first_weekday = Calendar.day_of_week(first_day)
-    last_weekday = Calendar.day_of_week(last_day)
+    first_weekday = Date.day_of_week(first_day)
+    last_weekday = Date.day_of_week(last_day)
 
     days_before = first_weekday - 1
     days_after = 7 - last_weekday

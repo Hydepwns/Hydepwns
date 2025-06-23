@@ -17,8 +17,8 @@ Pre-crypto I was a professional [sailor](https://en.wikipedia.org/wiki/Inter-Col
 
 ## Hydepwns/Hydepwns: DROO-flavored monospace
 
-Hydepwns is a [monospace](https://github.com/owickstrom/the-monospace-web) web experience with [monaspace](https://github.com/githubnext/monaspace) texture healing fonts, I'm building it with Phoenix LiveView.
-It includes [Raxol](https://github.com/hydepwns/raxol), a new type of terminal emulator, in Elixir.
+Hydepwns is a [monospace](https://github.com/owickstrom/the-monospace-web) web experience with [monaspace](https://github.com/githubnext/monaspace) fonts.
+It includes [Raxol](https://github.com/hydepwns/raxol), a new type of terminal emulator.
 
 Quick start / general usage: clone the repo and see [USAGE.md](examples/USAGE.md).
-Detailed information about the LiveView implementation: [LIVEVIEW.md](examples/LIVEVIEW.md).
+Detailed information about the implementation: [LIVEVIEW.md](examples/LIVEVIEW.md).

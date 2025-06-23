@@ -8,8 +8,6 @@ defmodule HydepwnsLiveviewWeb.LiveSocketTestHelpers do
   - Validating socket assign types
   """
 
-  import Phoenix.ConnTest
-  import Phoenix.LiveViewTest
   import ExUnit.Assertions
 
   alias HydepwnsLiveview.Utils.SocketValidator

@@ -5,7 +5,6 @@ Ecto.Adapters.SQL.Sandbox.mode(HydepwnsLiveview.Repo, :manual)
 
 # Load test stubs first to override dependency modules
 Code.require_file("support/signal_nif_module.ex", __DIR__)
-Code.require_file("support/signal_protocol_test_stub.ex", __DIR__)
 Code.require_file("support/signal_nif_stub.ex", __DIR__)
 Code.require_file("support/signal_protocol_stub.ex", __DIR__)
 Code.require_file("support/repo_behaviour.ex", __DIR__)

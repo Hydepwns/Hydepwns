@@ -20,9 +20,7 @@ defmodule HydepwnsLiveviewWeb.ConnCase do
   using do
     quote do
       import Plug.Conn
-      import Phoenix.ConnTest
       import HydepwnsLiveviewWeb.ConnCase
-      import Phoenix.LiveViewTest
       import Phoenix.Component
 
       # Ensure Router and its Helpers are compiled and available
@@ -32,7 +30,7 @@ defmodule HydepwnsLiveviewWeb.ConnCase do
       import Phoenix.VerifiedRoutes
 
       # The default endpoint for testing
-      # @endpoint HydepwnsLiveviewWeb.Endpoint
+      @endpoint HydepwnsLiveviewWeb.Endpoint
 
       # Add test routes
       setup do

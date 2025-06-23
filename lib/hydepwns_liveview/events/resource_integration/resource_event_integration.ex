@@ -128,16 +128,14 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventIntegration d
     # Implementation
   end
 
-  @doc """
-  Checks if a resource is event sourced.
-
-  ## Parameters
-  * `resource_module` - The resource module to check
-
-  ## Returns
-  * `true` if the resource is event sourced
-  * `false` otherwise
-  """
+  # Checks if a resource is event sourced.
+  #
+  # ## Parameters
+  # * `resource_module` - The resource module to check
+  #
+  # ## Returns
+  # * `true` if the resource is event sourced
+  # * `false` otherwise
   defp is_event_sourced_resource?(resource_module) do
     with {:module, _} <- Code.ensure_loaded(resource_module),
          true <- function_exported?(resource_module, :__using__, 1) do
@@ -155,17 +153,15 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventIntegration d
     end
   end
 
-  @doc """
-  Gets a resource by module and id.
-
-  ## Parameters
-  * `resource_module` - The resource module
-  * `id_or_resource` - The resource ID or the resource itself
-
-  ## Returns
-  * `{:ok, resource}` - The resource was found
-  * `{:error, reason}` - The resource was not found or an error occurred
-  """
+  # Gets a resource by module and id.
+  #
+  # ## Parameters
+  # * `resource_module` - The resource module
+  # * `id_or_resource` - The resource ID or the resource itself
+  #
+  # ## Returns
+  # * `{:ok, resource}` - The resource was found
+  # * `{:error, reason}` - The resource was not found or an error occurred
   defp get_resource(resource_module, id_or_resource) do
     # If we already have a resource, just return it
     if is_map(id_or_resource) do
@@ -181,18 +177,16 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventIntegration d
     end
   end
 
-  @doc """
-  Gets the id of a resource.
-
-  ## Parameters
-  * `resource` - The resource to get the ID from
-
-  ## Returns
-  * The resource ID
-
-  ## Raises
-  * `KeyError` if the resource has no ID
-  """
+  # Gets the id of a resource.
+  #
+  # ## Parameters
+  # * `resource` - The resource to get the ID from
+  #
+  # ## Returns
+  # * The resource ID
+  #
+  # ## Raises
+  # * `KeyError` if the resource has no ID
   defp get_id(resource) when is_map(resource) do
     cond do
       Map.has_key?(resource, :id) ->

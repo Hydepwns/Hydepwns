@@ -13,7 +13,6 @@ unless Mix.env() == :test do
     alias HydepwnsLiveview.Events.Core.Event
     import Ecto.Query, warn: false
     alias HydepwnsLiveview.Repo
-    alias HydepwnsLiveview.Events.Core.EventStore, as: CoreEventStore
 
     # Event Operations
 
@@ -292,8 +291,9 @@ unless Mix.env() == :test do
     * `{:error, :not_found}` - The snapshot was not found
     """
     @spec get_snapshot(String.t()) :: {:ok, Snapshot.t()} | {:error, :not_found}
-    def get_snapshot(id) do
-      SnapshotOperations.get_snapshot(id)
+    def get_snapshot(_id) do
+      # TODO: Implement get_snapshot by ID
+      {:error, :not_implemented}
     end
 
     @doc """
@@ -309,7 +309,7 @@ unless Mix.env() == :test do
     """
     @spec list_snapshots(String.t(), String.t()) :: {:ok, [Snapshot.t()]} | {:error, any()}
     def list_snapshots(resource_type, resource_id) do
-      SnapshotOperations.get_snapshots(resource_type, resource_id)
+      SnapshotOperations.list_snapshots(resource_type, resource_id, [])
     end
 
     @doc """
@@ -339,8 +339,9 @@ unless Mix.env() == :test do
     * `{:error, :not_found}` - The snapshot was not found
     """
     @spec delete_snapshot(String.t()) :: {:ok, Snapshot.t()} | {:error, :not_found}
-    def delete_snapshot(id) do
-      SnapshotOperations.delete_snapshot(id)
+    def delete_snapshot(_id) do
+      # TODO: Implement delete_snapshot by ID
+      {:error, :not_implemented}
     end
 
     # Versioned State Operations
@@ -361,7 +362,7 @@ unless Mix.env() == :test do
     @spec save_versioned_state(String.t(), String.t(), map(), map()) ::
             {:ok, VersionedState.t()} | {:error, any()}
     def save_versioned_state(resource_type, resource_id, state, metadata \\ %{}) do
-      SnapshotOperations.save_versioned_state(resource_type, resource_id, state, metadata)
+      SnapshotOperations.save_versioned_state(resource_type, resource_id, state, [label: "auto", metadata: metadata])
     end
 
     @doc """
@@ -375,8 +376,9 @@ unless Mix.env() == :test do
     * `{:error, :not_found}` - The state was not found
     """
     @spec get_versioned_state(String.t()) :: {:ok, VersionedState.t()} | {:error, :not_found}
-    def get_versioned_state(id) do
-      SnapshotOperations.get_versioned_state(id)
+    def get_versioned_state(_id) do
+      # TODO: Implement get_versioned_state by ID
+      {:error, :not_implemented}
     end
 
     @doc """
@@ -392,8 +394,9 @@ unless Mix.env() == :test do
     """
     @spec get_latest_versioned_state(String.t(), String.t()) ::
             {:ok, VersionedState.t()} | {:error, :not_found}
-    def get_latest_versioned_state(resource_type, resource_id) do
-      SnapshotOperations.get_latest_versioned_state(resource_type, resource_id)
+    def get_latest_versioned_state(_resource_type, _resource_id) do
+      # TODO: Implement get_latest_versioned_state
+      {:error, :not_implemented}
     end
 
     @doc """
@@ -409,8 +412,9 @@ unless Mix.env() == :test do
     """
     @spec list_versioned_states(String.t(), String.t()) ::
             {:ok, [VersionedState.t()]} | {:error, any()}
-    def list_versioned_states(resource_type, resource_id) do
-      SnapshotOperations.list_versioned_states(resource_type, resource_id)
+    def list_versioned_states(_resource_type, _resource_id) do
+      # TODO: Implement list_versioned_states
+      {:error, :not_implemented}
     end
 
     @doc """
@@ -424,8 +428,9 @@ unless Mix.env() == :test do
     * `{:error, :not_found}` - The state was not found
     """
     @spec delete_versioned_state(String.t()) :: {:ok, VersionedState.t()} | {:error, :not_found}
-    def delete_versioned_state(id) do
-      SnapshotOperations.delete_versioned_state(id)
+    def delete_versioned_state(_id) do
+      # TODO: Implement delete_versioned_state by ID
+      {:error, :not_implemented}
     end
 
     def update_replay_session_status(session_id, status, results \\ %{}) do

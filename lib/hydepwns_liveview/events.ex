@@ -393,9 +393,6 @@ defmodule HydepwnsLiveview.Events do
     Repo.delete(settings)
   end
 
-  @doc """
-  Deletes event settings by event id.
-  """
   def delete_event_settings(event_id) when is_integer(event_id) do
     case get_event_settings_by_event_id(event_id) do
       nil -> {:error, :not_found}

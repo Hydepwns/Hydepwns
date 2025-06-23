@@ -74,42 +74,34 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
           {:ok, any()} | {:error, String.t()}
   def validate_type(value, type_spec) do
     case type_spec do
-      :string when is_binary(value) -> {:ok, value}
-      :string -> {:error, "expected string, got: #{inspect(value)}"}
-      :integer when is_integer(value) -> {:ok, value}
-      :integer -> {:error, "expected integer, got: #{inspect(value)}"}
-      :float when is_float(value) -> {:ok, value}
-      :float -> {:error, "expected float, got: #{inspect(value)}"}
-      :boolean when is_boolean(value) -> {:ok, value}
-      :boolean -> {:error, "expected boolean, got: #{inspect(value)}"}
-      :map when is_map(value) -> {:ok, value}
-      :map -> {:error, "expected map, got: #{inspect(value)}"}
-      :list when is_list(value) -> {:ok, value}
-      :list -> {:error, "expected list, got: #{inspect(value)}"}
-      :atom when is_atom(value) -> {:ok, value}
-      :atom -> {:error, "expected atom, got: #{inspect(value)}"}
-      :function when is_function(value) -> {:ok, value}
-      :function -> {:error, "expected function, got: #{inspect(value)}"}
-      :number when is_number(value) -> {:ok, value}
-      :number -> {:error, "expected number, got: #{inspect(value)}"}
-      {:list, type} when is_list(value) -> validate_list_type(value, type)
-      {:list, _type} -> {:error, "expected list, got: #{inspect(value)}"}
-      {:map, schema} when is_map(value) -> validate_map_schema(value, schema)
-      {:map, _schema} -> {:error, "expected map, got: #{inspect(value)}"}
+      :string -> validate_basic_type(value, :string, &is_binary/1)
+      :integer -> validate_basic_type(value, :integer, &is_integer/1)
+      :float -> validate_basic_type(value, :float, &is_float/1)
+      :boolean -> validate_basic_type(value, :boolean, &is_boolean/1)
+      :map -> validate_basic_type(value, :map, &is_map/1)
+      :list -> validate_basic_type(value, :list, &is_list/1)
+      :atom -> validate_basic_type(value, :atom, &is_atom/1)
+      :function -> validate_basic_type(value, :function, &is_function/1)
+      :number -> validate_basic_type(value, :number, &is_number/1)
+      {:list, type} -> validate_list_type(value, type)
+      {:map, schema} -> validate_map_schema(value, schema)
       {:one_of, allowed} -> validate_one_of(value, allowed)
       {:union, types} -> validate_union(value, types)
       {:custom, validator} -> validate_custom(value, validator)
       {:optional, type} -> validate_optional(value, type)
-      {:nested_list, type} when is_list(value) -> validate_nested_list(value, type)
-      {:nested_list, _type} -> {:error, "expected list, got: #{inspect(value)}"}
-      {:list_of_maps, schema} when is_list(value) -> validate_list_of_maps(value, schema)
-      {:list_of_maps, _schema} -> {:error, "expected list, got: #{inspect(value)}"}
-      {:map_with_lists, schema} when is_map(value) -> validate_map_with_lists(value, schema)
-      {:map_with_lists, _schema} -> {:error, "expected map, got: #{inspect(value)}"}
-      # Handle map schemas (when type_spec is a map)
-      schema when is_map(schema) and is_map(value) -> validate_map_schema(value, schema)
-      schema when is_map(schema) -> {:error, "expected map, got: #{inspect(value)}"}
+      {:nested_list, type} -> validate_nested_list(value, type)
+      {:list_of_maps, schema} -> validate_list_of_maps(value, schema)
+      {:map_with_lists, schema} -> validate_map_with_lists(value, schema)
+      schema when is_map(schema) -> validate_map_schema(value, schema)
       _ -> {:error, "unsupported type specification: #{inspect(type_spec)}"}
+    end
+  end
+
+  defp validate_basic_type(value, type_name, validator) do
+    if validator.(value) do
+      {:ok, value}
+    else
+      {:error, "expected #{type_name}, got: #{inspect(value)}"}
     end
   end
 

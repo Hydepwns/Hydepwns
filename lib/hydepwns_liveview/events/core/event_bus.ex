@@ -16,7 +16,6 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
   require Logger
 
   alias HydepwnsLiveview.Events.Core.Event
-  alias HydepwnsLiveview.Events
 
   @doc """
   Starts the EventBus process.
@@ -41,7 +40,8 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
   * `{:error, reason}` - The event could not be published
   """
   @spec publish(Event.t(), Keyword.t()) :: :ok | {:error, any()}
-  def publish(%Event{} = event, opts \\ %{}) do
+  def publish(event, opts \\ %{})
+  def publish(%Event{} = event, opts) do
     GenServer.cast(__MODULE__, {:publish, event, opts})
   end
 

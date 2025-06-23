@@ -27,6 +27,7 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
   @spec save_snapshot(String.t(), String.t(), map(), map()) ::
           {:ok, Snapshot.t()} | {:error, Ecto.Changeset.t()}
   def save_snapshot(resource_type, resource_id, state, metadata \\ %{})
+  def save_snapshot(resource_type, resource_id, state, metadata)
       when is_binary(resource_type) and byte_size(resource_type) > 0 and
              is_binary(resource_id) and byte_size(resource_id) > 0 and
              is_map(state) and
@@ -156,6 +157,7 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
   @spec save_versioned_state(String.t(), String.t(), map(), Keyword.t()) ::
           {:ok, VersionedState.t()} | {:error, Ecto.Changeset.t()}
   def save_versioned_state(resource_type, resource_id, state, opts \\ [])
+  def save_versioned_state(resource_type, resource_id, state, opts)
       when is_binary(resource_type) and byte_size(resource_type) > 0 and
              is_binary(resource_id) and byte_size(resource_id) > 0 and
              is_map(state) and
@@ -228,6 +230,7 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
   """
   @spec create_snapshot(String.t(), String.t(), map(), map()) :: {:ok, Snapshot.t()} | {:error, any()}
   def create_snapshot(resource_type, resource_id, state, metadata \\ %{})
+  def create_snapshot(resource_type, resource_id, state, metadata)
       when is_binary(resource_type) and is_binary(resource_id) and is_map(state) and is_map(metadata) do
     %Snapshot{}
     |> Snapshot.changeset(%{
@@ -261,6 +264,7 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
   """
   @spec list_snapshots(String.t(), String.t(), Keyword.t()) :: {:ok, [Snapshot.t()]} | {:error, any()}
   def list_snapshots(resource_type, resource_id, opts \\ [])
+  def list_snapshots(resource_type, resource_id, opts)
       when is_binary(resource_type) and is_binary(resource_id) do
     try do
       limit = Keyword.get(opts, :limit)

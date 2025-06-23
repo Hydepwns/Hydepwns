@@ -1,7 +1,6 @@
 defmodule HydepwnsLiveview.EnhancedErrorReportingTest do
   use HydepwnsLiveviewWeb.ConnCase, async: true
   import Phoenix.LiveViewTest
-  alias HydepwnsLiveview.Utils.SocketValidator
 
   # Create a test LiveView for testing context-aware errors
   # defmodule HydepwnsLiveviewWeb.EnhancedErrorReportingTest.TestErrorLive do

@@ -1,4 +1,5 @@
-defmodule HydepwnsLiveviewWeb.CoreComponentsTest do
+defmodule HydepwnsLiveviewWeb.Components.CoreComponentsTest do
+  @endpoint HydepwnsLiveviewWeb.Endpoint
   use ExUnit.Case, async: true
   import Phoenix.LiveViewTest
 

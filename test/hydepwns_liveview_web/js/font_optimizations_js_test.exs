@@ -1,7 +1,5 @@
 defmodule HydepwnsLiveviewWeb.FontOptimizationsJsTest do
   use HydepwnsLiveviewWeb.ConnCase, async: true
-  import Phoenix.LiveViewTest
-  import HydepwnsLiveviewWeb.JsTestHelper
 
   describe "Font Optimizations JavaScript" do
     test "Font Optimizations JavaScript font loading classes are applied", %{conn: conn} do

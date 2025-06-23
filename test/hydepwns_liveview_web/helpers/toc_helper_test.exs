@@ -1,4 +1,5 @@
 defmodule HydepwnsLiveviewWeb.Helpers.TocHelperTest do
+  @endpoint HydepwnsLiveviewWeb.Endpoint
   use ExUnit.Case, async: true
 
   alias HydepwnsLiveviewWeb.Helpers.TocHelper
@@ -101,7 +102,7 @@ defmodule HydepwnsLiveviewWeb.Helpers.TocHelperTest do
       assert Enum.at(features.children, 0).children |> Enum.at(0) |> Map.get(:label) == "Detail 1"
 
       assert conclusion.label == "Conclusion"
-      assert length(conclusion.children) == 0
+      assert Enum.empty?(conclusion.children)
     end
 
     test "applies id_prefix to all heading ids" do

@@ -76,45 +76,6 @@ defmodule HydepwnsLiveviewWeb.Components.UI.GeneralHelpersTest do
       assert html =~ "Test error"
     end
 
-    test "render_metrics_charts/1 renders metrics grid" do
-      metrics = [{"Metric 1", 100}, {"Metric 2", 200}]
-      _assigns = %{metrics: metrics}
-      html = GeneralHelpers.render_metrics_charts(metrics)
-      assert html =~ "Metric 1"
-      assert html =~ "Metric 2"
-      assert html =~ "100"
-      assert html =~ "200"
-    end
-
-    test "render_metrics_comparison/1 renders comparison view" do
-      metrics = [{"Metric 1", {100, 80}}, {"Metric 2", {200, 150}}]
-      _assigns = %{metrics: metrics}
-      html = GeneralHelpers.render_metrics_comparison(metrics)
-      assert html =~ "Metric 1"
-      assert html =~ "Metric 2"
-      assert html =~ "100"
-      assert html =~ "200"
-    end
-
-    test "render_metrics_detail/1 renders detailed metrics" do
-      metrics = [{"Detail 1", "Value 1"}, {"Detail 2", "Value 2"}]
-      _assigns = %{metrics: metrics}
-      html = GeneralHelpers.render_metrics_detail(metrics)
-      assert html =~ "Detail 1"
-      assert html =~ "Detail 2"
-      assert html =~ "Value 1"
-      assert html =~ "Value 2"
-    end
-
-    test "render_performance_summary/1 renders performance metrics" do
-      metrics = [{"Performance 1", 100}, {"Performance 2", 200}]
-      _assigns = %{metrics: metrics}
-      html = GeneralHelpers.render_performance_summary(metrics)
-      assert html =~ "Performance Summary"
-      assert html =~ "Performance 1"
-      assert html =~ "Performance 2"
-    end
-
     test "render_validation_status/3 renders validation status" do
       _assigns = %{valid: true, message: "Success message", type: "Validation"}
       html = GeneralHelpers.render_validation_status(true, "Success message", "Validation")

@@ -5,13 +5,6 @@ defmodule HydepwnsLiveview.ThemeSystemTest do
   alias HydepwnsLiveview.ThemeSystem.Models.Theme
 
   describe "themes" do
-    import HydepwnsLiveview.ThemeSystemFixtures
-
-    setup do
-      HydepwnsLiveview.ThemeSystem.reset_themes()
-      :ok
-    end
-
     @invalid_attrs %{
       name: nil,
       mode: nil,

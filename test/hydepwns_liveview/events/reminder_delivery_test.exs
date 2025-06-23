@@ -14,6 +14,7 @@ defmodule HydepwnsLiveview.Events.ReminderDeliveryTest do
           start_time: DateTime.utc_now() |> DateTime.add(3600, :second),
           end_time: DateTime.utc_now() |> DateTime.add(7200, :second)
         })
+      IO.inspect(event, label: "DEBUG event after create_event")
 
       # Create event settings
       {:ok, settings} =
@@ -28,7 +29,7 @@ defmodule HydepwnsLiveview.Events.ReminderDeliveryTest do
       {:ok, reminder} =
         Events.create_event_reminder(%{
           event_id: event.id,
-          reminder_time: DateTime.utc_now() |> DateTime.add(-60, :second),
+          reminder_time: DateTime.utc_now() |> DateTime.add(1800, :second), # 30 minutes from now
           status: "pending",
           recipient: "test@example.com"
         })
@@ -37,7 +38,9 @@ defmodule HydepwnsLiveview.Events.ReminderDeliveryTest do
     end
 
     test "successfully sends a reminder", %{reminder: reminder} do
-      assert {:ok, updated_reminder} = ReminderDelivery.send_reminder(reminder)
+      result = ReminderDelivery.send_reminder(reminder)
+      assert match?({:ok, %_{}}, result)
+      {:ok, updated_reminder} = result
       assert updated_reminder.status == "sent"
       assert updated_reminder.sent_at != nil
     end

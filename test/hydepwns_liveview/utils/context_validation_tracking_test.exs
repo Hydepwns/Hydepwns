@@ -1,4 +1,5 @@
 defmodule HydepwnsLiveview.Utils.ContextValidationTrackingTest do
+  @endpoint HydepwnsLiveviewWeb.Endpoint
   use ExUnit.Case, async: true
 
   # Define a simple resource module for testing

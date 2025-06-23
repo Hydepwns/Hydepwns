@@ -13,8 +13,6 @@ defmodule HydepwnsLiveview.Resources.TestFramework do
   - Randomized event generation for testing
   """
 
-  alias HydepwnsLiveview.Events.Core.Event, as: CoreEvent
-
   @doc """
   Creates a test context for an event-sourced resource.
 
@@ -252,7 +250,7 @@ defmodule HydepwnsLiveview.Resources.TestFramework do
       data = generate_random_data(resource_module, event_type, opts)
 
       # Create the event
-      %CoreEvent{
+      %HydepwnsLiveview.Events.Core.Event{
         type: event_type,
         resource_type: resource_type,
         resource_id: resource_id,
@@ -410,7 +408,7 @@ defmodule HydepwnsLiveview.Resources.TestFramework do
       |> Enum.all?(fn {actual, expected} -> event_matches?(actual, expected) end)
   end
 
-  defp event_matches?(%CoreEvent{} = actual, %CoreEvent{} = expected) do
+  defp event_matches?(%HydepwnsLiveview.Events.Core.Event{} = actual, %HydepwnsLiveview.Events.Core.Event{} = expected) do
     # Compare directly with fallbacks for missing fields
     actual.type == expected.type &&
       actual.resource_id == expected.resource_id &&
@@ -418,14 +416,14 @@ defmodule HydepwnsLiveview.Resources.TestFramework do
       (expected.metadata == nil || actual.metadata == expected.metadata)
   end
 
-  defp event_matches?(%CoreEvent{} = actual, %{} = expected) when is_map(expected) do
+  defp event_matches?(%HydepwnsLiveview.Events.Core.Event{} = actual, %{} = expected) when is_map(expected) do
     # Compare just the specified fields
     Enum.all?(expected, fn {key, value} ->
       Map.get(actual, key) == value
     end)
   end
 
-  defp event_matches?(%CoreEvent{type: type}, type) when is_binary(type) or is_atom(type) do
+  defp event_matches?(%HydepwnsLiveview.Events.Core.Event{type: type}, type) when is_binary(type) or is_atom(type) do
     # Just check the event type
     true
   end

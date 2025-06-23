@@ -125,7 +125,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
         end
       end
 
-      def update(id, params, metadata),
+      def update(_id, _params, _metadata),
         do: {:error, :invalid_parameters}
     end
   end
@@ -407,6 +407,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
     :ok
   end
 
+  @doc false
   defp apply_command(_command, state) do
     state
   end

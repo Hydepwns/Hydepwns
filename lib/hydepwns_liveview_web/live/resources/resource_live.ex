@@ -4,12 +4,8 @@ defmodule HydepwnsLiveviewWeb.Resources.ResourceLive do
   """
 
   use HydepwnsLiveviewWeb, :live_view
-  # import Phoenix.Component
 
   alias HydepwnsLiveview.Resources
-  # alias HydepwnsLiveview.Resources.Resource
-  # alias HydepwnsLiveviewWeb.Components.UI.FormComponents
-  # alias HydepwnsLiveviewWeb.Components.UI.MonoForm
 
   defmacro __using__(_opts) do
     quote do
@@ -43,11 +39,6 @@ defmodule HydepwnsLiveviewWeb.Resources.ResourceLive do
     {:noreply, assign(socket, :resources, Resources.list_resources())}
   end
 
-  # @impl Phoenix.LiveView
-  # def handle_event(_event, _params, socket), do: {:noreply, socket}
-
-  defp resource_status_class("draft"), do: "bg-gray-100 text-gray-800"
-  defp resource_status_class("published"), do: "bg-green-100 text-green-800"
-  defp resource_status_class("archived"), do: "bg-red-100 text-red-800"
-  defp resource_status_class(_), do: "bg-gray-100 text-gray-800"
+  @impl Phoenix.LiveView
+  def handle_event(_event, _params, socket), do: {:noreply, socket}
 end

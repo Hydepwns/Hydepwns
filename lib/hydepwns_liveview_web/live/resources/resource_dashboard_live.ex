@@ -74,9 +74,4 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
          |> put_flash(:error, "Failed to delete resource")}
     end
   end
-
-  defp resource_status_class("draft"), do: "bg-gray-100 text-gray-800"
-  defp resource_status_class("published"), do: "bg-green-100 text-green-800"
-  defp resource_status_class("archived"), do: "bg-red-100 text-red-800"
-  defp resource_status_class(_), do: "bg-gray-100 text-gray-800"
 end

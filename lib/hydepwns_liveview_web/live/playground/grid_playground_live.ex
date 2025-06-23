@@ -2,6 +2,7 @@ defmodule HydepwnsLiveviewWeb.Live.Playground.GridPlaygroundLive do
   use HydepwnsLiveviewWeb, :live_view
 
   import HydepwnsLiveviewWeb.Components.MonoGrid
+  import Phoenix.HTML, only: [raw: 1]
   alias HydepwnsLiveviewWeb.Helpers.PathHelper
 
   @default_grid_content """
@@ -171,7 +172,7 @@ defmodule HydepwnsLiveviewWeb.Live.Playground.GridPlaygroundLive do
             <div class="example-selector">
               <h4>Example Layouts</h4>
               <div class="example-buttons">
-                <button :for={{id, _name, _} <- @example_layouts} phx-click="load_example" phx-value-example={id} class="example-button">
+                <button :for={{id, name, _} <- @example_layouts} phx-click="load_example" phx-value-example={id} class="example-button">
                   {name}
                 </button>
                 <button phx-click="reset_grid" class="reset-button">Reset</button>

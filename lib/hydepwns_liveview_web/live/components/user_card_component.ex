@@ -10,6 +10,7 @@ defmodule HydepwnsLiveviewWeb.LiveComponents.UserCardComponent do
   use Phoenix.LiveComponent
 
   alias HydepwnsLiveview.Resources.UserResource
+  import HydepwnsLiveviewWeb.Components.UI.FormatHelpers
 
   @doc """
   Mount hook for the component.

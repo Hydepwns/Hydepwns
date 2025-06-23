@@ -75,7 +75,7 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceLive do
         <div class="user-permissions">
           <h3>Permissions</h3>
           <ul>
-            <%= for _permission <- @permissions do %>
+            <%= for permission <- @permissions do %>
               <li>{permission}</li>
             <% end %>
           </ul>

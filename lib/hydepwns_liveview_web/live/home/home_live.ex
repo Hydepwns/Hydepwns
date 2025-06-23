@@ -127,16 +127,6 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
   end
 
   @impl true
-  def handle_event("change_theme", %{"theme" => theme}, socket) do
-    # Updated theme handling to include terminal sync
-    socket =
-      socket
-      |> assign(:theme_class, "#{theme}-theme")
-
-    {:noreply, socket}
-  end
-
-  @impl true
   def handle_event("set_text_size", %{"size" => size}, socket) do
     # Add announcement for screen readers
     announcement = "Text size set to #{size}"
@@ -230,7 +220,7 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
           <div class="table-of-contents">
             <h2>Contents</h2>
             <ul>
-              <%= for {id, _label} <- @toc_items do %>
+              <%= for {id, label} <- @toc_items do %>
                 <li>
                   <a href={"##{id}"}>{label}</a>
                 </li>

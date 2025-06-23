@@ -34,6 +34,12 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
   end
 
   @impl true
+  def handle_event("update_theme", %{"theme" => theme}, socket) do
+    theme_class = "#{theme}-theme"
+    {:noreply, assign(socket, :theme_class, theme_class)}
+  end
+
+  @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     theme = ThemeSystem.get_theme!(id)
     {:ok, _} = ThemeSystem.delete_theme(theme)
@@ -52,12 +58,6 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
   @impl true
   def handle_event("customize", %{"id" => id}, socket) do
     {:noreply, push_navigate(socket, to: ~p"/themes/#{id}/customize")}
-  end
-
-  @impl true
-  def handle_event("change_theme", %{"theme" => theme}, socket) do
-    theme_class = "#{theme}-theme"
-    {:noreply, assign(socket, :theme_class, theme_class)}
   end
 
   @impl true

@@ -63,8 +63,8 @@ defmodule HydepwnsLiveviewWeb.Components.TransformationVisualizerComponent do
                 </tr>
               </thead>
               <tbody>
-                <fragment :for={{_transformation, changes} <- get_changes(@context)}>
-                  <tr :for={_change <- changes}>
+                <fragment :for={{transformation, changes} <- get_changes(@context)}>
+                  <tr :for={change <- changes}>
                     <td>{transformation}</td>
                     <td>{change.field}</td>
                     <td><pre>{format_value(change.before)}</pre></td>
@@ -89,7 +89,7 @@ defmodule HydepwnsLiveviewWeb.Components.TransformationVisualizerComponent do
                 </tr>
               </thead>
               <tbody>
-                <tr :for={_error <- get_errors(@context)}>
+                <tr :for={error <- get_errors(@context)}>
                   <td>{error.transformation}</td>
                   <td>{error.message}</td>
                   <td><pre>{format_error_details(error.details)}</pre></td>

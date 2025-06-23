@@ -20,7 +20,7 @@ defmodule HydepwnsLiveviewWeb.NotificationComponent do
     ~H"""
     <div class="notifications-container">
       <div id={"#{@id}-container"} class="fixed right-0 top-0 z-50 p-4 space-y-3 max-w-md w-full max-h-screen overflow-y-auto" phx-hook="NotificationsHandler" data-auto-dismiss={@auto_dismiss_ms}>
-        <div :for={_notification <- @notifications}>
+        <div :for={notification <- @notifications}>
           {render_notification(notification, @id)}
         </div>
       </div>
@@ -66,18 +66,15 @@ defmodule HydepwnsLiveviewWeb.NotificationComponent do
 
   @impl true
   def handle_event("notification_action", %{"id" => id, "action" => action_id}, socket) do
-    # Find the notification and action
     notification = Enum.find(socket.assigns.notifications, &(&1.id == id))
 
     if notification do
       action = Enum.find(notification.actions || [], &(&1.id == action_id))
 
       if action && action.handler do
-        # Execute the action handler
         action.handler.(notification)
       end
 
-      # If action should dismiss the notification
       notifications =
         if action && Map.get(action, :dismiss, true) do
           Enum.reject(socket.assigns.notifications, &(&1.id == id))
@@ -91,18 +88,69 @@ defmodule HydepwnsLiveviewWeb.NotificationComponent do
     end
   end
 
-  # Add a notification to the list
   def add_notification(notifications, notification) do
-    # Ensure notification has an ID
-    notification = Map.put_new_lazy(notification, :id, &generate_id/0)
+    notification = Map.put_new_lazy(notification, :id, fn -> :crypto.strong_rand_bytes(10) |> Base.encode16(case: :lower) end)
 
-    # Add notification to the list (newest first)
     [notification | notifications]
   end
 
-  # Helper functions
+  defp render_notification(notification, component_id) do
+    assigns = %{
+      notification: notification,
+      component_id: component_id,
+      severity_class: get_severity_class(notification.severity),
+      icon: get_severity_icon(notification.severity),
+      show_details: Map.get(notification, :show_details, false)
+    }
 
-  defp generate_id do
-    :crypto.strong_rand_bytes(10) |> Base.encode16(case: :lower)
+    ~H"""
+    <div id={"#{@component_id}-notification-#{@notification.id}"} class={"notification notification--#{@severity_class} #{if @notification.persistent, do: "notification--persistent"}"} phx-hook="NotificationItem" data-notification-id={@notification.id}>
+      <div class="notification__header">
+        <div class="notification__icon">
+          <span class="notification__icon-symbol">{@icon}</span>
+        </div>
+        <div class="notification__content">
+          <div class="notification__title">{@notification.title}</div>
+          <div class="notification__message">{@notification.message}</div>
+          <div :if={@notification.details && @show_details} class="notification__details">
+            <pre class="notification__details-content">{@notification.details}</pre>
+          </div>
+        </div>
+        <div class="notification__actions">
+          <button :if={@notification.details} phx-click="toggle_details" phx-value-id={@notification.id} phx-target={assigns[:myself]} class="notification__action notification__action--toggle" title="Toggle details">
+            {if @show_details, do: "▼", else: "▶"}
+          </button>
+          <button :if={!@notification.persistent} phx-click="dismiss_notification" phx-value-id={@notification.id} phx-target={assigns[:myself]} class="notification__action notification__action--dismiss" title="Dismiss">
+            ×
+          </button>
+        </div>
+      </div>
+      
+      <div :if={@notification.actions && length(@notification.actions) > 0} class="notification__action-buttons">
+        <button :for={action <- @notification.actions} phx-click="notification_action" phx-value-id={@notification.id} phx-value-action={action.id} phx-target={assigns[:myself]} class={"notification__action-button notification__action-button--#{action.style || "default"}"}>
+          {action.label}
+        </button>
+      </div>
+      
+      <div :if={!@notification.persistent} class="notification__progress">
+        <div class="notification__progress-bar" style="width: 100%"></div>
+      </div>
+    </div>
+    """
   end
+
+  defp get_severity_class(:info), do: "info"
+  defp get_severity_class(:success), do: "success"
+  defp get_severity_class(:warning), do: "warning"
+  defp get_severity_class(:error), do: "error"
+  defp get_severity_class(:critical), do: "critical"
+  defp get_severity_class(_), do: "info"
+
+  defp get_severity_icon(:info), do: "ℹ️"
+  defp get_severity_icon(:success), do: "✅"
+  defp get_severity_icon(:warning), do: "⚠️"
+  defp get_severity_icon(:error), do: "❌"
+  defp get_severity_icon(:critical), do: "🚨"
+  defp get_severity_icon(_), do: "ℹ️"
+
 end

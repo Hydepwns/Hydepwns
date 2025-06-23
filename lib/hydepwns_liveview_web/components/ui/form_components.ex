@@ -84,7 +84,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
         <input type="hidden" name={@name} value="false" disabled={@rest[:disabled]} />
         <input type="checkbox" id={@id} name={@name} value="true" checked={@checked} class="rounded border-zinc-300 text-zinc-900 focus:ring-0" {@rest} /> {@label}
       </label>
-      <.error :for={_msg <- @errors}>{_msg}</.error>
+      <.error :for={msg <- @errors}>{msg}</.error>
     </div>
     """
   end
@@ -139,7 +139,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
         class={["form-control", @errors != [] && "is-invalid"]}
         {@rest}
       />
-      <.error :for={_msg <- @errors}>{_msg}</.error>
+      <.error :for={msg <- @errors}>{msg}</.error>
     </div>
     """
   end

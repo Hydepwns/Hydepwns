@@ -123,4 +123,12 @@ defmodule HydepwnsLiveviewWeb.Components.Debug.SocketValidationGrid do
     send(self(), :open_validation_panel)
     {:noreply, socket}
   end
+
+  # Helper function to get status icon
+  defp status_icon(:success), do: "✅"
+  defp status_icon(:warning), do: "⚠️"
+  defp status_icon(:error), do: "❌"
+  defp status_icon(:info), do: "ℹ️"
+  defp status_icon(:pending), do: "⏳"
+  defp status_icon(_), do: "❓"
 end

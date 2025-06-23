@@ -142,9 +142,28 @@ defmodule HydepwnsLiveviewWeb.Helpers.TocHelper do
 
   # Recursive helper to build the hierarchy.
   # `parent_level` is the level of the parent under which we are looking for children.
-  defp do_build_hierarchy([], _parent_level) do
-    # Base case: no headings left, return empty children and empty remaining
-    {[], []}
+  defp do_build_hierarchy([], _parent_level), do: {[], []}
+
+  defp do_build_hierarchy([heading | rest], parent_level) do
+    current_level = heading.level
+    if current_level == parent_level + 1 do
+      # Collect all children for this heading
+      {children, remaining} = collect_children(rest, current_level)
+      {siblings, final_remaining} = do_build_hierarchy(remaining, parent_level)
+      {[Map.put(heading, :children, children) | siblings], final_remaining}
+    else
+      {[], [heading | rest]}
+    end
+  end
+
+  defp collect_children([], _parent_level), do: {[], []}
+  defp collect_children([heading | rest], parent_level) do
+    if heading.level > parent_level do
+      {children, remaining} = do_build_hierarchy([heading | rest], parent_level)
+      {children, remaining}
+    else
+      {[], [heading | rest]}
+    end
   end
 
   @doc """

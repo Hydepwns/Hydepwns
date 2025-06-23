@@ -50,6 +50,11 @@ defmodule HydepwnsLiveviewWeb.Components.Debug.SocketValidationPanel do
        |> assign(:selected_view, "")
        |> assign(:available_views, [])
        |> assign(:current_assigns, nil)
+       |> assign(:current_inspection_view, nil)
+       |> assign(:expanded_errors, MapSet.new())
+       |> assign(:expanded_assigns, MapSet.new())
+       |> assign(:in_code_block, false)
+       |> assign(:view_filter, "")
        |> assign(:error_metrics, %{
          type_error: 0,
          missing_key: 0,
@@ -267,7 +272,7 @@ defmodule HydepwnsLiveviewWeb.Components.Debug.SocketValidationPanel do
                   <div class="error-details-value">
                     <div class="details-label">Details:</div>
                     <div class="details-content">
-                      <div :for={{_key, _value} <- Map.get(error, :details, %{})} class="detail-item">
+                      <div :for={{key, value} <- Map.get(error, :details, %{})} class="detail-item">
                         <span class="detail-key">{key}:</span>
                         <span class="detail-value">{inspect(value)}</span>
                       </div>
@@ -325,7 +330,7 @@ defmodule HydepwnsLiveviewWeb.Components.Debug.SocketValidationPanel do
               <input type="text" placeholder="Filter assigns..." phx-keyup="filter-assigns" phx-target={@myself} class="assign-filter" />
             </div>
             <div class="assigns-list">
-              <div :for={{key, _value} <- filter_assigns(@current_assigns, @assign_filter)} class="assign-item">
+              <div :for={{key, value} <- filter_assigns(@current_assigns, @assign_filter)} class="assign-item">
                 <div class="assign-header" phx-click="toggle-assign-details" phx-value-key={key} phx-target={@myself}>
                   <div class="assign-key">{key}</div>
                   <div class="assign-type">{get_type(value)}</div>
@@ -385,7 +390,7 @@ defmodule HydepwnsLiveviewWeb.Components.Debug.SocketValidationPanel do
             <div class="chart-container">
               <h4>Errors by Type</h4>
               <div class="bar-chart">
-                <div :for={{_type, count} <- error_counts_by_type(@errors)} class="chart-item">
+                <div :for={{type, count} <- error_counts_by_type(@errors)} class="chart-item">
                   <div class="chart-label">{type}</div>
                   <div class="chart-bar-container">
                     <div class="chart-bar" style={"width: #{calculate_bar_width(count, @max_error_count)}%;"}>
@@ -399,7 +404,7 @@ defmodule HydepwnsLiveviewWeb.Components.Debug.SocketValidationPanel do
             <div class="chart-container">
               <h4>Errors by View</h4>
               <div class="bar-chart">
-                <div :for={{_view, count} <- error_counts_by_view(@errors)} class="chart-item">
+                <div :for={{view, count} <- error_counts_by_view(@errors)} class="chart-item">
                   <div class="chart-label">{short_view_name(view)}</div>
                   <div class="chart-bar-container">
                     <div class="chart-bar" style={"width: #{calculate_bar_width(count, @max_error_count)}%;"}>
@@ -439,7 +444,7 @@ defmodule HydepwnsLiveviewWeb.Components.Debug.SocketValidationPanel do
           <div class="common-patterns">
             <h4>Common Error Patterns</h4>
             <div class="patterns-list">
-              <div :for={{_pattern, _count, _solution} <- identify_error_patterns(@errors)} class="_pattern-item">
+              <div :for={{pattern, count, solution} <- identify_error_patterns(@errors)} class="pattern-item">
                 <div class="pattern-header">
                   <div class="pattern-name">{pattern}</div>
                   <div class="pattern-count">{count} occurrences</div>
@@ -817,6 +822,15 @@ defmodule HydepwnsLiveviewWeb.Components.Debug.SocketValidationPanel do
        "Convert string values to integers using String.to_integer/1"}
     else
       nil
+    end
+  end
+
+  # Helper to extract the first code sample from a message
+  @doc false
+  defp extract_first_code_sample(message) do
+    case String.split(message, "\n") do
+      [] -> ""
+      [first | _] -> first
     end
   end
 end

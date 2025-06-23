@@ -72,3 +72,24 @@ config :hydepwns_liveview, :sql_sandbox, true
 config :hydepwns_liveview, HydepwnsLiveviewWeb.Endpoint, code_reloader: false
 
 config :phoenix, :live_reload, enable: false
+
+# Configure mock reminder services for testing
+config :hydepwns_liveview, :reminder_services,
+  email: %{
+    provider: "mock",
+    from_email: "test@example.com",
+    from_name: "Test App",
+    api_key: "mock_api_key"
+  },
+  sms: %{
+    provider: "mock",
+    api_key: "mock_sms_key",
+    from_number: "+1234567890"
+  },
+  push: %{
+    provider: "mock",
+    api_key: "mock_push_key"
+  }
+
+# Configure mock crypto service for testing
+config :hydepwns_liveview, :crypto_service, HydepwnsLiveview.Events.MockCryptoService

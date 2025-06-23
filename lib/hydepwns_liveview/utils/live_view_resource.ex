@@ -1,4 +1,5 @@
 defmodule HydepwnsLiveview.Utils.LiveViewResource do
+  @compile :nowarn_unused_private
   @moduledoc """
   Defines a behavior for resource-oriented LiveViews, inspired by Ash framework's resource patterns.
 
@@ -78,8 +79,20 @@ defmodule HydepwnsLiveview.Utils.LiveViewResource do
   ```
   """
 
-  alias HydepwnsLiveview.Utils.ChangeTracker
-  alias HydepwnsLiveview.Utils.ValidationEngine
+  @dialyzer {:nowarn_function, 
+    __relationship_has_many__: 2,
+    __relationship_has_many_with_opts__: 3,
+    __relationship_belongs_to__: 2,
+    __relationship_belongs_to_with_opts__: 3,
+    __relationship_has_one__: 2,
+    __relationship_has_one_with_opts__: 3,
+    __relationship_has_many_through__: 2,
+    __relationship_has_many_through_with_opts__: 3,
+    __relationship_has_one_through__: 2,
+    __relationship_has_one_through_with_opts__: 3,
+    __relationship_polymorphic__: 2,
+    __relationship_polymorphic_with_opts__: 3
+  }
 
   @doc """
   Defines the behavior required for a LiveViewResource.
@@ -92,6 +105,19 @@ defmodule HydepwnsLiveview.Utils.LiveViewResource do
   Returns the schema for the resource, including all attributes, types, and validations.
   """
   @callback __resource_schema__() :: map()
+
+  @compile {:no_warn_undefined, {:__relationship_belongs_to__, 2}}
+  @compile {:no_warn_undefined, {:__relationship_belongs_to_with_opts__, 3}}
+  @compile {:no_warn_undefined, {:__relationship_has_many__, 2}}
+  @compile {:no_warn_undefined, {:__relationship_has_many_with_opts__, 3}}
+  @compile {:no_warn_undefined, {:__relationship_has_one__, 2}}
+  @compile {:no_warn_undefined, {:__relationship_has_one_with_opts__, 3}}
+  @compile {:no_warn_undefined, {:__relationship_has_many_through__, 2}}
+  @compile {:no_warn_undefined, {:__relationship_has_many_through_with_opts__, 3}}
+  @compile {:no_warn_undefined, {:__relationship_has_one_through__, 2}}
+  @compile {:no_warn_undefined, {:__relationship_has_one_through_with_opts__, 3}}
+  @compile {:no_warn_undefined, {:__relationship_polymorphic__, 2}}
+  @compile {:no_warn_undefined, {:__relationship_polymorphic_with_opts__, 3}}
 
   defmacro __using__(_opts) do
     quote do
@@ -286,7 +312,7 @@ defmodule HydepwnsLiveview.Utils.LiveViewResource do
   defp __relationship_functions__ do
     quote do
       # This function provides the relationship DSL functions to the using module
-      # The actual implementation is in __relationship_functions_impl__/0
+      # The actual implementation is in __relationship_functions_impl/0
     end
   end
 

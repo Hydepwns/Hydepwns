@@ -20,23 +20,44 @@ defmodule HydepwnsLiveview.Events.ReminderDelivery do
   end
 
   defp do_send_reminder(reminder) do
-    Repo.transaction(fn ->
-      case get_event_settings(reminder.event_id) do
-        {:ok, settings} ->
-          case deliver_reminder(reminder, settings) do
-            {:ok, _} ->
-              update_reminder_status(reminder, "sent")
+    Repo.transaction(fn -> process_reminder_delivery(reminder) end)
+    |> handle_transaction_result()
+  end
 
-            {:error, reason} ->
-              update_reminder_status(reminder, "failed", reason)
-              Repo.rollback(reason)
-          end
+  defp handle_transaction_result({:ok, result}), do: {:ok, result}
+  defp handle_transaction_result({:error, reason}), do: {:error, reason}
 
-        {:error, reason} ->
-          update_reminder_status(reminder, "failed", reason)
-          Repo.rollback(reason)
-      end
-    end)
+  defp process_reminder_delivery(reminder) do
+    reminder
+    |> get_event_settings()
+    |> handle_settings_result(reminder)
+  end
+
+  defp handle_settings_result({:ok, settings}, reminder) do
+    reminder
+    |> deliver_reminder(settings)
+    |> handle_delivery_result(reminder)
+  end
+
+  defp handle_settings_result({:error, reason}, reminder) do
+    update_and_rollback(reminder, "failed", reason)
+  end
+
+  defp handle_delivery_result({:ok, _}, reminder) do
+    update_reminder_status(reminder, "sent")
+  end
+
+  defp handle_delivery_result({:error, reason}, reminder) do
+    update_and_rollback(reminder, "failed", reason)
+  end
+
+  defp update_and_rollback(reminder, status, reason) do
+    case update_reminder_status(reminder, status, reason) do
+      {:ok, updated_reminder} -> 
+        Repo.rollback(reason)
+        updated_reminder
+      {:error, update_error} -> Repo.rollback(update_error)
+    end
   end
 
   defp get_event_settings(event_id) do
@@ -47,8 +68,13 @@ defmodule HydepwnsLiveview.Events.ReminderDelivery do
   end
 
   defp deliver_reminder(reminder, settings) do
-    # Convert reminder_type to atom for the delivery service
-    delivery_type = String.to_existing_atom(settings.reminder_type)
+    # Determine delivery type from recipient (email vs sms)
+    delivery_type = 
+      if String.contains?(reminder.recipient, "@") do
+        :email
+      else
+        :sms
+      end
 
     # Send the reminder using the delivery service
     case DeliveryService.send_reminder(reminder, delivery_type, settings) do

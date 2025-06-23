@@ -84,7 +84,24 @@ defmodule HydepwnsLiveview.Events do
   Creates an event.
   """
   def create_event(attrs \\ %{}) do
-    EventOperations.store_event(attrs.type, attrs)
+    # Check if this looks like a calendar event (has title, start_time, end_time)
+    if Map.has_key?(attrs, :title) or Map.has_key?(attrs, "title") do
+      # This is a calendar event, create an event sourcing event with the calendar data
+      event_type = "calendar_event.created"
+      resource_id = Ecto.UUID.generate()
+      resource_type = "calendar_event"
+      
+      event_data = %{
+        resource_id: resource_id,
+        resource_type: resource_type,
+        data: attrs
+      }
+      
+      EventOperations.store_event(event_type, event_data)
+    else
+      # This is an event sourcing event, use the original logic
+      EventOperations.store_event(attrs.type, attrs)
+    end
   end
 
   @doc """

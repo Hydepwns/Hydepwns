@@ -9,7 +9,7 @@ defmodule HydepwnsLiveview.Events.EventSettings do
     field :max_events_per_day, :integer, default: 10
     field :enable_reminders, :boolean, default: true
     field :reminder_time, :integer, default: 24
-    field :event_id, :integer
+    field :event_id, :binary_id
 
     timestamps()
   end

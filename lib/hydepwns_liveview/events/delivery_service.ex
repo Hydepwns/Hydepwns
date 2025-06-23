@@ -4,8 +4,6 @@ defmodule HydepwnsLiveview.Events.DeliveryService do
   Supports multiple delivery methods and can be easily extended.
   """
 
-  alias HydepwnsLiveview.Events.CryptoService
-
   @type delivery_type :: :email | :sms | :push | :webhook
   @type delivery_result :: {:ok, String.t()} | {:error, String.t()}
 
@@ -15,9 +13,11 @@ defmodule HydepwnsLiveview.Events.DeliveryService do
   """
   @spec send_reminder(struct(), delivery_type(), map()) :: delivery_result()
   def send_reminder(reminder, delivery_type, settings) do
-    with {:ok, adapter} <- get_adapter(delivery_type),
-         {:ok, config} <- get_config(delivery_type),
-         {:ok, encrypted_message} <- CryptoService.encrypt_message(reminder, settings) do
+    crypto_service = Application.get_env(:hydepwns_liveview, :crypto_service, HydepwnsLiveview.Events.CryptoService)
+    
+    with {:ok, config} <- get_config(delivery_type),
+         {:ok, adapter} <- get_adapter_with_config(delivery_type, config),
+         {:ok, encrypted_message} <- crypto_service.encrypt_message(reminder, settings) do
       adapter.send_reminder(reminder, settings, config, encrypted_message)
     end
   end
@@ -51,4 +51,8 @@ defmodule HydepwnsLiveview.Events.DeliveryService do
       config -> {:ok, config}
     end
   end
+
+  # Override adapter for mock provider in tests
+  defp get_adapter_with_config(:email, %{provider: "mock"}), do: {:ok, HydepwnsLiveview.Events.Adapters.MockEmailAdapter}
+  defp get_adapter_with_config(delivery_type, _config), do: get_adapter(delivery_type)
 end

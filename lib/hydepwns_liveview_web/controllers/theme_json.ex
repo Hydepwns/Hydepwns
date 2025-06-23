@@ -22,12 +22,14 @@ defmodule HydepwnsLiveviewWeb.ThemeJSON do
     %{
       id: theme.id,
       name: theme.name,
-      description: theme.description,
+      mode: theme.mode,
+      primary_color: theme.primary_color,
+      secondary_color: theme.secondary_color,
+      background_color: theme.background_color,
+      text_color: theme.text_color,
+      is_default: theme.is_default,
       colors: theme.colors,
-      fonts: theme.fonts,
-      spacing: theme.spacing,
-      border_radius: theme.border_radius,
-      shadows: theme.shadows,
+      settings: theme.settings,
       inserted_at: theme.inserted_at,
       updated_at: theme.updated_at
     }

@@ -59,8 +59,7 @@ defmodule HydepwnsLiveviewWeb.Components.Debug.SocketValidationPanel do
        |> assign(:total_error_count, 0)
        |> assign(:most_common_error, "None")
        |> assign(:error_rate, 0.0)
-       |> assign(:max_error_count, 1)
-       |> schedule_metrics_update()}
+       |> assign(:max_error_count, 1)}
     else
       {:ok, socket}
     end
@@ -122,8 +121,7 @@ defmodule HydepwnsLiveviewWeb.Components.Debug.SocketValidationPanel do
     # Schedule the next update
     {:noreply,
      socket
-     |> assign(:error_rate, error_rate)
-     |> schedule_metrics_update()}
+     |> assign(:error_rate, error_rate)}
   end
 
   def handle_info({:clear_errors, _}, socket) do
@@ -595,18 +593,12 @@ defmodule HydepwnsLiveviewWeb.Components.Debug.SocketValidationPanel do
   defp filter_and_sort_errors(errors, _filter, _sort_by, _direction), do: errors
   defp update_error_metrics(socket, _error_data), do: socket
   defp calculate_error_rate(_errors), do: 0.0
-  defp schedule_metrics_update(), do: nil
 
   # --- Additional private functions to fix compilation errors ---
   defp calculate_bar_width(_count, 0), do: 0
   defp calculate_bar_width(count, max_count) when is_integer(count) and is_integer(max_count) and max_count > 0 do
     percent = count / max_count * 100
     Float.round(percent, 2)
-  end
-
-  defp schedule_metrics_update(socket) do
-    # TODO: Placeholder: in real code, you might use Process.send_after/3
-    socket
   end
 
   # Helper to get the short name of a view module

@@ -10,7 +10,7 @@ defmodule HydepwnsLiveviewWeb.ApiDocsLive do
   import ApiDocs
   alias HydepwnsLiveviewWeb.Helpers.PathHelper
 
-  def mount(_params, _session, socket) do
+  def do_mount(_params, _session, socket) do
     default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()
     theme_class = "#{default_theme.mode}-theme"
 
@@ -27,12 +27,10 @@ defmodule HydepwnsLiveviewWeb.ApiDocsLive do
       {"theme-components", "Theme Components"}
     ])
     |> assign(:docs, load_docs())
-
-    {:ok, socket}
   end
 
-  def handle_params(_params, _url, socket) do
-    {:noreply, PathHelper.assign_specific_path(socket, "/api-docs")}
+  def do_handle_params(_params, _url, socket) do
+    PathHelper.assign_specific_path(socket, "/api-docs")
   end
 
   def render(assigns) do

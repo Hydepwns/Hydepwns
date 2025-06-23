@@ -38,29 +38,26 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
   alias HydepwnsLiveview.Events.TestEvents, as: TestEvents
   alias HydepwnsLiveview.Events.ProjectionSupervisor, as: ProjectionSupervisor
 
-  def mount(_params, _session, socket) do
+  def do_mount(_params, _session, socket) do
     theme_class = "dark-theme"
     events = Events.list_events()
     projections = [UserActivityProjection]
 
-    socket =
-      socket
-      |> assign(:page_title, "Event System Example")
-      |> assign(:theme_class, theme_class)
-      |> assign(:events, events)
-      |> assign(:projections, projections)
-      |> assign(:active_tab, "events")
-      |> assign(:selected_projection, nil)
-      |> assign(:projection_state, nil)
-
-    {:ok, socket}
+    socket
+    |> assign(:page_title, "Event System Example")
+    |> assign(:theme_class, theme_class)
+    |> assign(:events, events)
+    |> assign(:projections, projections)
+    |> assign(:active_tab, "events")
+    |> assign(:selected_projection, nil)
+    |> assign(:projection_state, nil)
   end
 
-  def handle_event("select_tab", %{"tab" => tab}, socket) do
-    {:noreply, assign(socket, :active_tab, tab)}
+  def do_handle_event("select_tab", %{"tab" => tab}, socket) do
+    assign(socket, :active_tab, tab)
   end
 
-  def handle_event("generate_test_data", %{"user_count" => user_count}, socket) do
+  def do_handle_event("generate_test_data", %{"user_count" => user_count}, socket) do
     # Parse the user count
     user_count = String.to_integer(user_count)
 
@@ -70,20 +67,16 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
         # Refresh the events list
         {:ok, latest_events} = Events.get_events(%{limit: 10, sort: [timestamp: :desc]})
 
-        socket =
-          socket
-          |> assign(:events, latest_events)
-          |> assign(:event_result, "Generated #{length(events)} events for #{user_count} users")
-
-        {:noreply, socket}
+        socket
+        |> assign(:events, latest_events)
+        |> assign(:event_result, "Generated #{length(events)} events for #{user_count} users")
 
       {:error, reason} ->
-        socket = assign(socket, :event_result, "Error: #{inspect(reason)}")
-        {:noreply, socket}
+        assign(socket, :event_result, "Error: #{inspect(reason)}")
     end
   end
 
-  def handle_event("publish_event", params, socket) do
+  def do_handle_event("publish_event", params, socket) do
     # Extract event data
     event_type = params["event_type"]
     resource_id = params["resource_id"]
@@ -103,40 +96,32 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
         # Refresh the events list
         {:ok, latest_events} = Events.get_events(%{limit: 10, sort: [timestamp: :desc]})
 
-        socket =
-          socket
-          |> assign(:events, latest_events)
-          |> assign(:event_result, "Event published: #{event.id}")
-
-        {:noreply, socket}
+        socket
+        |> assign(:events, latest_events)
+        |> assign(:event_result, "Event published: #{event.id}")
 
       {:error, reason} ->
-        socket = assign(socket, :event_result, "Error: #{inspect(reason)}")
-        {:noreply, socket}
+        assign(socket, :event_result, "Error: #{inspect(reason)}")
     end
   end
 
-  def handle_event("view_projection", %{"projection" => projection_index}, socket) do
+  def do_handle_event("view_projection", %{"projection" => projection_index}, socket) do
     # Get the projection from the list
     case Enum.at(socket.assigns.projections, String.to_integer(projection_index), nil) do
       {projection_module, pid} ->
         # Get the projection state
         {:ok, state} = ProjectionSupervisor.get_projection_state(pid)
 
-        socket =
-          socket
-          |> assign(:selected_projection, projection_module)
-          |> assign(:projection_state, state)
-
-        {:noreply, socket}
+        socket
+        |> assign(:selected_projection, projection_module)
+        |> assign(:projection_state, state)
 
       nil ->
-        socket = assign(socket, :event_result, "Invalid projection index")
-        {:noreply, socket}
+        assign(socket, :event_result, "Invalid projection index")
     end
   end
 
-  def handle_event("rebuild_projection", %{"projection" => projection_index}, socket) do
+  def do_handle_event("rebuild_projection", %{"projection" => projection_index}, socket) do
     # Get the projection from the list
     case Enum.at(socket.assigns.projections, String.to_integer(projection_index), nil) do
       {_projection_module, pid} ->
@@ -149,27 +134,24 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
         # Refresh the projection state
         {:ok, projections} = ProjectionSupervisor.list_projections()
 
-        socket =
-          socket
-          |> assign(:projections, projections)
-          |> assign(:event_result, "Projection rebuild initiated")
-
-        {:noreply, socket}
+        socket
+        |> assign(:projections, projections)
+        |> assign(:event_result, "Projection rebuild initiated")
 
       nil ->
-        socket = assign(socket, :event_result, "Invalid projection index")
-        {:noreply, socket}
+        assign(socket, :event_result, "Invalid projection index")
     end
   end
 
-  def handle_event(event, params, socket) when event not in ["select_tab", "generate_test_data", "publish_event", "view_projection", "rebuild_projection"] do
+  # Catch-all for truly unhandled events
+  def do_handle_event(event, params, socket) do
     require Logger
 
     Logger.warning(
       "Unhandled event in EventSystemExampleLive: #{inspect(event)} with params: #{inspect(params)}"
     )
 
-    {:noreply, put_flash(socket, :warning, "Unhandled event: #{event}")}
+    assign(socket, :event_result, "Unhandled event: #{event}")
   end
 
   def handle_info(_msg, socket) do

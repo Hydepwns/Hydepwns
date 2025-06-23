@@ -157,7 +157,6 @@ defmodule HydepwnsLiveviewWeb.LiveComponents.UserCardComponent do
   @doc """
   Handle event updates from the event system.
   """
-  @impl true
   def handle_info({:event, event}, socket) do
     # Get the current resource
     resource = socket.assigns.resource

@@ -6,23 +6,6 @@ defmodule HydepwnsLiveviewWeb.BaseLive do
   use HydepwnsLiveviewWeb, :live_view
 
   @impl Phoenix.LiveView
-  def mount(_params, _session, socket) do
-    default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()
-    theme_class = "#{default_theme.mode}-theme"
-    {:ok, assign(socket, theme_class: theme_class)}
-  end
-
-  @impl Phoenix.LiveView
-  def handle_params(_params, _url, socket) do
-    {:noreply, socket}
-  end
-
-  @impl Phoenix.LiveView
-  def handle_event(_event, _params, socket) do
-    {:noreply, socket}
-  end
-
-  @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
     <div class={@theme_class}>
@@ -35,11 +18,7 @@ defmodule HydepwnsLiveviewWeb.BaseLive do
     quote do
       use HydepwnsLiveviewWeb, :live_view
 
-      # import Phoenix.LiveView
       import Phoenix.Component
-      # import Phoenix.LiveView.Helpers
-      # import Phoenix.LiveView.Router
-      # import Phoenix.VerifiedRoutes
 
       @impl Phoenix.LiveView
       def mount(params, session, socket) do
@@ -60,9 +39,9 @@ defmodule HydepwnsLiveviewWeb.BaseLive do
       end
 
       # Default implementations that can be overridden
-      def do_mount(_params, _session, socket), do: socket
-      def do_handle_params(_params, _uri, socket), do: socket
-      def do_handle_event(_event, _params, socket), do: socket
+      def do_mount(_params, _session, _socket), do: _socket
+      def do_handle_params(_params, _uri, _socket), do: _socket
+      def do_handle_event(_event, _params, _socket), do: _socket
 
       def get_resource(socket, key), do: Map.get(socket.assigns, key)
       def update_resource(socket, key, value), do: {:ok, assign(socket, key, value)}

@@ -2,7 +2,6 @@ defmodule HydepwnsLiveviewWeb.ResourceEventLive.Show do
   use HydepwnsLiveviewWeb, :live_view
 
   alias HydepwnsLiveview.Events
-  alias HydepwnsLiveview.Events.Schemas.Event
 
   @impl Phoenix.LiveView
   def mount(%{"id" => event_id}, _session, socket) do

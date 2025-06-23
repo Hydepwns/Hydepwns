@@ -298,7 +298,6 @@ defmodule HydepwnsLiveviewWeb.Examples.ChangeTrackingExampleLive do
     end
   end
 
-  @impl true
   def handle_info(_msg, socket) do
     {:noreply, socket}
   end

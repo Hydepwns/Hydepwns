@@ -260,7 +260,7 @@ defmodule HydepwnsLiveviewWeb.Examples.ContextValidationTrackingExampleLive do
     """
   end
 
-  def handle_event("toggle_admin_mode", %{"state" => state}, socket) do
+  def do_handle_event("toggle_admin_mode", %{"state" => state}, socket) do
     admin_mode = state == "on"
 
     validation_context = %{
@@ -268,15 +268,12 @@ defmodule HydepwnsLiveviewWeb.Examples.ContextValidationTrackingExampleLive do
       admin_mode: admin_mode
     }
 
-    socket =
-      socket
-      |> assign(:admin_mode, admin_mode)
-      |> assign(:validation_context, validation_context)
-
-    {:noreply, socket}
+    socket
+    |> assign(:admin_mode, admin_mode)
+    |> assign(:validation_context, validation_context)
   end
 
-  def handle_event("update_user", params, socket) do
+  def do_handle_event("update_user", params, socket) do
     # Extract form data
     permissions = Map.get(params, "permissions", [])
 
@@ -316,102 +313,73 @@ defmodule HydepwnsLiveviewWeb.Examples.ContextValidationTrackingExampleLive do
         {:ok, history} = LiveViewAPI.get_history(updated_socket, :user)
 
         # Update the socket with success message and history
-        updated_socket =
-          updated_socket
-          |> assign(:change_history, history)
-          |> assign(:form_data, Map.get(updated_socket.assigns, :user))
-          |> assign(:success_message, "User updated successfully with context validation")
-          |> assign(:error_message, nil)
-
-        {:noreply, updated_socket}
+        updated_socket
+        |> assign(:change_history, history)
+        |> assign(:form_data, Map.get(updated_socket.assigns, :user))
+        |> assign(:success_message, "User updated successfully with context validation")
+        |> assign(:error_message, nil)
 
       {:error, :stale_resource, socket} ->
         # Handle optimistic concurrency control failure
-        socket =
-          socket
-          |> assign(
-            :error_message,
-            "Update failed: The resource was modified by someone else. Please refresh and try again."
-          )
-          |> assign(:success_message, nil)
-
-        {:noreply, socket}
+        socket
+        |> assign(
+          :error_message,
+          "Update failed: The resource was modified by someone else. Please refresh and try again."
+        )
+        |> assign(:success_message, nil)
 
       {:error, message, socket} ->
         # Handle validation error
-        socket =
-          socket
-          |> assign(:error_message, "Update failed: #{message}")
-          |> assign(:success_message, nil)
-
-        {:noreply, socket}
+        socket
+        |> assign(:error_message, "Update failed: #{message}")
+        |> assign(:success_message, nil)
     end
   end
 
-  def handle_event("set_view_mode", %{"mode" => mode}, socket) when mode in ["timeline", "list", "audit"] do
-    {:noreply, assign(socket, :view_mode, mode)}
+  def do_handle_event("set_view_mode", %{"mode" => mode}, socket) when mode in ["timeline", "list", "audit"] do
+    assign(socket, :view_mode, mode)
   end
 
-  def handle_event("view_version", %{"version" => version_str}, socket) do
+  def do_handle_event("view_version", %{"version" => version_str}, socket) do
     version = String.to_integer(version_str)
 
     case LiveViewAPI.get_version(socket, :user, version) do
       {:ok, versioned_user} ->
-        socket =
-          socket
-          |> assign(:versioned_user, versioned_user)
-          |> assign(:selected_version, version)
-          |> assign(:diff, nil)
-
-        {:noreply, socket}
-
+        socket
+        |> assign(:versioned_user, versioned_user)
+        |> assign(:selected_version, version)
+        |> assign(:diff, nil)
       {:error, reason} ->
-        socket =
-          socket
-          |> assign(:error_message, "Failed to load version: #{reason}")
-
-        {:noreply, socket}
+        assign(socket, :error_message, "Failed to load version: #{reason}")
     end
   end
 
-  def handle_event("diff_versions", %{"version1" => v1, "version2" => v2}, socket) do
+  def do_handle_event("diff_versions", %{"version1" => v1, "version2" => v2}, socket) do
     v1 = String.to_integer(v1)
     v2 = String.to_integer(v2)
 
     case LiveViewAPI.diff_versions(socket, :user, version1: v1, version2: v2) do
       {:ok, diff} ->
-        socket =
-          socket
-          |> assign(:diff, diff)
-
-        {:noreply, socket}
-
+        assign(socket, :diff, diff)
       {:error, reason} ->
-        socket =
-          socket
-          |> assign(:error_message, "Failed to create diff: #{reason}")
-
-        {:noreply, socket}
+        assign(socket, :error_message, "Failed to create diff: #{reason}")
     end
   end
 
-  def handle_event("reset_form", _params, socket) do
-    socket =
-      socket
-      |> assign(:form_data, socket.assigns.user)
-      |> assign(:error_message, nil)
-      |> assign(:success_message, nil)
-
-    {:noreply, socket}
+  def do_handle_event("reset_form", _params, socket) do
+    socket
+    |> assign(:form_data, socket.assigns.user)
+    |> assign(:error_message, nil)
+    |> assign(:success_message, nil)
   end
 
-  def handle_event(event, params, socket) when event not in ["set_view_mode", "view_version", "diff_versions", "reset_form", "toggle_admin_mode", "update_user"] do
+  def do_handle_event(event, params, socket) do
     require Logger
 
     Logger.warning(
       "Unhandled event in ContextValidationTrackingExampleLive: #{inspect(event)} with params: #{inspect(params)}"
     )
 
-    {:noreply, put_flash(socket, :warning, "Unhandled event: #{event}")}
+    assign(socket, :error_message, "Unhandled event: #{event}")
   end
 end

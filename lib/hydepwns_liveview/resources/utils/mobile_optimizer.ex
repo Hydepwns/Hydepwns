@@ -431,7 +431,7 @@ defmodule HydepwnsLiveview.Resources.MobileOptimizer do
 
           <%= if Map.get(@state.strategy, :show_metadata, true) && Map.has_key?(resource, :metadata) do %>
             <div class="resource-card__metadata">
-              <%= for {_key, _value} <- resource.metadata do %>
+              <%= for {key, value} <- resource.metadata do %>
                 <span class="metadata-item">{key}: {value}</span>
               <% end %>
             </div>

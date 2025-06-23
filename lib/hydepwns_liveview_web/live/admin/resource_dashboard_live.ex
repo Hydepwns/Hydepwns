@@ -12,6 +12,10 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
 
   use HydepwnsLiveviewWeb, :live_view
 
+  import Phoenix.Naming, only: [humanize: 1]
+  import HydepwnsLiveviewWeb.Components.UI.GeneralHelpers, only: [display_field_value: 2]
+  import HydepwnsLiveviewWeb.Components.UI.FormatHelpers, only: [format_datetime: 1]
+
   alias HydepwnsLiveview.Events.EventBus, as: EventBus
   alias HydepwnsLiveview.Resources.ResourceSystem
 
@@ -395,7 +399,7 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
                       <td>{resource.id}</td>
                       <!-- Dynamic fields -->
                       <%= if @selected_resource_type do %>
-                        <%= for _field <- get_display_fields(@selected_resource_type) do %>
+                        <%= for field <- get_display_fields(@selected_resource_type) do %>
                           <td>{display_field_value(resource, field)}</td>
                         <% end %>
                       <% end %>
@@ -428,7 +432,7 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
               </div>
 
               <div class="resource-properties">
-                <%= for {_key, _value} <- Map.drop(@current_resource, [:__struct__, :__resource_module__]) do %>
+                <%= for {key, _value} <- Map.drop(@current_resource, [:__struct__, :__resource_module__]) do %>
                   <div class="property">
                     <div class="property-name">{humanize(key)}</div>
                     <div class="property-value">{display_field_value(@current_resource, key)}</div>
@@ -500,16 +504,16 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
             <.form for={@changeset} phx-submit="save-resource" data-test-id="resource-form">
               <div class="form-fields">
                 <!-- Render fields using @changeset, e.g. -->
-                <%= for {field, _type} <- @changeset.types do %>
+                <%= for {field, type} <- @changeset.types do %>
                   <div class="form-group">
                     <label for={to_string(field)}>{humanize(field)}</label>
-                    <%= if @changeset.types[field] == :string do %>
+                    <%= if type == :string do %>
                       <input type="text" id={to_string(field)} name={"resource[#{field}]"} value={Ecto.Changeset.get_field(@changeset, field) || ""} />
                     <% else %>
                       <!-- Add more field types as needed -->
                       <input type="text" id={to_string(field)} name={"resource[#{field}]"} value={Ecto.Changeset.get_field(@changeset, field) || ""} />
                     <% end %>
-                    <%= if _error = @changeset.errors[field] do %>
+                    <%= if error = @changeset.errors[field] do %>
                       <div class="error-message" data-test-id="error-message">{elem(error, 0)}</div>
                     <% end %>
                   </div>

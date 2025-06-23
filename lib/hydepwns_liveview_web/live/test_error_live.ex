@@ -24,7 +24,7 @@ defmodule HydepwnsLiveviewWeb.TestErrorLive do
       <p>Status: <span data-assign="status">{@status}</span></p>
       <p>Settings: <span data-assign="settings">{inspect(@settings)}</span></p>
       <ul :if={@items && Enum.any?(@items)}>
-        <li :for={_item <- @items}>{_item}</li>
+        <li :for={item <- @items}>{item}</li>
       </ul>
       <div phx-click="update_status" data-test-id="status-clickable-div" style="display:inline-block;cursor:pointer;">Click to update status</div>
     </div>

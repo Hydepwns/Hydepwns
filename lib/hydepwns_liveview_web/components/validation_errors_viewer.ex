@@ -70,7 +70,7 @@ defmodule HydepwnsLiveviewWeb.Components.ValidationErrorsViewer do
         <h3 class="text-xl font-bold mb-3">
           Validation Errors
           <span class="text-sm font-normal ml-2">
-            ({@error_count} {Inflectorex.pluralize("error", @error_count)})
+            ({@error_count} {Inflectorex.pluralize("error")})
           </span>
         </h3>
 
@@ -92,11 +92,11 @@ defmodule HydepwnsLiveviewWeb.Components.ValidationErrorsViewer do
           <div class="error-summary mb-6 p-4 bg-gray-50 rounded-lg">
             <h4 class="font-semibold mb-2">Error Summary</h4>
             <div class="grid grid-cols-2 gap-2">
-              <%= for {_error_type, _count} <- @error_summary do %>
+              <%= for {error_type, count} <- @error_summary do %>
                 <div class="flex justify-between items-center p-2 border-b">
                   <span class="text-gray-700">{format_error_type(error_type)}</span>
                   <span class="text-sm bg-red-100 text-red-800 px-2 py-1 rounded-full">
-                    {count} {Inflectorex.pluralize("error", count)}
+                    {count} {Inflectorex.pluralize("error")}
                   </span>
                 </div>
               <% end %>
@@ -149,7 +149,7 @@ defmodule HydepwnsLiveviewWeb.Components.ValidationErrorsViewer do
 
       <%= if @has_errors do %>
         <ul class="error-list">
-          <%= for _error <- @path_errors do %>
+          <%= for error <- @path_errors do %>
             <li class="error-item text-red-600 mb-1">
               {format_error_message(error, @include_resource_ids)}
             </li>
@@ -188,11 +188,6 @@ defmodule HydepwnsLiveviewWeb.Components.ValidationErrorsViewer do
   # --- Restored private functions required for compilation ---
   defp format_error_message(error, _include_ids), do: "Error: #{inspect(error)}"
   defp format_error_type(error_type), do: to_string(error_type)
-  defp get_error_id(error), do: Map.get(error, :id, "unknown")
-  defp get_error_message(error), do: Map.get(error, :message, inspect(error))
-  defp get_error_module(error), do: Map.get(error, :module, "unknown")
   defp render_errors(_error_report, _style, _include_resource_ids, _max_depth), do: "[Error details here]"
   defp get_style(view_mode), do: view_mode
-  defp format_error_count(count, error_type), do: "#{count} #{error_type}"
-  defp format_error(error), do: inspect(error)
 end

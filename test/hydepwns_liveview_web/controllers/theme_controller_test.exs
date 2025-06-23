@@ -1,5 +1,6 @@
+# Removed unused module attribute if not used
+
 defmodule HydepwnsLiveviewWeb.ThemeControllerTest do
-  @endpoint HydepwnsLiveviewWeb.Endpoint
   @router HydepwnsLiveviewWeb.Router
   import Phoenix.VerifiedRoutes
   use HydepwnsLiveviewWeb.ConnCase, async: true

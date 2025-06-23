@@ -1,5 +1,4 @@
 defmodule HydepwnsLiveviewWeb.HomeLiveTest do
-  @endpoint HydepwnsLiveviewWeb.Endpoint
   @router HydepwnsLiveviewWeb.Router
   use HydepwnsLiveviewWeb.ConnCase, async: true
   import Phoenix.LiveViewTest

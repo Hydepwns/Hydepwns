@@ -12,8 +12,6 @@ defmodule HydepwnsLiveviewWeb.LiveSocketTestHelpers do
   import Phoenix.LiveViewTest
   import ExUnit.Assertions
 
-  @endpoint HydepwnsLiveviewWeb.Endpoint
-
   alias HydepwnsLiveview.Utils.SocketValidator
 
   @doc """

@@ -17,8 +17,6 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
       import HydepwnsLiveviewWeb.VisualRegressionHelper
 
       alias HydepwnsLiveviewWeb.Router.Helpers, as: Routes
-
-      @endpoint HydepwnsLiveviewWeb.Endpoint
     end
   end
 
@@ -37,17 +35,6 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
 
     # Visit a default page to ensure LiveView is started and expose the PID
     session = visit_and_wait(session, "/themes")
-
-    # TODO: The following block is temporarily commented out due to FunctionClauseError in Wallaby.Browser.execute_script/4
-    # case Wallaby.Browser.execute_script(session, "return window.phxLiveViewPids || [];", []) do
-    #   {:ok, [pid_str | _]} when is_binary(pid_str) and byte_size(pid_str) > 0 ->
-    #     {:ok, liveview_pid} = pid_str |> String.to_charlist() |> :erlang.list_to_pid()
-    #     Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), liveview_pid)
-    #   {:ok, []} ->
-    #     IO.puts("[WallabyCase] No LiveView PID found in browser JS context.")
-    #   other ->
-    #     IO.puts("[WallabyCase] Unexpected result from execute_script: #{inspect(other)}")
-    # end
 
     # Create screenshots directory if it doesn't exist
     File.mkdir_p!("test/screenshots")

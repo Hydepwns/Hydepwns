@@ -32,7 +32,7 @@ defmodule HydepwnsLiveviewWeb.ConnCase do
       import Phoenix.VerifiedRoutes
 
       # The default endpoint for testing
-      @endpoint HydepwnsLiveviewWeb.Endpoint
+      # @endpoint HydepwnsLiveviewWeb.Endpoint
 
       # Add test routes
       setup do

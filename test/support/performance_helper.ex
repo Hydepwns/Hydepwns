@@ -7,10 +7,7 @@ defmodule HydepwnsLiveviewWeb.PerformanceHelper do
   """
 
   import ExUnit.Assertions
-  import Phoenix.ConnTest
   import Phoenix.LiveViewTest
-
-  @endpoint HydepwnsLiveviewWeb.Endpoint
 
   @doc """
   Measures the time it takes to render a LiveView.

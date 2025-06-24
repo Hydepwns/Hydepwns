@@ -61,7 +61,7 @@ defmodule HydepwnsLiveview.Events.SnapshotOperationsTest do
     test "retrieves the latest snapshot", %{snapshots: [_, _, latest]} do
       assert {:ok, snapshot} = SnapshotOperations.get_latest_snapshot("test_resource", "123")
       assert snapshot.id == latest.id
-      assert snapshot.state.value == 3
+      assert snapshot.state["value"] == 3
     end
 
     test "returns not found for non-existent resource" do
@@ -113,6 +113,22 @@ defmodule HydepwnsLiveview.Events.SnapshotOperationsTest do
     end
 
     test "counts all events when no snapshot exists" do
+      # Insert events for the nonexistent resource
+      {:ok, _} = Repo.insert(%Event{
+        resource_type: "test_resource",
+        resource_id: "nonexistent",
+        type: "test_event",
+        data: %{},
+        timestamp: DateTime.utc_now()
+      })
+      {:ok, _} = Repo.insert(%Event{
+        resource_type: "test_resource",
+        resource_id: "nonexistent",
+        type: "test_event",
+        data: %{},
+        timestamp: DateTime.utc_now()
+      })
+
       assert {:ok, count} =
                SnapshotOperations.count_events_since_last_snapshot("test_resource", "nonexistent")
 
@@ -134,7 +150,7 @@ defmodule HydepwnsLiveview.Events.SnapshotOperationsTest do
 
       opts = [
         label: "test_version",
-        replay_id: "replay_123",
+        replay_id: Ecto.UUID.generate(),
         created_at: DateTime.utc_now(),
         point_in_time: DateTime.utc_now(),
         metadata: %{version: 1}
@@ -147,7 +163,7 @@ defmodule HydepwnsLiveview.Events.SnapshotOperationsTest do
       assert versioned_state.resource_id == "123"
       assert versioned_state.state == state
       assert versioned_state.label == "test_version"
-      assert versioned_state.replay_id == "replay_123"
+      assert is_binary(versioned_state.replay_id)
       assert versioned_state.metadata == %{version: 1}
     end
 

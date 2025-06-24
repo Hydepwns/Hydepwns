@@ -17,6 +17,7 @@ Code.require_file("support/mock_helper.ex", __DIR__)
 Code.require_file("support/resource_system_helper.ex", __DIR__)
 Code.require_file("support/event_store_test_helper.ex", __DIR__)
 Code.require_file("support/test_event_store.ex", __DIR__)
+Code.require_file("support/fixtures/theme_system_fixtures.ex", __DIR__)
 
 # Start the resource system
 {:ok, _} =

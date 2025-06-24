@@ -28,7 +28,6 @@ defmodule HydepwnsLiveviewWeb.ConnCase do
       require HydepwnsLiveviewWeb.Router
       alias HydepwnsLiveviewWeb.Router.Helpers, as: Routes
       @phoenix_router HydepwnsLiveviewWeb.Router
-      import Phoenix.VerifiedRoutes
 
       # The default endpoint for testing
       @endpoint HydepwnsLiveviewWeb.Endpoint

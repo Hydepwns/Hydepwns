@@ -1,5 +1,6 @@
 defmodule HydepwnsLiveviewWeb.StyleGuideJsTest do
   use HydepwnsLiveviewWeb.ConnCase, async: true
+  import Phoenix.LiveViewTest
 
   describe "Style Guide JavaScript" do
     test "high contrast toggle works", %{conn: conn} do

@@ -10,6 +10,11 @@ defmodule HydepwnsLiveviewWeb.AccessibilityHelper do
   import ExUnit.Assertions
   import Phoenix.LiveViewTest
 
+  @dialyzer {:nowarn_function, _assert_dynamic_focus: 1}
+  @dialyzer {:nowarn_function, _assert_focus_indicators: 1}
+  @dialyzer {:nowarn_function, _assert_focus_restoration: 1}
+  @dialyzer {:nowarn_function, _assert_modal_focus_trap: 1}
+
   @doc """
   Asserts that a skip-to-content link is present and properly configured.
   """
@@ -308,7 +313,8 @@ defmodule HydepwnsLiveviewWeb.AccessibilityHelper do
     assert has_element?(view, "a.high-contrast")
   end
 
-  defp assert_modal_focus_trap(view) do
+  @doc false
+  defp _assert_modal_focus_trap(view) do
     # Check for focus trapping in modals
     modals = find_elements(view, "[role='dialog']")
 
@@ -317,18 +323,21 @@ defmodule HydepwnsLiveviewWeb.AccessibilityHelper do
     end
   end
 
-  defp assert_focus_restoration(view) do
+  @doc false
+  defp _assert_focus_restoration(view) do
     # Check for focus restoration attributes
     assert has_element?(view, "[data-focus-restore]")
   end
 
-  defp assert_focus_indicators(view) do
+  @doc false
+  defp _assert_focus_indicators(view) do
     # Check for focus indicator styles
     assert has_element?(view, ".focus-visible")
     assert has_element?(view, ".keyboard-navigation")
   end
 
-  defp assert_dynamic_focus(view) do
+  @doc false
+  defp _assert_dynamic_focus(view) do
     # Check for dynamic content focus management
     assert has_element?(view, "[data-dynamic-focus]")
   end

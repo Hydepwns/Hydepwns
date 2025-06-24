@@ -117,7 +117,7 @@ defmodule HydepwnsLiveview.Events.EventOperationsTest do
     end
 
     test "handles invalid query parameters" do
-      assert {:ok, []} = EventOperations.get_events(%{id: "invalid_id"})
+      assert {:error, _} = EventOperations.get_events(%{id: "invalid_id"})
       assert {:ok, []} = EventOperations.get_events(%{event_type: "nonexistent_type"})
     end
   end

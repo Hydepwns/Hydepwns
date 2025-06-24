@@ -189,22 +189,6 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
     end)
   end
 
-  defp validate_map_types(map, key_type, value_type) do
-    results = Enum.map(map, fn {key, value} ->
-      key_result = validate_type(key, key_type)
-      value_result = validate_type(value, value_type)
-      {key_result, value_result}
-    end)
-    
-    if Enum.all?(results, fn {key_result, value_result} ->
-      match?({:ok, _}, key_result) && match?({:ok, _}, value_result)
-    end) do
-      {:ok, map}
-    else
-      {:error, "Map contains invalid keys or values"}
-    end
-  end
-
   def validate_one_of(value, allowed) when is_list(allowed) do
     if value in allowed do
       {:ok, value}
@@ -810,22 +794,5 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
     else
       value_info
     end
-  end
-
-  defp validate_socket(state, opts) do
-    required_keys = Keyword.get(opts, :required_keys, [])
-    type_specs = Keyword.get(opts, :type_specs, %{})
-
-    case TypeValidation.validate_required(state, required_keys) do
-      {:ok, socket} ->
-        TypeValidation.validate_type_specs(socket, type_specs)
-
-      {:error, missing_keys} ->
-        {:error, "Missing required assigns: #{inspect(missing_keys)}", state}
-    end
-  end
-
-  defp validate_socket_key(_key) do
-    :ok
   end
 end

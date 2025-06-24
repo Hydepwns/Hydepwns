@@ -405,7 +405,6 @@ defmodule HydepwnsLiveview.Utils.ContextValidation do
     case apply_rule(rule_fn, resource, context) do
       :ok -> []
       {:error, message} -> [{rule_name, message}]
-      {:error, messages} when is_list(messages) -> Enum.map(messages, &{rule_name, &1})
     end
   end
 
@@ -475,45 +474,5 @@ defmodule HydepwnsLiveview.Utils.ContextValidation do
       # This might not be ideal for memory usage, but ensures uniqueness
       resource
     end
-  end
-
-  defp validate_rule(rule, context) do
-    # Validate that the rule is a valid validation rule
-    with {:ok, rule_fn} <- validate_rule_function(rule),
-         {:ok, _} <- validate_rule_context(rule_fn, context) do
-      {:ok, rule_fn}
-    else
-      {:error, reason} -> {:error, reason}
-    end
-  end
-
-  # Helper to validate that the rule is a valid function
-  defp validate_rule_function(rule) when is_function(rule, 1) or is_function(rule, 2) do
-    {:ok, rule}
-  end
-
-  defp validate_rule_function(_rule), do: {:error, "Invalid rule function"}
-
-  # Helper to validate that the rule can handle the given context
-  defp validate_rule_context(rule_fn, context) when is_function(rule_fn, 2) do
-    try do
-      # Test the rule with a dummy value and the context
-      case rule_fn.(%{}, context) do
-        :ok -> :ok
-        {:error, reason} -> {:error, reason}
-        _ -> {:error, "Invalid rule return value"}
-      end
-    rescue
-      e -> {:error, "Rule execution failed: #{inspect(e)}"}
-    end
-  end
-
-  defp validate_rule_context(rule_fn, _context) when is_function(rule_fn, 1) do
-    # Rule doesn't accept context, but that's okay
-    {:ok, rule_fn}
-  end
-
-  defp validate_rule_context(_rule_fn, _context) do
-    {:error, "Invalid validation rule: must be a function that takes 1 or 2 arguments"}
   end
 end

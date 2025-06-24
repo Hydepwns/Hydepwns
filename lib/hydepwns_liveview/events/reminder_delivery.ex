@@ -24,11 +24,12 @@ defmodule HydepwnsLiveview.Events.ReminderDelivery do
     |> handle_transaction_result()
   end
 
+  defp handle_transaction_result({:ok, {:ok, reminder}}), do: {:ok, reminder}
   defp handle_transaction_result({:ok, result}), do: {:ok, result}
   defp handle_transaction_result({:error, reason}), do: {:error, reason}
 
   defp process_reminder_delivery(reminder) do
-    reminder
+    reminder.event_id
     |> get_event_settings()
     |> handle_settings_result(reminder)
   end

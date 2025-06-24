@@ -66,7 +66,7 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
         Snapshot
         |> where([s], s.resource_type == ^resource_type)
         |> where([s], s.resource_id == ^resource_id)
-        |> order_by([s], desc: s.timestamp)
+        |> order_by([s], desc: s.inserted_at)
         |> limit(1)
         |> Repo.one()
 

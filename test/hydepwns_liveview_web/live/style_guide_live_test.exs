@@ -1,6 +1,8 @@
 defmodule HydepwnsLiveviewWeb.StyleGuideLiveTest do
+  @router HydepwnsLiveviewWeb.Router
   use HydepwnsLiveviewWeb.ConnCase, async: true
   import Phoenix.LiveViewTest
+  import Phoenix.VerifiedRoutes
 
   alias HydepwnsLiveviewWeb.MockHelper
 
@@ -11,12 +13,12 @@ defmodule HydepwnsLiveviewWeb.StyleGuideLiveTest do
       {:ok, %{"id" => "mock", "name" => "Mock Resource", "status" => "active"}}
     end)
 
-    context
+    {:ok, context}
   end
 
   describe "StyleGuideLive" do
     test "renders the style guide page", %{conn: conn} do
-      {:ok, _view, html} = live(conn, "/style-guide")
+      {:ok, _view, html} = live(conn, ~p"/style-guide")
 
       # Test that the page title is correct
       assert html =~ "Style Guide"
@@ -34,7 +36,7 @@ defmodule HydepwnsLiveviewWeb.StyleGuideLiveTest do
     end
 
     test "can change theme", %{conn: conn} do
-      {:ok, view, _html} = live(conn, "/style-guide")
+      {:ok, view, _html} = live(conn, ~p"/style-guide")
 
       # Test that the theme can be changed using the theme toggle in the style guide
       view

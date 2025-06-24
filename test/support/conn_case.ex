@@ -20,6 +20,7 @@ defmodule HydepwnsLiveviewWeb.ConnCase do
   using do
     quote do
       import Plug.Conn
+      import Phoenix.ConnTest
       import HydepwnsLiveviewWeb.ConnCase
       import Phoenix.Component
 

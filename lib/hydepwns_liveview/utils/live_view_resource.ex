@@ -79,20 +79,18 @@ defmodule HydepwnsLiveview.Utils.LiveViewResource do
   ```
   """
 
-  @dialyzer {:nowarn_function, 
-    __relationship_has_many__: 2,
-    __relationship_has_many_with_opts__: 3,
-    __relationship_belongs_to__: 2,
-    __relationship_belongs_to_with_opts__: 3,
-    __relationship_has_one__: 2,
-    __relationship_has_one_with_opts__: 3,
-    __relationship_has_many_through__: 2,
-    __relationship_has_many_through_with_opts__: 3,
-    __relationship_has_one_through__: 2,
-    __relationship_has_one_through_with_opts__: 3,
-    __relationship_polymorphic__: 2,
-    __relationship_polymorphic_with_opts__: 3
-  }
+  @dialyzer {:nowarn_function, __relationship_belongs_to__: 2}
+  @dialyzer {:nowarn_function, __relationship_belongs_to_with_opts__: 3}
+  @dialyzer {:nowarn_function, __relationship_has_many__: 2}
+  @dialyzer {:nowarn_function, __relationship_has_many_with_opts__: 3}
+  @dialyzer {:nowarn_function, __relationship_has_many_through__: 2}
+  @dialyzer {:nowarn_function, __relationship_has_many_through_with_opts__: 3}
+  @dialyzer {:nowarn_function, __relationship_has_one__: 2}
+  @dialyzer {:nowarn_function, __relationship_has_one_with_opts__: 3}
+  @dialyzer {:nowarn_function, __relationship_has_one_through__: 2}
+  @dialyzer {:nowarn_function, __relationship_has_one_through_with_opts__: 3}
+  @dialyzer {:nowarn_function, __relationship_polymorphic__: 2}
+  @dialyzer {:nowarn_function, __relationship_polymorphic_with_opts__: 3}
 
   @doc """
   Defines the behavior required for a LiveViewResource.
@@ -588,6 +586,7 @@ defmodule HydepwnsLiveview.Utils.LiveViewResource do
     end
   end
 
+  @doc false
   defp __relationship_belongs_to__(name, resource) do
     relationship_def = %{
       name: name,
@@ -599,6 +598,7 @@ defmodule HydepwnsLiveview.Utils.LiveViewResource do
     Module.put_attribute(__MODULE__, :resource_relationships, relationship_def)
   end
 
+  @doc false
   defp __relationship_belongs_to_with_opts__(name, resource, opts) do
     relationship_def = %{
       name: name,
@@ -610,6 +610,7 @@ defmodule HydepwnsLiveview.Utils.LiveViewResource do
     Module.put_attribute(__MODULE__, :resource_relationships, relationship_def)
   end
 
+  @doc false
   defp __relationship_has_many__(name, resource) do
     relationship_def = %{
       name: name,
@@ -621,6 +622,7 @@ defmodule HydepwnsLiveview.Utils.LiveViewResource do
     Module.put_attribute(__MODULE__, :resource_relationships, relationship_def)
   end
 
+  @doc false
   defp __relationship_has_many_with_opts__(name, resource, opts) do
     relationship_def = %{
       name: name,
@@ -632,6 +634,7 @@ defmodule HydepwnsLiveview.Utils.LiveViewResource do
     Module.put_attribute(__MODULE__, :resource_relationships, relationship_def)
   end
 
+  @doc false
   defp __relationship_has_many_through__(name, opts) do
     case opts do
       [through: [through_rel, target_rel]] ->
@@ -649,6 +652,7 @@ defmodule HydepwnsLiveview.Utils.LiveViewResource do
     end
   end
 
+  @doc false
   defp __relationship_has_many_through_with_opts__(name, opts, through_opts) do
     case opts do
       [through: [through_rel, target_rel]] ->
@@ -666,6 +670,7 @@ defmodule HydepwnsLiveview.Utils.LiveViewResource do
     end
   end
 
+  @doc false
   defp __relationship_has_one__(name, resource) do
     relationship_def = %{
       name: name,
@@ -677,6 +682,7 @@ defmodule HydepwnsLiveview.Utils.LiveViewResource do
     Module.put_attribute(__MODULE__, :resource_relationships, relationship_def)
   end
 
+  @doc false
   defp __relationship_has_one_with_opts__(name, resource, opts) do
     relationship_def = %{
       name: name,
@@ -688,6 +694,7 @@ defmodule HydepwnsLiveview.Utils.LiveViewResource do
     Module.put_attribute(__MODULE__, :resource_relationships, relationship_def)
   end
 
+  @doc false
   defp __relationship_has_one_through__(name, opts) do
     case opts do
       [through: [through_rel, target_rel]] ->
@@ -705,6 +712,7 @@ defmodule HydepwnsLiveview.Utils.LiveViewResource do
     end
   end
 
+  @doc false
   defp __relationship_has_one_through_with_opts__(name, opts, through_opts) do
     case opts do
       [through: [through_rel, target_rel]] ->
@@ -722,6 +730,7 @@ defmodule HydepwnsLiveview.Utils.LiveViewResource do
     end
   end
 
+  @doc false
   defp __relationship_polymorphic__(name, opts) do
     case opts do
       [types: allowed_types] ->
@@ -738,6 +747,7 @@ defmodule HydepwnsLiveview.Utils.LiveViewResource do
     end
   end
 
+  @doc false
   defp __relationship_polymorphic_with_opts__(name, opts, poly_opts) do
     case opts do
       [types: allowed_types] ->

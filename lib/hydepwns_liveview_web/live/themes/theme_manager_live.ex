@@ -78,24 +78,41 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
     {:noreply, assign(socket, :themes, ThemeSystem.list_themes())}
   end
 
+  @impl true
+  def handle_event("go_to_create_theme", _params, socket) do
+    {:noreply, push_navigate(socket, to: "/themes/new")}
+  end
+
   @impl Phoenix.LiveView
   def render(assigns) do
+    assigns = assign(assigns, :title, "Theme Manager")
     ~H"""
     <div class="container mx-auto px-4 py-8" data-mode={@theme_class}>
-      <%= HydepwnsLiveviewWeb.Components.Common.HeaderComponent.header(assigns) %>
+      <header class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Theme Manager</h1>
+        </div>
+        <div>
+          <button type="button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" phx-click="go_to_create_theme">Create Theme</button>
+        </div>
+      </header>
 
       <div class="mt-8">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <%= for theme <- @themes do %>
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6" data-test-id={"theme-card-#{theme.id}"}>
               <div class="flex justify-between items-start mb-4">
-                <h3 class="text-lg font-medium" data-test-id={"theme-name-#{theme.id}"}><%= theme.name %></h3>
+                <h3 class="text-lg font-medium" data-test-id={"theme-name-#{theme.id}"}>
+                  <.link navigate={~p"/themes/#{theme}"} data-test-id={"theme-link-#{theme.name |> String.downcase() |> String.replace(" ", "-")}"}>
+                    <%= theme.name %>
+                  </.link>
+                </h3>
                 <div class="flex space-x-2">
                   <.link navigate={~p"/themes/#{theme}/edit"} data-test-id={"edit-theme-#{theme.id}"}>
-                    <.button>Edit</.button>
+                    <button type="button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Edit</button>
                   </.link>
-                  <button phx-click="delete" phx-value-id={theme.id} data-test-id={"delete-theme-#{theme.id}"}>
-                    <.button>Delete</.button>
+                  <button phx-click="delete" phx-value-id={theme.id} data-test-id={"delete-theme-#{theme.id}"} class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                    Delete
                   </button>
                 </div>
               </div>
@@ -107,8 +124,8 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
                 <div><strong>Text:</strong> <span style={"color: #{theme.text_color}"}><%= theme.text_color %></span></div>
               </div>
               <div class="mt-4">
-                <button phx-click="apply" phx-value-id={theme.id} data-test-id={"apply-theme-#{theme.id}"}>
-                  <.button>Apply Theme</.button>
+                <button phx-click="apply" phx-value-id={theme.id} data-test-id={"apply-theme-#{theme.id}"} class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                  Apply Theme
                 </button>
               </div>
             </div>

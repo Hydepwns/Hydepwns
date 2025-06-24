@@ -280,18 +280,16 @@ defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewer do
     """
   end
 
-  # This is an element from versions_with_diffs
+  # This is the new, isolated audit row component function
   attr :entry, :map, required: true
   # Passed down for styling active version
   attr :selected_version, :integer, default: nil
   # Passed down for button actions
   attr :on_view_version, :string, default: nil
 
-  # This is the new, isolated audit row component function
   def render_audit_row(assigns) do
     # assigns here will contain :entry, :selected_version, :on_view_version from the call site <.render_audit_row ... />
     # @entry is the specific item from @versions_with_diffs
-    _current_entry = assigns.entry
 
     ~H"""
     <div class={

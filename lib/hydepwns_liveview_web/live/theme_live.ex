@@ -28,10 +28,11 @@ defmodule HydepwnsLiveviewWeb.ThemeLive do
   end
 
   defp apply_action(socket, :edit, %{"id" => id}) do
+    theme = ThemeSystem.get_theme!(id)
     socket
     |> assign(:page_title, "Edit Theme")
-    |> assign(:theme, ThemeSystem.get_theme!(id))
-    |> assign(:changeset, ThemeSystem.change_theme(ThemeSystem.get_theme!(id)))
+    |> assign(:theme, theme)
+    |> assign(:changeset, ThemeSystem.change_theme(theme))
   end
 
   defp apply_action(socket, :show, %{"id" => id}) do

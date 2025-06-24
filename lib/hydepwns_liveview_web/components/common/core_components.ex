@@ -155,45 +155,11 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
   end
   defp slot_key?(_), do: false
 
-  defp call_slot_function(slot_value, assigns) do
-    arity = Function.info(slot_value, :arity)
+  defp call_slot_function(slot_fun, assigns) do
     try do
-      case arity do
-        {:arity, 2} -> slot_value.(assigns, nil)
-        {:arity, 1} -> slot_value.(assigns)
-        {:arity, 0} -> slot_value.()
-        _ -> ""
-      end
+      slot_fun.(assigns)
     rescue
-      e -> 
-        ""
-    end
-  end
-
-  defp render_list_item_content(item, assigns, slot_key) do
-    case item do
-      %{^slot_key => block} when is_function(block) ->
-        arity = Function.info(block, :arity)
-        case arity do
-          {:arity, 2} -> block.(assigns, nil)
-          {:arity, 1} -> block.(assigns)
-          {:arity, 0} -> block.()
-          _ -> ""
-        end
-      %{^slot_key => block} when is_binary(block) -> block
-      item when is_binary(item) -> item
-      _ -> inspect(item)
-    end
-  end
-
-  defp render_slot_content(slot_value, assigns \\ %{}, slot_key) do
-    case slot_value do
-      nil -> ""
-      slot_value when is_function(slot_value) -> call_slot_function(slot_value, assigns)
-      slot_value when is_list(slot_value) ->
-        Enum.map_join(slot_value, "", &render_list_item_content(&1, assigns, slot_key))
-      slot_value when is_binary(slot_value) -> slot_value
-      _ -> inspect(slot_value)
+      _e -> ""
     end
   end
 
@@ -204,13 +170,24 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
         "#{title}: #{content}"
       %{inner_block: block} when is_function(block) ->
         render_slot_content(block, assigns)
-      other -> 
-        inspect(other)
+      _other -> 
+        inspect(item)
+    end
+  end
+
+  defp render_slot_content(slot_value, assigns \\ %{}, _slot_key) do
+    case slot_value do
+      nil -> ""
+      slot_value when is_function(slot_value) -> call_slot_function(slot_value, assigns)
+      slot_value when is_list(slot_value) ->
+        Enum.map_join(slot_value, "", &render_list_item(&1, assigns))
+      slot_value when is_binary(slot_value) -> slot_value
+      _ -> inspect(slot_value)
     end
   end
 
   defp get_list_slot_content(assigns) do
-    case assigns[:_item] do
+    case assigns[:item] do
       nil -> 
         render_slot_content(assigns[:inner_block], assigns, :inner_block)
       items when is_list(items) ->
@@ -586,10 +563,10 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
 
   defp get_nav_slot_content(assigns) do
     cond do
-      is_list(assigns[:_item]) -> 
-        render_list_items(assigns[:_item], assigns)
-      is_function(assigns[:_item]) -> 
-        render_slot_content(assigns[:_item], assigns, :inner_block)
+      is_list(assigns[:item]) -> 
+        render_list_items(assigns[:item], assigns)
+      is_function(assigns[:item]) -> 
+        render_slot_content(assigns[:item], assigns, :inner_block)
       is_list(assigns[:inner_block]) ->
         render_list_items(assigns[:inner_block], assigns)
       is_function(assigns[:inner_block]) -> 
@@ -601,13 +578,6 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
 
   defp render_list_items(items, assigns) do
     Enum.map_join(items, "", fn item -> render_list_item(item, assigns) end)
-  end
-
-  defp render_list_item(item, assigns) do
-    case item do
-      %{inner_block: block} when is_function(block) -> render_slot_content(block, assigns)
-      other -> inspect(other)
-    end
   end
 
   defp render_inner_block_fallback(inner_block, assigns) do

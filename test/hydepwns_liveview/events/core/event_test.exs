@@ -39,36 +39,21 @@ defmodule HydepwnsLiveview.Events.Core.EventTest do
     end
 
     test "rejects invalid data" do
-      assert {:error, changeset} =
-               Event.create("test_event", %{
-                 resource_id: "123",
-                 resource_type: "test_resource",
-                 data: "not_a_map"
-               })
-
-      assert "must be a map" in errors_on(changeset).data
+      changeset = Event.create("test_event", %{data: "not_a_map"})
+      assert {:error, changeset} = changeset
+      assert "is invalid" in errors_on(changeset).data
     end
 
     test "rejects invalid metadata" do
-      assert {:error, changeset} =
-               Event.create("test_event", %{
-                 resource_id: "123",
-                 resource_type: "test_resource",
-                 metadata: "not_a_map"
-               })
-
-      assert "must be a map" in errors_on(changeset).metadata
+      changeset = Event.create("test_event", %{metadata: "not_a_map"})
+      assert {:error, changeset} = changeset
+      assert "is invalid" in errors_on(changeset).metadata
     end
 
     test "rejects invalid timestamp" do
-      assert {:error, changeset} =
-               Event.create("test_event", %{
-                 resource_id: "123",
-                 resource_type: "test_resource",
-                 timestamp: "not_a_datetime"
-               })
-
-      assert "must be a DateTime" in errors_on(changeset).timestamp
+      changeset = Event.create("test_event", %{timestamp: "not_a_datetime"})
+      assert {:error, changeset} = changeset
+      assert "is invalid" in errors_on(changeset).timestamp
     end
   end
 

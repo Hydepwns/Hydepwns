@@ -2,7 +2,7 @@ defmodule HydepwnsLiveviewWeb.Features.RelationshipManagementWorkflowTest do
   use HydepwnsLiveviewWeb.WallabyCase, async: false
   setup :set_mox_global
   alias HydepwnsLiveview.TestSupport.ResourceFixtures
-  alias HydepwnsLiveviewWeb.MockHelper
+  alias HydepwnsLiveviewWeb.TestMockHelper
 
   @moduledoc """
   End-to-end tests for the Resource Relationship Management workflow.
@@ -19,9 +19,9 @@ defmodule HydepwnsLiveviewWeb.Features.RelationshipManagementWorkflowTest do
       ResourceFixtures.create_user(%{name: "Test User", email: "testuser@example.com"})
 
     # Add Mox expectation for fetch_data
-    MockHelper.setup_mocks()
+    TestMockHelper.setup_mocks()
 
-    MockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
+    TestMockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
       {:ok, %{"id" => "mock", "name" => "Mock Resource", "status" => "active"}}
     end)
 

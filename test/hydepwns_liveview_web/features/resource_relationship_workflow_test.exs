@@ -14,7 +14,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
   """
 
   alias HydepwnsLiveview.TestSupport.ResourceFixtures
-  alias HydepwnsLiveviewWeb.MockHelper
+  alias HydepwnsLiveviewWeb.TestMockHelper
 
   setup %{session: session} do
     unique = System.unique_integer([:positive])
@@ -34,9 +34,9 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       })
 
     # Add Mox expectation for fetch_data
-    MockHelper.setup_mocks()
+    TestMockHelper.setup_mocks()
 
-    MockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
+    TestMockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
       {:ok, %{"id" => "mock", "name" => "Mock Resource", "status" => "active"}}
     end)
 

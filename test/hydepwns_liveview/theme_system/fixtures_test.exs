@@ -3,6 +3,7 @@ defmodule HydepwnsLiveview.ThemeSystem.FixturesTest do
 
   alias HydepwnsLiveview.ThemeSystem
   alias HydepwnsLiveview.ThemeSystem.Models.Theme
+  import HydepwnsLiveview.TestThemeSystemFixtures
 
   describe "theme fixtures" do
     test "theme_fixture/1 creates a basic theme with default values" do

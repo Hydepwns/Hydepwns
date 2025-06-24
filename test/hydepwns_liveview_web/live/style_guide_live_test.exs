@@ -4,7 +4,7 @@ defmodule HydepwnsLiveviewWeb.StyleGuideLiveTest do
   import Phoenix.LiveViewTest
   import Phoenix.VerifiedRoutes
 
-  alias HydepwnsLiveviewWeb.MockHelper
+  alias HydepwnsLiveviewWeb.TestMockHelper
 
   setup context do
     MockHelper.setup_mocks()

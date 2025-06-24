@@ -2,9 +2,9 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeToggleTest do
   use HydepwnsLiveviewWeb.ConnCase, async: false
   @moduletag :liveview
   import Phoenix.LiveViewTest
-  import HydepwnsLiveview.ThemeSystemFixtures
+  import HydepwnsLiveview.TestThemeSystemFixtures
 
-  alias HydepwnsLiveviewWeb.MockHelper
+  alias HydepwnsLiveviewWeb.TestMockHelper
 
   describe "Theme Toggle Component" do
     setup %{conn: conn} do

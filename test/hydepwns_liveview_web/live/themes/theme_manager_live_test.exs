@@ -11,7 +11,8 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
   use HydepwnsLiveviewWeb.ConnCase, async: false
   @moduletag :liveview
   import Phoenix.LiveViewTest
-  alias HydepwnsLiveviewWeb.MockHelper
+  import HydepwnsLiveview.TestThemeSystemFixtures
+  alias HydepwnsLiveviewWeb.TestMockHelper
 
   setup %{conn: conn} do
     # Optionally clear themes table for a clean slate

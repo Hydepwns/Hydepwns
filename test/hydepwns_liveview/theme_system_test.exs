@@ -3,6 +3,7 @@ defmodule HydepwnsLiveview.ThemeSystemTest do
 
   alias HydepwnsLiveview.ThemeSystem
   alias HydepwnsLiveview.ThemeSystem.Models.Theme
+  import HydepwnsLiveview.TestThemeSystemFixtures
 
   describe "themes" do
     @invalid_attrs %{

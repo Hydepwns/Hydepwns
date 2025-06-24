@@ -2,7 +2,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
   use HydepwnsLiveviewWeb.WallabyCase, async: false
   setup :set_mox_global
   import Wallaby.Query
-  alias HydepwnsLiveviewWeb.MockHelper
+  alias HydepwnsLiveviewWeb.TestMockHelper
   alias HydepwnsLiveview.TestSupport.ResourceSystemHelper
 
   @moduledoc """
@@ -30,7 +30,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
         content: %{text: "Initial content"}
       })
 
-    MockHelper.setup_mocks()
+    TestMockHelper.setup_mocks()
 
     {:ok, session: visit_and_wait(session, "/resources"), resource: resource}
   end
@@ -40,7 +40,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
       session: session,
       resource: resource
     } do
-      MockHelper.expect_api_call(:external_api, :fetch_data, fn id ->
+      TestMockHelper.expect_api_call(:external_api, :fetch_data, fn id ->
         {:ok,
          %{
            "id" => id,
@@ -78,7 +78,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
     end
 
     test "event processing maintains consistency", %{session: session, resource: resource} do
-      MockHelper.expect_api_call(:external_api, :fetch_data, fn id ->
+      TestMockHelper.expect_api_call(:external_api, :fetch_data, fn id ->
         {:ok,
          %{
            "id" => id,
@@ -116,7 +116,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
     end
 
     test "event visualization shows processing status", %{session: session, resource: resource} do
-      MockHelper.expect_api_call(:external_api, :fetch_data, fn id ->
+      TestMockHelper.expect_api_call(:external_api, :fetch_data, fn id ->
         {:ok,
          %{
            "id" => id,
@@ -143,7 +143,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
     end
 
     test "event subscription management", %{session: session, resource: resource} do
-      MockHelper.expect_api_call(:external_api, :fetch_data, fn id ->
+      TestMockHelper.expect_api_call(:external_api, :fetch_data, fn id ->
         {:ok,
          %{
            "id" => id,
@@ -184,7 +184,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
     end
 
     test "event processing error handling", %{session: session, resource: resource} do
-      MockHelper.expect_api_call(:external_api, :fetch_data, fn id ->
+      TestMockHelper.expect_api_call(:external_api, :fetch_data, fn id ->
         {:ok,
          %{
            "id" => id,

@@ -3,12 +3,12 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
   use HydepwnsLiveviewWeb.WallabyCase
   @moduletag :liveview
   import Phoenix.LiveViewTest
-  import HydepwnsLiveview.ThemeSystemFixtures
-  import HydepwnsLiveview.ThemeHelper
+  import HydepwnsLiveview.TestThemeSystemFixtures
+  import HydepwnsLiveview.TestThemeHelper
   import Wallaby.Query
   import Wallaby.Browser
 
-  alias HydepwnsLiveviewWeb.MockHelper
+  alias HydepwnsLiveviewWeb.TestMockHelper
 
   @moduledoc """
   End-to-end tests for the Theme System workflow.
@@ -23,16 +23,16 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
   """
 
   alias HydepwnsLiveview.TestSupport.ThemeFixtures
-  alias HydepwnsLiveviewWeb.MockHelper
+  alias HydepwnsLiveviewWeb.TestMockHelper
 
   setup %{session: session} = _context do
     HydepwnsLiveview.ThemeSystem.list_themes()
     |> Enum.each(&HydepwnsLiveview.ThemeSystem.delete_theme/1)
 
-    {:ok, light_theme} = HydepwnsLiveview.ThemeSystemFixtures.light_theme_fixture()
-    {:ok, dark_theme} = HydepwnsLiveview.ThemeSystemFixtures.dark_theme_fixture()
-    {:ok, system_theme} = HydepwnsLiveview.ThemeSystemFixtures.system_theme_fixture()
-    {:ok, dim_theme} = HydepwnsLiveview.ThemeSystemFixtures.dim_theme_fixture()
+    {:ok, light_theme} = HydepwnsLiveview.TestThemeSystemFixtures.light_theme_fixture()
+    {:ok, dark_theme} = HydepwnsLiveview.TestThemeSystemFixtures.dark_theme_fixture()
+    {:ok, system_theme} = HydepwnsLiveview.TestThemeSystemFixtures.system_theme_fixture()
+    {:ok, dim_theme} = HydepwnsLiveview.TestThemeSystemFixtures.dim_theme_fixture()
     # Add a Test Theme for Wallaby selector
     {:ok, _test_theme} =
       HydepwnsLiveview.ThemeSystem.create_theme(%{
@@ -60,9 +60,9 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       assert theme.mode in ["light", "dark", "dim", "system"]
     end)
 
-    MockHelper.setup_mocks()
+    TestMockHelper.setup_mocks()
 
-    MockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
+    TestMockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
       {:ok, %{"id" => "mock", "name" => "Mock Resource", "status" => "active"}}
     end)
 

@@ -14,7 +14,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
   """
 
   alias HydepwnsLiveview.TestSupport.ResourceFixtures
-  alias HydepwnsLiveviewWeb.MockHelper
+  alias HydepwnsLiveviewWeb.TestMockHelper
 
   setup %{session: session} do
     {:ok, resource_fixture} =
@@ -23,9 +23,9 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
         name: "Test Resource"
       })
 
-    MockHelper.setup_mocks()
+    TestMockHelper.setup_mocks()
 
-    MockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
+    TestMockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
       {:ok, %{"id" => "mock", "name" => "Mock Resource", "status" => "active"}}
     end)
 

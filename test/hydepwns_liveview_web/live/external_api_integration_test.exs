@@ -11,7 +11,7 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
   import Mox
   # We expect ConnCase to provide Phoenix.VerifiedRoutes and router setup
 
-  alias HydepwnsLiveviewWeb.MockHelper
+  alias HydepwnsLiveviewWeb.TestMockHelper
 
   # Make sure mocks are verified after each test
   setup :verify_on_exit!
@@ -19,7 +19,7 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
   setup do
     # Set up mocks for all tests
     Application.put_env(:hydepwns_liveview, :external_api, HydepwnsLiveview.MockExternalAPI)
-    MockHelper.setup_mocks()
+    TestMockHelper.setup_mocks()
     :ok
   end
 

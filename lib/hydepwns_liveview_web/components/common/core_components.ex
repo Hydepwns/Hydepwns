@@ -7,7 +7,6 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
   use Gettext, backend: HydepwnsLiveviewWeb.Gettext
 
   alias Phoenix.LiveView.JS
-  # import Phoenix.HTML
 
   # Common attributes for most components
   attr :id, :any, default: nil
@@ -111,44 +110,38 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
 
   # Harmonize slot keys to use :inner_block for consistency
   defp harmonize_slots(assigns) do
-    # Debug: Log the original assigns
-    IO.puts("DEBUG: Original assigns keys: #{inspect(Map.keys(assigns))}")
-    
     harmonized = 
       assigns
       |> Map.keys()
       |> Enum.filter(&slot_key?/1)
       |> Enum.reduce(assigns, fn key, acc ->
-        case key do
-          :inner_block -> 
-            IO.puts("DEBUG: Found :inner_block, keeping as is")
-            acc
-          :inner_block_button -> 
-            IO.puts("DEBUG: Converting :inner_block_button to :inner_block")
-            Map.put(acc, :inner_block, Map.get(acc, key))
-          :inner_block_simple_form -> 
-            IO.puts("DEBUG: Converting :inner_block_simple_form to :inner_block")
-            Map.put(acc, :inner_block, Map.get(acc, key))
-          key when is_atom(key) -> 
-            key_str = Atom.to_string(key)
-            if String.ends_with?(key_str, "_item") do
-              IO.puts("DEBUG: Found multi-slot key: #{key}, keeping as is")
-              acc
-            else
-              IO.puts("DEBUG: Converting slot key #{key} to :inner_block")
-              Map.put(acc, :inner_block, Map.get(acc, key))
-            end
-          _ -> 
-            IO.puts("DEBUG: Converting slot key #{key} to :inner_block")
-            Map.put(acc, :inner_block, Map.get(acc, key))
-        end
+        harmonize_slot_key(key, acc)
       end)
-    
-    # Debug: Log the harmonized assigns
-    IO.puts("DEBUG: Harmonized assigns keys: #{inspect(Map.keys(harmonized))}")
-    IO.puts("DEBUG: inner_block value: #{inspect(Map.get(harmonized, :inner_block))}")
-    
     harmonized
+  end
+
+  defp harmonize_slot_key(key, acc) do
+    case key do
+      :inner_block -> 
+        acc
+      :inner_block_button -> 
+        Map.put(acc, :inner_block, Map.get(acc, key))
+      :inner_block_simple_form -> 
+        Map.put(acc, :inner_block, Map.get(acc, key))
+      key when is_atom(key) -> 
+        harmonize_atom_key(key, acc)
+      _ -> 
+        Map.put(acc, :inner_block, Map.get(acc, key))
+    end
+  end
+
+  defp harmonize_atom_key(key, acc) do
+    key_str = Atom.to_string(key)
+    if String.ends_with?(key_str, "_item") do
+      acc
+    else
+      Map.put(acc, :inner_block, Map.get(acc, key))
+    end
   end
 
   # Check if a key is a slot key
@@ -164,7 +157,6 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
 
   defp call_slot_function(slot_value, assigns) do
     arity = Function.info(slot_value, :arity)
-    IO.puts("DEBUG: Slot value is function with arity: #{inspect(arity)}")
     try do
       case arity do
         {:arity, 2} -> slot_value.(assigns, nil)
@@ -174,7 +166,6 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
       end
     rescue
       e -> 
-        IO.puts("DEBUG: Error calling slot function: #{inspect(e)}")
         ""
     end
   end
@@ -195,8 +186,7 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
     end
   end
 
-  defp render_slot_content(slot_value, assigns \\ %{}, slot_key \\ :inner_block) do
-    IO.puts("DEBUG: render_slot_content called with slot_value: #{inspect(slot_value)}, slot_key: #{inspect(slot_key)}")
+  defp render_slot_content(slot_value, assigns \\ %{}, slot_key) do
     case slot_value do
       nil -> ""
       slot_value when is_function(slot_value) -> call_slot_function(slot_value, assigns)
@@ -224,20 +214,16 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
       nil -> 
         render_slot_content(assigns[:inner_block], assigns, :inner_block)
       items when is_list(items) ->
-        items
-        |> Enum.map(&render_list_item(&1, assigns))
-        |> Enum.join("")
+        Enum.map_join(items, "", fn item -> render_list_item(item, assigns) end)
       val -> 
         render_slot_content(val, assigns, :inner_block)
     end
   end
 
   def list(assigns) do
-    IO.puts("DEBUG: list component called with assigns: #{inspect(Map.keys(assigns))}")
     assigns = harmonize_slots(assigns)
     assigns = if Map.has_key?(assigns, :class), do: assigns, else: Map.put(assigns, :class, "")
     slot_content = get_list_slot_content(assigns)
-    IO.puts("DEBUG: list slot content: #{inspect(slot_content)}")
     assigns = assign(assigns, :inner_block, slot_content)
     ~H"""
     <ul class={["list", @class]}>
@@ -305,42 +291,9 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
   end
 
   def table(assigns) do
-    IO.puts("DEBUG: table component called with assigns: #{inspect(Map.keys(assigns))}")
     assigns = harmonize_slots(assigns)
     assigns = if Map.has_key?(assigns, :class), do: assigns, else: Map.put(assigns, :class, "")
-    slot_content =
-      case {assigns[:row_item], assigns[:rows]} do
-        {row_item_fn, rows} when is_function(row_item_fn) and is_list(rows) ->
-          rows
-          |> Enum.map(fn row ->
-            arity = Function.info(row_item_fn, :arity)
-            try do
-              result = case arity do
-                {:arity, 2} -> row_item_fn.(row, assigns)
-                {:arity, 1} -> row_item_fn.(row)
-                _ -> inspect(row)
-              end
-              cond do
-                is_binary(result) -> result
-                is_map(result) -> "<td>" <> inspect(result) <> "</td>"
-                true -> to_string(result)
-              end
-            rescue
-              _ -> inspect(row)
-            end
-          end)
-          |> Enum.join("")
-        {nil, _} -> render_slot_content(assigns[:inner_block], assigns, :inner_block)
-        {val, _} -> 
-          content = render_slot_content(val, assigns, :inner_block)
-          if is_map(content) and not is_binary(content) do
-            IO.puts("DEBUG: Table slot returned map, converting to string")
-            inspect(content)
-          else
-            content
-          end
-      end
-    IO.puts("DEBUG: table slot content: #{inspect(slot_content)}")
+    slot_content = get_table_slot_content(assigns)
     assigns = assign(assigns, :inner_block, slot_content)
     ~H"""
     <div class="table-responsive">
@@ -349,6 +302,52 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
       </table>
     </div>
     """
+  end
+
+  defp get_table_slot_content(assigns) do
+    case {assigns[:row_item], assigns[:rows]} do
+      {row_item_fn, rows} when is_function(row_item_fn) and is_list(rows) ->
+        render_table_rows(rows, row_item_fn, assigns)
+      {nil, _} -> 
+        render_slot_content(assigns[:inner_block], assigns, :inner_block)
+      {val, _} -> 
+        render_table_fallback(val, assigns)
+    end
+  end
+
+  defp render_table_rows(rows, row_item_fn, assigns) do
+    Enum.map_join(rows, "", fn row -> render_table_row(row, row_item_fn, assigns) end)
+  end
+
+  defp render_table_row(row, row_item_fn, assigns) do
+    arity = Function.info(row_item_fn, :arity)
+    try do
+      result = case arity do
+        {:arity, 2} -> row_item_fn.(row, assigns)
+        {:arity, 1} -> row_item_fn.(row)
+        _ -> inspect(row)
+      end
+      format_table_result(result)
+    rescue
+      _ -> inspect(row)
+    end
+  end
+
+  defp format_table_result(result) do
+    cond do
+      is_binary(result) -> result
+      is_map(result) -> "<td>" <> inspect(result) <> "</td>"
+      true -> to_string(result)
+    end
+  end
+
+  defp render_table_fallback(val, assigns) do
+    content = render_slot_content(val, assigns, :inner_block)
+    if is_map(content) and not is_binary(content) do
+      inspect(content)
+    else
+      content
+    end
   end
 
   # Link component
@@ -409,36 +408,8 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
   slot :inner_block, required: false
 
   def button(assigns) do
-    IO.puts("DEBUG: button component called with assigns: #{inspect(Map.keys(assigns))}")
-    
     assigns = harmonize_slots(assigns)
-    
-    # Handle both type and type_input attributes
-    type = assigns[:type] || assigns[:type_input] || "button"
-    
-    # Get slot content
-    slot_content = render_slot_content(assigns[:inner_block], assigns)
-    IO.puts("DEBUG: button slot content: #{inspect(slot_content)}")
-    
-    # Handle both underscore and hyphenated attribute names
-    phx_click = assigns[:"phx-click"] || assigns[:phx_click]
-    phx_submit = assigns[:"phx-submit"] || assigns[:phx_submit]
-    phx_value = assigns[:"phx-value"] || assigns[:phx_value]
-    phx_value_role = assigns[:"phx-value-role"] || assigns[:phx_value_role]
-    phx_value_theme = assigns[:"phx-value-theme"] || assigns[:phx_value_theme]
-    phx_disable_with = assigns[:"phx-disable-with"] || assigns[:phx_disable_with]
-    data_test_id = assigns[:"data-test-id"] || assigns[:data_test_id]
-    
-    assigns = assigns
-    |> assign(:type, type)
-    |> assign(:inner_block, slot_content)
-    |> assign(:phx_click, phx_click)
-    |> assign(:phx_submit, phx_submit)
-    |> assign(:phx_value, phx_value)
-    |> assign(:phx_value_role, phx_value_role)
-    |> assign(:phx_value_theme, phx_value_theme)
-    |> assign(:phx_disable_with, phx_disable_with)
-    |> assign(:data_test_id, data_test_id)
+    assigns = prepare_button_assigns(assigns)
     
     ~H"""
     <button 
@@ -456,6 +427,40 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
       <%= @inner_block %>
     </button>
     """
+  end
+
+  defp prepare_button_assigns(assigns) do
+    # Handle both type and type_input attributes
+    type = assigns[:type] || assigns[:type_input] || "button"
+    
+    # Get slot content
+    slot_content = render_slot_content(assigns[:inner_block], assigns)
+    
+    # Map attributes
+    attrs = map_button_attributes(assigns)
+    
+    assigns
+    |> assign(:type, type)
+    |> assign(:inner_block, slot_content)
+    |> assign_attributes(attrs)
+  end
+
+  defp map_button_attributes(assigns) do
+    %{
+      phx_click: assigns[:"phx-click"] || assigns[:phx_click],
+      phx_submit: assigns[:"phx-submit"] || assigns[:phx_submit],
+      phx_value: assigns[:"phx-value"] || assigns[:phx_value],
+      phx_value_role: assigns[:"phx-value-role"] || assigns[:phx_value_role],
+      phx_value_theme: assigns[:"phx-value-theme"] || assigns[:phx_value_theme],
+      phx_disable_with: assigns[:"phx-disable-with"] || assigns[:phx_disable_with],
+      data_test_id: assigns[:"data-test-id"] || assigns[:data_test_id]
+    }
+  end
+
+  defp assign_attributes(assigns, attrs) do
+    Enum.reduce(attrs, assigns, fn {key, value}, acc ->
+      assign(acc, key, value)
+    end)
   end
 
   # Flash component
@@ -569,43 +574,7 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
     IO.puts("DEBUG: nav component called with assigns: #{inspect(Map.keys(assigns))}")
     assigns = harmonize_slots(assigns)
     assigns = if Map.has_key?(assigns, :class), do: assigns, else: Map.put(assigns, :class, "")
-    slot_content =
-      cond do
-        is_list(assigns[:_item]) -> 
-          assigns[:_item]
-          |> Enum.map(fn item ->
-            case item do
-              %{inner_block: block} when is_function(block) -> render_slot_content(block, assigns)
-              other -> inspect(other)
-            end
-          end)
-          |> Enum.join("")
-        is_function(assigns[:_item]) -> render_slot_content(assigns[:_item], assigns, :inner_block)
-        is_list(assigns[:inner_block]) ->
-          assigns[:inner_block]
-          |> Enum.map(fn item ->
-            case item do
-              %{inner_block: block} when is_function(block) -> render_slot_content(block, assigns)
-              other -> inspect(other)
-            end
-          end)
-          |> Enum.join("")
-        is_function(assigns[:inner_block]) -> render_slot_content(assigns[:inner_block], assigns, :inner_block)
-        true ->
-          # Try to render @inner_block if present
-          case assigns[:inner_block] do
-            nil -> ""
-            val when is_list(val) ->
-              Enum.map(val, fn item ->
-                case item do
-                  %{inner_block: block} when is_function(block) -> render_slot_content(block, assigns)
-                  other -> inspect(other)
-                end
-              end) |> Enum.join("")
-            val when is_function(val) -> render_slot_content(val, assigns, :inner_block)
-            _ -> ""
-          end
-      end
+    slot_content = get_nav_slot_content(assigns)
     IO.puts("DEBUG: nav slot content: #{inspect(slot_content)}")
     assigns = assign(assigns, :inner_block, slot_content)
     ~H"""
@@ -615,41 +584,56 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
     """
   end
 
-  defp render_theme_toggle_slot(assigns) do
+  defp get_nav_slot_content(assigns) do
     cond do
+      is_list(assigns[:_item]) -> 
+        render_list_items(assigns[:_item], assigns)
+      is_function(assigns[:_item]) -> 
+        render_slot_content(assigns[:_item], assigns, :inner_block)
       is_list(assigns[:inner_block]) ->
-        assigns[:inner_block]
-        |> Enum.map(fn item ->
-          case item do
-            %{inner_block: block} when is_function(block) -> render_slot_content(block, assigns)
-            other -> inspect(other)
-          end
-        end)
-        |> Enum.join("")
+        render_list_items(assigns[:inner_block], assigns)
       is_function(assigns[:inner_block]) -> 
         render_slot_content(assigns[:inner_block], assigns, :inner_block)
       true ->
-        case assigns[:inner_block] do
-          nil -> ""
-          val when is_list(val) ->
-            Enum.map(val, fn item ->
-              case item do
-                %{inner_block: block} when is_function(block) -> render_slot_content(block, assigns)
-                other -> inspect(other)
-              end
-            end) |> Enum.join("")
-          val when is_function(val) -> render_slot_content(val, assigns, :inner_block)
-          _ -> ""
-        end
+        render_inner_block_fallback(assigns[:inner_block], assigns)
+    end
+  end
+
+  defp render_list_items(items, assigns) do
+    Enum.map_join(items, "", fn item -> render_list_item(item, assigns) end)
+  end
+
+  defp render_list_item(item, assigns) do
+    case item do
+      %{inner_block: block} when is_function(block) -> render_slot_content(block, assigns)
+      other -> inspect(other)
+    end
+  end
+
+  defp render_inner_block_fallback(inner_block, assigns) do
+    case inner_block do
+      nil -> ""
+      val when is_list(val) -> render_list_items(val, assigns)
+      val when is_function(val) -> render_slot_content(val, assigns, :inner_block)
+      _ -> ""
+    end
+  end
+
+  defp render_theme_toggle_slot(assigns) do
+    cond do
+      is_list(assigns[:inner_block]) ->
+        render_list_items(assigns[:inner_block], assigns)
+      is_function(assigns[:inner_block]) -> 
+        render_slot_content(assigns[:inner_block], assigns, :inner_block)
+      true ->
+        render_inner_block_fallback(assigns[:inner_block], assigns)
     end
   end
 
   def theme_toggle(assigns) do
-    IO.puts("DEBUG: theme_toggle component called with assigns: #{inspect(Map.keys(assigns))}")
     assigns = harmonize_slots(assigns)
     assigns = if Map.has_key?(assigns, :class), do: assigns, else: Map.put(assigns, :class, "")
     slot_content = render_theme_toggle_slot(assigns)
-    IO.puts("DEBUG: theme_toggle slot content: #{inspect(slot_content)}")
     assigns = assign(assigns, :inner_block, slot_content)
     
     ~H"""
@@ -701,7 +685,6 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
   end
 
   def simple_form(assigns) do
-    IO.puts("DEBUG: simple_form component called with assigns: #{inspect(Map.keys(assigns))}")
     assigns = harmonize_slots(assigns)
     # Add default for :rest to avoid KeyError
     assigns = if Map.has_key?(assigns, :rest), do: assigns, else: Map.put(assigns, :rest, [])
@@ -709,8 +692,6 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
     assigns = if Map.has_key?(assigns, :class), do: assigns, else: Map.put(assigns, :class, "")
     slot_content = render_slot_content(assigns[:inner_block], assigns)
     actions_content = render_slot_content(assigns[:actions], assigns)
-    IO.puts("DEBUG: simple_form slot content: #{inspect(slot_content)}")
-    IO.puts("DEBUG: simple_form actions content: #{inspect(actions_content)}")
     assigns = assign(assigns, :inner_block, slot_content)
     assigns = assign(assigns, :actions, actions_content)
     ~H"""

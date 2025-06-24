@@ -33,7 +33,6 @@ defmodule HydepwnsLiveviewWeb.Router do
     live "/api-docs", ApiDocsLive, :index, as: :api_docs
     live "/grid-playground", GridPlaygroundLive, :index, as: :grid_playground
     live "/gallery", GalleryLive, :index, as: :gallery
-    live "/themes", Themes.ThemeManagerLive, :index, as: :themes
 
     # User routes
     live "/users", UserLive, :index, as: :users

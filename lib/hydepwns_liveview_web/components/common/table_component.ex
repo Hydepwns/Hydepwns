@@ -1,4 +1,8 @@
 defmodule HydepwnsLiveviewWeb.Components.Common.TableComponent do
+  @moduledoc """
+  Provides table-related UI components.
+  """
+
   use Phoenix.Component
 
   attr :class, :string, default: nil

@@ -1,4 +1,4 @@
-defmodule HydepwnsLiveview.Events.EventStore do
+defmodule HydepwnsLiveview.Events.TestEventStore do
   @moduledoc """
   Test-specific EventStore module that delegates to MockEventStore during tests.
   

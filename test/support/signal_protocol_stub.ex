@@ -1,4 +1,4 @@
-defmodule HydepwnsLiveview.SignalProtocol do
+defmodule HydepwnsLiveview.SignalProtocolStub do
   @moduledoc """
   Stub implementation of SignalProtocol for testing.
   

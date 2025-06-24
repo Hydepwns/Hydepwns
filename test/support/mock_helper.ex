@@ -1,4 +1,4 @@
-defmodule HydepwnsLiveviewWeb.MockHelper do
+defmodule HydepwnsLiveviewWeb.TestMockHelper do
   @moduledoc """
   Helper for mocking external dependencies in tests.
 

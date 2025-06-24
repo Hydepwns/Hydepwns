@@ -1,4 +1,4 @@
-defmodule HydepwnsLiveview.RepoHelper do
+defmodule HydepwnsLiveview.TestRepoHelper do
   @moduledoc """
   Helper module for accessing the configured repo (real or mock) in tests.
   """

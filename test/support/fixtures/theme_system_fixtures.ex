@@ -1,4 +1,4 @@
-defmodule HydepwnsLiveview.ThemeSystemFixtures do
+defmodule HydepwnsLiveview.TestThemeSystemFixtures do
   @moduledoc """
   This module defines test helpers for creating
   entities via the `HydepwnsLiveview.ThemeSystem` context.
@@ -190,12 +190,12 @@ defmodule HydepwnsLiveview.TestSupport.ThemeFixtures do
   @moduledoc """
   Compatibility module for test theme fixtures. Provides create_test_theme/1 for use in tests.
   """
-  alias HydepwnsLiveview.ThemeSystemFixtures
+  alias HydepwnsLiveview.TestThemeSystemFixtures
 
   @doc """
   Create a test theme. Accepts optional attrs map.
   """
   def create_test_theme(attrs \\ %{}) do
-    ThemeSystemFixtures.theme_fixture(attrs)
+    TestThemeSystemFixtures.theme_fixture(attrs)
   end
 end

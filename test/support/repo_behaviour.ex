@@ -1,4 +1,4 @@
-defmodule HydepwnsLiveview.RepoBehaviour do
+defmodule HydepwnsLiveview.TestRepoBehaviour do
   @moduledoc """
   Behaviour for Repo functions that can be mocked in tests.
   """

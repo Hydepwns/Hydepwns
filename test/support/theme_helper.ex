@@ -1,4 +1,4 @@
-defmodule HydepwnsLiveview.ThemeHelper do
+defmodule HydepwnsLiveview.TestThemeHelper do
   @moduledoc """
   Helper functions for theme-related tests.
   """

@@ -842,6 +842,31 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
     end
   end
 
+  @doc """
+  Deletes an event by ID.
+
+  ## Parameters
+  * `id` - The ID of the event to delete
+
+  ## Returns
+  * `{:ok, event}` - The event was deleted
+  * `{:error, :not_found}` - No event with the given ID exists
+  * `{:error, reason}` - Error deleting the event
+  """
+  @spec delete_event(any()) :: {:ok, Event.t()} | {:error, any()}
+  def delete_event(id) do
+    case get_event(id) do
+      {:ok, event} ->
+        case Repo.delete(event) do
+          {:ok, deleted_event} -> {:ok, deleted_event}
+          {:error, reason} -> {:error, reason}
+        end
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
   # Private functions
 
   # Builds a query from criteria

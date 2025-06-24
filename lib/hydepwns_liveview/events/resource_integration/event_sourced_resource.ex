@@ -408,11 +408,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
   end
 
   @doc false
-  defp apply_command(_command, state) do
-    state
-  end
-
-  def apply_event(resource, event) do
+  defp apply_event(resource, event) do
     with :ok <- validate_event(event),
          :ok <- validate_resource(resource),
          updated_resource <- apply_event_to_resource(resource, event) do

@@ -1,6 +1,6 @@
 defmodule HydepwnsLiveview.Resources.Examples.UserResource do
   @moduledoc """
-  Example of an event-sourced resource using the Resource Event System.
+  User resource example for event sourcing and validation.
 
   This module demonstrates how to implement an event-sourced resource
   by following the EventSourcedResource behavior.
@@ -232,17 +232,17 @@ defmodule HydepwnsLiveview.Resources.Examples.UserResource do
   * `{:ok, updated_resource}` - Update successful
   * `{:error, reason}` - Update failed
   """
-  def update(id, params, metadata) when is_binary(id) and is_map(params) and is_map(metadata) do
-    with {:ok, resource} <- get(id),
-         events when is_list(events) <- create_update_events(resource, params),
-         :ok <- __publish_events__(events, metadata, __MODULE__) do
-      updated_state = rebuild_from_events(events, resource, &apply_event/2)
-      {:ok, updated_state}
+  def update_resource(id, params, metadata) do
+    if is_binary(id) and is_map(params) and is_map(metadata) do
+      with {:ok, resource} <- get(id),
+           events when is_list(events) <- create_update_events(resource, params),
+           :ok <- __publish_events__(events, metadata, __MODULE__) do
+        updated_state = rebuild_from_events(events, resource, &apply_event/2)
+        {:ok, updated_state}
+      end
+    else
+      {:error, :invalid_parameters}
     end
-  end
-
-  def update(id, params, metadata) when not (is_binary(id) and is_map(params) and is_map(metadata)) do
-    {:error, :invalid_parameters}
   end
 
   @doc """
@@ -258,6 +258,6 @@ defmodule HydepwnsLiveview.Resources.Examples.UserResource do
   * `{:ok, updated_resource}` or `{:error, reason}`
   """
   def update_with_tracking(id, params, metadata, _opts \\ %{}) do
-    update(id, params, metadata)
+    update_resource(id, params, metadata)
   end
 end

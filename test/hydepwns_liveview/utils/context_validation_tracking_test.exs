@@ -1,5 +1,4 @@
 defmodule HydepwnsLiveview.Utils.ContextValidationTrackingTest do
-  @endpoint HydepwnsLiveviewWeb.Endpoint
   use ExUnit.Case, async: true
 
   # Define a simple resource module for testing
@@ -76,6 +75,9 @@ defmodule HydepwnsLiveview.Utils.ContextValidationTrackingTest do
       else
         # Simulate context validation logic
         if Map.get(metadata, :context_validation) do
+          # Apply changes first, then validate the updated resource
+          updated_resource = Map.merge(resource, changes)
+          
           # Simulate validation rules
           validation_rules = Map.get(metadata, :validation_rules, [])
           validation_context = Map.get(metadata, :validation_context, %{})
@@ -84,7 +86,7 @@ defmodule HydepwnsLiveview.Utils.ContextValidationTrackingTest do
             Enum.reduce_while(validation_rules, [], fn rule, acc ->
               rule_fn = __validation_rules__()[rule]
 
-              case rule_fn.(resource, validation_context) do
+              case rule_fn.(updated_resource, validation_context) do
                 :ok -> {:cont, acc}
                 {:error, msg} -> {:halt, [msg | acc]}
               end

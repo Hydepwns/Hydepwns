@@ -1,5 +1,4 @@
 defmodule HydepwnsLiveview.Utils.ChangeTrackerTest do
-  @endpoint HydepwnsLiveviewWeb.Endpoint
   use ExUnit.Case, async: true
   alias HydepwnsLiveview.Utils.ChangeTracker
 

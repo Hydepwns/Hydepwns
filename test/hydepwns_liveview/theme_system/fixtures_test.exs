@@ -2,7 +2,6 @@ defmodule HydepwnsLiveview.ThemeSystem.FixturesTest do
   use HydepwnsLiveview.DataCase
 
   alias HydepwnsLiveview.ThemeSystem
-  alias HydepwnsLiveview.ThemeSystem.Models.Theme
   import HydepwnsLiveview.TestThemeSystemFixtures
 
   describe "theme fixtures" do

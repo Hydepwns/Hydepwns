@@ -2,7 +2,6 @@ defmodule HydepwnsLiveview.Events.SnapshotOperationsTest do
   use HydepwnsLiveview.DataCase
 
   alias HydepwnsLiveview.Events.SnapshotOperations
-  alias HydepwnsLiveview.Events.Schemas.Snapshot
   alias HydepwnsLiveview.Events.Schemas.Event
 
   describe "save_snapshot/4" do

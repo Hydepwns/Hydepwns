@@ -158,9 +158,9 @@ defmodule HydepwnsLiveview.ThemeSystem.Models.Theme do
       else
         # For non-system themes, derive additional colors from base colors
         primary = base_colors.primary
-        secondary = base_colors.secondary
-        background = base_colors.background
-        text = base_colors.text
+        _secondary = base_colors.secondary
+        _background = base_colors.background
+        _text = base_colors.text
         
         base_colors
         |> Map.put(:accent, primary)  # Use primary as accent

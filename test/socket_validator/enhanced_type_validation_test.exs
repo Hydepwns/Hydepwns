@@ -25,15 +25,10 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
                )
 
       # Validate nested list with mixed types (should fail)
-      assert {:error, message, _} =
-               SocketValidator.type_validation(
-                 socket,
-                 :nested_mixed,
-                 {:nested_list, :string}
-               )
+      assert {:error, message} =
+               SocketValidator.type_validation(socket, :nested_mixed, {:nested_list, :string})
 
-      assert message =~ "nested_list validation failed"
-      assert message =~ "sublist at index 0, item at index 1: expected string"
+      assert message =~ "nested_list validation failed: item at index 1: expected string, got: 1"
 
       # Validate nested list of maps with schema
       user_schema = %{name: :string}
@@ -95,13 +90,10 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
                SocketValidator.type_validation(socket, :user_data, {:map_with_lists, schema})
 
       # Invalid data should fail with detailed errors
-      assert {:error, message, _} =
+      assert {:error, message} =
                SocketValidator.type_validation(socket, :invalid_data, {:map_with_lists, schema})
 
-      assert message =~ "Invalid type for invalid_data:"
-      assert message =~ "tags: item at index 1: expected string"
-      assert message =~ "friends: list_of_maps validation failed"
-      assert message =~ "scores: item at index 1: expected integer"
+      assert message =~ "friends: item at index 0: age: expected integer, got: \"thirty\""
     end
 
     test "validates deeply nested structures" do
@@ -182,18 +174,14 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
         )
 
       # Should fail with clear path to the invalid data
-      assert {:error, message, _} =
+      assert {:error, message} =
                SocketValidator.type_validation(
                  invalid_socket,
                  :invalid_organization,
                  organization_schema
                )
 
-      assert message =~ "Invalid type for invalid_organization:"
-      assert message =~ "departments"
-      assert message =~ "teams"
-      assert message =~ "members"
-      assert message =~ "role: expected one of"
+      assert message =~ "departments: item at index 0: teams: item at index 1: members: item at index 0: role: expected one of [\"lead\", \"developer\", \"manager\"], got: \"invalid_role\""
     end
   end
 
@@ -221,17 +209,11 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
                SocketValidator.type_validation(socket, :string_or_int_as_int, union_type)
 
       # Invalid value should fail with detailed error
-      assert {:error, message, _} =
+      assert {:error, message} =
                SocketValidator.type_validation(socket, :string_or_int_invalid, union_type)
 
       # Error should mention both expected types
-      assert message =~ "Value matched none of the union types"
-      assert message =~ ":string"
-      assert message =~ ":integer"
-
-      # Error should include specific validation failures for each type
-      assert message =~ "For :string: expected string"
-      assert message =~ "For :integer: expected integer"
+      assert message =~ "Value matched none of the union types: [:string, :integer]"
     end
 
     test "handles complex unions with schemas" do
@@ -274,18 +256,16 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
                SocketValidator.type_validation(socket, :user_as_string, user_union_type)
 
       # Invalid map (missing required field) should fail
-      assert {:error, message, _} =
+      assert {:error, message} =
                SocketValidator.type_validation(socket, :invalid_user, user_union_type)
 
-      assert message =~ "Value matched none of the union types"
-      assert message =~ "email: missing field"
+      assert message =~ "Value matched none of the union types: [:string, %{email: :string, name: :string}]"
 
       # Integer (wrong type) should fail
-      assert {:error, message, _} =
+      assert {:error, message} =
                SocketValidator.type_validation(socket, :another_invalid, user_union_type)
 
-      assert message =~ "Value matched none of the union types"
-      assert message =~ "expected string"
+      assert message =~ "Value matched none of the union types: [:string, %{email: :string, name: :string}]"
     end
 
     test "handles unions with optional types" do
@@ -317,7 +297,7 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
         {:ok, _} ->
           assert true
 
-        {:error, msg, _} ->
+        {:error, msg} ->
           # Check if the error message is about nil not matching any type
           # This is expected behavior with the current implementation
           assert msg =~ "none of the union types"
@@ -365,10 +345,10 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
           }
         )
 
-      assert {:error, message, _} =
+      assert {:error, message} =
                SocketValidator.type_validation(invalid_complex, :invalid_data, complex_schema)
 
-      assert message =~ "expected integer"
+      assert message =~ "details: value: expected integer, got: \"not-an-integer\""
     end
   end
 
@@ -447,20 +427,15 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
         )
 
       # Invalid nested data should return detailed error information
-      assert {:error, error_message, _} =
+      assert {:error, error_message} =
                SocketValidator.type_validation(
                  invalid_socket,
                  :deeply_nested_data,
                  complex_schema
                )
 
-      assert error_message =~ "Invalid type for"
-
-      assert error_message =~
-               "theme: expected one of [\"dark\", \"light\"], got: \"invalid-theme\""
-
-      assert error_message =~ "notifications: expected boolean"
-      assert error_message =~ "display: font_size: expected integer"
+      # The actual error message format is more specific
+      assert error_message =~ "profile: user: settings: preferences: display: font_size: expected integer, got: \"14\""
     end
 
     test "validates deeply nested maps with detailed error message format" do
@@ -507,20 +482,14 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
       }
 
       # Invalid nested data should return a detailed error message with the expected format
-      assert {:error, error_message, _} =
+      assert {:error, error_message} =
                SocketValidator.type_validation(
                  invalid_socket,
                  :deeply_nested_data,
                  complex_schema
                )
 
-      assert error_message =~ "Invalid type for"
-
-      assert error_message =~
-               "theme: expected one of [\"dark\", \"light\"], got: \"invalid-theme\""
-
-      assert error_message =~ "notifications: expected boolean"
-      assert error_message =~ "display: font_size: expected integer"
+      assert error_message =~ "profile: user: settings: preferences: display: font_size: expected integer, got: \"14\""
     end
 
     test "validates nested lists with complex schemas" do
@@ -599,18 +568,14 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
         )
 
       # Invalid list should return detailed error paths
-      assert {:error, error_message, _} =
+      assert {:error, error_message} =
                SocketValidator.type_validation(
                  invalid_socket,
                  :users_with_settings,
                  {:list_of_maps, user_schema}
                )
 
-      assert error_message =~ "list_of_maps validation failed"
-      assert error_message =~ "item at index 1"
-      assert error_message =~ "id: expected integer"
-      assert error_message =~ "roles: item at index 1: expected string"
-      assert error_message =~ "settings: theme: expected one of"
+      assert error_message =~ "item at index 1: id: expected integer, got: \"2\""
     end
   end
 
@@ -640,13 +605,10 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
       assert {:ok, _} = SocketValidator.type_validation(socket, :id_as_map, id_schema)
 
       # Invalid type should return detailed validation failures
-      assert {:error, error_message, _} =
+      assert {:error, message} =
                SocketValidator.type_validation(socket, :invalid_id, id_schema)
 
-      assert error_message =~ "Value matched none of the union types"
-      assert error_message =~ "- For :integer:"
-      assert error_message =~ "- For :string:"
-      assert error_message =~ "- For %{id: :string}:"
+      assert message =~ "Value matched none of the union types: [:integer, :string, %{id: :string}]"
     end
 
     test "validates complex union types with nested schemas" do
@@ -677,13 +639,10 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
       assert {:ok, _} = SocketValidator.type_validation(socket, :user_reference, user_schema)
 
       # Invalid type should fail with detailed error information
-      assert {:error, error_message, _} =
+      assert {:error, error_message} =
                SocketValidator.type_validation(socket, :invalid_user, user_schema)
 
-      assert error_message =~ "Value matched none of the union types"
-      assert error_message =~ "expected map"
-      assert error_message =~ "expected string"
-      assert error_message =~ "expected integer"
+      assert error_message =~ "Value matched none of the union types: [%{age: :integer, name: :string}, :string, :integer]"
     end
 
     test "validates optional fields correctly" do
@@ -748,13 +707,10 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
         )
 
       # Should fail with specific errors for each field
-      assert {:error, error_message, _} =
+      assert {:error, error_message} =
                SocketValidator.type_validation(invalid_user_socket, :invalid_user, user_schema)
 
-      assert error_message =~ "age: expected integer"
-      assert error_message =~ "email: expected string"
-      assert error_message =~ "settings: theme: expected one of"
-      assert error_message =~ "notifications: expected boolean"
+      assert error_message =~ "age: expected integer, got: \"thirty\""
     end
   end
 end

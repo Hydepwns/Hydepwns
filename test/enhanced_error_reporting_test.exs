@@ -160,7 +160,7 @@ defmodule HydepwnsLiveview.EnhancedErrorReportingTest do
     # These tests can only be fully tested with a running server
     # We'll do basic checks to ensure the code doesn't error
 
-    test "SocketValidationDebugGrid module functions without errors", %{_conn: _conn} do
+    test "SocketValidationDebugGrid module functions without errors", %{conn: _conn} do
       import HydepwnsLiveview.Utils.SocketValidationDebugGrid
 
       socket =
@@ -184,7 +184,7 @@ defmodule HydepwnsLiveview.EnhancedErrorReportingTest do
           [:user_id, :count]
         )
 
-      socket = highlight_validation_errors(socket)
+      _socket = highlight_validation_errors(socket)
 
       # If we get here with no exceptions, the test passes
       assert true

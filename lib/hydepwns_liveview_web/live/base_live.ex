@@ -26,18 +26,6 @@ defmodule HydepwnsLiveviewWeb.BaseLive do
         {:ok, socket}
       end
 
-      @impl Phoenix.LiveView
-      def handle_params(params, uri, socket) do
-        socket = do_handle_params(params, uri, socket)
-        {:noreply, socket}
-      end
-
-      @impl Phoenix.LiveView
-      def handle_event(event, params, socket) do
-        socket = do_handle_event(event, params, socket)
-        {:noreply, socket}
-      end
-
       # Default implementations that can be overridden
       def do_mount(_params, _session, _socket), do: _socket
       def do_handle_params(_params, _uri, _socket), do: _socket

@@ -18,6 +18,12 @@ defmodule HydepwnsLiveview.MixProject do
         "coveralls.html": :test,
         "coveralls.github": :test,
         dialyzer: :dev
+      ],
+      compilers: Mix.compilers(),
+      consolidate_protocols: Mix.env() != :test,
+      elixirc_options: [
+        warnings_as_errors: false,
+        ignore_module_conflict: true
       ]
     ]
   end

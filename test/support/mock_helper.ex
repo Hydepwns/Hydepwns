@@ -106,7 +106,7 @@ defmodule HydepwnsLiveviewWeb.TestMockHelper do
         {:error, changeset}
       end
     end)
-    |> stub(:update, fn changeset, opts ->
+    |> stub(:update, fn changeset, _opts ->
       if changeset.valid? do
         resource = %{changeset.data | 
           name: changeset.changes[:name] || changeset.data.name,
@@ -156,7 +156,7 @@ defmodule HydepwnsLiveviewWeb.TestMockHelper do
         {:error, changeset}
       end
     end)
-    |> stub(:delete, fn resource, opts ->
+    |> stub(:delete, fn resource, _opts ->
       :ets.delete(:mock_resources, resource.id)
       {:ok, resource}
     end)
@@ -164,7 +164,7 @@ defmodule HydepwnsLiveviewWeb.TestMockHelper do
       :ets.delete(:mock_resources, resource.id)
       {:ok, resource}
     end)
-    |> stub(:delete_all, fn module, opts_or_list ->
+    |> stub(:delete_all, fn module, _opts_or_list ->
       case module do
         HydepwnsLiveview.Resources.Resource -> 
           :ets.delete_all_objects(:mock_resources)
@@ -180,7 +180,7 @@ defmodule HydepwnsLiveviewWeb.TestMockHelper do
         _ -> []
       end
     end)
-    |> stub(:all, fn module, opts_or_list ->
+    |> stub(:all, fn module, _opts_or_list ->
       case module do
         HydepwnsLiveview.Resources.Resource -> 
           :ets.tab2list(:mock_resources)
@@ -188,7 +188,7 @@ defmodule HydepwnsLiveviewWeb.TestMockHelper do
         _ -> []
       end
     end)
-    |> stub(:get, fn module, id, opts_or_list ->
+    |> stub(:get, fn module, id, _opts_or_list ->
       case module do
         HydepwnsLiveview.Resources.Resource -> 
           case :ets.lookup(:mock_resources, id) do
@@ -198,7 +198,7 @@ defmodule HydepwnsLiveviewWeb.TestMockHelper do
         _ -> nil
       end
     end)
-    |> stub(:get!, fn module, id, opts_or_list ->
+    |> stub(:get!, fn module, id, _opts_or_list ->
       case module do
         HydepwnsLiveview.Resources.Resource -> 
           case :ets.lookup(:mock_resources, id) do
@@ -210,31 +210,31 @@ defmodule HydepwnsLiveviewWeb.TestMockHelper do
           raise Ecto.QueryError, message: "Record not found"
       end
     end)
-    |> stub(:get_by, fn module, clauses, opts_or_list ->
+    |> stub(:get_by, fn module, _clauses, _opts_or_list ->
       case module do
         HydepwnsLiveview.Resources.Resource -> nil
         _ -> nil
       end
     end)
-    |> stub(:one, fn module, opts_or_list ->
+    |> stub(:one, fn module, _opts_or_list ->
       case module do
         HydepwnsLiveview.Resources.Resource -> nil
         _ -> nil
       end
     end)
-    |> stub(:aggregate, fn module, aggregate, field, opts_or_list ->
+    |> stub(:aggregate, fn module, _aggregate, _field, _opts_or_list ->
       case module do
         HydepwnsLiveview.Resources.Resource -> 0
         _ -> 0
       end
     end)
-    |> stub(:exists?, fn module, opts_or_list ->
+    |> stub(:exists?, fn module, _opts_or_list ->
       case module do
         HydepwnsLiveview.Resources.Resource -> false
         _ -> false
       end
     end)
-    |> stub(:transaction, fn fun, opts_or_list ->
+    |> stub(:transaction, fn fun, _opts_or_list ->
       # Execute the function and return its result
       fun.()
     end)

@@ -48,10 +48,18 @@ defmodule HydepwnsLiveviewWeb.ConnCase do
   end
 
   setup tags do
-    pid = HydepwnsLiveview.DataCase.setup_sandbox(tags)
-
-    if tags[:liveview] do
-      Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), pid)
+    # Set up sandbox based on test type
+    if tags[:async] do
+      # For async tests, use shared sandbox
+      :ok = Ecto.Adapters.SQL.Sandbox.checkout(HydepwnsLiveview.Repo)
+      Ecto.Adapters.SQL.Sandbox.mode(HydepwnsLiveview.Repo, {:shared, self()})
+    else
+      # For sync tests, use manual sandbox with owner
+      pid = HydepwnsLiveview.DataCase.setup_sandbox(tags)
+      
+      if tags[:liveview] do
+        Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), pid)
+      end
     end
 
     {:ok, conn: Phoenix.ConnTest.build_conn()}

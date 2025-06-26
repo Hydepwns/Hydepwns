@@ -144,18 +144,4 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
       end
     end
   end
-
-  @doc """
-  Sets Mox to global mode for Wallaby feature tests.
-  Call this in your test setup to ensure all browser sessions share the same Mox expectations.
-  Usage:
-      setup :set_mox_global
-  """
-  def set_mox_global(_) do
-    if Code.ensure_loaded?(Mox) do
-      Mox.set_mox_global()
-    end
-
-    :ok
-  end
 end

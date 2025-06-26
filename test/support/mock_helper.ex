@@ -46,93 +46,12 @@ defmodule HydepwnsLiveviewWeb.TestMockHelper do
   end
 
   @doc """
-  Sets up RepoMock with a flexible stub that can handle any resource ID.
-  This prevents Mox.UnexpectedCallError when tests create resources with random IDs.
+  Sets up the RepoMock with stubs for all necessary functions.
   """
   def setup_repo_mock do
     HydepwnsLiveview.RepoMock
-    |> stub(:get, fn module, id, _opts ->
-      case module do
-        HydepwnsLiveview.Resources.Resource ->
-          %HydepwnsLiveview.Resources.Resource{
-            id: id,
-            name: "Test Resource",
-            description: "A test resource",
-            type: "document",
-            status: "published",
-            content: %{text: "Test content"},
-            metadata: %{},
-            settings: %{},
-            version: 1,
-            parent_id: nil,
-            child_ids: [],
-            tags: [],
-            categories: [],
-            created_by: nil,
-            updated_by: nil,
-            inserted_at: DateTime.utc_now(),
-            updated_at: DateTime.utc_now()
-          }
-        _ ->
-          nil
-      end
-    end)
-    |> stub(:get!, fn module, id, _opts ->
-      case module do
-        HydepwnsLiveview.Resources.Resource ->
-          %HydepwnsLiveview.Resources.Resource{
-            id: id,
-            name: "Test Resource",
-            description: "A test resource",
-            type: "document",
-            status: "published",
-            content: %{text: "Test content"},
-            metadata: %{},
-            settings: %{},
-            version: 1,
-            parent_id: nil,
-            child_ids: [],
-            tags: [],
-            categories: [],
-            created_by: nil,
-            updated_by: nil,
-            inserted_at: DateTime.utc_now(),
-            updated_at: DateTime.utc_now()
-          }
-        _ ->
-          raise Ecto.QueryError, message: "Resource not found"
-      end
-    end)
-    |> stub(:get_by, fn module, _clauses, _opts ->
-      case module do
-        HydepwnsLiveview.Resources.Resource ->
-          %HydepwnsLiveview.Resources.Resource{
-            id: "test-resource-id",
-            name: "Test Resource",
-            description: "A test resource",
-            type: "document",
-            status: "published",
-            content: %{text: "Test content"},
-            metadata: %{},
-            settings: %{},
-            version: 1,
-            parent_id: nil,
-            child_ids: [],
-            tags: [],
-            categories: [],
-            created_by: nil,
-            updated_by: nil,
-            inserted_at: DateTime.utc_now(),
-            updated_at: DateTime.utc_now()
-          }
-        _ ->
-          nil
-      end
-    end)
     |> stub(:insert, fn changeset ->
-      # Check if the changeset is valid
       if changeset.valid? do
-        # Generate a random ID for the new resource
         id = Ecto.UUID.generate()
         resource = %HydepwnsLiveview.Resources.Resource{
           id: id,
@@ -153,16 +72,42 @@ defmodule HydepwnsLiveviewWeb.TestMockHelper do
           inserted_at: DateTime.utc_now(),
           updated_at: DateTime.utc_now()
         }
+        :ets.insert(:mock_resources, {id, resource})
         {:ok, resource}
       else
-        # Return the changeset with errors
         {:error, changeset}
       end
     end)
-    |> stub(:update, fn changeset ->
-      # Check if the changeset is valid
+    |> stub(:insert, fn changeset, _opts ->
       if changeset.valid? do
-        # Update the resource with the changes
+        id = Ecto.UUID.generate()
+        resource = %HydepwnsLiveview.Resources.Resource{
+          id: id,
+          name: changeset.changes[:name] || "Test Resource",
+          description: changeset.changes[:description] || "A test resource",
+          type: changeset.changes[:type] || "document",
+          status: changeset.changes[:status] || "published",
+          content: changeset.changes[:content] || %{text: "Test content"},
+          metadata: changeset.changes[:metadata] || %{},
+          settings: changeset.changes[:settings] || %{},
+          version: changeset.changes[:version] || 1,
+          parent_id: changeset.changes[:parent_id],
+          child_ids: changeset.changes[:child_ids] || [],
+          tags: changeset.changes[:tags] || [],
+          categories: changeset.changes[:categories] || [],
+          created_by: changeset.changes[:created_by],
+          updated_by: changeset.changes[:updated_by],
+          inserted_at: DateTime.utc_now(),
+          updated_at: DateTime.utc_now()
+        }
+        :ets.insert(:mock_resources, {id, resource})
+        {:ok, resource}
+      else
+        {:error, changeset}
+      end
+    end)
+    |> stub(:update, fn changeset, opts ->
+      if changeset.valid? do
         resource = %{changeset.data | 
           name: changeset.changes[:name] || changeset.data.name,
           description: changeset.changes[:description] || changeset.data.description,
@@ -180,20 +125,123 @@ defmodule HydepwnsLiveviewWeb.TestMockHelper do
           updated_by: changeset.changes[:updated_by] || changeset.data.updated_by,
           updated_at: DateTime.utc_now()
         }
+        :ets.insert(:mock_resources, {resource.id, resource})
         {:ok, resource}
       else
-        # Return the changeset with errors
         {:error, changeset}
       end
     end)
-    |> stub(:delete, fn resource ->
+    |> stub(:update, fn changeset ->
+      if changeset.valid? do
+        resource = %{changeset.data | 
+          name: changeset.changes[:name] || changeset.data.name,
+          description: changeset.changes[:description] || changeset.data.description,
+          type: changeset.changes[:type] || changeset.data.type,
+          status: changeset.changes[:status] || changeset.data.status,
+          content: changeset.changes[:content] || changeset.data.content,
+          metadata: changeset.changes[:metadata] || changeset.data.metadata,
+          settings: changeset.changes[:settings] || changeset.data.settings,
+          version: changeset.changes[:version] || changeset.data.version,
+          parent_id: changeset.changes[:parent_id] || changeset.data.parent_id,
+          child_ids: changeset.changes[:child_ids] || changeset.data.child_ids,
+          tags: changeset.changes[:tags] || changeset.data.tags,
+          categories: changeset.changes[:categories] || changeset.data.categories,
+          created_by: changeset.changes[:created_by] || changeset.data.created_by,
+          updated_by: changeset.changes[:updated_by] || changeset.data.updated_by,
+          updated_at: DateTime.utc_now()
+        }
+        :ets.insert(:mock_resources, {resource.id, resource})
+        {:ok, resource}
+      else
+        {:error, changeset}
+      end
+    end)
+    |> stub(:delete, fn resource, opts ->
+      :ets.delete(:mock_resources, resource.id)
       {:ok, resource}
     end)
-    |> stub(:delete_all, fn module ->
+    |> stub(:delete, fn resource ->
+      :ets.delete(:mock_resources, resource.id)
+      {:ok, resource}
+    end)
+    |> stub(:delete_all, fn module, opts_or_list ->
       case module do
-        HydepwnsLiveview.Resources.Resource -> {0, nil}
+        HydepwnsLiveview.Resources.Resource -> 
+          :ets.delete_all_objects(:mock_resources)
+          {0, nil}
         _ -> {0, nil}
       end
+    end)
+    |> stub(:all, fn module ->
+      case module do
+        HydepwnsLiveview.Resources.Resource -> 
+          :ets.tab2list(:mock_resources)
+          |> Enum.map(fn {_id, resource} -> resource end)
+        _ -> []
+      end
+    end)
+    |> stub(:all, fn module, opts_or_list ->
+      case module do
+        HydepwnsLiveview.Resources.Resource -> 
+          :ets.tab2list(:mock_resources)
+          |> Enum.map(fn {_id, resource} -> resource end)
+        _ -> []
+      end
+    end)
+    |> stub(:get, fn module, id, opts_or_list ->
+      case module do
+        HydepwnsLiveview.Resources.Resource -> 
+          case :ets.lookup(:mock_resources, id) do
+            [{^id, resource}] -> resource
+            [] -> nil
+          end
+        _ -> nil
+      end
+    end)
+    |> stub(:get!, fn module, id, opts_or_list ->
+      case module do
+        HydepwnsLiveview.Resources.Resource -> 
+          case :ets.lookup(:mock_resources, id) do
+            [{^id, resource}] -> resource
+            [] -> 
+              raise Ecto.QueryError, message: "Record not found"
+          end
+        _ -> 
+          raise Ecto.QueryError, message: "Record not found"
+      end
+    end)
+    |> stub(:get_by, fn module, clauses, opts_or_list ->
+      case module do
+        HydepwnsLiveview.Resources.Resource -> nil
+        _ -> nil
+      end
+    end)
+    |> stub(:one, fn module, opts_or_list ->
+      case module do
+        HydepwnsLiveview.Resources.Resource -> nil
+        _ -> nil
+      end
+    end)
+    |> stub(:aggregate, fn module, aggregate, field, opts_or_list ->
+      case module do
+        HydepwnsLiveview.Resources.Resource -> 0
+        _ -> 0
+      end
+    end)
+    |> stub(:exists?, fn module, opts_or_list ->
+      case module do
+        HydepwnsLiveview.Resources.Resource -> false
+        _ -> false
+      end
+    end)
+    |> stub(:transaction, fn fun, opts_or_list ->
+      # Execute the function and return its result
+      fun.()
+    end)
+    |> stub(:rollback, fn value ->
+      # In a real transaction, this would raise an exception
+      # For mocking purposes, we'll just return the value
+      {:error, value}
     end)
   end
 

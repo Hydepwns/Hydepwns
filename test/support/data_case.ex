@@ -27,12 +27,16 @@ defmodule HydepwnsLiveview.DataCase do
     end
   end
 
-  setup(_tags) do
+  setup(tags) do
     # Start a sandboxed connection
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(HydepwnsLiveview.Repo)
 
-    # Set the mode to manual for explicit control
-    Ecto.Adapters.SQL.Sandbox.mode(HydepwnsLiveview.Repo, {:shared, self()})
+    # Set the mode to shared for async tests, manual for sync tests
+    if tags[:async] do
+      Ecto.Adapters.SQL.Sandbox.mode(HydepwnsLiveview.Repo, {:shared, self()})
+    else
+      Ecto.Adapters.SQL.Sandbox.mode(HydepwnsLiveview.Repo, :manual)
+    end
 
     :ok
   end

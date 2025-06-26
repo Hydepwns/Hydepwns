@@ -1,6 +1,14 @@
 ExUnit.start()
 {:ok, _} = Application.ensure_all_started(:hydepwns_liveview)
+
+# Ensure the ETS table for mock resources exists and is public
+unless :ets.whereis(:mock_resources) != :undefined do
+  :ets.new(:mock_resources, [:set, :public, :named_table])
+end
+
+# Configure Ecto sandbox for proper async test support
 Ecto.Adapters.SQL.Sandbox.mode(HydepwnsLiveview.Repo, :manual)
+
 {:ok, _} = Application.ensure_all_started(:wallaby)
 
 # Start the resource system
@@ -12,9 +20,6 @@ Ecto.Adapters.SQL.Sandbox.mode(HydepwnsLiveview.Repo, :manual)
 
 # Set up global mocks for all tests
 HydepwnsLiveviewWeb.TestMockHelper.setup_mocks()
-
-# Ensure Mox stubs are available globally
-Mox.set_mox_global(HydepwnsLiveview.RepoMock)
 
 # Define setup callback for all tests
 defmodule HydepwnsLiveview.TestSetup do

@@ -2,8 +2,6 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
   # Explicitly ensure router context BEFORE ConnCase, even if ConnCase should also provide it.
   require HydepwnsLiveviewWeb.Router
   @phoenix_router HydepwnsLiveviewWeb.Router
-  # For ~p
-  import Phoenix.VerifiedRoutes
 
   use HydepwnsLiveviewWeb.ConnCase, async: true
 

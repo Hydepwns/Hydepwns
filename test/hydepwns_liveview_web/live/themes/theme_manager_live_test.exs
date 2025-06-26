@@ -34,9 +34,9 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
       assert theme.mode in ["light", "dark", "dim", "system"]
     end)
 
-    MockHelper.setup_mocks()
+    TestMockHelper.setup_mocks()
 
-    MockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
+    TestMockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
       {:ok, %{"id" => "mock", "name" => "Mock Resource", "status" => "active"}}
     end)
 

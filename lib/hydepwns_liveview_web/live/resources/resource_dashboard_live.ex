@@ -15,6 +15,8 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
      socket
      |> assign(:resources, ResourceSystem.list_resources())
      |> assign(:selected_type, nil)
+     |> assign(:relationships, [])
+     |> assign(:current_user, nil)
      |> assign(:page_title, "Resources")}
   end
 
@@ -26,6 +28,7 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
   defp apply_action(socket, :index, _params) do
     socket
     |> assign(:resources, ResourceSystem.list_resources())
+    |> assign(:relationships, [])
   end
 
   defp apply_action(socket, :new, _params) do

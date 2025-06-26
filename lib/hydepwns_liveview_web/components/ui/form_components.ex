@@ -59,13 +59,27 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
   def input(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
     errors = if input_value(assigns[:form], field.name), do: field.errors, else: []
 
+    # Filter out non-attribute values from rest
+    rest = assigns[:rest] || %{}
+    rest = if is_map(rest) do
+      # Only keep valid HTML attribute keys
+      rest
+      |> Map.drop([:value, :field, :form, :content, :metadata, :settings])
+      |> Map.filter(fn {k, v} -> 
+        is_atom(k) or is_binary(k) and 
+        (is_binary(v) or is_number(v) or is_boolean(v) or is_nil(v))
+      end)
+    else
+      %{}
+    end
+
     assigns
     |> assign(field: nil, id: assigns[:id] || field.id)
     |> assign(:errors, Enum.map(errors, &translate_error(&1)))
     |> assign_new(:name, fn -> if assigns[:multiple], do: field.name <> "[]", else: field.name end)
     |> assign_new(:value, fn -> field.value end)
     |> assign_new(:type_input, fn -> assigns[:type] || "text" end)
-    |> assign_new(:rest, fn -> %{} end)
+    |> assign(:rest, rest)
     |> assign_new(:label, fn -> nil end)
     |> assign_new(:multiple, fn -> assigns[:multiple] || false end)
     |> assign_new(:prompt, fn -> assigns[:prompt] end)
@@ -81,8 +95,8 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
     ~H"""
     <div>
       <label class="flex items-center gap-4 text-sm leading-6 text-zinc-600">
-        <input type="hidden" name={@name} value="false" disabled={@rest[:disabled]} />
-        <input type="checkbox" id={@id} name={@name} value="true" checked={@checked} class="rounded border-zinc-300 text-zinc-900 focus:ring-0" {@rest} /> {@label}
+        <input type="hidden" name={@name} value="false" />
+        <input type="checkbox" id={@id} name={@name} value="true" checked={@checked} class="rounded border-zinc-300 text-zinc-900 focus:ring-0" /> {@label}
       </label>
       <.error :for={msg <- @errors}>{msg}</.error>
     </div>
@@ -98,7 +112,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
     ~H"""
     <div data-test-id={"#{@id}-container"}>
       <.label_tag for={@id}>{@label}</.label_tag>
-      <select id={@id} name={@name} class="mt-2 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm" multiple={@multiple} data-test-id={@id} {@rest}>
+      <select id={@id} name={@name} class="mt-2 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm" multiple={@multiple} data-test-id={@id}>
         <option :if={@prompt} value=""><%= @prompt %></option>
         {options_for_select(@options, @value)}
       </select>
@@ -108,6 +122,20 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
   end
 
   def input(%{type: "textarea"} = assigns) do
+    value =
+      cond do
+        assigns[:form] && is_map(input_value(assigns[:form], assigns[:name])) ->
+          Jason.encode!(input_value(assigns[:form], assigns[:name]))
+        assigns[:form] ->
+          input_value(assigns[:form], assigns[:name])
+        is_map(assigns[:value]) ->
+          Jason.encode!(assigns[:value])
+        true ->
+          assigns[:value] || ""
+      end
+
+    assigns = assign(assigns, :textarea_value, value)
+
     ~H"""
     <div data-test-id={"#{@id}-container"}>
       <.label_tag for={@id}>{@label}</.label_tag>
@@ -120,8 +148,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
           @errors == [] && "border-zinc-300 focus:border-zinc-400",
           @errors != [] && "border-rose-400 focus:border-rose-400"
         ]}
-        {@rest}
-      >{input_value(@form, @name)}</textarea>
+      ><%= @textarea_value %></textarea>
       <.error :for={msg <- @errors} data-test-id={"#{@id}-error"}><%= msg %></.error>
     </div>
     """
@@ -137,7 +164,6 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
         name={@name} 
         value={@value} 
         class={["form-control", @errors != [] && "is-invalid"]}
-        {@rest}
       />
       <.error :for={msg <- @errors}>{msg}</.error>
     </div>
@@ -158,9 +184,12 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
     """
   end
 
+  attr :rest, :global
+  slot :inner_block, required: true
+
   def error(assigns) do
     ~H"""
-    <p class="mt-3 flex gap-3 text-sm leading-6 text-rose-600" data-test-id={@rest[:data_test_id]}>
+    <p class="mt-3 flex gap-3 text-sm leading-6 text-rose-600" {@rest}>
       <.icon name="hero-exclamation-circle-mini" class="mt-0.5 h-5 w-5 flex-none" /> {render_slot(@inner_block)}
     </p>
     """
@@ -192,7 +221,6 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
         "phx-submit-loading:opacity-75 rounded-lg bg-zinc-900 hover:bg-zinc-700 py-2 px-3 text-sm font-semibold leading-6 text-white active:text-white/80",
         @class
       ]}
-      {@rest}
     >
       <%= render_slot(@inner_block) %>
     </button>

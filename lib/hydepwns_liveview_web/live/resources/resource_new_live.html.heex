@@ -8,5 +8,5 @@
     </div>
   </div>
 
-  <.live_component module={HydepwnsLiveviewWeb.ResourceFormComponent} id="new" title={@page_title} action={:new} resource={@resource} resources={@resources} navigate={~p"/resources"} />
+  <.live_component module={HydepwnsLiveviewWeb.ResourceFormComponent} id="new" title={@page_title} action={:new} resource={@resource} resources={@resources} navigate={~p"/resources"} parent_pid={self()} />
 </div>

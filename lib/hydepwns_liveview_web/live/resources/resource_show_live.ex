@@ -56,7 +56,7 @@ defmodule HydepwnsLiveviewWeb.ResourceShowLive do
           <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold" data-test-id="resource-name"><%= @resource.name %></h1>
             <div class="space-x-4">
-              <.link navigate={~p"/resources/#{@resource}/edit"} class="text-blue-600 hover:text-blue-800" data-test-id="edit-resource-link">
+              <.link navigate={~p"/resources/#{@resource.id}/edit"} class="text-blue-600 hover:text-blue-800" data-test-id="edit-resource-link">
                 Edit
               </.link>
               <button phx-click="delete" phx-value-id={@resource.id} data-confirm="Are you sure?" class="text-red-600 hover:text-red-800" data-test-id="delete-resource-button">
@@ -84,9 +84,9 @@ defmodule HydepwnsLiveviewWeb.ResourceShowLive do
               <div class="space-y-4">
                 <div class="relationship-row" data-test-id="parent-relationship-row">
                   <h4 class="font-medium">Parent Resource</h4>
-                  <%= if @resource.parent do %>
-                    <.link navigate={~p"/resources/#{@resource.parent}"} class="text-blue-600 hover:text-blue-800" data-test-id="parent-resource-link">
-                      <%= @resource.parent.name %>
+                  <%= if @resource.parent_id do %>
+                    <.link navigate={~p"/resources/#{@resource.parent_id}"} class="text-blue-600 hover:text-blue-800" data-test-id="parent-resource-link">
+                      Parent Resource (ID: <%= @resource.parent_id %>)
                     </.link>
                   <% else %>
                     <p class="text-gray-500">No parent resource</p>
@@ -95,11 +95,11 @@ defmodule HydepwnsLiveviewWeb.ResourceShowLive do
 
                 <div class="relationship-row" data-test-id="children-relationship-row">
                   <h4 class="font-medium">Child Resources</h4>
-                  <%= if Enum.any?(@resource.children) do %>
+                  <%= if Enum.any?(@resource.child_ids) do %>
                     <div class="space-y-2">
-                      <%= for child <- @resource.children do %>
-                        <.link navigate={~p"/resources/#{child}"} class="text-blue-600 hover:text-blue-800 block" data-test-id="child-resource-link">
-                          <%= child.name %>
+                      <%= for child_id <- @resource.child_ids do %>
+                        <.link navigate={~p"/resources/#{child_id}"} class="text-blue-600 hover:text-blue-800 block" data-test-id="child-resource-link">
+                          Child Resource (ID: <%= child_id %>)
                         </.link>
                       <% end %>
                     </div>
@@ -113,10 +113,10 @@ defmodule HydepwnsLiveviewWeb.ResourceShowLive do
             <div>
               <h3 class="text-lg font-medium mb-2">Actions</h3>
               <div class="space-x-4">
-                <.link navigate={~p"/resources/#{@resource}/events"} class="text-blue-600 hover:text-blue-800" data-test-id="events-link">
+                <.link navigate={~p"/resources/#{@resource.id}/events"} class="text-blue-600 hover:text-blue-800" data-test-id="events-link">
                   View Events
                 </.link>
-                <.link navigate={~p"/resources/#{@resource}/subscriptions"} class="text-blue-600 hover:text-blue-800" data-test-id="subscriptions-link">
+                <.link navigate={~p"/resources/#{@resource.id}/subscriptions"} class="text-blue-600 hover:text-blue-800" data-test-id="subscriptions-link">
                   View Subscriptions
                 </.link>
               </div>

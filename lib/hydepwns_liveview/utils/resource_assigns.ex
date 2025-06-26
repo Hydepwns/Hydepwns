@@ -158,21 +158,20 @@ defmodule HydepwnsLiveview.Utils.ResourceAssigns do
     # Process opts with proper escaping
     processed_opts = 
       if Keyword.has_key?(opts, :default) do
-        # If a default is explicitly provided, escape it
+        # If a default is explicitly provided, use it
         default = Keyword.get(opts, :default)
-        escaped_default = Macro.escape(default)
-        Keyword.put(Keyword.delete(opts, :default), :default, escaped_default)
+        Keyword.put(Keyword.delete(opts, :default), :default, default)
       else
         # If no default is provided, use the nested defaults
-        escaped_nested_defaults = Macro.escape(nested_defaults)
-        Keyword.put(opts, :default, escaped_nested_defaults)
+        Keyword.put(opts, :default, nested_defaults)
       end
     
     # Escape the nested_schema before injecting it into the quoted expression
     escaped_nested_schema = Macro.escape(nested_schema)
+    escaped_processed_opts = Macro.escape(processed_opts)
     
     quote do
-      @resource_attributes {unquote(name), unquote(escaped_nested_schema), unquote(processed_opts)}
+      @resource_attributes {unquote(name), unquote(escaped_nested_schema), unquote(escaped_processed_opts)}
     end
   end
 
@@ -284,7 +283,17 @@ defmodule HydepwnsLiveview.Utils.ResourceAssigns do
   defp build_default_values(attributes) do
     attributes
     |> Enum.filter(fn {_name, _type, opts} -> Keyword.has_key?(opts, :default) end)
-    |> Enum.map(fn {name, _type, opts} -> {name, Keyword.get(opts, :default)} end)
+    |> Enum.map(fn {name, _type, opts} -> 
+      default = Keyword.get(opts, :default)
+      # Ensure the default is a simple value that Phoenix.Component.assign can handle
+      flattened_default = case default do
+        %{} when map_size(default) == 0 -> %{}
+        m when is_map(m) -> m
+        l when is_list(l) -> l
+        other -> other
+      end
+      {name, flattened_default}
+    end)
     |> Enum.into(%{})
   end
 

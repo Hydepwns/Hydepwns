@@ -10,13 +10,23 @@
       </.link>
     </div>
   </div>
+
+  <!-- Debug output for flash messages -->
+  <div class="bg-yellow-100 p-4 mb-4 rounded border border-yellow-300">
+    <p class="text-sm font-bold text-yellow-800">Flash Debug:</p>
+    <p class="text-sm text-yellow-700">Flash contents: <%= inspect(@flash) %></p>
+    <p class="text-sm text-yellow-700">Flash keys: <%= inspect(Map.keys(@flash)) %></p>
+    <p class="text-sm text-yellow-700">Info flash: <%= inspect(@flash[:info]) %></p>
+    <p class="text-sm text-yellow-700">Error flash: <%= inspect(@flash[:error]) %></p>
+  </div>
+
+  <.flash_group flash={@flash} />
+
   <!-- Debug output -->
   <div class="bg-gray-100 p-4 mb-4 rounded">
     <p class="text-sm text-gray-600">Debug Info:</p>
     <p class="text-sm text-gray-600">Number of resources: <%= length(@resources) %></p>
-    <p class="text-sm text-gray-600">Resource IDs: <%= Enum.map_join(@resources, ", ", & &1.id) %></p>
-    <p class="text-sm text-gray-600">Full Resources: <%= inspect(@resources, pretty: true) %></p>
-    <p class="text-sm text-gray-600">Full Relationships: <%= inspect(@relationships, pretty: true) %></p>
+    <p class="text-sm text-gray-600">Current user: <%= inspect(@current_user) %></p>
   </div>
 
   <div class="mb-8">

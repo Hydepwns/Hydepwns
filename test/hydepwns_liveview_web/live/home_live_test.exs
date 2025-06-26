@@ -3,16 +3,16 @@ defmodule HydepwnsLiveviewWeb.HomeLiveTest do
   use HydepwnsLiveviewWeb.ConnCase, async: true
   import Phoenix.LiveViewTest
   import Phoenix.VerifiedRoutes
+  import Mox
   alias HydepwnsLiveviewWeb.TestMockHelper
 
-  setup context do
+  # Set up Mox for async-safe testing
+  setup :set_mox_from_context
+  setup :verify_on_exit!
+
+  setup do
     TestMockHelper.setup_mocks()
-
-    TestMockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
-      {:ok, %{"id" => "mock", "name" => "Mock Resource", "status" => "active"}}
-    end)
-
-    context
+    {:ok, %{}}
   end
 
   test "disconnected and connected render", %{conn: conn} do

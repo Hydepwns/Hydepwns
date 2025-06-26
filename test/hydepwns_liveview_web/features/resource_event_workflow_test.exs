@@ -1,6 +1,8 @@
 defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
   use HydepwnsLiveviewWeb.WallabyCase, async: false
-  setup :set_mox_global
+  import Mox
+  setup :set_mox_from_context
+  setup :verify_on_exit!
   import Wallaby.Query
   alias HydepwnsLiveviewWeb.TestMockHelper
   alias HydepwnsLiveview.TestSupport.ResourceSystemHelper
@@ -19,6 +21,9 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
   alias HydepwnsLiveview.TestSupport.ResourceFixtures
 
   setup %{session: session} do
+    # Set up mocks first, before any resource creation
+    TestMockHelper.setup_mocks()
+
     # Ensure the resource system is properly set up
     ResourceSystemHelper.setup_resource_system()
 
@@ -30,8 +35,6 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
         content: %{text: "Initial content"}
       })
 
-    TestMockHelper.setup_mocks()
-
     {:ok, session: visit_and_wait(session, "/resources"), resource: resource}
   end
 
@@ -40,17 +43,6 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
       session: session,
       resource: resource
     } do
-      TestMockHelper.expect_api_call(:external_api, :fetch_data, fn id ->
-        {:ok,
-         %{
-           "id" => id,
-           "name" => resource.name,
-           "content" => resource.content,
-           "type" => resource.type,
-           "status" => "published"
-         }}
-      end)
-
       # Navigate to resource
       session
       |> click(Query.css("[data-test-id='resource-link-#{resource.id}']"))
@@ -78,17 +70,6 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
     end
 
     test "event processing maintains consistency", %{session: session, resource: resource} do
-      TestMockHelper.expect_api_call(:external_api, :fetch_data, fn id ->
-        {:ok,
-         %{
-           "id" => id,
-           "name" => resource.name,
-           "content" => resource.content,
-           "type" => resource.type,
-           "status" => "published"
-         }}
-      end)
-
       # Navigate to resource
       session
       |> click(Query.css("[data-test-id='resource-link-#{resource.id}']"))
@@ -116,17 +97,6 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
     end
 
     test "event visualization shows processing status", %{session: session, resource: resource} do
-      TestMockHelper.expect_api_call(:external_api, :fetch_data, fn id ->
-        {:ok,
-         %{
-           "id" => id,
-           "name" => resource.name,
-           "content" => resource.content,
-           "type" => resource.type,
-           "status" => "published"
-         }}
-      end)
-
       # Navigate to events dashboard
       session
       |> click(Query.css("[data-test-id='resource-link-#{resource.id}']"))
@@ -143,17 +113,6 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
     end
 
     test "event subscription management", %{session: session, resource: resource} do
-      TestMockHelper.expect_api_call(:external_api, :fetch_data, fn id ->
-        {:ok,
-         %{
-           "id" => id,
-           "name" => resource.name,
-           "content" => resource.content,
-           "type" => resource.type,
-           "status" => "published"
-         }}
-      end)
-
       # Navigate to resource
       session
       |> click(Query.css("[data-test-id='resource-link-#{resource.id}']"))
@@ -184,17 +143,6 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
     end
 
     test "event processing error handling", %{session: session, resource: resource} do
-      TestMockHelper.expect_api_call(:external_api, :fetch_data, fn id ->
-        {:ok,
-         %{
-           "id" => id,
-           "name" => resource.name,
-           "content" => resource.content,
-           "type" => resource.type,
-           "status" => "published"
-         }}
-      end)
-
       # Navigate to resource
       session
       |> click(Query.css("[data-test-id='resource-link-#{resource.id}']"))

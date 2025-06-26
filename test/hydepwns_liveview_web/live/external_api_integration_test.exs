@@ -11,6 +11,8 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
 
   alias HydepwnsLiveviewWeb.TestMockHelper
 
+  # Set up Mox for async-safe testing
+  setup :set_mox_from_context
   # Make sure mocks are verified after each test
   setup :verify_on_exit!
 

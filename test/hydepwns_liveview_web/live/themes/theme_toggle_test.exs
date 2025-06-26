@@ -3,8 +3,13 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeToggleTest do
   @moduletag :liveview
   import Phoenix.LiveViewTest
   import HydepwnsLiveview.TestThemeSystemFixtures
+  import Mox
 
   alias HydepwnsLiveviewWeb.TestMockHelper
+
+  # Set up Mox for async-safe testing
+  setup :set_mox_from_context
+  setup :verify_on_exit!
 
   describe "Theme Toggle Component" do
     setup %{conn: conn} do
@@ -29,10 +34,6 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeToggleTest do
       end)
 
       TestMockHelper.setup_mocks()
-
-      TestMockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
-        {:ok, %{"id" => "mock", "name" => "Mock Resource", "status" => "active"}}
-      end)
 
       %{
         light_theme: light_theme,

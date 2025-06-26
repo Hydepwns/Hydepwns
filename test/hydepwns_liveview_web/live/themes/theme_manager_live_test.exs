@@ -13,7 +13,12 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
   import Phoenix.LiveViewTest
   import HydepwnsLiveview.TestThemeSystemFixtures
   import HydepwnsLiveview.TestSupport.ThemeSystemHelper
+  import Mox
   alias HydepwnsLiveviewWeb.TestMockHelper
+
+  # Set up Mox for async-safe testing
+  setup :set_mox_from_context
+  setup :verify_on_exit!
 
   setup %{conn: conn} do
     # Set up per-test theme system isolation
@@ -35,10 +40,6 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
     end)
 
     TestMockHelper.setup_mocks()
-
-    TestMockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
-      {:ok, %{"id" => "mock", "name" => "Mock Resource", "status" => "active"}}
-    end)
 
     {:ok,
      conn: conn,

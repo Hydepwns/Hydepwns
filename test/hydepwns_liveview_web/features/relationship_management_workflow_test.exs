@@ -1,6 +1,8 @@
 defmodule HydepwnsLiveviewWeb.Features.RelationshipManagementWorkflowTest do
   use HydepwnsLiveviewWeb.WallabyCase, async: false
-  setup :set_mox_global
+  import Mox
+  setup :set_mox_from_context
+  setup :verify_on_exit!
   alias HydepwnsLiveview.TestSupport.ResourceFixtures
   alias HydepwnsLiveviewWeb.TestMockHelper
 
@@ -15,15 +17,20 @@ defmodule HydepwnsLiveviewWeb.Features.RelationshipManagementWorkflowTest do
   """
 
   setup %{session: session} do
+    # Set up mocks first, before any resource creation
+    TestMockHelper.setup_mocks()
+
+    unique = System.unique_integer([:positive])
+
     {:ok, user} =
       ResourceFixtures.create_user(%{name: "Test User", email: "testuser@example.com"})
 
-    # Add Mox expectation for fetch_data
-    TestMockHelper.setup_mocks()
-
-    TestMockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
-      {:ok, %{"id" => "mock", "name" => "Mock Resource", "status" => "active"}}
-    end)
+    {:ok, resource} =
+      ResourceFixtures.create_test_resource(%{
+        id: "test-resource-#{unique}",
+        name: "Test Resource #{unique}",
+        type: "document"
+      })
 
     # team = ResourceFixtures.create_team(%{name: "Test Team"})
     # post = ResourceFixtures.create_post(%{title: "Test Post", user_id: user.id})
@@ -33,7 +40,7 @@ defmodule HydepwnsLiveviewWeb.Features.RelationshipManagementWorkflowTest do
 
     # Start session and visit the resource dashboard
     # {:ok, session: visit_and_wait(session, "/resources"), user: user, team: team, post: post}
-    {:ok, session: visit_and_wait(session, "/resources"), user: user}
+    {:ok, session: visit_and_wait(session, "/resources"), user: user, resource: resource}
   end
 
   # describe "viewing relationships" do

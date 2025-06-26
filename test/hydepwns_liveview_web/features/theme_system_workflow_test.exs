@@ -57,11 +57,8 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       assert theme.mode in ["light", "dark", "dim", "system"]
     end)
 
+    # Set up mocks first, before any resource creation
     TestMockHelper.setup_mocks()
-
-    TestMockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
-      {:ok, %{"id" => "mock", "name" => "Mock Resource", "status" => "active"}}
-    end)
 
     session = visit_and_wait(session, "/themes")
     Wallaby.Browser.take_screenshot(session, name: "theme_system_workflow_setup")

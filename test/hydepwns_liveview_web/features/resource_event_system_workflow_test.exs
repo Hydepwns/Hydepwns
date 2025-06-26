@@ -1,6 +1,8 @@
 defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
   use HydepwnsLiveviewWeb.WallabyCase, async: false
-  setup :set_mox_global
+  import Mox
+  setup :set_mox_from_context
+  setup :verify_on_exit!
   import Wallaby.Query
 
   @moduledoc """
@@ -17,17 +19,14 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
   alias HydepwnsLiveviewWeb.TestMockHelper
 
   setup %{session: session} do
+    # Set up mocks first, before any resource creation
+    TestMockHelper.setup_mocks()
+
     {:ok, resource_fixture} =
       ResourceFixtures.create_test_resource(%{
         id: "test-resource-id",
         name: "Test Resource"
       })
-
-    TestMockHelper.setup_mocks()
-
-    TestMockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
-      {:ok, %{"id" => "mock", "name" => "Mock Resource", "status" => "published"}}
-    end)
 
     {:ok, session: visit_and_wait(session, "/resources"), resource: resource_fixture}
   end

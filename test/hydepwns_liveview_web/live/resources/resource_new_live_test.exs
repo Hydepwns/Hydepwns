@@ -1,12 +1,19 @@
 defmodule HydepwnsLiveviewWeb.ResourceNewLiveTest do
   use HydepwnsLiveviewWeb.ConnCase
   import Phoenix.LiveViewTest
+  import Mox
+  setup :set_mox_from_context
+  setup :verify_on_exit!
   import HydepwnsLiveview.TestSupport.ResourceFixtures,
     only: [create_test_resource: 1]
 
   import HydepwnsLiveview.TestSupport.ResourceSystemHelper
+  alias HydepwnsLiveviewWeb.TestMockHelper
 
   setup do
+    # Set up mocks first, before any resource creation
+    TestMockHelper.setup_mocks()
+
     setup_resource_system()
     {:ok, %{}}
   end

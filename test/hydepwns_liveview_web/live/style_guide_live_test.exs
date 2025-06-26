@@ -6,14 +6,9 @@ defmodule HydepwnsLiveviewWeb.StyleGuideLiveTest do
 
   alias HydepwnsLiveviewWeb.TestMockHelper
 
-  setup context do
+  setup do
     TestMockHelper.setup_mocks()
-
-    TestMockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
-      {:ok, %{"id" => "mock", "name" => "Mock Resource", "status" => "active"}}
-    end)
-
-    {:ok, context}
+    {:ok, %{}}
   end
 
   describe "StyleGuideLive" do

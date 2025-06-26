@@ -1,6 +1,8 @@
 defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
   use HydepwnsLiveviewWeb.WallabyCase, async: false
-  setup :set_mox_global
+  import Mox
+  setup :set_mox_from_context
+  setup :verify_on_exit!
   import Wallaby.Query
 
   @moduledoc """
@@ -17,6 +19,9 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
   alias HydepwnsLiveviewWeb.TestMockHelper
 
   setup %{session: session} do
+    # Set up mocks first, before any resource creation
+    TestMockHelper.setup_mocks()
+
     unique = System.unique_integer([:positive])
 
     {:ok, parent} =
@@ -32,13 +37,6 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
         name: "Child Resource #{unique}",
         type: "document"
       })
-
-    # Add Mox expectation for fetch_data
-    TestMockHelper.setup_mocks()
-
-    TestMockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
-      {:ok, %{"id" => "mock", "name" => "Mock Resource", "status" => "active"}}
-    end)
 
     {:ok, session: visit_and_wait(session, "/resources"), parent: parent, child: child}
   end

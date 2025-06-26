@@ -1,10 +1,14 @@
 defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
   use HydepwnsLiveviewWeb.WallabyCase, async: false
+  import Mox
+  setup :set_mox_from_context
+  setup :verify_on_exit!
 
   import HydepwnsLiveview.TestSupport.ResourceFixtures,
     only: [create_test_resource: 1]
 
   import HydepwnsLiveview.TestSupport.ResourceSystemHelper
+  alias HydepwnsLiveviewWeb.TestMockHelper
 
   defp accept_confirm(session) do
     # Wallaby 0.30+ does not have accept_confirm, so we simulate clicking confirm
@@ -13,6 +17,9 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
   end
 
   setup do
+    # Set up mocks first, before any resource creation
+    TestMockHelper.setup_mocks()
+
     setup_resource_system()
     resource = create_test_resource(%{type: "document", status: "published"})
     {:ok, resource: resource}

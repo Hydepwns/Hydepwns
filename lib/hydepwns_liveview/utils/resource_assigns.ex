@@ -108,8 +108,25 @@ defmodule HydepwnsLiveview.Utils.ResourceAssigns do
   Defines an attribute for the socket assigns resource.
   """
   defmacro attribute(name, type, opts \\ []) do
+    processed_opts =
+      if Keyword.has_key?(opts, :default) do
+        default = Keyword.get(opts, :default)
+        escaped_default =
+          case default do
+            %{} when map_size(default) == 0 -> Macro.escape(%{})
+            m when is_map(m) or is_list(m) -> Macro.escape(m)
+            _ -> default
+          end
+        Keyword.put(Keyword.delete(opts, :default), :default, escaped_default)
+      else
+        opts
+      end
+    
+    # Escape the entire opts keyword list before injecting it into the quoted expression
+    escaped_opts = Macro.escape(processed_opts)
+    
     quote do
-      @resource_attributes {unquote(name), unquote(type), unquote(opts)}
+      @resource_attributes {unquote(name), unquote(type), unquote(escaped_opts)}
     end
   end
 
@@ -117,28 +134,45 @@ defmodule HydepwnsLiveview.Utils.ResourceAssigns do
   Defines a nested attribute with a block for nested attributes.
   """
   defmacro nested_attribute(name, type, opts \\ [], do: block) when type == :map do
-    quote do
-      # Start a new nested context for attributes
+    # Compute nested attributes at macro expansion time
+    nested_module = Module.concat(__CALLER__.module, "Nested#{:rand.uniform(1000000)}")
+    defmodule nested_module do
       Module.register_attribute(__MODULE__, :nested_attributes, accumulate: true)
-
-      # Import the attribute macro in this context
-      import HydepwnsLiveview.Utils.ResourceAssigns, only: [attribute: 2, attribute: 3]
-
-      # Process the nested attributes block
-      unquote(block)
-
-      # Collect the nested attributes
-      nested_attrs = @nested_attributes
-      Module.delete_attribute(__MODULE__, :nested_attributes)
-
-      # Create a map schema from the nested attributes
-      nested_schema =
-        Enum.reduce(nested_attrs, %{}, fn {attr_name, attr_type, attr_opts}, acc ->
-          Map.put(acc, attr_name, build_type_spec(attr_type, attr_opts))
-        end)
-
-      # Register the complete nested attribute
-      @resource_attributes {unquote(name), nested_schema, unquote(opts)}
+      _block_result = block
+      def get_nested_attributes, do: @nested_attributes
+    end
+    nested_attrs = nested_module.get_nested_attributes()
+    nested_schema = Enum.reduce(nested_attrs, %{}, fn {attr_name, attr_type, attr_opts}, acc ->
+      Map.put(acc, attr_name, HydepwnsLiveview.Utils.ResourceAssigns.build_type_spec(attr_type, attr_opts))
+    end)
+    
+    # Build nested defaults
+    nested_defaults = Enum.reduce(nested_attrs, %{}, fn {attr_name, _attr_type, attr_opts}, acc ->
+      if Keyword.has_key?(attr_opts, :default) do
+        Map.put(acc, attr_name, Keyword.get(attr_opts, :default))
+      else
+        acc
+      end
+    end)
+    
+    # Process opts with proper escaping
+    processed_opts = 
+      if Keyword.has_key?(opts, :default) do
+        # If a default is explicitly provided, escape it
+        default = Keyword.get(opts, :default)
+        escaped_default = Macro.escape(default)
+        Keyword.put(Keyword.delete(opts, :default), :default, escaped_default)
+      else
+        # If no default is provided, use the nested defaults
+        escaped_nested_defaults = Macro.escape(nested_defaults)
+        Keyword.put(opts, :default, escaped_nested_defaults)
+      end
+    
+    # Escape the nested_schema before injecting it into the quoted expression
+    escaped_nested_schema = Macro.escape(nested_schema)
+    
+    quote do
+      @resource_attributes {unquote(name), unquote(escaped_nested_schema), unquote(processed_opts)}
     end
   end
 
@@ -172,6 +206,9 @@ defmodule HydepwnsLiveview.Utils.ResourceAssigns do
     end
   end
 
+  defp deep_escape(value) when is_map(value) or is_list(value), do: Macro.escape(value)
+  defp deep_escape(value), do: value
+
   @doc """
   Before compile hook to process resource definitions and generate required code.
   """
@@ -185,11 +222,12 @@ defmodule HydepwnsLiveview.Utils.ResourceAssigns do
     required_assigns = build_required_assigns(attributes)
     type_specs = build_type_specs(attributes)
     default_values = build_default_values(attributes)
+    escaped_default_values = deep_escape(default_values)
 
     # Generate functions
-    apply_defaults_function = generate_apply_defaults_function(default_values)
+    apply_defaults_function = generate_apply_defaults_function(escaped_default_values)
     accessors = generate_accessors(attributes)
-    init_function = generate_init_function(default_values)
+    init_function = generate_init_function(escaped_default_values)
 
     # Combine everything and generate the code
     quote do
@@ -220,7 +258,7 @@ defmodule HydepwnsLiveview.Utils.ResourceAssigns do
           validations: unquote(Macro.escape(validations)),
           required_assigns: unquote(required_assigns),
           type_specs: unquote(Macro.escape(type_specs)),
-          default_values: unquote(Macro.escape(default_values))
+          default_values: unquote(escaped_default_values)
         }
       end
     end

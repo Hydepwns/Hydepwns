@@ -6,6 +6,7 @@ defmodule HydepwnsLiveview.Accounts.UserToken do
 
   use Ecto.Schema
   import Ecto.Query
+  alias HydepwnsLiveview.RepoHelper
 
   @hash_algorithm :sha256
   @rand_size 32
@@ -196,14 +197,14 @@ defmodule HydepwnsLiveview.Accounts.UserToken do
   """
   def delete_all_tokens(user, :all) do
     from(t in HydepwnsLiveview.Accounts.UserToken, where: t.user_id == ^user.id)
-    |> HydepwnsLiveview.Repo.delete_all()
+    |> RepoHelper.delete_all()
   end
 
   def delete_all_tokens(user, [_ | _] = contexts) do
     from(t in HydepwnsLiveview.Accounts.UserToken,
       where: t.user_id == ^user.id and t.context in ^contexts
     )
-    |> HydepwnsLiveview.Repo.delete_all()
+    |> RepoHelper.delete_all()
   end
 
   def delete_all_tokens(_invalid_user, _invalid_contexts), do: {:error, :invalid_parameters}

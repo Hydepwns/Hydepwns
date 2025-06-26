@@ -6,7 +6,7 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
 
   use GenServer
   alias HydepwnsLiveview.Resources.Resource
-  alias HydepwnsLiveview.Repo
+  alias HydepwnsLiveview.RepoHelper
 
   @doc """
   Starts the resource system.
@@ -26,21 +26,21 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
   def create_resource(attrs) do
     %Resource{}
     |> Resource.changeset(attrs)
-    |> Repo.insert()
+    |> RepoHelper.insert()
   end
 
   @doc """
   Lists all resources.
   """
   def list_resources do
-    Repo.all(Resource)
+    RepoHelper.all(Resource)
   end
 
   @doc """
   Gets a resource by id.
   """
   def get_resource(id) do
-    case HydepwnsLiveview.RepoHelper.get(Resource, id) do
+    case RepoHelper.get(Resource, id) do
       nil -> {:error, :not_found}
       resource -> {:ok, resource}
     end
@@ -50,14 +50,14 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
   Updates a resource by id with new attributes.
   """
   def update_resource(id, attrs) do
-    case HydepwnsLiveview.RepoHelper.get(Resource, id) do
+    case RepoHelper.get(Resource, id) do
       nil ->
         {:error, :not_found}
 
       resource ->
         resource
         |> Resource.changeset(attrs)
-        |> Repo.update()
+        |> RepoHelper.update()
     end
   end
 
@@ -65,12 +65,12 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
   Deletes a resource by id.
   """
   def delete_resource(id) do
-    case HydepwnsLiveview.RepoHelper.get(Resource, id) do
+    case RepoHelper.get(Resource, id) do
       nil ->
         {:error, :not_found}
 
       resource ->
-        Repo.delete(resource)
+        RepoHelper.delete(resource)
     end
   end
 
@@ -78,7 +78,7 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
   Resets the store (for tests).
   """
   def reset_store do
-    Repo.delete_all(Resource)
+    RepoHelper.delete_all(Resource)
   end
 
   def child_spec(opts) do

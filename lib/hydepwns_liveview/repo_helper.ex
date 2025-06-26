@@ -330,4 +330,30 @@ defmodule HydepwnsLiveview.RepoHelper do
   def rollback(value) do
     repo().rollback(value)
   end
+
+  @doc """
+  Convenience function for repo().delete_all/2
+
+  ## Parameters
+
+  - `queryable` - The queryable (schema or query)
+  - `opts` - Optional parameters (default: [])
+
+  ## Returns
+
+  - `{count, nil}` - Number of deleted records
+
+  ## Examples
+
+  ```elixir
+  # Delete all users
+  {count, nil} = RepoHelper.delete_all(User)
+
+  # Delete with conditions
+  {count, nil} = RepoHelper.delete_all(from u in User, where: u.status == "inactive")
+  ```
+  """
+  def delete_all(queryable, opts \\ []) do
+    repo().delete_all(queryable, opts)
+  end
 end 

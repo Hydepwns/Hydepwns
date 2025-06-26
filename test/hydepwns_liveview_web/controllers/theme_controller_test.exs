@@ -1,10 +1,9 @@
 # Removed unused module attribute if not used
 
 defmodule HydepwnsLiveviewWeb.ThemeControllerTest do
+  @router HydepwnsLiveviewWeb.Router
   use HydepwnsLiveviewWeb.ConnCase, async: true
 
-  alias HydepwnsLiveview.ThemeSystem
-  alias HydepwnsLiveview.TestThemeSystemFixtures
   import Phoenix.VerifiedRoutes
 
   @moduletag :skip

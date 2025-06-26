@@ -2,9 +2,6 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
   use HydepwnsLiveviewWeb.ConnCase, async: false
   use HydepwnsLiveviewWeb.WallabyCase
   @moduletag :liveview
-  import Phoenix.LiveViewTest
-  import HydepwnsLiveview.TestThemeSystemFixtures
-  import HydepwnsLiveview.TestThemeHelper
   import Wallaby.Query
   import Wallaby.Browser
 
@@ -22,7 +19,6 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
   - Theme Performance
   """
 
-  alias HydepwnsLiveview.TestSupport.ThemeFixtures
   alias HydepwnsLiveviewWeb.TestMockHelper
 
   setup %{session: session} = _context do

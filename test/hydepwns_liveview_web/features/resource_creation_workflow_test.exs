@@ -2,10 +2,9 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
   use HydepwnsLiveviewWeb.WallabyCase, async: false
 
   import HydepwnsLiveview.TestSupport.ResourceFixtures,
-    only: [create_test_resource: 1, create_test_resource: 0]
+    only: [create_test_resource: 1]
 
   import HydepwnsLiveview.TestSupport.ResourceSystemHelper
-  import Wallaby.Query
 
   defp accept_confirm(session) do
     # Wallaby 0.30+ does not have accept_confirm, so we simulate clicking confirm

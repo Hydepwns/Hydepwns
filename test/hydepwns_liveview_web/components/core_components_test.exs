@@ -1,5 +1,4 @@
 defmodule HydepwnsLiveviewWeb.Components.CoreComponentsTest do
-  @endpoint HydepwnsLiveviewWeb.Endpoint
   use ExUnit.Case, async: true
   import Phoenix.LiveViewTest
 
@@ -41,7 +40,7 @@ defmodule HydepwnsLiveviewWeb.Components.CoreComponentsTest do
           type: "submit",
           class: "my-btn",
           rest: [],
-          inner_block_button: [%{inner_block: fn _, _ -> "Click me" end}]
+          inner_block_button: fn _, _ -> "Click me" end
         })
 
       assert html =~ "Click me"
@@ -232,7 +231,7 @@ defmodule HydepwnsLiveviewWeb.Components.CoreComponentsTest do
       html =
         render_component(&CoreComponents.back/1, %{
           navigate: "/home",
-          inner_block: [%{inner_block: fn _, _ -> "Go Back" end}]
+          inner_block: "Go Back"
         })
 
       assert html =~ "Go Back"

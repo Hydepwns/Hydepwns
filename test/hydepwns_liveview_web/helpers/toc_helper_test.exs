@@ -1,5 +1,4 @@
 defmodule HydepwnsLiveviewWeb.Helpers.TocHelperTest do
-  @endpoint HydepwnsLiveviewWeb.Endpoint
   use ExUnit.Case, async: true
 
   alias HydepwnsLiveviewWeb.Helpers.TocHelper

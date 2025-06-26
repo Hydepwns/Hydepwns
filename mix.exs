@@ -10,7 +10,23 @@ defmodule HydepwnsLiveview.MixProject do
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
-      test_coverage: [tool: ExCoveralls],
+      test_coverage: [
+        tool: ExCoveralls,
+        output: "cover",
+        ignore_modules: [
+          HydepwnsLiveview.Utils.LiveViewResource,
+          HydepwnsLiveviewWeb.AccessibilityHelper,
+          HydepwnsLiveview.Utils.ChangeTracker,
+          HydepwnsLiveview.Utils.ContextValidation,
+          HydepwnsLiveview.TestSetup,
+          HydepwnsLiveviewWeb.WallabyCase
+        ],
+        coverage_options: [
+          minimum_coverage: 70,
+          output_dir: "cover",
+          template: "excoveralls.html.eex"
+        ]
+      ],
       preferred_cli_env: [
         coveralls: :test,
         "coveralls.detail": :test,
@@ -23,7 +39,11 @@ defmodule HydepwnsLiveview.MixProject do
       consolidate_protocols: Mix.env() != :test,
       elixirc_options: [
         warnings_as_errors: false,
-        ignore_module_conflict: true
+        ignore_module_conflict: true,
+        no_warn_unused: [
+          HydepwnsLiveview.Utils.LiveViewResource,
+          HydepwnsLiveviewWeb.AccessibilityHelper
+        ]
       ]
     ]
   end

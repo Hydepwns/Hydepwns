@@ -73,7 +73,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
         {:noreply,
          socket
          |> put_flash(:info, "Resource updated successfully")
-         |> push_redirect(to: "/resources")}
+         |> push_navigate(to: "/resources")}
       {:error, %Ecto.Changeset{} = changeset} ->
         changeset = Map.put(changeset, :action, :validate)
         {:noreply, assign(socket, :changeset, changeset)}
@@ -86,7 +86,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
         {:noreply,
          socket
          |> put_flash(:info, "Resource created successfully")
-         |> push_redirect(to: "/resources")}
+         |> push_navigate(to: "/resources")}
       {:error, %Ecto.Changeset{} = changeset} ->
         changeset = Map.put(changeset, :action, :validate)
         {:noreply, assign(socket, :changeset, changeset)}

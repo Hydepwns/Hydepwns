@@ -16,10 +16,6 @@ defmodule HydepwnsLiveview.Events.TestEventStore do
   def store_event(event, metadata) when is_map(event) do
     MockEventStore.store_event(event, metadata)
   end
-
-  @doc """
-  Stores a single event with the given type and data.
-  """
   def store_event(type, data) when is_binary(type) and is_map(data) do
     event = %{
       type: type,

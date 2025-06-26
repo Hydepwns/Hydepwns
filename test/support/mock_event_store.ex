@@ -14,10 +14,10 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
   end
 
   # Store a single event (Event struct)
-  def store_event(%{type: type, resource_type: resource_type, resource_id: resource_id} = event, _metadata \\ %{}) do
-    IO.puts("🔵 MockEventStore.store_event: #{type} for #{resource_type}:#{resource_id}")
+  def store_event(%{type: _type, resource_type: _resource_type, resource_id: _resource_id} = event, _metadata) do
+    IO.puts("🔵 MockEventStore.store_event: #{event.type} for #{event.resource_type}:#{event.resource_id}")
     Agent.update(__MODULE__, fn state ->
-      key = {to_atom(resource_type), resource_id}
+      key = {to_atom(event.resource_type), event.resource_id}
       new_state = Map.update(state, key, [event], fn events -> events ++ [event] end)
       IO.puts("🔵 MockEventStore.store_event: state after update: #{inspect(new_state)}")
       new_state
@@ -26,7 +26,7 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
   end
 
   # Store a single event (type and data)
-  def store_event(type, data) do
+  def store_event(type, data) when is_binary(type) and is_map(data) do
     event = %{
       type: type,
       data: data,
@@ -36,6 +36,10 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
       timestamp: DateTime.utc_now()
     }
     store_event(event)
+  end
+
+  def store_event(%{type: _type, resource_type: _resource_type, resource_id: _resource_id} = event) do
+    store_event(event, %{})
   end
 
   # Store multiple events

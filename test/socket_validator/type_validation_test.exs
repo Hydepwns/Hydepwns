@@ -4,7 +4,6 @@ defmodule HydepwnsLiveview.TypeValidationTest do
   alias HydepwnsLiveview.Utils.SocketValidator
   import HydepwnsLiveviewWeb.LiveSocketTestHelpers
   import Phoenix.LiveViewTest
-  import ExUnit.CaptureLog
   alias HydepwnsLiveviewWeb.TestTypeLive
 
   describe "type_validation/3 function" do

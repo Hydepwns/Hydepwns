@@ -1,5 +1,5 @@
 defmodule HydepwnsLiveviewWeb.Components.ChangeHistoryViewerTest do
-  use ExUnit.Case, async: true
+  use HydepwnsLiveviewWeb.ConnCase, async: true
   import Phoenix.ConnTest
   import Phoenix.LiveViewTest
   import HydepwnsLiveviewWeb.Components.ChangeHistoryViewer

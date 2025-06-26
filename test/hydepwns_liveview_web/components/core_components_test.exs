@@ -39,8 +39,7 @@ defmodule HydepwnsLiveviewWeb.Components.CoreComponentsTest do
         render_component(&CoreComponents.button/1, %{
           type: "submit",
           class: "my-btn",
-          rest: [],
-          inner_block_button: fn _, _ -> "Click me" end
+          inner_block: "Click me"
         })
 
       assert html =~ "Click me"
@@ -108,8 +107,8 @@ defmodule HydepwnsLiveviewWeb.Components.CoreComponentsTest do
         render_component(&CoreComponents.simple_form/1, %{
           for: form_struct,
           as: nil,
-          inner_block_simple_form: [%{inner_block: fn _, _f -> "Form Field" end}],
-          actions: [%{inner_block: fn _, _f -> "Submit" end}]
+          inner_block: "Form Field",
+          actions: "Submit"
         })
 
       assert html =~ "Form Field"
@@ -213,9 +212,9 @@ defmodule HydepwnsLiveviewWeb.Components.CoreComponentsTest do
     test "renders a list" do
       html =
         render_component(&CoreComponents.list/1, %{
-          _item: [
-            %{title: "First", inner_block: fn _, _ -> "One" end},
-            %{title: "Second", inner_block: fn _, _ -> "Two" end}
+          item: [
+            %{title: "First", inner_block: "One"},
+            %{title: "Second", inner_block: "Two"}
           ]
         })
 

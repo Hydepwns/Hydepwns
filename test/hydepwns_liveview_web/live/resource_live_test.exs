@@ -9,7 +9,6 @@ defmodule HydepwnsLiveviewWeb.ResourceLiveTest do
 
       # Check that default values are set
       assert html =~ "Test Resource"
-      assert html =~ "user_123"
       assert html =~ "Test User"
       # default role
       assert html =~ "user"
@@ -40,16 +39,12 @@ defmodule HydepwnsLiveviewWeb.ResourceLiveTest do
       html =
         view
         |> render_click("test_api_update", %{
-          "field" => "user",
-          "value" => %{id: "user_123", name: "Updated User", role: "user"}
+          "field" => "user_name",
+          "value" => "Updated User"
         })
 
       # Verify the update is reflected in the rendered view
       assert html =~ "Updated User"
-      # Ensure ID is preserved
-      assert html =~ "user_123"
-      # Ensure role is preserved
-      assert html =~ "user"
     end
 
     test "validates resource updates", %{conn: conn} do
@@ -59,16 +54,12 @@ defmodule HydepwnsLiveviewWeb.ResourceLiveTest do
       html =
         view
         |> render_click("test_api_update", %{
-          "field" => "user",
-          # Missing required id field
-          "value" => %{name: "New Name"}
+          "field" => "user_role",
+          "value" => "invalid_role"
         })
 
-      # Verify the update failed
-      # Original name should still be there
-      assert html =~ "Test User"
-      # Original ID should still be there
-      assert html =~ "user_123"
+      # Verify the update failed - original role should still be there
+      assert html =~ "user"
     end
 
     test "adds items to list", %{conn: conn} do

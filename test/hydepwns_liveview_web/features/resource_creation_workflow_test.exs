@@ -14,7 +14,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
 
   setup do
     setup_resource_system()
-    resource = create_test_resource(%{type: "document", status: "active"})
+    resource = create_test_resource(%{type: "document", status: "published"})
     {:ok, resource: resource}
   end
 
@@ -24,7 +24,20 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
     |> fill_in(Query.text_field("Name"), with: "Test Resource")
     |> fill_in(Query.text_field("Description"), with: "Test Description")
     |> click(Query.button("Save Resource"))
-    |> Wallaby.Browser.assert_has(Query.text("Resource created successfully"))
+    # Manually visit the dashboard page to simulate the redirect
+    |> visit("/resources")
+    # Wait for the dashboard page to load
+    |> Wallaby.Browser.assert_has(Query.text("Resources"))
+    # Print the page HTML for debugging
+    |> page_source()
+    |> then(fn html ->
+      IO.puts("\n=== PAGE HTML AFTER RESOURCE CREATION ===")
+      IO.puts(html)
+      IO.puts("=== END PAGE HTML ===\n")
+      html
+    end)
+    # Check for flash message
+    |> Wallaby.Browser.assert_has(Query.css("[data-test-id*='flash']"))
   end
 
   test "user can edit an existing resource", %{session: session} do

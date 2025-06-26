@@ -34,7 +34,7 @@ defmodule HydepwnsLiveview.TestSupport.ResourceFixtures do
           name: "Test Resource #{unique_suffix}",
           type: "document",
           content: %{text: "Test content"},
-          status: "active",
+          status: "published",
           description: ""
         },
         attrs

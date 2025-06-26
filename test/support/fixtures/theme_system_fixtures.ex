@@ -10,12 +10,12 @@ defmodule HydepwnsLiveview.TestThemeSystemFixtures do
   def theme_fixture(attrs \\ %{}) do
     attrs =
       Enum.into(attrs, %{
-        name: "Test Theme",
+        name: "test-theme-#{System.unique_integer()}",
         mode: "light",
-        primary_color: "#3B82F6",
-        secondary_color: "#10B981",
-        background_color: "#FFFFFF",
-        text_color: "#1F2937",
+        primary_color: "#3b82f6",
+        secondary_color: "#10b981",
+        background_color: "#ffffff",
+        text_color: "#1f2937",
         is_default: false,
         settings: %{
           font_size: "medium",
@@ -24,6 +24,17 @@ defmodule HydepwnsLiveview.TestThemeSystemFixtures do
           animations: true
         }
       })
+
+    # Handle color overrides from attrs
+    attrs = if attrs[:colors] do
+      attrs
+      |> Map.put(:primary_color, attrs[:colors][:primary] || attrs.primary_color)
+      |> Map.put(:secondary_color, attrs[:colors][:secondary] || attrs.secondary_color)
+      |> Map.put(:background_color, attrs[:colors][:background] || attrs.background_color)
+      |> Map.put(:text_color, attrs[:colors][:text] || attrs.text_color)
+    else
+      attrs
+    end
 
     HydepwnsLiveview.ThemeSystem.create_theme(attrs)
   end
@@ -34,13 +45,13 @@ defmodule HydepwnsLiveview.TestThemeSystemFixtures do
   def light_theme_fixture(attrs \\ %{}) do
     attrs =
       Enum.into(attrs, %{
-        name: "Light Theme",
+        name: "light",
         mode: "light",
-        primary_color: "#3B82F6",
-        secondary_color: "#10B981",
-        background_color: "#FFFFFF",
-        text_color: "#1F2937",
-        is_default: false,
+        primary_color: "#3b82f6",
+        secondary_color: "#10b981",
+        background_color: "#ffffff",
+        text_color: "#1f2937",
+        is_default: true,
         settings: %{
           font_size: "medium",
           line_height: "normal",
@@ -58,12 +69,12 @@ defmodule HydepwnsLiveview.TestThemeSystemFixtures do
   def dark_theme_fixture(attrs \\ %{}) do
     attrs =
       Enum.into(attrs, %{
-        name: "Dark Theme",
+        name: "dark",
         mode: "dark",
-        primary_color: "#60A5FA",
-        secondary_color: "#34D399",
-        background_color: "#1F2937",
-        text_color: "#F9FAFB",
+        primary_color: "#60a5fa",
+        secondary_color: "#34d399",
+        background_color: "#111827",
+        text_color: "#f9fafb",
         is_default: false,
         settings: %{
           font_size: "medium",
@@ -154,20 +165,31 @@ defmodule HydepwnsLiveview.TestThemeSystemFixtures do
   def custom_theme_fixture(attrs \\ %{}) do
     attrs =
       Enum.into(attrs, %{
-        name: "Custom Theme",
+        name: "custom-#{System.unique_integer()}",
         mode: "light",
-        primary_color: "#8B5CF6",
-        secondary_color: "#F59E0B",
-        background_color: "#F3F4F6",
+        primary_color: "#ff0000",
+        secondary_color: "#00ff00",
+        background_color: "#f3f4f6",
         text_color: "#111827",
         is_default: false,
         settings: %{
-          font_size: "medium",
-          line_height: "normal",
-          contrast: "normal",
-          animations: true
+          font_size: "small",
+          line_height: "narrow",
+          contrast: "low",
+          animations: false
         }
       })
+
+    # Handle color overrides from attrs
+    attrs = if attrs[:colors] do
+      attrs
+      |> Map.put(:primary_color, attrs[:colors][:primary] || attrs.primary_color)
+      |> Map.put(:secondary_color, attrs[:colors][:secondary] || attrs.secondary_color)
+      |> Map.put(:background_color, attrs[:colors][:background] || attrs.background_color)
+      |> Map.put(:text_color, attrs[:colors][:text] || attrs.text_color)
+    else
+      attrs
+    end
 
     HydepwnsLiveview.ThemeSystem.create_theme(attrs)
   end

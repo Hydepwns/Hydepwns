@@ -4,6 +4,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
   @moduletag :liveview
   import Wallaby.Query
   import Wallaby.Browser
+  import HydepwnsLiveview.TestSupport.ThemeSystemHelper
 
   alias HydepwnsLiveviewWeb.TestMockHelper
 
@@ -22,8 +23,8 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
   alias HydepwnsLiveviewWeb.TestMockHelper
 
   setup %{session: session} = _context do
-    HydepwnsLiveview.ThemeSystem.list_themes()
-    |> Enum.each(&HydepwnsLiveview.ThemeSystem.delete_theme/1)
+    # Set up per-test theme system isolation
+    {:ok, _table} = setup_theme_system_isolation()
 
     {:ok, light_theme} = HydepwnsLiveview.TestThemeSystemFixtures.light_theme_fixture()
     {:ok, dark_theme} = HydepwnsLiveview.TestThemeSystemFixtures.dark_theme_fixture()

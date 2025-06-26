@@ -316,7 +316,6 @@ defmodule HydepwnsLiveviewWeb.AccessibilityHelper do
   end
 
   @doc false
-  @compile :nowarn_unused
   defp _assert_modal_focus_trap(view) do
     # Check for focus trapping in modals
     modals = find_elements(view, "[role='dialog']")
@@ -327,14 +326,12 @@ defmodule HydepwnsLiveviewWeb.AccessibilityHelper do
   end
 
   @doc false
-  @compile :nowarn_unused
   defp _assert_focus_restoration(view) do
     # Check for focus restoration attributes
     assert has_element?(view, "[data-focus-restore]")
   end
 
   @doc false
-  @compile :nowarn_unused
   defp _assert_focus_indicators(view) do
     # Check for focus indicator styles
     assert has_element?(view, ".focus-visible")
@@ -342,7 +339,6 @@ defmodule HydepwnsLiveviewWeb.AccessibilityHelper do
   end
 
   @doc false
-  @compile :nowarn_unused
   defp _assert_dynamic_focus(view) do
     # Check for dynamic content focus management
     assert has_element?(view, "[data-dynamic-focus]")

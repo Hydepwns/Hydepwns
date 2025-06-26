@@ -24,14 +24,27 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
   import Wallaby.Query
 
   setup tags do
-    pid = Ecto.Adapters.SQL.Sandbox.start_owner!(HydepwnsLiveview.Repo, shared: not tags[:async])
+    # Start a sandbox owner for this test
+    pid = try do
+      Ecto.Adapters.SQL.Sandbox.start_owner!(HydepwnsLiveview.Repo, shared: not tags[:async])
+    rescue
+      e in RuntimeError ->
+        if String.contains?(e.message, "already_shared") do
+          # Sandbox is already shared, use the current process
+          self()
+        else
+          reraise e, __STACKTRACE__
+        end
+    end
+    
     on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
+    
+    # Allow the current process to use the sandbox
+    Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), pid)
 
+    # Create metadata for the sandbox
     metadata = Phoenix.Ecto.SQL.Sandbox.metadata_for(HydepwnsLiveview.Repo, pid)
     {:ok, session} = Wallaby.start_session(metadata: metadata)
-
-    # This line allows the test process and any spawned processes (like LiveView) to share the DB connection
-    Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), self())
 
     # Visit a default page to ensure LiveView is started and expose the PID
     session = visit_and_wait(session, "/themes")

@@ -200,7 +200,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       child: child
     } do
       # Open two browser windows (simulate with two sessions)
-      dashboard_view = session
+      _dashboard_view = session
 
       # Create relationship from backend
       {:ok, _relationship} =

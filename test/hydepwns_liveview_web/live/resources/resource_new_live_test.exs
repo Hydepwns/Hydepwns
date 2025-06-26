@@ -32,7 +32,7 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLiveTest do
       
       # The LiveView should redirect to /resources, but follow_redirect doesn't detect it
       # So we manually navigate to the dashboard to check for the created resource
-      {:ok, dashboard_view, dashboard_html} = live(conn, "/resources")
+      {:ok, _dashboard_view, dashboard_html} = live(conn, "/resources")
       
       # Assert that the resource was created and appears in the list
       assert dashboard_html =~ "Test Resource"
@@ -74,7 +74,7 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLiveTest do
       
       # The LiveView should redirect to /resources, but follow_redirect doesn't detect it
       # So we manually navigate to the dashboard to check for the updated resource
-      {:ok, dashboard_view, dashboard_html} = live(conn, "/resources")
+      {:ok, _dashboard_view, dashboard_html} = live(conn, "/resources")
       
       # Assert that the resource was updated and appears in the list
       assert dashboard_html =~ "Updated Name"
@@ -116,7 +116,7 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLiveTest do
       
       # The LiveView should redirect to /resources, but follow_redirect doesn't detect it
       # So we manually navigate to the dashboard to check for the created resource
-      {:ok, dashboard_view, dashboard_html} = live(conn, "/resources")
+      {:ok, _dashboard_view, dashboard_html} = live(conn, "/resources")
       
       # Assert that the resource was created and appears in the list
       assert dashboard_html =~ "Flash Test Resource"
@@ -181,7 +181,7 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLiveTest do
       
       # The LiveView should redirect to /resources, but follow_redirect doesn't detect it
       # So we manually navigate to the dashboard to check for the created resource
-      {:ok, dashboard_view, dashboard_html} = live(conn, "/resources")
+      {:ok, _dashboard_view, dashboard_html} = live(conn, "/resources")
       assert dashboard_html =~ "Valid Resource"
     end
   end

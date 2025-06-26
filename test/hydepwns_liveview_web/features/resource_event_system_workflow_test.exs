@@ -188,7 +188,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
       # For this example, we'll simulate the backend event generation
 
       # Navigate to the resource dashboard
-      dashboard_view = session
+      _dashboard_view = session
 
       # Generate an event from the backend
       {:ok, _event} =

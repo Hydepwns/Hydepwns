@@ -30,6 +30,36 @@
 
 The application will be available at `http://localhost:4000`.
 
+## Testing
+
+The project includes a comprehensive test suite with improved mocking and error reporting:
+
+### Running Tests
+
+```sh
+# Run all tests
+mix test
+
+# Run tests with detailed error summary
+./scripts/summarize_test_errors.sh
+```
+
+### Test Infrastructure
+
+- **Mock System**: Uses `Mox` for mocking external dependencies
+- **RepoMock**: Comprehensive mock for database operations in tests
+- **Error Summarization**: Automated script to categorize and summarize test warnings and errors
+- **Component Testing**: JavaScript component tests with Jest and testing utilities
+
+### Test Error Analysis
+
+The `summarize_test_errors.sh` script provides detailed analysis of test results:
+
+- Categorizes warnings by type (unused variables, functions, imports)
+- Identifies critical compilation errors
+- Provides file-specific issue breakdowns
+- Generates a comprehensive report in `tmp/test_error_summary.txt`
+
 ## Asset Management
 
 This project uses `esbuild` to manage and bundle JavaScript assets. The relevant files are located in the `assets` directory.
@@ -50,11 +80,13 @@ Components are loaded dynamically based on the elements present on a page. The c
 
 To create a new page in the application, you typically need to:
 
-1.  **Create a new LiveView module** in `lib/hydepwns_liveview_web/live/`. For example, `lib/hydepwns_liveview_web/live/my_new_page_live.ex`.
-2.  Define the `mount/3` and `render/1` functions in your new LiveView.
-3.  **Add a route** in `lib/hydepwns_liveview_web/router.ex` to map a URL to your new LiveView.
+1. **Create a new LiveView module** in `lib/hydepwns_liveview_web/live/`. For example, `lib/hydepwns_liveview_web/live/my_new_page_live.ex`.
+2. Define the `mount/3` and `render/1` functions in your new LiveView.
+3. **Add a route** in `lib/hydepwns_liveview_web/router.ex` to map a URL to your new LiveView.
+
     ```elixir
     # In lib/hydepwns_liveview_web/router.ex
     live "/my-new-page", MyNewPageLive, :index
     ```
-4.  If your page requires custom JavaScript, you can create a new component in `assets/js/components/` and add it to the `componentRegistry` in `assets/js/component_loader.js` to enable dynamic loading.
+
+4. If your page requires custom JavaScript, you can create a new component in `assets/js/components/` and add it to the `componentRegistry` in `assets/js/component_loader.js` to enable dynamic loading.

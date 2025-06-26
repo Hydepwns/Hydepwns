@@ -74,9 +74,31 @@ Note: Always review the changes made by the cleanup script before committing the
 
 ## Development
 
+### Testing
+
 - Run tests: `mix test`
+- Run tests with error analysis: `./scripts/summarize_test_errors.sh`
 - Run code analysis: `mix credo`
 - Run dialyzer: `mix dialyzer`
+
+### Test Infrastructure
+
+The project includes a robust testing setup with:
+
+- **Mox-based mocking** for external dependencies
+- **RepoMock** for database operation testing
+- **Automated error analysis** with categorized warnings and errors
+- **Component testing** for JavaScript functionality
+- **Integration tests** for end-to-end workflows
+
+### Test Error Analysis
+
+The `summarize_test_errors.sh` script provides comprehensive test result analysis:
+
+- Categorizes warnings by type (unused variables, functions, imports)
+- Identifies critical compilation errors
+- Provides file-specific issue breakdowns
+- Generates detailed reports for debugging
 
 ## License
 

@@ -18,6 +18,7 @@ The project follows a standard Phoenix application structure, with some key dire
 - `priv/`: Private application data, such as database migration scripts and the compiled static assets.
 - `config/`: Configuration for the application and its dependencies for different environments.
 - `test/`: The application's test suite.
+- `scripts/`: Utility scripts for development, testing, and code analysis.
 
 ## Key Architectural Patterns
 
@@ -49,3 +50,36 @@ The application features a dynamic theme system (`lib/hydepwns_liveview/theme_sy
 ### 5. Frontend Asset Pipeline
 
 JavaScript and CSS assets are bundled using `esbuild`. The application uses a dynamic component loading mechanism (`assets/js/component_loader.js`) to load JavaScript modules on-demand, improving initial page load performance. For more details, see [USAGE.md](examples/USAGE.md).
+
+### 6. Testing Architecture
+
+The project implements a comprehensive testing strategy with multiple layers:
+
+#### Test Infrastructure
+
+- **Mock System**: Uses `Mox` for mocking external dependencies and services
+- **RepoMock**: Comprehensive mock for database operations in tests, located in `test/support/mock_helper.ex`
+- **Component Testing**: JavaScript component tests with Jest and testing utilities
+- **Integration Testing**: End-to-end workflow testing with Wallaby
+
+#### Test Organization
+
+- `test/hydepwns_liveview/`: Core application logic tests
+- `test/hydepwns_liveview_web/`: Web layer and LiveView tests
+- `test/support/`: Test helpers, fixtures, and mock configurations
+- `test/js/`: JavaScript component and utility tests
+
+#### Automated Test Analysis
+
+- **Error Summarization**: `scripts/summarize_test_errors.sh` provides automated analysis of test results
+- **Warning Categorization**: Automatically categorizes warnings by type (unused variables, functions, imports)
+- **Issue Reporting**: Generates detailed reports for debugging and code quality improvement
+
+#### Test Utilities
+
+- **Mock Helper**: Centralized mock setup and management (`test/support/mock_helper.ex`)
+- **Component Test Utilities**: JavaScript testing helpers for component validation
+- **Accessibility Testing**: Automated accessibility validation in tests
+- **Performance Testing**: Component performance analysis tools
+
+This testing architecture ensures code quality, maintains system reliability, and provides fast feedback during development.

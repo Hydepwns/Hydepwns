@@ -136,14 +136,40 @@ defmodule HydepwnsLiveview.ThemeSystem.Models.Theme do
   # Computes the colors map from individual color fields
   defp put_colors(changeset) do
     if changeset.valid? do
-      colors = %{
+      # For system themes, use "system" values for dynamic colors
+      is_system_theme = get_change(changeset, :mode) == "system" || get_field(changeset, :mode) == "system"
+      
+      base_colors = %{
         primary: get_change(changeset, :primary_color) || get_field(changeset, :primary_color),
-        secondary:
-          get_change(changeset, :secondary_color) || get_field(changeset, :secondary_color),
-        background:
-          get_change(changeset, :background_color) || get_field(changeset, :background_color),
+        secondary: get_change(changeset, :secondary_color) || get_field(changeset, :secondary_color),
+        background: get_change(changeset, :background_color) || get_field(changeset, :background_color),
         text: get_change(changeset, :text_color) || get_field(changeset, :text_color)
       }
+      
+      # Add additional colors that tests expect
+      colors = if is_system_theme do
+        base_colors
+        |> Map.put(:accent, "system")
+        |> Map.put(:border, "system")
+        |> Map.put(:error, "system")
+        |> Map.put(:success, "system")
+        |> Map.put(:warning, "system")
+        |> Map.put(:info, "system")
+      else
+        # For non-system themes, derive additional colors from base colors
+        primary = base_colors.primary
+        secondary = base_colors.secondary
+        background = base_colors.background
+        text = base_colors.text
+        
+        base_colors
+        |> Map.put(:accent, primary)  # Use primary as accent
+        |> Map.put(:border, "#6B7280")  # Default border color
+        |> Map.put(:error, "#EF4444")   # Default error color
+        |> Map.put(:success, "#10B981") # Default success color
+        |> Map.put(:warning, "#F59E0B") # Default warning color
+        |> Map.put(:info, "#3B82F6")    # Default info color
+      end
 
       put_change(changeset, :colors, colors)
     else

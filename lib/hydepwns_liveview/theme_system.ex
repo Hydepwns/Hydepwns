@@ -23,11 +23,17 @@ defmodule HydepwnsLiveview.ThemeSystem do
 
   @ets_table :theme_system_themes
 
+  # Get the ETS table name for the current process
+  defp ets_table do
+    Process.get(:theme_system_ets_table) || @ets_table
+  end
+
   defp ensure_ets_table do
-    case :ets.info(@ets_table) do
+    table = ets_table()
+    case :ets.info(table) do
       :undefined ->
-        :ets.new(@ets_table, [:named_table, :public, :set])
-        :ets.insert(@ets_table, {:next_id, 2})
+        :ets.new(table, [:named_table, :public, :set])
+        :ets.insert(table, {:next_id, 2})
         default_theme = %MockTheme{
           id: 1,
           name: "Default Theme",
@@ -42,7 +48,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
           inserted_at: DateTime.utc_now(),
           updated_at: DateTime.utc_now()
         }
-        :ets.insert(@ets_table, {1, default_theme})
+        :ets.insert(table, {1, default_theme})
       _ ->
         :ok
     end
@@ -50,27 +56,34 @@ defmodule HydepwnsLiveview.ThemeSystem do
 
   defp get_themes do
     ensure_ets_table()
-    :ets.tab2list(@ets_table)
+    table = ets_table()
+    :ets.tab2list(table)
     |> Enum.filter(fn {k, _v} -> is_integer(k) end)
     |> Enum.map(fn {_k, v} -> v end)
   end
 
   defp get_next_id do
     ensure_ets_table()
-    case :ets.lookup(@ets_table, :next_id) do
+    table = ets_table()
+    case :ets.lookup(table, :next_id) do
       [{:next_id, id}] -> id
       _ -> 2
     end
   end
 
-  defp set_next_id(id), do: :ets.insert(@ets_table, {:next_id, id})
+  defp set_next_id(id) do
+    table = ets_table()
+    :ets.insert(table, {:next_id, id})
+  end
 
   defp set_theme(theme) do
-    :ets.insert(@ets_table, {theme.id, theme})
+    table = ets_table()
+    :ets.insert(table, {theme.id, theme})
   end
 
   defp delete_theme_by_id(id) do
-    :ets.delete(@ets_table, id)
+    table = ets_table()
+    :ets.delete(table, id)
   end
 
   # Helper to convert MockTheme to Theme struct for testing
@@ -120,7 +133,8 @@ defmodule HydepwnsLiveview.ThemeSystem do
 
   def get_theme!(id) do
     ensure_ets_table()
-    case :ets.lookup(@ets_table, id) do
+    table = ets_table()
+    case :ets.lookup(table, id) do
       [{^id, theme}] -> mock_to_theme(theme)
       _ -> raise Ecto.NoResultsError, queryable: "themes", message: "Theme not found"
     end
@@ -129,8 +143,9 @@ defmodule HydepwnsLiveview.ThemeSystem do
   # For test isolation: clear all themes and reset next_id
   def reset_themes do
     ensure_ets_table()
-    :ets.delete_all_objects(@ets_table)
-    :ets.insert(@ets_table, {:next_id, 1})
+    table = ets_table()
+    :ets.delete_all_objects(table)
+    :ets.insert(table, {:next_id, 1})
   end
 
   def get_theme_by_name(name) do
@@ -243,10 +258,47 @@ defmodule HydepwnsLiveview.ThemeSystem do
     
     case validate_theme_params(params) do
       {:ok, validated_params} ->
-        create_validated_theme(validated_params)
+        handle_theme_creation(validated_params)
       {:error, changeset} ->
         {:error, changeset}
     end
+  end
+
+  defp handle_theme_creation(validated_params) do
+    theme_name = validated_params[:name]
+    existing_theme = get_theme_by_name(theme_name)
+    
+    if existing_theme do
+      {:error, build_name_taken_changeset()}
+    else
+      maybe_unset_defaults(validated_params)
+      create_validated_theme(validated_params)
+    end
+  end
+
+  defp build_name_taken_changeset do
+    %Ecto.Changeset{
+      data: nil,
+      changes: %{},
+      errors: [{:name, {"has already been taken", [validation: :unique]}}],
+      valid?: false,
+      action: :validate
+    }
+  end
+
+  defp maybe_unset_defaults(validated_params) do
+    if validated_params[:is_default] do
+      unset_all_defaults()
+    end
+  end
+
+  defp unset_all_defaults do
+    get_themes()
+    |> Enum.filter(& &1.is_default)
+    |> Enum.each(fn t ->
+      updated_theme = %{t | is_default: false, updated_at: DateTime.utc_now()}
+      set_theme(updated_theme)
+    end)
   end
 
   defp create_validated_theme(validated_params) do
@@ -258,20 +310,71 @@ defmodule HydepwnsLiveview.ThemeSystem do
   end
 
   defp build_theme_struct(id, params) do
+    is_system_theme = params[:mode] == "system"
+    colors = build_colors_map(params, is_system_theme)
+    
     %MockTheme{
       id: id,
       name: params[:name] || "Theme #{id}",
       mode: params[:mode] || "light",
-      primary_color: params[:primary_color] || "#3B82F6",
-      secondary_color: params[:secondary_color] || "#10B981",
-      background_color: params[:background_color] || "#FFFFFF",
-      text_color: params[:text_color] || "#1F2937",
+      primary_color: get_theme_color(params[:primary_color], "#3b82f6", is_system_theme),
+      secondary_color: get_theme_color(params[:secondary_color], "#10b981", is_system_theme),
+      background_color: get_theme_color(params[:background_color], "#ffffff", is_system_theme),
+      text_color: get_theme_color(params[:text_color], "#1f2937", is_system_theme),
       is_default: params[:is_default] || false,
       settings: params[:settings] || %{},
-      colors: params[:colors] || %{},
+      colors: colors,
       inserted_at: DateTime.utc_now(),
       updated_at: DateTime.utc_now()
     }
+  end
+
+  defp get_theme_color(color, default, is_system_theme) do
+    if is_system_theme, do: "system", else: String.downcase(color || default)
+  end
+
+  defp build_colors_map(params, is_system_theme) do
+    base_colors = build_base_colors(params, is_system_theme)
+    if is_system_theme, do: build_system_colors(base_colors), else: build_custom_colors(base_colors, params)
+  end
+
+  defp build_base_colors(params, is_system_theme) do
+    if is_system_theme do
+      %{primary: "system", secondary: "system", background: "system", text: "system"}
+    else
+      %{
+        primary: String.downcase(params[:primary_color] || "#3b82f6"),
+        secondary: String.downcase(params[:secondary_color] || "#10b981"),
+        background: String.downcase(params[:background_color] || "#ffffff"),
+        text: String.downcase(params[:text_color] || "#1f2937")
+      }
+    end
+  end
+
+  defp build_system_colors(base_colors) do
+    base_colors
+    |> Map.put(:accent, "system")
+    |> Map.put(:border, "system")
+    |> Map.put(:error, "system")
+    |> Map.put(:success, "system")
+    |> Map.put(:warning, "system")
+    |> Map.put(:info, "system")
+  end
+
+  defp build_custom_colors(base_colors, params) do
+    accent_color = get_accent_color(params)
+    
+    base_colors
+    |> Map.put(:accent, accent_color)
+    |> Map.put(:border, "#6b7280")
+    |> Map.put(:error, "#ef4444")
+    |> Map.put(:success, "#10b981")
+    |> Map.put(:warning, "#f59e0b")
+    |> Map.put(:info, "#3b82f6")
+  end
+
+  defp get_accent_color(params) do
+    if params[:colors] && params[:colors][:accent], do: params[:colors][:accent], else: "#0000ff"
   end
 
   def change_theme(theme) do

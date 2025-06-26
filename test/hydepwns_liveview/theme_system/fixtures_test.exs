@@ -1,8 +1,15 @@
 defmodule HydepwnsLiveview.ThemeSystem.FixturesTest do
-  use HydepwnsLiveview.DataCase
+  use HydepwnsLiveview.DataCase, async: false
 
   alias HydepwnsLiveview.ThemeSystem
   import HydepwnsLiveview.TestThemeSystemFixtures
+  import HydepwnsLiveview.TestSupport.ThemeSystemHelper
+
+  setup do
+    # Set up per-test theme system isolation
+    {:ok, _table} = setup_theme_system_isolation()
+    :ok
+  end
 
   describe "theme fixtures" do
     test "theme_fixture/1 creates a basic theme with default values" do

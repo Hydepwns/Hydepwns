@@ -1,9 +1,16 @@
 defmodule HydepwnsLiveview.ThemeSystemTest do
-  use HydepwnsLiveview.DataCase
+  use HydepwnsLiveview.DataCase, async: false
 
   alias HydepwnsLiveview.ThemeSystem
   alias HydepwnsLiveview.ThemeSystem.Models.Theme
   import HydepwnsLiveview.TestThemeSystemFixtures
+  import HydepwnsLiveview.TestSupport.ThemeSystemHelper
+
+  setup do
+    # Set up per-test theme system isolation
+    {:ok, _table} = setup_theme_system_isolation()
+    :ok
+  end
 
   describe "themes" do
     @invalid_attrs %{

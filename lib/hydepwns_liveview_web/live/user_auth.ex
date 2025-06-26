@@ -49,6 +49,11 @@ defmodule HydepwnsLiveviewWeb.UserAuth do
     end
   end
 
+  def on_mount(:mount_current_user, _params, session, socket) do
+    socket = assign_current_user(socket, session)
+    {:cont, socket}
+  end
+
   def on_mount(:redirect_if_user_is_authenticated, _params, session, socket) do
     socket = assign_current_user(socket, session)
 

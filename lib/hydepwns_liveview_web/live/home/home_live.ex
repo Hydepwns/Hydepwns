@@ -20,6 +20,9 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
       |> assign(:show_toc, true)
       |> assign(:toc_items, toc_data)
       |> assign(:current_section, nil)
+      |> assign(:animation_speed_class, "normal-speed")
+      |> assign(:screen_reader_announcements, [])
+      |> assign(:show_terminal, false)
 
     {:ok, socket}
   end

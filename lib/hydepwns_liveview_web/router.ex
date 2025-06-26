@@ -66,8 +66,11 @@ defmodule HydepwnsLiveviewWeb.Router do
     live "/terminal", TerminalLive, :index, as: :terminal
 
     # Theme system routes
-    resources "/themes", ThemeController
-    live "/themes/:id/customize", ThemeCustomizeLive, :edit, as: :theme_customize
+    live "/themes", Themes.ThemeManagerLive, :index, as: :themes
+    live "/themes/:id", Themes.ThemeShowLive, :show, as: :theme_show
+    live "/themes/:id/edit", Themes.ThemeEditLive, :edit, as: :theme_edit
+    live "/themes/new", Themes.ThemeNewLive, :new, as: :theme_new
+    live "/themes/:id/customize", Themes.ThemeCustomizeLive, :edit, as: :theme_customize
 
     # Playground routes
     scope "/playground", Live.Playground, as: :playground do

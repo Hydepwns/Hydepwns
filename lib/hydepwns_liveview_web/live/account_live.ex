@@ -1,4 +1,4 @@
-defmodule HydepwnsLiveviewWeb.Live.AccountLive do
+defmodule HydepwnsLiveviewWeb.AccountLive do
   use HydepwnsLiveviewWeb, :live_view
 
   on_mount {HydepwnsLiveviewWeb.UserAuth, :mount_current_user}

@@ -93,3 +93,6 @@ config :hydepwns_liveview, :reminder_services,
 
 # Configure mock crypto service for testing
 config :hydepwns_liveview, :crypto_service, HydepwnsLiveview.Events.MockCryptoService
+
+# Configure EventStore to use MockEventStore in tests
+config :hydepwns_liveview, :event_store, HydepwnsLiveview.TestSupport.MockEventStore

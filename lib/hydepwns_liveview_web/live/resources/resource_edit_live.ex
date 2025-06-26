@@ -25,4 +25,12 @@ defmodule HydepwnsLiveviewWeb.ResourceEditLive do
          |> redirect(to: ~p"/resources")}
     end
   end
+
+  @impl true
+  def handle_info({:resource_updated, _resource}, socket) do
+    {:noreply,
+     socket
+     |> put_flash(:info, "Resource updated successfully")
+     |> push_navigate(to: ~p"/resources")}
+  end
 end

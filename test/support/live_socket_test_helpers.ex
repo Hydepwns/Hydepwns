@@ -10,8 +10,6 @@ defmodule HydepwnsLiveviewWeb.LiveSocketTestHelpers do
 
   import ExUnit.Assertions
 
-  alias HydepwnsLiveview.Utils.SocketValidator
-
   @doc """
   Asserts that a LiveView has all required assigns.
 
@@ -315,8 +313,6 @@ defmodule HydepwnsLiveviewWeb.LiveSocketTestHelpers do
     end
   end
 
-  def generate_test_data(_unknown_type), do: "unknown_type_data"
-
   # Generate data for list of maps
   def generate_test_data({:list_of_maps, schema}) when is_map(schema) do
     # Generate 1-5 maps matching the schema
@@ -332,6 +328,8 @@ defmodule HydepwnsLiveviewWeb.LiveSocketTestHelpers do
       nil
     end
   end
+
+  def generate_test_data(_unknown_type), do: "unknown_type_data"
 
   @doc """
   Generates a test session based on type specifications.

@@ -16,8 +16,15 @@ defmodule HydepwnsLiveview.TestSupport.EventStoreTestHelper do
   This should be called in the setup block of any test that uses event-sourced resources.
   """
   def setup_mock_event_store do
-    {:ok, _} = MockEventStore.start_link([])
-    :ok
+    case MockEventStore.start_link([]) do
+      {:ok, _pid} -> 
+        MockEventStore.reset()
+        :ok
+      {:error, {:already_started, _pid}} -> 
+        MockEventStore.reset()
+        :ok
+      error -> error
+    end
   end
 
   @doc """

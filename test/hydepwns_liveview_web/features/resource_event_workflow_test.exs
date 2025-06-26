@@ -47,7 +47,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
            "name" => resource.name,
            "content" => resource.content,
            "type" => resource.type,
-           "status" => "active"
+           "status" => "published"
          }}
       end)
 
@@ -85,7 +85,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
            "name" => resource.name,
            "content" => resource.content,
            "type" => resource.type,
-           "status" => "active"
+           "status" => "published"
          }}
       end)
 
@@ -123,7 +123,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
            "name" => resource.name,
            "content" => resource.content,
            "type" => resource.type,
-           "status" => "active"
+           "status" => "published"
          }}
       end)
 
@@ -150,7 +150,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
            "name" => resource.name,
            "content" => resource.content,
            "type" => resource.type,
-           "status" => "active"
+           "status" => "published"
          }}
       end)
 
@@ -191,7 +191,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
            "name" => resource.name,
            "content" => resource.content,
            "type" => resource.type,
-           "status" => "active"
+           "status" => "published"
          }}
       end)
 

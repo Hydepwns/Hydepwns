@@ -33,9 +33,7 @@ defmodule HydepwnsLiveview.Events.ReminderWorker do
   end
 
   defp process_due_reminders do
-    now = DateTime.utc_now()
-
-    Events.list_due_reminders(now)
+    Events.list_all_due_reminders()
     |> Enum.each(fn reminder ->
       case ReminderDelivery.send_reminder(reminder) do
         {:ok, _} ->

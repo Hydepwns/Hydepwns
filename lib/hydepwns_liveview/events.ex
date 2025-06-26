@@ -489,6 +489,19 @@ defmodule HydepwnsLiveview.Events do
   def list_due_reminders(_invalid_id), do: {:error, :invalid_event_id}
 
   @doc """
+  Returns a list of all due reminders across all events.
+  """
+  def list_all_due_reminders do
+    now = DateTime.utc_now()
+
+    from(r in EventReminder,
+      where: r.reminder_time <= ^now and r.status == "pending",
+      order_by: [asc: r.reminder_time]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
   Imports events from a file.
   """
   def import_events(file_path) do

@@ -1,5 +1,5 @@
 defmodule HydepwnsLiveview.Events.ReminderWorkerTest do
-  use HydepwnsLiveview.DataCase, async: true
+  use HydepwnsLiveview.DataCase, async: false
 
   alias HydepwnsLiveview.Events
 
@@ -42,6 +42,9 @@ defmodule HydepwnsLiveview.Events.ReminderWorkerTest do
         recipient: "test@example.com"
       })
 
+    # Allow ReminderWorker process to use the test DB connection
+    Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), Process.whereis(HydepwnsLiveview.Events.ReminderWorker))
+
     %{
       event: event,
       settings: settings,
@@ -51,18 +54,25 @@ defmodule HydepwnsLiveview.Events.ReminderWorkerTest do
   end
 
   test "processes due reminders", %{due_reminder: due_reminder} do
-    # Wait for the worker to process reminders
-    Process.sleep(100)
+    # Manually trigger the reminder worker to process reminders
+    send(HydepwnsLiveview.Events.ReminderWorker, :check_reminders)
+    
+    # Wait longer for processing
+    Process.sleep(200)
 
     # Check that the due reminder was processed
     updated_reminder = Events.get_event_reminder!(due_reminder.id)
+    IO.inspect(updated_reminder, label: "Updated reminder status")
     assert updated_reminder.status == "sent"
     assert updated_reminder.sent_at != nil
   end
 
   test "does not process future reminders", %{future_reminder: future_reminder} do
-    # Wait for the worker to process reminders
-    Process.sleep(100)
+    # Manually trigger the reminder worker to process reminders
+    send(HydepwnsLiveview.Events.ReminderWorker, :check_reminders)
+    
+    # Wait a bit for processing
+    Process.sleep(50)
 
     # Check that the future reminder was not processed
     updated_reminder = Events.get_event_reminder!(future_reminder.id)

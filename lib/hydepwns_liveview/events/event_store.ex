@@ -13,6 +13,11 @@ defmodule HydepwnsLiveview.Events.EventStore do
   import Ecto.Query, warn: false
   alias HydepwnsLiveview.Repo
 
+  # Get the configured event store module, defaulting to EventOperations
+  defp event_store_module do
+    Application.get_env(:hydepwns_liveview, :event_store, HydepwnsLiveview.Events.EventOperations)
+  end
+
   # Event Operations
 
   @doc """
@@ -26,7 +31,7 @@ defmodule HydepwnsLiveview.Events.EventStore do
   * `{:error, changeset}` - The event could not be stored
   """
   @spec store_event(Event.t()) :: {:ok, Event.t()} | {:error, Ecto.Changeset.t()}
-  def store_event(event), do: EventOperations.store_event(event)
+  def store_event(event), do: event_store_module().store_event(event)
 
   @doc """
   Stores a single event with the given type and data.
@@ -40,7 +45,7 @@ defmodule HydepwnsLiveview.Events.EventStore do
   * `{:error, changeset}` - The event could not be stored
   """
   @spec store_event(String.t(), map()) :: {:ok, Event.t()} | {:error, Ecto.Changeset.t()}
-  def store_event(type, data), do: EventOperations.store_event(type, data)
+  def store_event(type, data), do: event_store_module().store_event(type, data)
 
   @doc """
   Stores multiple events in a transaction.
@@ -53,7 +58,7 @@ defmodule HydepwnsLiveview.Events.EventStore do
   * `{:error, reason}` - The events could not be stored
   """
   @spec store_events([Event.t()]) :: {:ok, [Event.t()]} | {:error, any()}
-  def store_events(events), do: EventOperations.store_events(events)
+  def store_events(events), do: event_store_module().store_events(events)
 
   @doc """
   Retrieves events based on the given criteria.
@@ -66,7 +71,7 @@ defmodule HydepwnsLiveview.Events.EventStore do
   * `{:error, reason}` - Error retrieving events
   """
   @spec get_events(map()) :: {:ok, [Event.t()]} | {:error, any()}
-  def get_events(criteria), do: EventOperations.get_events(criteria)
+  def get_events(criteria), do: event_store_module().get_events(criteria)
 
   @doc """
   Retrieves all events for a specific resource.
@@ -80,7 +85,7 @@ defmodule HydepwnsLiveview.Events.EventStore do
   * `{:error, reason}` - Error retrieving events
   """
   @spec get_events_for_resource(String.t(), String.t()) :: {:ok, [Event.t()]} | {:error, any()}
-  def get_events_for_resource(_type, _id), do: {:ok, []}
+  def get_events_for_resource(resource_type, resource_id), do: event_store_module().get_events_for_resource(resource_type, resource_id)
 
   @doc """
   Retrieves events for a resource up to a specific point in time.

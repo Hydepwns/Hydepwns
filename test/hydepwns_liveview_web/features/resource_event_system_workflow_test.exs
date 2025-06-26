@@ -26,7 +26,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
     TestMockHelper.setup_mocks()
 
     TestMockHelper.expect_api_call(:external_api, :fetch_data, fn _id ->
-      {:ok, %{"id" => "mock", "name" => "Mock Resource", "status" => "active"}}
+      {:ok, %{"id" => "mock", "name" => "Mock Resource", "status" => "published"}}
     end)
 
     {:ok, session: visit_and_wait(session, "/resources"), resource: resource_fixture}
@@ -42,11 +42,11 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
       session
       |> fill_in(text_field("resource[name]"), with: "New Resource")
       |> fill_in(text_field("resource[description]"), with: "This is a test resource")
-      |> fill_in(text_field("resource[status]"), with: "active")
-      |> click(button("Create Resource"))
+      |> set_value(select("resource[status]"), "published")
+      |> click(button("Save Resource"))
 
       # Verify resource was created
-      Wallaby.Browser.assert_has(session, "Resource created successfully")
+      assert Wallaby.Browser.has_text?(session, "Resource created successfully")
 
       # Navigate to events dashboard
       session
@@ -66,10 +66,10 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
       # Update the resource
       session
       |> fill_in(Query.text_field("resource[description]"), with: "Updated description")
-      |> click(button("Save"))
+      |> click(button("Save Resource"))
 
       # Verify update success
-      Wallaby.Browser.assert_has(session, "Resource updated successfully")
+      assert Wallaby.Browser.has_text?(session, "Resource updated successfully")
 
       # Navigate to events dashboard
       session
@@ -91,7 +91,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
       end)
 
       # Verify deletion success
-      Wallaby.Browser.assert_has(session, "Resource deleted successfully")
+      assert Wallaby.Browser.has_text?(session, "Resource deleted successfully")
 
       # Navigate to events dashboard
       session

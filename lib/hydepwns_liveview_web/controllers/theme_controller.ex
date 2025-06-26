@@ -1,6 +1,6 @@
 defmodule HydepwnsLiveviewWeb.ThemeController do
   use HydepwnsLiveviewWeb, :controller
-  plug :put_view, HydepwnsLiveviewWeb.ThemeView
+  plug :put_view, HydepwnsLiveviewWeb.ThemeHTML
 
   alias HydepwnsLiveview.ThemeSystem.Models.Theme
 

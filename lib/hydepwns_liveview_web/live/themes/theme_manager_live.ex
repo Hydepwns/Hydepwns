@@ -74,13 +74,13 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
   end
 
   @impl true
-  def handle_info({:theme_updated, _theme}, socket) do
-    {:noreply, assign(socket, :themes, ThemeSystem.list_themes())}
+  def handle_event("go_to_create_theme", _params, socket) do
+    {:noreply, push_navigate(socket, to: "/themes/new")}
   end
 
   @impl true
-  def handle_event("go_to_create_theme", _params, socket) do
-    {:noreply, push_navigate(socket, to: "/themes/new")}
+  def handle_info({:theme_updated, _theme}, socket) do
+    {:noreply, assign(socket, :themes, ThemeSystem.list_themes())}
   end
 
   @impl Phoenix.LiveView

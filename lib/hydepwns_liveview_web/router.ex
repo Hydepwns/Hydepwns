@@ -140,6 +140,8 @@ defmodule HydepwnsLiveviewWeb.Router do
     live "/events/:id/reminders/:reminder_id/edit", Event.EventReminderLive, :edit,
       as: :event_reminder
 
+    live "/timeline", TimelineLive, :index, as: :timeline
+
     if Mix.env() == :test do
       live "/test-resource-live", TestResourceLive, :index, as: :test_resource_live
     end

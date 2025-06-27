@@ -300,18 +300,20 @@ defmodule HydepwnsLiveview.Utils.LiveViewResource do
 
   defp __relationship_functions_impl__ do
     quote do
-      belongs_to = &_relationship_belongs_to__/2
-      belongs_to_with_opts = &_relationship_belongs_to_with_opts__/3
-      has_many = &_relationship_has_many__/2
-      has_many_with_opts = &_relationship_has_many_with_opts__/3
-      has_many_through = &_relationship_has_many_through__/2
-      has_many_through_with_opts = &_relationship_has_many_through_with_opts__/3
-      has_one = &_relationship_has_one__/2
-      has_one_with_opts = &_relationship_has_one_with_opts__/3
-      has_one_through = &_relationship_has_one_through__/2
-      has_one_through_with_opts = &_relationship_has_one_through_with_opts__/3
-      polymorphic = &_relationship_polymorphic__/2
-      polymorphic_with_opts = &_relationship_polymorphic_with_opts__/3
+      alias HydepwnsLiveview.Utils.RelationshipDSL
+      
+      belongs_to = &RelationshipDSL._relationship_belongs_to__/2
+      belongs_to_with_opts = &RelationshipDSL._relationship_belongs_to_with_opts__/3
+      has_many = &RelationshipDSL._relationship_has_many__/2
+      has_many_with_opts = &RelationshipDSL._relationship_has_many_with_opts__/3
+      has_many_through = &RelationshipDSL._relationship_has_many_through__/2
+      has_many_through_with_opts = &RelationshipDSL._relationship_has_many_through_with_opts__/3
+      has_one = &RelationshipDSL._relationship_has_one__/2
+      has_one_with_opts = &RelationshipDSL._relationship_has_one_with_opts__/3
+      has_one_through = &RelationshipDSL._relationship_has_one_through__/2
+      has_one_through_with_opts = &RelationshipDSL._relationship_has_one_through_with_opts__/3
+      polymorphic = &RelationshipDSL._relationship_polymorphic__/2
+      polymorphic_with_opts = &RelationshipDSL._relationship_polymorphic_with_opts__/3
     end
   end
 
@@ -557,185 +559,6 @@ defmodule HydepwnsLiveview.Utils.LiveViewResource do
     else
       # Handle basic types
       attr.type
-    end
-  end
-
-  @doc false
-  defp _relationship_belongs_to__(name, resource) do
-    relationship_def = %{
-      name: name,
-      type: :belongs_to,
-      resource: resource,
-      foreign_key: nil,
-      cardinality: :one
-    }
-    Module.put_attribute(__MODULE__, :resource_relationships, relationship_def)
-  end
-
-  @doc false
-  defp _relationship_belongs_to_with_opts__(name, resource, opts) do
-    relationship_def = %{
-      name: name,
-      type: :belongs_to,
-      resource: resource,
-      foreign_key: Keyword.get(opts, :foreign_key, nil),
-      cardinality: :one
-    }
-    Module.put_attribute(__MODULE__, :resource_relationships, relationship_def)
-  end
-
-  @doc false
-  defp _relationship_has_many__(name, resource) do
-    relationship_def = %{
-      name: name,
-      type: :has_many,
-      resource: resource,
-      foreign_key: nil,
-      cardinality: :many
-    }
-    Module.put_attribute(__MODULE__, :resource_relationships, relationship_def)
-  end
-
-  @doc false
-  defp _relationship_has_many_with_opts__(name, resource, opts) do
-    relationship_def = %{
-      name: name,
-      type: :has_many,
-      resource: resource,
-      foreign_key: Keyword.get(opts, :foreign_key, nil),
-      cardinality: :many
-    }
-    Module.put_attribute(__MODULE__, :resource_relationships, relationship_def)
-  end
-
-  @doc false
-  defp _relationship_has_many_through__(name, opts) do
-    case opts do
-      [through: [through_rel, target_rel]] ->
-        relationship_def = %{
-          name: name,
-          type: :through,
-          through: through_rel,
-          target: target_rel,
-          cardinality: :many,
-          foreign_key: nil
-        }
-        Module.put_attribute(__MODULE__, :resource_relationships, relationship_def)
-      _ ->
-        raise ArgumentError, "has_many_through expects opts: [through: [rel1, rel2]]"
-    end
-  end
-
-  @doc false
-  defp _relationship_has_many_through_with_opts__(name, opts, through_opts) do
-    case opts do
-      [through: [through_rel, target_rel]] ->
-        relationship_def = %{
-          name: name,
-          type: :through,
-          through: through_rel,
-          target: target_rel,
-          cardinality: :many,
-          foreign_key: Keyword.get(through_opts, :foreign_key, nil)
-        }
-        Module.put_attribute(__MODULE__, :resource_relationships, relationship_def)
-      _ ->
-        raise ArgumentError, "has_many_through_with_opts expects opts: [through: [rel1, rel2]]"
-    end
-  end
-
-  @doc false
-  defp _relationship_has_one__(name, resource) do
-    relationship_def = %{
-      name: name,
-      type: :has_one,
-      resource: resource,
-      foreign_key: nil,
-      cardinality: :one
-    }
-    Module.put_attribute(__MODULE__, :resource_relationships, relationship_def)
-  end
-
-  @doc false
-  defp _relationship_has_one_with_opts__(name, resource, opts) do
-    relationship_def = %{
-      name: name,
-      type: :has_one,
-      resource: resource,
-      foreign_key: Keyword.get(opts, :foreign_key, nil),
-      cardinality: :one
-    }
-    Module.put_attribute(__MODULE__, :resource_relationships, relationship_def)
-  end
-
-  @doc false
-  defp _relationship_has_one_through__(name, opts) do
-    case opts do
-      [through: [through_rel, target_rel]] ->
-        relationship_def = %{
-          name: name,
-          type: :through,
-          through: through_rel,
-          target: target_rel,
-          cardinality: :one,
-          foreign_key: nil
-        }
-        Module.put_attribute(__MODULE__, :resource_relationships, relationship_def)
-      _ ->
-        raise ArgumentError, "has_one_through expects opts: [through: [rel1, rel2]]"
-    end
-  end
-
-  @doc false
-  defp _relationship_has_one_through_with_opts__(name, opts, through_opts) do
-    case opts do
-      [through: [through_rel, target_rel]] ->
-        relationship_def = %{
-          name: name,
-          type: :through,
-          through: through_rel,
-          target: target_rel,
-          cardinality: :one,
-          foreign_key: Keyword.get(through_opts, :foreign_key, nil)
-        }
-        Module.put_attribute(__MODULE__, :resource_relationships, relationship_def)
-      _ ->
-        raise ArgumentError, "has_one_through_with_opts expects opts: [through: [rel1, rel2]]"
-    end
-  end
-
-  @doc false
-  defp _relationship_polymorphic__(name, opts) do
-    case opts do
-      [types: allowed_types] ->
-        relationship_def = %{
-          name: name,
-          type: :polymorphic,
-          polymorphic_name: name,
-          allowed_types: allowed_types,
-          cardinality: :one
-        }
-        Module.put_attribute(__MODULE__, :resource_relationships, relationship_def)
-      _ ->
-        raise ArgumentError, "polymorphic expects opts: [types: allowed_types]"
-    end
-  end
-
-  @doc false
-  defp _relationship_polymorphic_with_opts__(name, opts, poly_opts) do
-    case opts do
-      [types: allowed_types] ->
-        polymorphic_name = Keyword.get(poly_opts, :polymorphic_name, name)
-        relationship_def = %{
-          name: name,
-          type: :polymorphic,
-          polymorphic_name: polymorphic_name,
-          allowed_types: allowed_types,
-          cardinality: Keyword.get(poly_opts, :cardinality, :one)
-        }
-        Module.put_attribute(__MODULE__, :resource_relationships, relationship_def)
-      _ ->
-        raise ArgumentError, "polymorphic_with_opts expects opts: [types: allowed_types]"
     end
   end
 

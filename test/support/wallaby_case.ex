@@ -24,6 +24,9 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
   import Wallaby.Query
 
   setup tags do
+    # Set up mocks before starting the session
+    HydepwnsLiveviewWeb.TestMockHelper.setup_mocks()
+    
     # Start a sandbox owner for this test
     pid = try do
       Ecto.Adapters.SQL.Sandbox.start_owner!(HydepwnsLiveview.Repo, shared: not tags[:async])

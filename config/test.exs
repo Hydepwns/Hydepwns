@@ -50,15 +50,29 @@ config :wallaby,
   driver: Wallaby.Chrome,
   screenshot_dir: "test/screenshots",
   screenshot_on_failure: true,
+  chrome: [
+    headless: true,
+    capabilities: %{
+      chromeOptions: %{
+        args: [
+          "no-sandbox",
+          "disable-dev-shm-usage",
+          "disable-gpu",
+          "disable-web-security",
+          "allow-running-insecure-content"
+        ]
+      }
+    }
+  ],
   chromedriver: [
-    headless: true
+    path: Path.expand("assets/drivers/chromedriver-mac-arm64/chromedriver")
   ],
   base_url: "http://localhost:4002"
 
 # Configure your application to work with Wallaby
 config :hydepwns_liveview, HydepwnsLiveviewWeb.Endpoint,
   server: true,
-  http: [port: 4002],
+  http: [ip: {127, 0, 0, 1}, port: 4002],
   debug_errors: true,
   secret_key_base: String.duplicate("a", 64)
 

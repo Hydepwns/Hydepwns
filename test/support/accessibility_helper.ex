@@ -12,10 +12,10 @@ defmodule HydepwnsLiveviewWeb.AccessibilityHelper do
   import ExUnit.Assertions
   import Phoenix.LiveViewTest
 
-  @dialyzer {:nowarn_function, _assert_dynamic_focus: 1}
-  @dialyzer {:nowarn_function, _assert_focus_indicators: 1}
-  @dialyzer {:nowarn_function, _assert_focus_restoration: 1}
-  @dialyzer {:nowarn_function, _assert_modal_focus_trap: 1}
+  @dialyzer {:nowarn_function, __assert_dynamic_focus: 1}
+  @dialyzer {:nowarn_function, __assert_focus_indicators: 1}
+  @dialyzer {:nowarn_function, __assert_focus_restoration: 1}
+  @dialyzer {:nowarn_function, __assert_modal_focus_trap: 1}
 
   @doc """
   Asserts that a skip-to-content link is present and properly configured.

@@ -49,200 +49,197 @@ defmodule HydepwnsLiveviewWeb.TestMockHelper do
   Sets up the RepoMock with stubs for all necessary functions.
   """
   def setup_repo_mock do
+    :ets.delete_all_objects(:mock_resources)
+    
     HydepwnsLiveview.RepoMock
-    |> stub(:insert, fn changeset ->
-      if changeset.valid? do
-        id = Ecto.UUID.generate()
-        resource = %HydepwnsLiveview.Resources.Resource{
-          id: id,
-          name: changeset.changes[:name] || "Test Resource",
-          description: changeset.changes[:description] || "A test resource",
-          type: changeset.changes[:type] || "document",
-          status: changeset.changes[:status] || "published",
-          content: changeset.changes[:content] || %{text: "Test content"},
-          metadata: changeset.changes[:metadata] || %{},
-          settings: changeset.changes[:settings] || %{},
-          version: changeset.changes[:version] || 1,
-          parent_id: changeset.changes[:parent_id],
-          child_ids: changeset.changes[:child_ids] || [],
-          tags: changeset.changes[:tags] || [],
-          categories: changeset.changes[:categories] || [],
-          created_by: changeset.changes[:created_by],
-          updated_by: changeset.changes[:updated_by],
-          inserted_at: DateTime.utc_now(),
-          updated_at: DateTime.utc_now()
-        }
-        :ets.insert(:mock_resources, {id, resource})
-        {:ok, resource}
-      else
-        {:error, changeset}
-      end
-    end)
-    |> stub(:insert, fn changeset, _opts ->
-      if changeset.valid? do
-        id = Ecto.UUID.generate()
-        resource = %HydepwnsLiveview.Resources.Resource{
-          id: id,
-          name: changeset.changes[:name] || "Test Resource",
-          description: changeset.changes[:description] || "A test resource",
-          type: changeset.changes[:type] || "document",
-          status: changeset.changes[:status] || "published",
-          content: changeset.changes[:content] || %{text: "Test content"},
-          metadata: changeset.changes[:metadata] || %{},
-          settings: changeset.changes[:settings] || %{},
-          version: changeset.changes[:version] || 1,
-          parent_id: changeset.changes[:parent_id],
-          child_ids: changeset.changes[:child_ids] || [],
-          tags: changeset.changes[:tags] || [],
-          categories: changeset.changes[:categories] || [],
-          created_by: changeset.changes[:created_by],
-          updated_by: changeset.changes[:updated_by],
-          inserted_at: DateTime.utc_now(),
-          updated_at: DateTime.utc_now()
-        }
-        :ets.insert(:mock_resources, {id, resource})
-        {:ok, resource}
-      else
-        {:error, changeset}
-      end
-    end)
-    |> stub(:update, fn changeset, _opts ->
-      if changeset.valid? do
-        resource = %{changeset.data | 
-          name: changeset.changes[:name] || changeset.data.name,
-          description: changeset.changes[:description] || changeset.data.description,
-          type: changeset.changes[:type] || changeset.data.type,
-          status: changeset.changes[:status] || changeset.data.status,
-          content: changeset.changes[:content] || changeset.data.content,
-          metadata: changeset.changes[:metadata] || changeset.data.metadata,
-          settings: changeset.changes[:settings] || changeset.data.settings,
-          version: changeset.changes[:version] || changeset.data.version,
-          parent_id: changeset.changes[:parent_id] || changeset.data.parent_id,
-          child_ids: changeset.changes[:child_ids] || changeset.data.child_ids,
-          tags: changeset.changes[:tags] || changeset.data.tags,
-          categories: changeset.changes[:categories] || changeset.data.categories,
-          created_by: changeset.changes[:created_by] || changeset.data.created_by,
-          updated_by: changeset.changes[:updated_by] || changeset.data.updated_by,
-          updated_at: DateTime.utc_now()
-        }
-        :ets.insert(:mock_resources, {resource.id, resource})
-        {:ok, resource}
-      else
-        {:error, changeset}
-      end
-    end)
-    |> stub(:update, fn changeset ->
-      if changeset.valid? do
-        resource = %{changeset.data | 
-          name: changeset.changes[:name] || changeset.data.name,
-          description: changeset.changes[:description] || changeset.data.description,
-          type: changeset.changes[:type] || changeset.data.type,
-          status: changeset.changes[:status] || changeset.data.status,
-          content: changeset.changes[:content] || changeset.data.content,
-          metadata: changeset.changes[:metadata] || changeset.data.metadata,
-          settings: changeset.changes[:settings] || changeset.data.settings,
-          version: changeset.changes[:version] || changeset.data.version,
-          parent_id: changeset.changes[:parent_id] || changeset.data.parent_id,
-          child_ids: changeset.changes[:child_ids] || changeset.data.child_ids,
-          tags: changeset.changes[:tags] || changeset.data.tags,
-          categories: changeset.changes[:categories] || changeset.data.categories,
-          created_by: changeset.changes[:created_by] || changeset.data.created_by,
-          updated_by: changeset.changes[:updated_by] || changeset.data.updated_by,
-          updated_at: DateTime.utc_now()
-        }
-        :ets.insert(:mock_resources, {resource.id, resource})
-        {:ok, resource}
-      else
-        {:error, changeset}
-      end
-    end)
-    |> stub(:delete, fn resource, _opts ->
-      :ets.delete(:mock_resources, resource.id)
+    |> setup_insert_stubs()
+    |> setup_update_stubs()
+    |> setup_delete_stubs()
+    |> setup_query_stubs()
+    |> setup_transaction_stubs()
+  end
+
+  defp setup_insert_stubs(mock) do
+    mock
+    |> stub(:insert, &handle_insert/1)
+    |> stub(:insert, &handle_insert_with_opts/2)
+  end
+
+  defp setup_update_stubs(mock) do
+    mock
+    |> stub(:update, &handle_update/1)
+    |> stub(:update, &handle_update_with_opts/2)
+  end
+
+  defp setup_delete_stubs(mock) do
+    mock
+    |> stub(:delete, &handle_delete/1)
+    |> stub(:delete, &handle_delete_with_opts/2)
+    |> stub(:delete_all, &handle_delete_all/2)
+  end
+
+  defp setup_query_stubs(mock) do
+    mock
+    |> stub(:all, &handle_all/1)
+    |> stub(:all, &handle_all_with_opts/2)
+    |> stub(:get, &handle_get/3)
+    |> stub(:get!, &handle_get!/3)
+    |> stub(:get_by, &handle_get_by/3)
+    |> stub(:one, &handle_one/2)
+    |> stub(:aggregate, &handle_aggregate/4)
+    |> stub(:exists?, &handle_exists?/2)
+  end
+
+  defp setup_transaction_stubs(mock) do
+    mock
+    |> stub(:transaction, &handle_transaction/2)
+    |> stub(:rollback, &handle_rollback/1)
+  end
+
+  defp handle_insert(changeset) do
+    if changeset.valid? do
+      resource = build_resource_from_changeset(changeset)
+      :ets.insert(:mock_resources, {resource.id, resource})
       {:ok, resource}
-    end)
-    |> stub(:delete, fn resource ->
-      :ets.delete(:mock_resources, resource.id)
+    else
+      {:error, changeset}
+    end
+  end
+
+  defp handle_insert_with_opts(changeset, _opts), do: handle_insert(changeset)
+
+  defp handle_update(changeset) do
+    if changeset.valid? do
+      resource = update_resource_from_changeset(changeset)
+      :ets.insert(:mock_resources, {resource.id, resource})
       {:ok, resource}
-    end)
-    |> stub(:delete_all, fn module, _opts_or_list ->
-      case module do
-        HydepwnsLiveview.Resources.Resource -> 
-          :ets.delete_all_objects(:mock_resources)
-          {0, nil}
-        _ -> {0, nil}
-      end
-    end)
-    |> stub(:all, fn module ->
-      case module do
-        HydepwnsLiveview.Resources.Resource -> 
-          :ets.tab2list(:mock_resources)
-          |> Enum.map(fn {_id, resource} -> resource end)
-        _ -> []
-      end
-    end)
-    |> stub(:all, fn module, _opts_or_list ->
-      case module do
-        HydepwnsLiveview.Resources.Resource -> 
-          :ets.tab2list(:mock_resources)
-          |> Enum.map(fn {_id, resource} -> resource end)
-        _ -> []
-      end
-    end)
-    |> stub(:get, fn module, id, _opts_or_list ->
-      case module do
-        HydepwnsLiveview.Resources.Resource -> 
-          case :ets.lookup(:mock_resources, id) do
-            [{^id, resource}] -> resource
-            [] -> nil
-          end
-        _ -> nil
-      end
-    end)
-    |> stub(:get!, fn module, id, _opts_or_list ->
-      case module do
-        HydepwnsLiveview.Resources.Resource -> 
-          case :ets.lookup(:mock_resources, id) do
-            [{^id, resource}] -> resource
-            [] -> 
-              raise Ecto.QueryError, message: "Record not found"
-          end
-        _ -> 
-          raise Ecto.QueryError, message: "Record not found"
-      end
-    end)
-    |> stub(:get_by, fn module, _clauses, _opts_or_list ->
-      case module do
-        HydepwnsLiveview.Resources.Resource -> nil
-        _ -> nil
-      end
-    end)
-    |> stub(:one, fn module, _opts_or_list ->
-      case module do
-        HydepwnsLiveview.Resources.Resource -> nil
-        _ -> nil
-      end
-    end)
-    |> stub(:aggregate, fn module, _aggregate, _field, _opts_or_list ->
-      case module do
-        HydepwnsLiveview.Resources.Resource -> 0
-        _ -> 0
-      end
-    end)
-    |> stub(:exists?, fn module, _opts_or_list ->
-      case module do
-        HydepwnsLiveview.Resources.Resource -> false
-        _ -> false
-      end
-    end)
-    |> stub(:transaction, fn fun, _opts_or_list ->
-      # Execute the function and return its result
-      fun.()
-    end)
-    |> stub(:rollback, fn value ->
-      # In a real transaction, this would raise an exception
-      # For mocking purposes, we'll just return the value
-      {:error, value}
-    end)
+    else
+      {:error, changeset}
+    end
+  end
+
+  defp handle_update_with_opts(changeset, _opts), do: handle_update(changeset)
+
+  defp handle_delete(resource) do
+    :ets.delete(:mock_resources, resource.id)
+    {:ok, resource}
+  end
+
+  defp handle_delete_with_opts(resource, _opts), do: handle_delete(resource)
+
+  defp handle_delete_all(module, _opts_or_list) do
+    case module do
+      HydepwnsLiveview.Resources.Resource -> 
+        :ets.delete_all_objects(:mock_resources)
+        {0, nil}
+      _ -> {0, nil}
+    end
+  end
+
+  defp handle_all(module) do
+    case module do
+      HydepwnsLiveview.Resources.Resource -> 
+        :ets.tab2list(:mock_resources)
+        |> Enum.map(fn {_id, resource} -> resource end)
+      _ -> []
+    end
+  end
+
+  defp handle_all_with_opts(module, _opts_or_list), do: handle_all(module)
+
+  defp handle_get(module, id, _opts_or_list) do
+    case module do
+      HydepwnsLiveview.Resources.Resource -> 
+        case :ets.lookup(:mock_resources, id) do
+          [{^id, resource}] -> resource
+          [] -> nil
+        end
+      _ -> nil
+    end
+  end
+
+  defp handle_get!(module, id, _opts_or_list) do
+    case module do
+      HydepwnsLiveview.Resources.Resource -> 
+        case :ets.lookup(:mock_resources, id) do
+          [{^id, resource}] -> resource
+          [] -> raise Ecto.QueryError, message: "Record not found"
+        end
+      _ -> raise Ecto.QueryError, message: "Record not found"
+    end
+  end
+
+  defp handle_get_by(module, _clauses, _opts_or_list) do
+    case module do
+      HydepwnsLiveview.Resources.Resource -> nil
+      _ -> nil
+    end
+  end
+
+  defp handle_one(module, _opts_or_list) do
+    case module do
+      HydepwnsLiveview.Resources.Resource -> nil
+      _ -> nil
+    end
+  end
+
+  defp handle_aggregate(module, _aggregate, _field, _opts_or_list) do
+    case module do
+      HydepwnsLiveview.Resources.Resource -> 0
+      _ -> 0
+    end
+  end
+
+  defp handle_exists?(module, _opts_or_list) do
+    case module do
+      HydepwnsLiveview.Resources.Resource -> false
+      _ -> false
+    end
+  end
+
+  defp handle_transaction(fun, _opts_or_list), do: fun.()
+  defp handle_rollback(value), do: {:error, value}
+
+  defp build_resource_from_changeset(changeset) do
+    %HydepwnsLiveview.Resources.Resource{
+      id: Ecto.UUID.generate(),
+      name: changeset.changes[:name] || "Test Resource",
+      description: changeset.changes[:description] || "A test resource",
+      type: changeset.changes[:type] || "document",
+      status: changeset.changes[:status] || "published",
+      content: changeset.changes[:content] || %{text: "Test content"},
+      metadata: changeset.changes[:metadata] || %{},
+      settings: changeset.changes[:settings] || %{},
+      version: changeset.changes[:version] || 1,
+      parent_id: changeset.changes[:parent_id],
+      child_ids: changeset.changes[:child_ids] || [],
+      tags: changeset.changes[:tags] || [],
+      categories: changeset.changes[:categories] || [],
+      created_by: changeset.changes[:created_by],
+      updated_by: changeset.changes[:updated_by],
+      inserted_at: DateTime.utc_now(),
+      updated_at: DateTime.utc_now()
+    }
+  end
+
+  defp update_resource_from_changeset(changeset) do
+    %{changeset.data | 
+      name: changeset.changes[:name] || changeset.data.name,
+      description: changeset.changes[:description] || changeset.data.description,
+      type: changeset.changes[:type] || changeset.data.type,
+      status: changeset.changes[:status] || changeset.data.status,
+      content: changeset.changes[:content] || changeset.data.content,
+      metadata: changeset.changes[:metadata] || changeset.data.metadata,
+      settings: changeset.changes[:settings] || changeset.data.settings,
+      version: changeset.changes[:version] || changeset.data.version,
+      parent_id: Map.get(changeset.changes, :parent_id, changeset.data.parent_id),
+      child_ids: changeset.changes[:child_ids] || changeset.data.child_ids,
+      tags: changeset.changes[:tags] || changeset.data.tags,
+      categories: changeset.changes[:categories] || changeset.data.categories,
+      created_by: changeset.changes[:created_by] || changeset.data.created_by,
+      updated_by: changeset.changes[:updated_by] || changeset.data.updated_by,
+      updated_at: DateTime.utc_now()
+    }
   end
 
   @doc """

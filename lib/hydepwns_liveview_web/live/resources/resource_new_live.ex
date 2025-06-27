@@ -16,17 +16,17 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLive do
   @impl true
   def handle_info({:resource_created, _resource}, socket) do
     {:noreply,
-     socket
-     |> put_flash(:info, "Resource created successfully")
-     |> redirect(to: "/resources")}
+      socket
+      |> put_flash(:info, "Resource created successfully")
+      |> redirect(to: "/resources")}
   end
 
   @impl true
   def handle_info({:resource_updated, _resource}, socket) do
     {:noreply,
-     socket
-     |> put_flash(:info, "Resource updated successfully")
-     |> redirect(to: "/resources")}
+      socket
+      |> put_flash(:info, "Resource updated successfully")
+      |> redirect(to: "/resources")}
   end
 
   @impl true

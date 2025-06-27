@@ -11,13 +11,15 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
 
   @impl true
   def mount(_params, _session, socket) do
+    if connected?(socket), do: Phoenix.PubSub.subscribe(HydepwnsLiveview.PubSub, "resources")
     {:ok,
      socket
      |> assign(:resources, ResourceSystem.list_resources())
      |> assign(:selected_type, nil)
      |> assign(:relationships, [])
      |> assign(:current_user, nil)
-     |> assign(:page_title, "Resources")}
+     |> assign(:page_title, "Resources")
+     |> assign(:notifications, [])}
   end
 
   @impl true
@@ -63,6 +65,11 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
   end
 
   @impl true
+  def handle_event("navigate_to_new", _params, socket) do
+    {:noreply, push_navigate(socket, to: ~p"/resources/new")}
+  end
+
+  @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     case ResourceSystem.delete_resource(id) do
       {:ok, _resource} ->
@@ -76,5 +83,41 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
          socket
          |> put_flash(:error, "Failed to delete resource")}
     end
+  end
+
+  @impl true
+  def handle_info({:resource_created, resource}, socket) do
+    notification = %{
+      id: :crypto.strong_rand_bytes(10) |> Base.encode16(case: :lower),
+      title: "Resource Created",
+      message: "Resource '#{resource.name}' was created successfully",
+      severity: :success,
+      persistent: false
+    }
+    notifications = HydepwnsLiveviewWeb.NotificationComponent.add_notification(socket.assigns.notifications, notification)
+    {:noreply,
+      socket
+      |> put_flash(:info, "Resource created successfully")
+      |> assign(:resources, ResourceSystem.list_resources())
+      |> assign(:notifications, notifications)
+    }
+  end
+
+  @impl true
+  def handle_info({:resource_updated, resource}, socket) do
+    notification = %{
+      id: :crypto.strong_rand_bytes(10) |> Base.encode16(case: :lower),
+      title: "Resource Updated",
+      message: "Resource '#{resource.name}' was updated successfully",
+      severity: :success,
+      persistent: false
+    }
+    notifications = HydepwnsLiveviewWeb.NotificationComponent.add_notification(socket.assigns.notifications, notification)
+    {:noreply,
+      socket
+      |> put_flash(:info, "Resource updated successfully")
+      |> assign(:resources, ResourceSystem.list_resources())
+      |> assign(:notifications, notifications)
+    }
   end
 end

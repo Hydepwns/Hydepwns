@@ -63,13 +63,11 @@ defmodule HydepwnsLiveview.Accounts.Password do
   Returns a list of password validation errors.
   """
   def password_errors(password) when is_binary(password) do
-    errors = []
-
     errors =
       if String.length(password) < @min_password_length do
-        ["Password must be at least #{@min_password_length} characters long" | errors]
+        ["Password must be at least #{@min_password_length} characters long"]
       else
-        errors
+        []
       end
 
     errors =

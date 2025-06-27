@@ -183,7 +183,7 @@ defmodule HydepwnsLiveview.Utils.RelationshipValidator do
 
   # Validates a has_many relationship
   defp validate_has_many(resource, relationship, check_referential_integrity, deep) do
-    errors = []
+    _errors = []
 
     # For has_many, we typically don't validate unless deep validation is requested
     if deep do
@@ -203,19 +203,19 @@ defmodule HydepwnsLiveview.Utils.RelationshipValidator do
                   ])
                 end)
             end
-          end) ++ errors
+          end)
 
         _ ->
-          errors
+          []
       end
     else
-      errors
+      []
     end
   end
 
   # Validates a has_one relationship
   defp validate_has_one(resource, relationship, check_referential_integrity, deep) do
-    errors = []
+    _errors = []
 
     # Similar to has_many, but expecting only one related entity
     if deep do
@@ -225,21 +225,21 @@ defmodule HydepwnsLiveview.Utils.RelationshipValidator do
                  check_referential_integrity: check_referential_integrity
                ) do
             :ok ->
-              errors
+              []
 
             {:error, related_errors} ->
               Enum.map(related_errors, fn error ->
                 Map.put(error, :relationship_path, [
                   relationship.name | Map.get(error, :relationship_path, [])
                 ])
-              end) ++ errors
+              end)
           end
 
         _ ->
-          errors
+          []
       end
     else
-      errors
+      []
     end
   end
 

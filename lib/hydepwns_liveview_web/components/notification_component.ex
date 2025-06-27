@@ -21,7 +21,7 @@ defmodule HydepwnsLiveviewWeb.NotificationComponent do
     <div class="notifications-container">
       <div id={"#{@id}-container"} class="fixed right-0 top-0 z-50 p-4 space-y-3 max-w-md w-full max-h-screen overflow-y-auto" phx-hook="NotificationsHandler" data-auto-dismiss={@auto_dismiss_ms}>
         <div :for={notification <- @notifications}>
-          {render_notification(notification, @id)}
+          {render_notification(notification, @id, @myself)}
         </div>
       </div>
     </div>
@@ -94,13 +94,17 @@ defmodule HydepwnsLiveviewWeb.NotificationComponent do
     [notification | notifications]
   end
 
-  defp render_notification(notification, component_id) do
+  defp render_notification(notification, component_id, myself) do
+    # Ensure myself is not nil or empty to prevent invalid phx-target
+    myself = if myself && myself != "" && myself != "#", do: myself, else: nil
+    
     assigns = %{
       notification: notification,
       component_id: component_id,
       severity_class: get_severity_class(notification.severity),
       icon: get_severity_icon(notification.severity),
-      show_details: Map.get(notification, :show_details, false)
+      show_details: Map.get(notification, :show_details, false),
+      myself: myself
     }
 
     ~H"""
@@ -112,22 +116,22 @@ defmodule HydepwnsLiveviewWeb.NotificationComponent do
         <div class="notification__content">
           <div class="notification__title">{@notification.title}</div>
           <div class="notification__message">{@notification.message}</div>
-          <div :if={@notification.details && @show_details} class="notification__details">
-            <pre class="notification__details-content">{@notification.details}</pre>
+          <div :if={Map.get(@notification, :details) && @show_details} class="notification__details">
+            <pre class="notification__details-content">{Map.get(@notification, :details)}</pre>
           </div>
         </div>
         <div class="notification__actions">
-          <button :if={@notification.details} phx-click="toggle_details" phx-value-id={@notification.id} phx-target={assigns[:myself]} class="notification__action notification__action--toggle" title="Toggle details">
-            {if @show_details, do: "▼", else: "▶"}
+          <button :if={Map.get(@notification, :details) && @myself} phx-click="toggle_details" phx-value-id={@notification.id} phx-target={@myself} class="notification__action notification__action--toggle" title="Toggle details">
+            {if @show_details, do: "\u25bc", else: "\u25b6"}
           </button>
-          <button :if={!@notification.persistent} phx-click="dismiss_notification" phx-value-id={@notification.id} phx-target={assigns[:myself]} class="notification__action notification__action--dismiss" title="Dismiss">
+          <button :if={!@notification.persistent && @myself} phx-click="dismiss_notification" phx-value-id={@notification.id} phx-target={@myself} class="notification__action notification__action--dismiss" title="Dismiss">
             ×
           </button>
         </div>
       </div>
       
-      <div :if={@notification.actions && length(@notification.actions) > 0} class="notification__action-buttons">
-        <button :for={action <- @notification.actions} phx-click="notification_action" phx-value-id={@notification.id} phx-value-action={action.id} phx-target={assigns[:myself]} class={"notification__action-button notification__action-button--#{action.style || "default"}"}>
+      <div :if={Map.get(@notification, :actions) && length(Map.get(@notification, :actions, [])) > 0} class="notification__action-buttons">
+        <button :for={action <- Map.get(@notification, :actions, [])} :if={@myself} phx-click="notification_action" phx-value-id={@notification.id} phx-value-action={action.id} phx-target={@myself} class={"notification__action-button notification__action-button--#{action.style || "default"}"}>
           {action.label}
         </button>
       </div>

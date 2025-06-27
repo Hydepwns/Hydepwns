@@ -2,7 +2,8 @@ defmodule HydepwnsLiveview.Resources.PostResource do
   @moduledoc """
   Defines the Post resource for LiveViews.
 
-  This is a stub implementation to satisfy relationships in UserResource.
+  This resource demonstrates the usage of relationship management functions
+  including belongs_to, has_many, has_many_through, and polymorphic relationships.
   """
 
   use HydepwnsLiveview.Utils.ResourceDSL
@@ -10,27 +11,66 @@ defmodule HydepwnsLiveview.Resources.PostResource do
 
   attribute(:id, :string, required: true)
   attribute(:title, :string, required: true)
-  attribute(:content, :string, required: true)
-  attribute(:published, :boolean, default: false)
-  attribute(:created_at, :datetime)
-  attribute(:updated_at, :datetime)
+  attribute(:content, :string)
+  attribute(:status, {:one_of, ["draft", "published", "archived"]}, default: "draft")
+  attribute(:published_at, :datetime)
+  attribute(:author_id, :string)
+  attribute(:category_id, :string)
+  attribute(:tags, {:list, :string}, default: [])
 
-  belongs_to(:author, HydepwnsLiveview.Resources.UserResource)
-  belongs_to(:team, HydepwnsLiveview.Resources.TeamResource)
+  # Demonstrate belongs_to relationship
+  belongs_to(:author, HydepwnsLiveview.Resources.UserResource, foreign_key: :author_id)
+  
+  # Demonstrate belongs_to with custom foreign key
+  belongs_to(:category, HydepwnsLiveview.Resources.CategoryResource, foreign_key: :category_id)
 
-  # Define a polymorphic relationship for comments
-  polymorphic(:commentable,
+  # Demonstrate has_many relationship
+  has_many(:comments, HydepwnsLiveview.Resources.CommentResource, foreign_key: :post_id)
+  
+  # Demonstrate has_many with custom foreign key
+  has_many(:revisions, HydepwnsLiveview.Resources.RevisionResource, foreign_key: :post_id)
+
+  # Demonstrate has_one relationship
+  has_one(:featured_image, HydepwnsLiveview.Resources.MediaResource, foreign_key: :post_id)
+
+  # Demonstrate has_many_through relationship
+  has_many_through(:author_posts, through: [:author, :posts])
+
+  # Demonstrate has_many_through with options
+  has_many_through(:team_posts, through: [:author, :team], foreign_key: :team_id)
+
+  # Demonstrate has_one_through relationship
+  has_one_through(:author_profile, through: [:author, :profile])
+
+  # Demonstrate polymorphic relationship
+  polymorphic(:commentable, types: [
+    HydepwnsLiveview.Resources.PostResource,
+    HydepwnsLiveview.Resources.CommentResource
+  ])
+
+  # Demonstrate polymorphic with options
+  polymorphic(:attachable, 
     types: [
-      HydepwnsLiveview.Resources.PostResource,
-      HydepwnsLiveview.Resources.UserResource
-    ]
+      HydepwnsLiveview.Resources.MediaResource,
+      HydepwnsLiveview.Resources.DocumentResource
+    ],
+    polymorphic_name: :attachment,
+    cardinality: :many
   )
 
   validate(:title_not_empty, fn resource ->
     if resource.title && String.length(resource.title) > 0 do
       :ok
     else
-      {:error, "Title cannot be empty"}
+      {:error, "Post title cannot be empty"}
+    end
+  end)
+
+  validate(:content_required_for_published, fn resource ->
+    if resource.status == "published" && (!resource.content || String.length(resource.content) == 0) do
+      {:error, "Published posts must have content"}
+    else
+      :ok
     end
   end)
 
@@ -48,11 +88,11 @@ defmodule HydepwnsLiveview.Resources.PostResource do
       id: id,
       title: "Post #{id}",
       content: "Content for post #{id}",
-      published: true,
-      author_id: "user-1",
-      team_id: "team-1",
-      created_at: DateTime.utc_now(),
-      updated_at: DateTime.utc_now(),
+      status: "draft",
+      author_id: "user-123",
+      category_id: "cat-456",
+      tags: ["example", "test"],
+      published_at: nil,
       __resource_module__: __MODULE__
     }
 
@@ -60,110 +100,114 @@ defmodule HydepwnsLiveview.Resources.PostResource do
   end
 
   @doc """
-  Updates a post resource with tracking (for audit/telemetry).
-
-  ## Parameters
-  * `resource` - The post resource to update
-  * `updates` - The update parameters
-  * `metadata` - Additional metadata for the update
-  * `opts` - Optional context/options (unused)
-
-  ## Returns
-  * `{:ok, updated_resource}` or `{:error, reason}`
-  """
-  @spec update_with_tracking(map(), map(), map(), map()) :: {:ok, map()} | {:error, any()}
-  def update_with_tracking(resource, updates, metadata, _opts \\ %{}) do
-    HydepwnsLiveview.Utils.ChangeTracker.track_change(resource, updates, metadata)
-  end
-
-  @doc """
   Returns the initial state for a post resource as a struct.
   """
+  @spec initial_state() :: map()
   def initial_state do
     %{
       id: nil,
-      title: nil,
-      content: nil,
-      published: false,
-      created_at: nil,
-      updated_at: nil,
+      title: "",
+      content: "",
+      status: "draft",
+      published_at: nil,
       author_id: nil,
-      team_id: nil,
+      category_id: nil,
+      tags: [],
       __resource_module__: __MODULE__
     }
   end
 
   @doc """
-  Applies an event to the post resource state, always returning a struct.
+  Validates a post resource.
   """
-  def apply_event(event, %__MODULE__{} = state) do
-    case event.type do
-      "post.created" ->
-        struct(state, Map.merge(Map.from_struct(state), event.data))
+  @spec validate(map()) :: {:ok, map()} | {:error, [String.t()]}
+  def validate(resource) do
+    []
+    |> validate_title(resource)
+    |> validate_content_for_published(resource)
+    |> case do
+      [] -> {:ok, resource}
+      errors -> {:error, errors}
+    end
+  end
 
-      "post.updated" ->
-        struct(state, Map.merge(Map.from_struct(state), event.data))
+  defp validate_title(errors, resource) do
+    if !resource.title || String.length(resource.title) == 0 do
+      ["Title cannot be empty" | errors]
+    else
+      errors
+    end
+  end
 
-      "post.deleted" ->
-        %{state | published: false}
+  defp validate_content_for_published(errors, resource) do
+    if resource.status == "published" && (!resource.content || String.length(resource.content) == 0) do
+      ["Published posts must have content" | errors]
+    else
+      errors
+    end
+  end
 
+  @doc """
+  Resolves relationships for a post resource.
+  """
+  @spec resolve_relationships(map()) :: {:ok, map()} | {:error, String.t()}
+  def resolve_relationships(resource) do
+    # This would typically use the RelationshipResolver to load related resources
+    # For now, we'll return the resource as-is
+    {:ok, resource}
+  end
+
+  @doc """
+  Resolves a specific relationship for a post resource.
+  """
+  @spec resolve_relationship(map(), atom()) :: {:ok, any()} | {:error, String.t()}
+  def resolve_relationship(resource, relationship_name) do
+    case relationship_name do
+      :author ->
+        if resource.author_id do
+          HydepwnsLiveview.Resources.UserResource.load(resource.author_id)
+        else
+          {:ok, nil}
+        end
+      
+      :comments ->
+        # In a real implementation, this would query for comments
+        {:ok, []}
+      
+      :category ->
+        if resource.category_id do
+          HydepwnsLiveview.Resources.CategoryResource.load(resource.category_id)
+        else
+          {:ok, nil}
+        end
+      
       _ ->
-        struct(state, Map.merge(Map.from_struct(state), event.data || %{}))
+        {:error, "Unknown relationship: #{relationship_name}"}
     end
   end
 
   @doc """
-  Returns the resource type for this module.
+  Resolves validation dependencies for the resource.
   """
-  def resource_type, do: "post"
-
-  @doc """
-  Validates a post resource map or struct. Returns {:ok, struct} or {:error, errors}.
-
-  # NOTE: Do not use this directly in LiveView forms or controllers. Use `changeset/1` for form validation.
-  """
-  def validate(attrs) when is_map(attrs) do
-    errors = []
-
-    errors =
-      if is_nil(attrs["title"]) or attrs["title"] == "",
-        do: [{:title, "Title cannot be empty"} | errors],
-        else: errors
-
-    if errors == [], do: {:ok, struct(__MODULE__, attrs)}, else: {:error, errors}
+  def resolve_validation_dependencies do
+    {:ok,
+     [
+       title_not_empty: &validate_title/1,
+       content_required_for_published: &validate_content_for_published/1
+     ]}
   end
 
-  def changeset(attrs) when is_map(attrs) do
-    attrs = for {k, v} <- attrs, into: %{}, do: {to_string(k), v}
-
-    types = %{
-      id: :string,
-      title: :string,
-      content: :string,
-      published: :boolean,
-      created_at: :utc_datetime,
-      updated_at: :utc_datetime,
-      author_id: :string,
-      team_id: :string
-    }
-
-    case validate(attrs) do
-      {:ok, _struct} ->
-        {%{}, types}
-        |> Ecto.Changeset.cast(attrs, Map.keys(types))
-
-      {:error, errors} ->
-        changeset = {%{}, types} |> Ecto.Changeset.cast(attrs, Map.keys(types))
-
-        Enum.reduce(errors, changeset, fn {field, msg}, cs ->
-          Ecto.Changeset.add_error(cs, field, msg)
-        end)
+  @doc """
+  Performs deep validation of the resource.
+  """
+  def validate_deep(resource) do
+    case validate(resource) do
+      {:ok, validated} -> {:ok, validated}
+      {:error, errors} -> {:error, errors}
     end
   end
 
-  def changeset(_), do: Ecto.Changeset.change(%{})
-
-  # Stubbed event creation functions for EventSourcedResource compliance
+  # Event sourcing methods
   def create_events(_params, _metadata), do: {:ok, []}
   def create_update_events(_params, _metadata), do: {:ok, []}
   def create_delete_events(_params, _metadata), do: {:ok, []}

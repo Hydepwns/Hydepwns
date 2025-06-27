@@ -7,6 +7,7 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
   use GenServer
   alias HydepwnsLiveview.Resources.Resource
   alias HydepwnsLiveview.RepoHelper
+  alias HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator
 
   @doc """
   Starts the resource system.
@@ -24,9 +25,24 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
   Creates a new resource with the given attributes.
   """
   def create_resource(attrs) do
-    %Resource{}
-    |> Resource.changeset(attrs)
-    |> RepoHelper.insert()
+    case %Resource{}
+         |> Resource.changeset(attrs)
+         |> RepoHelper.insert() do
+      {:ok, resource} ->
+        # Generate event for resource creation
+        IO.puts("🔵 ResourceSystem.create_resource: Resource created, generating event for #{resource.id}")
+        case ResourceEventGenerator.resource_created(resource, %{action: "create"}) do
+          {:ok, event} ->
+            IO.puts("✅ ResourceSystem.create_resource: Event generated successfully: #{event.type}")
+            Phoenix.PubSub.broadcast(HydepwnsLiveview.PubSub, "resources", {:resource_created, resource})
+            {:ok, resource}
+          {:error, reason} ->
+            IO.puts("❌ ResourceSystem.create_resource: Event generation failed: #{inspect(reason)}")
+            Phoenix.PubSub.broadcast(HydepwnsLiveview.PubSub, "resources", {:resource_created, resource})
+            {:ok, resource}  # Still return the resource even if event generation fails
+        end
+      error -> error
+    end
   end
 
   @doc """
@@ -55,9 +71,16 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
         {:error, :not_found}
 
       resource ->
-        resource
-        |> Resource.changeset(attrs)
-        |> RepoHelper.update()
+        case resource
+             |> Resource.changeset(attrs)
+             |> RepoHelper.update() do
+          {:ok, updated_resource} ->
+            # Generate event for resource update
+            ResourceEventGenerator.resource_updated(updated_resource, attrs, %{action: "update"})
+            Phoenix.PubSub.broadcast(HydepwnsLiveview.PubSub, "resources", {:resource_updated, updated_resource})
+            {:ok, updated_resource}
+          error -> error
+        end
     end
   end
 
@@ -70,7 +93,13 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
         {:error, :not_found}
 
       resource ->
-        RepoHelper.delete(resource)
+        case RepoHelper.delete(resource) do
+          {:ok, deleted_resource} ->
+            # Generate event for resource deletion
+            ResourceEventGenerator.resource_deleted(deleted_resource, %{action: "delete"})
+            {:ok, deleted_resource}
+          error -> error
+        end
     end
   end
 

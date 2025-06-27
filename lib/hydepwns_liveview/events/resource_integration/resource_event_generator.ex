@@ -7,6 +7,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator do
   """
 
   alias HydepwnsLiveview.Events.Event
+  alias HydepwnsLiveview.Events.EventOperations
 
   @doc """
   Generates and publishes an event for a resource creation.
@@ -30,8 +31,9 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator do
              data: resource_info.data,
              metadata: Map.merge(%{action: "create"}, metadata)
            }),
-         :ok <- HydepwnsLiveview.Events.EventBus.publish(event) do
-      {:ok, event}
+         {:ok, stored_event} <- EventOperations.store_event(event),
+         :ok <- HydepwnsLiveview.Events.EventBus.publish(stored_event) do
+      {:ok, stored_event}
     else
       error -> error
     end
@@ -60,8 +62,9 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator do
              data: Map.merge(resource_info.data, %{changes: changes}),
              metadata: Map.merge(%{action: "update"}, metadata)
            }),
-         :ok <- HydepwnsLiveview.Events.EventBus.publish(event) do
-      {:ok, event}
+         {:ok, stored_event} <- EventOperations.store_event(event),
+         :ok <- HydepwnsLiveview.Events.EventBus.publish(stored_event) do
+      {:ok, stored_event}
     else
       error -> error
     end
@@ -89,8 +92,9 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator do
              data: resource_info.data,
              metadata: Map.merge(%{action: "delete"}, metadata)
            }),
-         :ok <- HydepwnsLiveview.Events.EventBus.publish(event) do
-      {:ok, event}
+         {:ok, stored_event} <- EventOperations.store_event(event),
+         :ok <- HydepwnsLiveview.Events.EventBus.publish(stored_event) do
+      {:ok, stored_event}
     else
       error -> error
     end
@@ -120,8 +124,9 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator do
              data: Map.merge(resource_info.data, data),
              metadata: metadata
            }),
-         :ok <- HydepwnsLiveview.Events.EventBus.publish(event) do
-      {:ok, event}
+         {:ok, stored_event} <- EventOperations.store_event(event),
+         :ok <- HydepwnsLiveview.Events.EventBus.publish(stored_event) do
+      {:ok, stored_event}
     else
       error -> error
     end
@@ -193,8 +198,14 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator do
     |> Atom.to_string()
     |> String.split(".")
     |> List.last()
-    |> then(fn name -> String.replace(name, "Resource", "") end)
-    |> String.downcase()
+    |> then(fn name ->
+      name = String.replace(name, "Resource", "")
+      if String.trim(name) == "" do
+        "resource"
+      else
+        String.downcase(name)
+      end
+    end)
   end
 
   # Infers a resource type from a map of attributes

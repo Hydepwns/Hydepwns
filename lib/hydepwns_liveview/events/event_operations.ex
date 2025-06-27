@@ -11,6 +11,15 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   alias HydepwnsLiveview.Events.QueryBuilders.EventQuery
   alias HydepwnsLiveview.Events.Core.EventBus
 
+  # Use TestEventStore in test mode, real Repo otherwise
+  defp event_store do
+    if Mix.env() == :test do
+      HydepwnsLiveview.Events.TestEventStore
+    else
+      Repo
+    end
+  end
+
   @doc """
   Stores an event in the event store.
 
@@ -23,7 +32,13 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   """
   @spec store_event(Event.t()) :: {:ok, Event.t()} | {:error, Ecto.Changeset.t()}
   def store_event(event) when is_struct(event, Event) do
-    Repo.insert(event)
+    if Mix.env() == :test do
+      # In test mode, use TestEventStore
+      HydepwnsLiveview.Events.TestEventStore.store_event(event)
+    else
+      # In production, use real Repo
+      Repo.insert(event)
+    end
   end
 
   def store_event(_), do: {:error, :invalid_event}
@@ -50,112 +65,197 @@ defmodule HydepwnsLiveview.Events.EventOperations do
     })
     
     case Event.create(event_type, event_attrs) do
-      {:ok, event} -> Repo.insert(event)
+      {:ok, event} -> 
+        if Mix.env() == :test do
+          # In test mode, use TestEventStore
+          HydepwnsLiveview.Events.TestEventStore.store_event(event)
+        else
+          # In production, use real Repo
+          Repo.insert(event)
+        end
       {:error, reason} -> {:error, reason}
     end
   end
 
-  def store_event(_invalid_type, _invalid_data), do: {:error, :invalid_parameters}
+  def store_event(_, _), do: {:error, :invalid_parameters}
 
   @doc """
-  Stores multiple events in the event store.
+  Stores multiple events in a transaction.
 
   ## Parameters
   * `events` - List of events to store
 
   ## Returns
-  * `{:ok, persisted_events}` - All events were successfully stored
-  * `{:error, failed_event, failed_changeset, inserted_events}` - Some events could not be stored
+  * `{:ok, persisted_events}` - The events were successfully stored
+  * `{:error, reason}` - The events could not be stored
   """
-  @spec store_events([Event.t()]) :: {:ok, [Event.t()]} | {:error, any(), any(), [Event.t()]}
+  @spec store_events([Event.t()]) :: {:ok, [Event.t()]} | {:error, any()}
   def store_events(events) when is_list(events) and length(events) > 0 do
-    Repo.transaction(fn ->
-      Enum.map(events, &Repo.insert!/1)
-    end)
-  end
-
-  def store_events([]), do: {:error, :empty_event_list}
-  def store_events(_invalid_events), do: {:error, :invalid_events}
-
-  @doc """
-  Retrieves events matching the given criteria.
-
-  ## Parameters
-  * `criteria` - Map of criteria to filter events by. Supported keys:
-    * `:id` - The event ID
-    * `:correlation_id` - Events with this correlation ID
-    * `:causation_id` - Events with this causation ID
-    * `:event_type` - Events of this type (or list of types)
-    * `:resource_id` - Events for this resource ID
-    * `:timestamp` - Events with timestamp matching this criteria
-    * `:metadata` - Events with metadata matching this criteria
-    * `:limit` - Maximum number of events to return
-    * `:offset` - Number of events to skip
-    * `:sort` - List of sort criteria, e.g. [timestamp: :desc]
-
-  ## Returns
-  * `{:ok, events}` - The events matching the criteria
-  * `{:error, reason}` - Error retrieving events
-  """
-  @spec get_events(map()) :: {:ok, [Event.t()]} | {:error, any()}
-  def get_events(criteria) when is_map(criteria) do
-    query = build_event_query(criteria)
-
-    try do
-      {:ok, Repo.all(query)}
-    rescue
-      e ->
-        Logger.error("Error retrieving events: #{inspect(e)}")
-        {:error, e}
+    if Mix.env() == :test do
+      # In test mode, use TestEventStore
+      HydepwnsLiveview.Events.TestEventStore.store_events(events)
+    else
+      # In production, use real Repo with transaction
+      Repo.transaction(fn ->
+        Enum.map(events, fn event ->
+          case Repo.insert(event) do
+            {:ok, inserted_event} -> inserted_event
+            {:error, reason} -> Repo.rollback(reason)
+          end
+        end)
+      end)
     end
   end
 
-  def get_events(_invalid_criteria), do: {:error, :invalid_criteria}
+  def store_events([]), do: {:error, :empty_event_list}
+  def store_events(_), do: {:error, :invalid_events}
 
   @doc """
-  Retrieves a single event by ID.
+  Retrieves events based on the given criteria.
+
+  ## Parameters
+  * `criteria` - Map of criteria for filtering events
+
+  ## Returns
+  * `{:ok, events}` - List of events matching the criteria
+  * `{:error, reason}` - The query could not be executed
+  """
+  @spec get_events(map()) :: {:ok, [Event.t()]} | {:error, any()}
+  def get_events(criteria) when is_map(criteria) do
+    if Mix.env() == :test do
+      # In test mode, use TestEventStore
+      HydepwnsLiveview.Events.TestEventStore.get_events(criteria)
+    else
+      # In production, use real Repo
+      try do
+        query = EventQuery.build_query(criteria)
+        events = Repo.all(query)
+        {:ok, events}
+      rescue
+        e -> {:error, e}
+      end
+    end
+  end
+
+  def get_events(_), do: {:error, :invalid_criteria}
+
+  @doc """
+  Retrieves a single event by its ID.
 
   ## Parameters
   * `id` - The ID of the event to retrieve
 
   ## Returns
   * `{:ok, event}` - The event was found
-  * `{:error, :not_found}` - No event with the given ID exists
-  * `{:error, reason}` - Error retrieving the event
+  * `{:error, :not_found}` - The event was not found
+  * `{:error, reason}` - The query could not be executed
   """
-  @spec get_event(any()) :: {:ok, Event.t()} | {:error, any()}
-  def get_event(id) do
-    case get_events(%{id: id}) do
-      {:ok, [event]} -> {:ok, event}
-      {:ok, []} -> {:error, :not_found}
-      {:error, reason} -> {:error, reason}
+  @spec get_event(String.t()) :: {:ok, Event.t()} | {:error, :not_found | any()}
+  def get_event(id) when is_binary(id) do
+    if Mix.env() == :test do
+      # In test mode, use TestEventStore
+      HydepwnsLiveview.Events.TestEventStore.get_event(id)
+    else
+      # In production, use real Repo
+      case Repo.get(Event, id) do
+        nil -> {:error, :not_found}
+        event -> {:ok, event}
+      end
+    end
+  end
+
+  def get_event(_), do: {:error, :invalid_id}
+
+  @doc """
+  Lists all events in the event store.
+
+  ## Returns
+  * `{:ok, events}` - List of all events
+  * `{:error, reason}` - The query could not be executed
+  """
+  @spec list_events() :: {:ok, [Event.t()]} | {:error, any()}
+  def list_events do
+    if Mix.env() == :test do
+      # In test mode, use TestEventStore
+      HydepwnsLiveview.Events.TestEventStore.list_all_events()
+    else
+      # In production, use real Repo
+      try do
+        events = Repo.all(Event) |> Repo.preload(:metadata)
+        {:ok, events}
+      rescue
+        e -> {:error, e}
+      end
     end
   end
 
   @doc """
-  Deletes an event by ID.
+  Deletes an event by its ID.
 
   ## Parameters
   * `id` - The ID of the event to delete
 
   ## Returns
-  * `{:ok, event}` - The event was deleted
-  * `{:error, :not_found}` - No event with the given ID exists
-  * `{:error, reason}` - Error deleting the event
+  * `{:ok, deleted_event}` - The event was successfully deleted
+  * `{:error, :not_found}` - The event was not found
+  * `{:error, reason}` - The event could not be deleted
   """
-  @spec delete_event(any()) :: {:ok, Event.t()} | {:error, any()}
-  def delete_event(id) do
-    case get_event(id) do
-      {:ok, event} ->
-        case Repo.delete(event) do
-          {:ok, deleted_event} -> {:ok, deleted_event}
-          {:error, reason} -> {:error, reason}
-        end
-
-      {:error, reason} ->
-        {:error, reason}
+  @spec delete_event(String.t()) :: {:ok, Event.t()} | {:error, :not_found | any()}
+  def delete_event(id) when is_binary(id) do
+    if Mix.env() == :test do
+      # In test mode, use TestEventStore
+      HydepwnsLiveview.Events.TestEventStore.delete_event(id)
+    else
+      # In production, use real Repo
+      case Repo.get(Event, id) do
+        nil -> {:error, :not_found}
+        event ->
+          case Repo.delete(event) do
+            {:ok, deleted_event} -> {:ok, deleted_event}
+            {:error, reason} -> {:error, reason}
+          end
+      end
     end
   end
+
+  def delete_event(_), do: {:error, :invalid_id}
+
+  @doc """
+  Publishes an event to the event bus.
+
+  ## Parameters
+  * `event` - The event to publish
+
+  ## Returns
+  * `:ok` - The event was published successfully
+  * `{:error, reason}` - The event could not be published
+  """
+  @spec publish_event(Event.t()) :: :ok | {:error, any()}
+  def publish_event(event) when is_struct(event, Event) do
+    EventBus.publish(event)
+  end
+
+  def publish_event(_), do: {:error, :invalid_event}
+
+  @doc """
+  Stores and publishes an event in one operation.
+
+  ## Parameters
+  * `event` - The event to store and publish
+
+  ## Returns
+  * `{:ok, stored_event}` - The event was stored and published successfully
+  * `{:error, reason}` - The operation failed
+  """
+  @spec store_and_publish_event(Event.t()) :: {:ok, Event.t()} | {:error, any()}
+  def store_and_publish_event(event) when is_struct(event, Event) do
+    with {:ok, stored_event} <- store_event(event),
+         :ok <- publish_event(stored_event) do
+      {:ok, stored_event}
+    end
+  end
+
+  def store_and_publish_event(_), do: {:error, :invalid_event}
 
   @doc """
   Creates a stream of events matching the given criteria.

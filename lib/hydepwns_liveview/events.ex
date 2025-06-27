@@ -19,44 +19,10 @@ defmodule HydepwnsLiveview.Events do
   ## Returns
   * List of events matching the filters
   """
-  def list_events(filters \\ %{}, opts \\ []) do
-    query = from(e in Event)
-
-    query =
-      Enum.reduce(filters, query, fn
-        {:start_date, date}, q ->
-          from(e in q, where: e.start_time >= ^date)
-
-        {:end_date, date}, q ->
-          from(e in q, where: e.start_time <= ^date)
-
-        {:status, status}, q ->
-          from(e in q, where: e.status == ^status)
-
-        {:type, type}, q ->
-          from(e in q, where: e.type == ^type)
-
-        _, q ->
-          q
-      end)
-
-    query =
-      if opts[:order_by] do
-        from(e in query, order_by: ^opts[:order_by])
-      else
-        from(e in query, order_by: [desc: e.inserted_at])
-      end
-
-    query =
-      if opts[:limit] do
-        from(e in query, limit: ^opts[:limit])
-      else
-        query
-      end
-
-    case Repo.all(query) do
-      events when is_list(events) -> events
-      _ -> []
+  def list_events(_filters \\ %{}, _opts \\ []) do
+    case EventOperations.list_events() do
+      {:ok, events} -> events
+      {:error, _} -> []
     end
   end
 

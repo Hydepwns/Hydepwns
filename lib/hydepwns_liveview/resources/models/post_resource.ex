@@ -37,7 +37,7 @@ defmodule HydepwnsLiveview.Resources.PostResource do
   has_many_through(:author_posts, through: [:author, :posts])
 
   # Demonstrate has_many_through with options
-  has_many_through(:team_posts, through: [:author, :team], foreign_key: :team_id)
+  has_many_through(:team_posts, through: [:author, :team])
 
   # Demonstrate has_one_through relationship
   has_one_through(:author_profile, through: [:author, :profile])
@@ -49,14 +49,10 @@ defmodule HydepwnsLiveview.Resources.PostResource do
   ])
 
   # Demonstrate polymorphic with options
-  polymorphic(:attachable, 
-    types: [
-      HydepwnsLiveview.Resources.MediaResource,
-      HydepwnsLiveview.Resources.DocumentResource
-    ],
-    polymorphic_name: :attachment,
-    cardinality: :many
-  )
+  polymorphic(:attachable, types: [
+    HydepwnsLiveview.Resources.MediaResource,
+    HydepwnsLiveview.Resources.DocumentResource
+  ])
 
   validate(:title_not_empty, fn resource ->
     if resource.title && String.length(resource.title) > 0 do
@@ -184,17 +180,6 @@ defmodule HydepwnsLiveview.Resources.PostResource do
       _ ->
         {:error, "Unknown relationship: #{relationship_name}"}
     end
-  end
-
-  @doc """
-  Resolves validation dependencies for the resource.
-  """
-  def resolve_validation_dependencies do
-    {:ok,
-     [
-       title_not_empty: &validate_title/1,
-       content_required_for_published: &validate_content_for_published/1
-     ]}
   end
 
   @doc """

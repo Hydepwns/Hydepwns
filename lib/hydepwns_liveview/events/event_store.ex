@@ -14,6 +14,7 @@ defmodule HydepwnsLiveview.Events.EventStore do
   alias HydepwnsLiveview.Repo
 
   # Get the configured event store module, defaulting to EventOperations
+  @dialyzer {:nowarn_function, event_store_module: 0}
   defp event_store_module do
     Application.get_env(:hydepwns_liveview, :event_store, HydepwnsLiveview.Events.EventOperations)
   end

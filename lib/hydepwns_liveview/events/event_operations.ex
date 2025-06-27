@@ -1,8 +1,13 @@
 defmodule HydepwnsLiveview.Events.EventOperations do
   @moduledoc """
-  Handles core event operations including storage, retrieval, and querying.
-  Provides a clean interface for working with events in the event store.
+  Provides operations for managing events in the event store.
+
+  This module handles storing, retrieving, and managing events in the event store.
+  It provides a unified interface for event operations regardless of the underlying
+  storage mechanism.
   """
+
+  @compile :nowarn_unused_functions
 
   import Ecto.Query
   require Logger
@@ -12,6 +17,7 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   alias HydepwnsLiveview.Events.Core.EventBus
 
   # Use TestEventStore in test mode, real Repo otherwise
+  @dialyzer {:nowarn_function, event_store: 0}
   defp event_store do
     if Mix.env() == :test do
       HydepwnsLiveview.Events.TestEventStore

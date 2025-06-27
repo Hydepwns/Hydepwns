@@ -27,6 +27,41 @@
       __defProp(target, name, { get: all[name], enumerable: true });
   };
 
+  // js/components/notifications.js
+  var notifications_exports = {};
+  __export(notifications_exports, {
+    NotificationItem: () => NotificationItem,
+    NotificationsComponent: () => NotificationsComponent
+  });
+  var NotificationsComponent, NotificationItem;
+  var init_notifications = __esm({
+    "js/components/notifications.js"() {
+      NotificationsComponent = class {
+        constructor(options) {
+          this.options = options;
+          this.element = options.el;
+        }
+        mount() {
+          return this;
+        }
+        destroy() {
+        }
+      };
+      NotificationItem = class {
+        constructor(options) {
+          this.options = options;
+          this.element = options.el;
+          this.notificationId = this.element.dataset.notificationId;
+        }
+        mount() {
+          return this;
+        }
+        destroy() {
+        }
+      };
+    }
+  });
+
   // js/components/accessibility_menu_toggle.js
   var accessibility_menu_toggle_exports = {};
   __export(accessibility_menu_toggle_exports, {
@@ -153,27 +188,6 @@
     }
   });
 
-  // js/components/notifications.js
-  var notifications_exports = {};
-  __export(notifications_exports, {
-    NotificationsComponent: () => NotificationsComponent
-  });
-  var NotificationsComponent;
-  var init_notifications = __esm({
-    "js/components/notifications.js"() {
-      NotificationsComponent = class {
-        constructor(options) {
-          this.options = options;
-        }
-        mount() {
-          return this;
-        }
-        destroy() {
-        }
-      };
-    }
-  });
-
   // js/components/toast.js
   var toast_exports = {};
   __export(toast_exports, {
@@ -194,6 +208,9 @@
       };
     }
   });
+
+  // js/app.js
+  init_notifications();
 
   // js/component_loader.js
   var componentRegistry = {
@@ -239,6 +256,9 @@
     }
   };
   var theme_hooks_default = ThemeHooks;
+
+  // js/app.js
+  init_notifications();
 
   // node_modules/phoenix/priv/static/phoenix.mjs
   var closure = (value) => {
@@ -7221,12 +7241,32 @@ removing illegal node: "${(childNode.outerHTML || childNode.nodeValue).trim()}"
   // js/app.js
   var Hooks2 = {};
   Hooks2.ThemeToggle = theme_hooks_default;
+  Hooks2.NotificationsHandler = NotificationsComponent;
+  Hooks2.NotificationItem = NotificationItem;
   var _a;
   var csrfToken = (_a = document.querySelector("meta[name='csrf-token']")) == null ? void 0 : _a.getAttribute("content");
   var liveSocket = new LiveSocket("/live", Socket, {
     hooks: Hooks2,
     params: { _csrf_token: csrfToken }
   });
+  if (liveSocket.dom) {
+    const originalFilterToEls = liveSocket.dom.filterToEls;
+    liveSocket.dom.filterToEls = function(liveSocket2, sourceEl, { to }) {
+      if (typeof to === "string" && (to === "#" || to === "" || !to || to === "undefined" || to === "null")) {
+        console.warn("Invalid selector detected:", to, "falling back to source element");
+        return [sourceEl];
+      }
+      return originalFilterToEls.call(this, liveSocket2, sourceEl, { to });
+    };
+  }
+  var originalQuerySelectorAll = document.querySelectorAll;
+  document.querySelectorAll = function(selector) {
+    if (typeof selector === "string" && (selector === "#" || selector === "" || !selector || selector === "undefined" || selector === "null")) {
+      console.warn("Invalid querySelectorAll selector:", selector, "returning empty NodeList");
+      return document.createDocumentFragment().querySelectorAll("*");
+    }
+    return originalQuerySelectorAll.call(this, selector);
+  };
   liveSocket.connect();
   window.liveSocket = liveSocket;
   if (!window.phxLiveViewPids) {

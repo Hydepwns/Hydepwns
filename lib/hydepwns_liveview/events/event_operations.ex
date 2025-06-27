@@ -97,12 +97,7 @@ defmodule HydepwnsLiveview.Events.EventOperations do
     else
       # In production, use real Repo with transaction
       Repo.transaction(fn ->
-        Enum.map(events, fn event ->
-          case Repo.insert(event) do
-            {:ok, inserted_event} -> inserted_event
-            {:error, reason} -> Repo.rollback(reason)
-          end
-        end)
+        Enum.map(events, &insert_event_or_rollback/1)
       end)
     end
   end
@@ -209,11 +204,7 @@ defmodule HydepwnsLiveview.Events.EventOperations do
       # In production, use real Repo
       case Repo.get(Event, id) do
         nil -> {:error, :not_found}
-        event ->
-          case Repo.delete(event) do
-            {:ok, deleted_event} -> {:ok, deleted_event}
-            {:error, reason} -> {:error, reason}
-          end
+        event -> delete_event_from_repo(event)
       end
     end
   end
@@ -342,91 +333,19 @@ defmodule HydepwnsLiveview.Events.EventOperations do
 
   # Private functions
 
-  defp build_event_query(criteria) do
-    Event
-    |> filter_by_id(criteria[:id])
-    |> filter_by_correlation_id(criteria[:correlation_id])
-    |> filter_by_causation_id(criteria[:causation_id])
-    |> filter_by_event_type(criteria[:event_type])
-    |> filter_by_resource_id(criteria[:resource_id])
-    |> filter_by_resource_type(criteria[:resource_type])
-    |> filter_by_timestamp(criteria[:timestamp])
-    |> filter_by_metadata(criteria[:metadata])
-    |> apply_sort(criteria[:sort])
-    |> apply_limit(criteria[:limit])
-    |> apply_offset(criteria[:offset])
+  defp delete_event_from_repo(event) do
+    case Repo.delete(event) do
+      {:ok, deleted_event} -> {:ok, deleted_event}
+      {:error, reason} -> {:error, reason}
+    end
   end
 
-  defp filter_by_id(query, nil), do: query
-  defp filter_by_id(query, id), do: where(query, [e], e.id == ^id)
-
-  defp filter_by_correlation_id(query, nil), do: query
-
-  defp filter_by_correlation_id(query, correlation_id),
-    do: where(query, [e], e.correlation_id == ^correlation_id)
-
-  defp filter_by_causation_id(query, nil), do: query
-
-  defp filter_by_causation_id(query, causation_id),
-    do: where(query, [e], e.causation_id == ^causation_id)
-
-  defp filter_by_event_type(query, nil), do: query
-
-  defp filter_by_event_type(query, event_type) when is_binary(event_type),
-    do: where(query, [e], e.type == ^event_type)
-
-  defp filter_by_event_type(query, event_types) when is_list(event_types),
-    do: where(query, [e], e.type in ^event_types)
-
-  defp filter_by_resource_id(query, nil), do: query
-
-  defp filter_by_resource_id(query, resource_id),
-    do: where(query, [e], e.resource_id == ^resource_id)
-
-  defp filter_by_resource_type(query, nil), do: query
-
-  defp filter_by_resource_type(query, resource_type),
-    do: where(query, [e], e.resource_type == ^resource_type)
-
-  defp filter_by_timestamp(query, nil), do: query
-
-  defp filter_by_timestamp(query, %{lt: timestamp}),
-    do: where(query, [e], e.timestamp < ^timestamp)
-
-  defp filter_by_timestamp(query, %{lte: timestamp}),
-    do: where(query, [e], e.timestamp <= ^timestamp)
-
-  defp filter_by_timestamp(query, %{gt: timestamp}),
-    do: where(query, [e], e.timestamp > ^timestamp)
-
-  defp filter_by_timestamp(query, %{gte: timestamp}),
-    do: where(query, [e], e.timestamp >= ^timestamp)
-
-  defp filter_by_timestamp(query, timestamp), do: where(query, [e], e.timestamp == ^timestamp)
-
-  defp filter_by_metadata(query, nil), do: query
-
-  defp filter_by_metadata(query, metadata) when is_map(metadata) do
-    Enum.reduce(metadata, query, fn {key, value}, acc ->
-      where(acc, [e], fragment("?->? = ?", e.metadata, ^key, ^value))
-    end)
+  defp insert_event_or_rollback(event) do
+    case Repo.insert(event) do
+      {:ok, inserted_event} -> inserted_event
+      {:error, reason} -> Repo.rollback(reason)
+    end
   end
-
-  defp apply_sort(query, nil), do: query
-
-  defp apply_sort(query, sort_criteria) when is_list(sort_criteria) do
-    Enum.reduce(sort_criteria, query, fn {field, direction}, acc ->
-      order_by(acc, [e], [{^direction, ^field}])
-    end)
-  end
-
-  defp apply_limit(query, nil), do: query
-  defp apply_limit(query, limit) when is_integer(limit) and limit > 0, do: limit(query, ^limit)
-
-  defp apply_offset(query, nil), do: query
-
-  defp apply_offset(query, offset) when is_integer(offset) and offset >= 0,
-    do: offset(query, ^offset)
 
   def create_event(type, payload, metadata \\ %{}) do
     event = %{

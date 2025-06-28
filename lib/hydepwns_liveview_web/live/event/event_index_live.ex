@@ -5,12 +5,40 @@ defmodule HydepwnsLiveviewWeb.Event.EventIndexLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    events = HydepwnsLiveview.Events.list_events()
+    {:ok, events} = HydepwnsLiveview.Events.EventStore.list_all_events()
+    IO.puts("🔍 EventIndexLive: Raw events from EventStore: #{length(events)}")
+    IO.puts("🔍 EventIndexLive: First event: #{inspect(List.first(events))}")
+    
+    # Convert plain maps to Event structs for template rendering
+    event_structs = Enum.map(events, fn event ->
+      case event do
+        %HydepwnsLiveview.Events.Core.Event{} -> event
+        plain_map when is_map(plain_map) ->
+          # Convert plain map to Event struct
+          %HydepwnsLiveview.Events.Core.Event{
+            id: plain_map[:id] || plain_map["id"],
+            type: plain_map[:type] || plain_map["type"],
+            resource_id: plain_map[:resource_id] || plain_map["resource_id"],
+            resource_type: plain_map[:resource_type] || plain_map["resource_type"],
+            data: plain_map[:data] || plain_map["data"] || %{},
+            metadata: plain_map[:metadata] || plain_map["metadata"] || %{},
+            correlation_id: plain_map[:correlation_id] || plain_map["correlation_id"],
+            causation_id: plain_map[:causation_id] || plain_map["causation_id"],
+            timestamp: plain_map[:timestamp] || plain_map["timestamp"],
+            inserted_at: plain_map[:inserted_at] || plain_map["inserted_at"],
+            updated_at: plain_map[:updated_at] || plain_map["updated_at"]
+          }
+      end
+    end)
+    
+    IO.puts("🔍 EventIndexLive: Event structs after conversion: #{length(event_structs)}")
+    IO.puts("🔍 EventIndexLive: First event struct: #{inspect(List.first(event_structs))}")
+    
     {:ok,
      socket
      |> assign(:page_title, "Events")
-     |> assign(:events, events)
-     |> assign(:all_events, events)
+     |> assign(:events, event_structs)
+     |> assign(:all_events, event_structs)
      |> assign(:event_filter, %{"type" => ""})}
   end
 
@@ -50,9 +78,9 @@ defmodule HydepwnsLiveviewWeb.Event.EventIndexLive do
 
       <form phx-change="filter_events" phx-submit="filter_events" class="mb-6 flex gap-4 items-center">
         <label for="event_filter_type" class="font-medium">Event Type:</label>
-        <input id="event_filter_type" name="event_filter[type]" type="text" class="border rounded px-2 py-1" placeholder="Type (e.g. resource.created)" value={@event_filter["type"]} />
-        <button type="submit" class="ml-2 px-3 py-1 bg-blue-500 text-white rounded">Apply Filter</button>
-        <button type="button" phx-click="clear_filters" class="ml-2 px-3 py-1 bg-gray-300 text-gray-700 rounded">Clear Filters</button>
+        <input id="event_filter_type" name="event_filter[type]" type="text" class="border rounded px-2 py-1" placeholder="Type (e.g. resource.created)" value={@event_filter["type"]} data-test-id="filter-type" />
+        <button type="submit" class="ml-2 px-3 py-1 bg-blue-500 text-white rounded" data-test-id="apply-filters">Apply Filter</button>
+        <button type="button" phx-click="clear_filters" class="ml-2 px-3 py-1 bg-gray-300 text-gray-700 rounded" data-test-id="clear-filters">Clear Filters</button>
       </form>
 
       <div class="bg-white shadow-lg rounded-lg p-6">

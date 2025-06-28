@@ -108,7 +108,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeCustomizeLive do
               </div>
               <div>
                 <label for="theme[accent_color]" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Accent Color</label>
-                <input type="color" name="theme[accent_color]" id="theme[accent_color]" value={@theme.accent_color || "#3357FF"} class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <input type="color" name="theme[accent_color]" id="theme[accent_color]" value={Map.get(@theme.colors, "accent", "#3357FF")} class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
               </div>
             </div>
             <div class="mt-6">
@@ -122,7 +122,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeCustomizeLive do
             <div class="flex space-x-2">
               <div class="w-8 h-8 rounded color-preview" style={"background-color: #{@theme.primary_color}"}></div>
               <div class="w-8 h-8 rounded color-preview" style={"background-color: #{@theme.secondary_color}"}></div>
-              <div class="w-8 h-8 rounded color-preview" style={"background-color: #{@theme.accent_color || "#3357FF"}"}></div>
+              <div class="w-8 h-8 rounded color-preview" style={"background-color: #{Map.get(@theme.colors, "accent", "#3357FF")}"}></div>
             </div>
           </div>
         </div>

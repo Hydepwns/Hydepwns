@@ -4,16 +4,29 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeShowLive do
   alias HydepwnsLiveview.ThemeSystem
 
   @impl Phoenix.LiveView
-  def mount(_params, _session, socket) do
+  def mount(_params, session, socket) do
+    # Set the theme system ETS table from session metadata if provided (for tests)
+    if table = session[:theme_system_ets_table] do
+      Process.put(:theme_system_ets_table, table)
+    end
+
     default_theme = ThemeSystem.ensure_default_theme()
     theme_class = "#{default_theme.mode}-theme"
-    {:ok, assign(socket, theme_class: theme_class)}
+    {:ok, assign(socket, theme_class: theme_class, page_title: "Theme Details")}
   end
 
   @impl Phoenix.LiveView
   def handle_params(%{"id" => id}, _url, socket) do
-    theme = ThemeSystem.get_theme!(id)
-    {:noreply, assign(socket, :theme, theme)}
+    case id do
+      "new" ->
+        {:noreply, 
+         socket
+         |> put_flash(:error, "Invalid theme ID")
+         |> push_navigate(to: ~p"/themes")}
+      _ ->
+        theme = ThemeSystem.get_theme!(id)
+        {:noreply, assign(socket, :theme, theme)}
+    end
   end
 
   @impl true

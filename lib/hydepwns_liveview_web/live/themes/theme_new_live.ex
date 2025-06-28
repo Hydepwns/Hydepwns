@@ -7,10 +7,20 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeNewLive do
   alias HydepwnsLiveview.ThemeSystem.Models.Theme
 
   @impl Phoenix.LiveView
-  def mount(_params, _session, socket) do
+  def mount(_params, session, socket) do
+    # Set the theme system ETS table from session metadata if provided (for tests)
+    if table = session[:theme_system_ets_table] do
+      Process.put(:theme_system_ets_table, table)
+    end
+
     default_theme = ThemeSystem.ensure_default_theme()
     theme_class = "#{default_theme.mode}-theme"
-    {:ok, assign(socket, theme_class: theme_class)}
+
+    {:ok,
+     assign(socket,
+       theme_class: theme_class,
+       page_title: "Create Theme"
+     )}
   end
 
   @impl Phoenix.LiveView

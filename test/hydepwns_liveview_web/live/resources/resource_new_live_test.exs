@@ -85,11 +85,15 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLiveTest do
   end
 
   describe "navigation" do
-    test "can navigate back to resources list", %{conn: conn} do
+    test "navigation can navigate back to resources list", %{conn: conn} do
       {:ok, view, _html} = live(conn, "/resources/new")
+
+      # Click the back link
       view
-      |> element("[data-test-id='back-to-resources-link']")
+      |> element("[data-test-id='cancel-resource-link']")
       |> render_click()
+
+      # Verify we navigated back to the resources list
       assert_redirect(view, "/resources")
     end
 
@@ -183,6 +187,7 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLiveTest do
       # So we manually navigate to the dashboard to check for the created resource
       {:ok, _dashboard_view, dashboard_html} = live(conn, "/resources")
       assert dashboard_html =~ "Valid Resource"
+      assert dashboard_html =~ "Valid Description"
     end
   end
 end 

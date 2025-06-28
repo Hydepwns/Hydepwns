@@ -53,20 +53,48 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
       |> fill_in(text_field("resource[content]"), with: "Updated content")
       |> click(button("Save"))
 
-      # Verify success message
+      # DEBUG: Wait a moment for any DOM updates
+      :timer.sleep(1000)
+      
+      # DEBUG: Print the current page HTML to see what's actually rendered
+      html = Wallaby.Browser.page_source(session)
+      IO.puts("🔍 Current page HTML after save:")
+      IO.puts(html)
+      
+      # DEBUG: Check if any flash elements exist at all
+      flash_elements = all(session, css("[class*='alert']"))
+      IO.puts("🔍 Found #{length(flash_elements)} flash elements:")
+      Enum.each(flash_elements, fn element ->
+        text = Wallaby.Element.text(element)
+        class = Wallaby.Element.attr(element, "class")
+        IO.puts("  - Class: #{class}, Text: #{text}")
+      end)
+      
+      # DEBUG: Check if the specific alert-success element exists
+      success_elements = all(session, css(".alert-success"))
+      IO.puts("🔍 Found #{length(success_elements)} .alert-success elements:")
+      Enum.each(success_elements, fn element ->
+        text = Wallaby.Element.text(element)
+        IO.puts("  - Text: #{text}")
+      end)
+
+      # Verify success message - add more specific waiting
+      :timer.sleep(1000)
       Wallaby.Browser.assert_has(
         session,
         css(".alert-success", text: "Resource updated successfully")
       )
 
-      # Navigate to events dashboard
+      # Navigate to events dashboard directly from the resource show page
       session
       |> click(Wallaby.Query.link("View Events"))
 
       # Verify events were generated and processed
       Wallaby.Browser.assert_has(session, css(".event-row", text: "resource.updated"))
       Wallaby.Browser.assert_has(session, css(".event-row", text: "resource.transformed"))
-      Wallaby.Browser.assert_has(session, css(".event-data", text: "Updated content"))
+      
+      # Verify that the events contain the updated content (both resource.updated and resource.transformed)
+      assert Wallaby.Browser.all(session, css(".event-data", text: "Updated content")) |> length() == 2
     end
 
     test "event processing maintains consistency", %{session: session, resource: resource} do
@@ -148,14 +176,13 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
       |> click(Query.css("[data-test-id='resource-link-#{resource.id}']"))
       |> click(Wallaby.Query.link("Edit"))
 
-      # Attempt invalid update
+      # Attempt invalid update - try to save with empty name instead of content
       session
-      # Invalid empty content
-      |> fill_in(text_field("resource[content]"), with: "")
+      |> fill_in(text_field("resource[name]"), with: "")
       |> click(button("Save"))
 
-      # Verify error message
-      Wallaby.Browser.assert_has(session, css(".error-message", text: "Content can't be blank"))
+      # Verify error message - name is required, not content
+      Wallaby.Browser.assert_has(session, css("[data-test-id='name-error']", text: "can't be blank"))
 
       # Navigate to events dashboard
       session
@@ -163,7 +190,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
 
       # Verify error event was generated
       Wallaby.Browser.assert_has(session, css(".event-row", text: "resource.validation_error"))
-      Wallaby.Browser.assert_has(session, css(".event-data", text: "Content can't be blank"))
+      Wallaby.Browser.assert_has(session, css(".event-data", text: "can't be blank"))
     end
   end
 end

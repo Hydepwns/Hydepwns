@@ -1,6 +1,6 @@
 defmodule HydepwnsLiveviewWeb.StyleGuideLiveTest do
   @router HydepwnsLiveviewWeb.Router
-  use HydepwnsLiveviewWeb.ConnCase, async: true
+  use HydepwnsLiveviewWeb.ConnCase
   import Phoenix.LiveViewTest
   import Phoenix.VerifiedRoutes
 

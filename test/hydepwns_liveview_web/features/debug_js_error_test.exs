@@ -78,7 +78,7 @@ defmodule HydepwnsLiveviewWeb.DebugJSErrorTest do
     
     # Get console logs
     logs = Wallaby.Browser.execute_script(session, "return window.consoleLogs || [];")
-    if logs && length(logs) > 0 do
+    if logs && is_list(logs) && length(logs) > 0 do
       IO.inspect(logs, label: "Console Logs")
     end
     

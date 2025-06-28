@@ -22,8 +22,12 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
 
   setup %{conn: conn} do
     # Set up per-test theme system isolation
-    {:ok, _table} = setup_theme_system_isolation()
+    {:ok, table} = setup_theme_system_isolation()
 
+    # Ensure the ETS table is set in the current process
+    Process.put(:theme_system_ets_table, table)
+
+    # Create themes after the table is set up
     {:ok, light_theme} = light_theme_fixture()
     {:ok, dark_theme} = dark_theme_fixture()
     {:ok, system_theme} = system_theme_fixture()
@@ -41,6 +45,11 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
 
     TestMockHelper.setup_mocks()
 
+    # Set up the connection with the theme system table in the session
+    conn = Plug.Test.init_test_session(conn, %{
+      "theme_system_ets_table" => table
+    })
+
     {:ok,
      conn: conn,
      light_theme: light_theme,
@@ -51,7 +60,11 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
 
   test "renders theme manager page", %{conn: conn} do
     ensure_theme_exists()
-    {:ok, _view, html} = live(conn, "/themes")
+    
+    # Create a session with the theme system ETS table
+    session = %{"theme_system_ets_table" => Process.get(:theme_system_ets_table)}
+    
+    {:ok, _view, html} = live(conn, "/themes", session: session)
     assert html =~ "Theme Manager"
     assert html =~ "Create Theme"
   end
@@ -62,14 +75,22 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
     dark_theme: dark_theme
   } do
     ensure_theme_exists()
-    {:ok, _view, html} = live(conn, "/themes")
+    
+    # Create a session with the theme system ETS table
+    session = %{"theme_system_ets_table" => Process.get(:theme_system_ets_table)}
+    
+    {:ok, _view, html} = live(conn, "/themes", session: session)
     assert html =~ light_theme.name
     assert html =~ dark_theme.name
   end
 
   test "creates a new theme", %{conn: conn} do
     ensure_theme_exists()
-    {:ok, view, _html} = live(conn, "/themes")
+    
+    # Create a session with the theme system ETS table
+    session = %{"theme_system_ets_table" => Process.get(:theme_system_ets_table)}
+    
+    {:ok, view, _html} = live(conn, "/themes", session: session)
 
     # Click the Create Theme button which should navigate to the new theme page
     view
@@ -86,7 +107,11 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
     dark_theme: dark_theme
   } do
     ensure_theme_exists()
-    {:ok, view, _html} = live(conn, "/themes")
+    
+    # Create a session with the theme system ETS table
+    session = %{"theme_system_ets_table" => Process.get(:theme_system_ets_table)}
+    
+    {:ok, view, _html} = live(conn, "/themes", session: session)
 
     # Verify both themes are displayed
     html = render(view)
@@ -105,24 +130,32 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
 
   test "deletes a theme", %{conn: conn, dark_theme: dark_theme} do
     ensure_theme_exists()
-    {:ok, view, html} = live(conn, "/themes")
     
-    # Assert the theme link for the dark theme is present
-    assert html =~ dark_theme.name
+    # Create a session with the theme system ETS table
+    session = %{"theme_system_ets_table" => Process.get(:theme_system_ets_table)}
+    
+    {:ok, view, html} = live(conn, "/themes", session: session)
+    
+    # Assert the theme card for the dark theme is present
+    assert html =~ "data-test-id=\"theme-card-#{dark_theme.id}\""
 
     # Delete the theme
     view
     |> element("button[phx-click='delete'][phx-value-id='#{dark_theme.id}']")
     |> render_click()
 
-    # Verify theme is removed from the list
-    html = render(view)
-    refute html =~ dark_theme.name
+    # Re-render the view to get the updated HTML
+    updated_html = render(view)
+    refute updated_html =~ "data-test-id=\"theme-card-#{dark_theme.id}\""
   end
 
   test "updates an existing theme", %{conn: conn, light_theme: light_theme} do
     ensure_theme_exists()
-    {:ok, view, _html} = live(conn, "/themes")
+    
+    # Create a session with the theme system ETS table
+    session = %{"theme_system_ets_table" => Process.get(:theme_system_ets_table)}
+    
+    {:ok, view, _html} = live(conn, "/themes", session: session)
 
     # Click the Edit button which should navigate to the edit theme page
     view
@@ -135,7 +168,11 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLiveTest do
 
   test "handles theme mode changes", %{conn: conn, light_theme: light_theme} do
     ensure_theme_exists()
-    {:ok, view, _html} = live(conn, "/themes")
+    
+    # Create a session with the theme system ETS table
+    session = %{"theme_system_ets_table" => Process.get(:theme_system_ets_table)}
+    
+    {:ok, view, _html} = live(conn, "/themes", session: session)
 
     # Click the Edit button to navigate to the edit page where mode changes happen
     view

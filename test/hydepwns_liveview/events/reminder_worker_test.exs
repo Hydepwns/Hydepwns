@@ -6,14 +6,22 @@ defmodule HydepwnsLiveview.Events.ReminderWorkerTest do
   setup do
     # ReminderWorker is already started globally in the application
 
-    # Create an event
+    # Create an event directly in the database (not using MockEventStore)
     {:ok, event} =
-      Events.create_event(%{
-        title: "Test Event",
-        description: "Test Description",
-        start_time: DateTime.utc_now() |> DateTime.add(3600, :second),
-        end_time: DateTime.utc_now() |> DateTime.add(7200, :second)
+      %HydepwnsLiveview.Events.Core.Event{}
+      |> HydepwnsLiveview.Events.Core.Event.changeset(%{
+        type: "calendar_event.created",
+        data: %{
+          title: "Test Event",
+          description: "Test Description",
+          start_time: DateTime.utc_now() |> DateTime.add(3600, :second) |> DateTime.truncate(:second),
+          end_time: DateTime.utc_now() |> DateTime.add(7200, :second) |> DateTime.truncate(:second)
+        },
+        resource_type: "calendar_event",
+        resource_id: Ecto.UUID.generate(),
+        timestamp: DateTime.utc_now() |> DateTime.truncate(:second)
       })
+      |> HydepwnsLiveview.Repo.insert()
 
     # Create event settings
     {:ok, settings} =
@@ -28,7 +36,7 @@ defmodule HydepwnsLiveview.Events.ReminderWorkerTest do
     {:ok, due_reminder} =
       Events.create_event_reminder(%{
         event_id: event.id,
-        reminder_time: DateTime.utc_now() |> DateTime.add(-60, :second),
+        reminder_time: DateTime.utc_now() |> DateTime.add(-60, :second) |> DateTime.truncate(:second),
         status: "pending",
         recipient: "test@example.com"
       })
@@ -37,7 +45,7 @@ defmodule HydepwnsLiveview.Events.ReminderWorkerTest do
     {:ok, future_reminder} =
       Events.create_event_reminder(%{
         event_id: event.id,
-        reminder_time: DateTime.utc_now() |> DateTime.add(3600, :second),
+        reminder_time: DateTime.utc_now() |> DateTime.add(3600, :second) |> DateTime.truncate(:second),
         status: "pending",
         recipient: "test@example.com"
       })

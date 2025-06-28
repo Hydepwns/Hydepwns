@@ -59,7 +59,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
 
       # Navigate to events dashboard
       session
-      |> click(Wallaby.Query.link("View Events"))
+      |> click(Query.css("[data-test-id='view-events-link']"))
 
       # Verify resource.created event is visible
       created_events = all(session, css(".event-row[data-event-type*='resource.created']"))
@@ -84,13 +84,31 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
       # Check for successful update using has_text? instead of page_source
       assert has_text?(session, "Resource updated successfully") or has_text?(session, "Updated description")
 
-      # Navigate to events dashboard
+      # Ensure we're on the resources dashboard
+      assert has_text?(session, "Resources")
+
+      # Navigate to events dashboard using data-test-id
       session
-      |> click(Wallaby.Query.link("View Events"))
+      |> click(Query.css("[data-test-id='view-events-link']"))
+
+      # Debug: Print the page source after navigation
+      IO.puts("==== PAGE SOURCE AFTER NAVIGATION ====")
+      IO.puts(page_source(session))
+      IO.puts("==== END PAGE SOURCE ====")
+
+      # Debug: Check what events are actually rendered
+      all_event_rows = all(session, css(".event-row"))
+      IO.puts("Total event rows found: #{length(all_event_rows)}")
+      
+      for {event_row, index} <- Enum.with_index(all_event_rows) do
+        event_type = Wallaby.Element.attr(event_row, "data-event-type")
+        event_type_text = Wallaby.Element.text(css(event_row, ".event-type"))
+        IO.puts("Event #{index}: type=#{event_type}, display=#{event_type_text}")
+      end
 
       # Verify resource.updated event is visible
-      Wallaby.Browser.assert_has(session, css(".event-row[data-event-type*='resource.updated']"))
-      Wallaby.Browser.assert_has(session, css(".event-data", text: "Updated description"))
+      updated_events = all(session, css(".event-row[data-event-type*='resource.updated'] .event-data", text: "Updated description"))
+      assert length(updated_events) >= 1
     end
 
     test "resource deletion generates events", %{session: session, resource: resource} do
@@ -109,13 +127,35 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
       # Check for successful deletion using has_text? instead of page_source
       assert has_text?(session, "Resource deleted successfully") or has_text?(session, "Resources")
 
-      # Navigate to events dashboard
-      session
-      |> click(Wallaby.Query.link("View Events"))
+      # Ensure we're on the resources dashboard
+      assert has_text?(session, "Resources")
+
+      # After deleting the resource, ensure we are on the resources dashboard
+      session = visit(session, "/events")
+
+      # Debug: Print the page source after navigation
+      IO.puts("==== PAGE SOURCE AFTER NAVIGATION ====")
+      IO.puts(page_source(session))
+      IO.puts("==== END PAGE SOURCE ====")
+
+      # Debug: Check what events are actually rendered
+      all_event_rows = all(session, css(".event-row"))
+      IO.puts("Total event rows found: #{length(all_event_rows)}")
+      
+      for {event_row, index} <- Enum.with_index(all_event_rows) do
+        event_type = Wallaby.Element.attr(event_row, "data-event-type")
+        event_type_text = Wallaby.Element.text(css(event_row, ".event-type"))
+        IO.puts("Event #{index}: type=#{event_type}, display=#{event_type_text}")
+      end
 
       # Verify resource.deleted event is visible
-      deleted_events = all(session, css(".event-resource-id", text: resource.id))
+      deleted_events = all(session, css(".event-row[data-event-type*='resource.deleted']"))
       assert length(deleted_events) >= 1
+
+      # Verify the deleted resource ID is present in the event
+      resource_id_elements = all(session, css(".event-resource-id.text-xs.text-gray-500"))
+      resource_ids = Enum.map(resource_id_elements, &Wallaby.Element.text/1)
+      assert resource.id in resource_ids
 
       # Verify event type is 'deleted'
       Wallaby.Browser.assert_has(session, css(".event-type", text: "deleted"))

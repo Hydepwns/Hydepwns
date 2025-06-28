@@ -18,7 +18,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
   alias HydepwnsLiveview.TestSupport.ResourceFixtures
   alias HydepwnsLiveviewWeb.TestMockHelper
 
-  setup %{session: session} do
+  setup %{session: session} = _context do
     # Start the MockEventStore if not already started
     case Process.whereis(HydepwnsLiveview.TestSupport.MockEventStore) do
       nil ->
@@ -29,6 +29,10 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
 
     # Set up mocks first, before any resource creation
     TestMockHelper.setup_mocks()
+
+    # Set up Ecto SQL Sandbox for Wallaby tests
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(HydepwnsLiveview.Repo)
+    Ecto.Adapters.SQL.Sandbox.mode(HydepwnsLiveview.Repo, {:shared, self()})
 
     unique = System.unique_integer([:positive])
 
@@ -85,6 +89,16 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       # Verify parent relationship is set in form
       child_resource = HydepwnsLiveview.Resources.ResourceSystem.get_resource(child.id) |> elem(1)
       assert child_resource.parent_id == parent.id
+
+      # Wait for the resource link to be visible after redirect
+      session = Wallaby.Browser.assert_has(session, css("a[data-test-id='resource-link-#{child.id}']"))
+
+      # Debug: Take screenshot and dump HTML to see what's rendered (after redirect)
+      session = Wallaby.Browser.take_screenshot(session, path: "tmp/debug_dashboard_after_update.png")
+      html = Wallaby.Browser.page_source(session)
+      File.write!("tmp/debug_dashboard_after_update.html", html)
+      IO.puts("Screenshot saved to tmp/debug_dashboard_after_update.png")
+      IO.puts("HTML saved to tmp/debug_dashboard_after_update.html")
 
       # Verify relationship events
       session

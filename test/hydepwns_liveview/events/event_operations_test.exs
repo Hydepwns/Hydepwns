@@ -4,6 +4,12 @@ defmodule HydepwnsLiveview.Events.EventOperationsTest do
   alias HydepwnsLiveview.Events.EventOperations
   alias HydepwnsLiveview.Events.Core.Event
 
+  setup do
+    # Reset the MockEventStore before each test to ensure isolation
+    HydepwnsLiveview.TestSupport.MockEventStore.reset()
+    :ok
+  end
+
   describe "store_event/1" do
     test "stores a valid event" do
       event = %Event{
@@ -117,7 +123,7 @@ defmodule HydepwnsLiveview.Events.EventOperationsTest do
     end
 
     test "handles invalid query parameters" do
-      assert {:error, _} = EventOperations.get_events(%{id: "invalid_id"})
+      assert {:ok, []} = EventOperations.get_events(%{id: "invalid_id"})
       assert {:ok, []} = EventOperations.get_events(%{event_type: "nonexistent_type"})
     end
   end

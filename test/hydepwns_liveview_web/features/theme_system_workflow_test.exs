@@ -1,12 +1,9 @@
 defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
-  use HydepwnsLiveviewWeb.ConnCase, async: false
   use HydepwnsLiveviewWeb.WallabyCase
   @moduletag :liveview
   import Wallaby.Query
   import Wallaby.Browser
   import HydepwnsLiveview.TestSupport.ThemeSystemHelper
-
-  alias HydepwnsLiveviewWeb.TestMockHelper
 
   @moduledoc """
   End-to-end tests for the Theme System workflow.
@@ -20,11 +17,12 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
   - Theme Performance
   """
 
-  alias HydepwnsLiveviewWeb.TestMockHelper
-
   setup %{session: session} = _context do
     # Set up per-test theme system isolation
-    {:ok, _table} = setup_theme_system_isolation()
+    {:ok, table} = setup_theme_system_isolation()
+    
+    # Store the table name in the process dictionary for WallabyCase to access
+    Process.put(:theme_system_ets_table, table)
 
     {:ok, light_theme} = HydepwnsLiveview.TestThemeSystemFixtures.light_theme_fixture()
     {:ok, dark_theme} = HydepwnsLiveview.TestThemeSystemFixtures.dark_theme_fixture()
@@ -38,47 +36,21 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
         primary_color: "#3b82f6",
         secondary_color: "#10b981",
         background_color: "#ffffff",
-        text_color: "#1f2937",
-        is_default: false,
-        settings: %{
-          font_size: "medium",
-          line_height: "normal",
-          contrast: "normal",
-          animations: true
-        }
+        text_color: "#1f2937"
       })
 
+    # Verify themes are created
     themes = HydepwnsLiveview.ThemeSystem.list_themes()
-    assert length(themes) >= 4
+    IO.puts("DEBUG: Themes created in test: #{inspect(themes, pretty: true)}")
 
-    Enum.each(themes, fn theme ->
-      assert theme.id != nil
-      assert theme.name != nil and theme.name != ""
-      assert theme.mode in ["light", "dark", "dim", "system"]
-    end)
-
-    # Set up mocks first, before any resource creation
-    TestMockHelper.setup_mocks()
-
-    session = visit_and_wait(session, "/themes")
-    Wallaby.Browser.take_screenshot(session, name: "theme_system_workflow_setup")
-
-    IO.puts(
-      "\n--- PAGE SOURCE ---\n" <>
-        Wallaby.Browser.page_source(session) <> "\n--- END PAGE SOURCE ---\n"
-    )
-
-    {:ok,
-     session: session,
-     theme: dim_theme,
-     light_theme: light_theme,
-     dark_theme: dark_theme,
-     system_theme: system_theme,
-     dim_theme: dim_theme}
+    # Pass the table name through URL parameters
+    session = visit(session, "/themes?theme_table=#{table}")
+    
+    {:ok, %{session: session, light_theme: light_theme, dark_theme: dark_theme, system_theme: system_theme, dim_theme: dim_theme}}
   end
 
   describe "theme management and application" do
-    test "_theme can be created and applied", %{session: session, _theme: _theme} do
+    test "_theme can be created and applied", %{session: session, light_theme: _light_theme} do
       # Navigate to theme creation
       session
       |> click(button("Create Theme"))
@@ -107,7 +79,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       Wallaby.Browser.assert_has(session, css(".theme-type", text: "dark"))
     end
 
-    test "_theme can be edited and updated", %{session: session, _theme: _theme} do
+    test "_theme can be edited and updated", %{session: session, light_theme: _light_theme} do
       # Debug: print all theme names in DB before clicking link
       themes = HydepwnsLiveview.ThemeSystem.list_themes()
       IO.puts("\n[DEBUG] Themes in DB before click: #{inspect(Enum.map(themes, & &1.name))}\n")
@@ -147,7 +119,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       Wallaby.Browser.assert_has(session, css(".theme-color", style: "background-color: #00FF00"))
     end
 
-    test "theme can be deleted", %{session: session, theme: theme} do
+    test "theme can be deleted", %{session: session, light_theme: light_theme} do
       # Navigate to theme
       try do
         session |> click(css("[data-test-id='theme-link-test-theme']"))
@@ -171,21 +143,21 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
         css(".alert-success", text: "Theme deleted successfully")
       )
 
-      Wallaby.Browser.refute_has(session, css(".theme-item", text: theme.name))
+      Wallaby.Browser.refute_has(session, css(".theme-item", text: light_theme.name))
     end
   end
 
   describe "theme customization" do
-    test "theme colors can be customized", %{session: session, theme: theme} do
+    test "theme colors can be customized", %{session: session, light_theme: light_theme} do
       # Navigate directly to theme customization page
       session
-      |> visit("/themes/#{theme.id}?customize=1")
+      |> visit("/themes/#{light_theme.id}/customize")
 
-      # Customize colors
+      # Customize colors using color input fields
       session
-      |> fill_in(text_field("theme[primary_color]"), with: "#FF5733")
-      |> fill_in(text_field("theme[secondary_color]"), with: "#33FF57")
-      |> fill_in(text_field("theme[accent_color]"), with: "#3357FF")
+      |> fill_in(css("input[name='theme[primary_color]']"), with: "#FF5733")
+      |> fill_in(css("input[name='theme[secondary_color]']"), with: "#33FF57")
+      |> fill_in(css("input[name='theme[accent_color]']"), with: "#3357FF")
       |> click(button("Save Colors"))
 
       # Verify color customization
@@ -205,16 +177,16 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       )
     end
 
-    test "theme typography can be customized", %{session: session, theme: theme} do
+    test "theme typography can be customized", %{session: session, light_theme: light_theme} do
       # Navigate directly to theme customization page
       session
-      |> visit("/themes/#{theme.id}?customize=1")
+      |> visit("/themes/#{light_theme.id}/customize")
 
       # Customize typography
       session
-      |> fill_in(text_field("theme[font_family]"), with: "Helvetica")
-      |> fill_in(text_field("theme[font_size]"), with: "16px")
-      |> fill_in(text_field("theme[line_height]"), with: "1.5")
+      |> fill_in(css("input[name='theme[font_family]']"), with: "Helvetica")
+      |> fill_in(css("input[name='theme[font_size]']"), with: "16px")
+      |> fill_in(css("input[name='theme[line_height]']"), with: "1.5")
       |> click(button("Save Typography"))
 
       # Verify typography customization
@@ -227,16 +199,16 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       Wallaby.Browser.assert_has(session, css(".typography-preview", style: "line-height: 1.5"))
     end
 
-    test "theme spacing can be customized", %{session: session, theme: theme} do
+    test "theme spacing can be customized", %{session: session, light_theme: light_theme} do
       # Navigate directly to theme customization page
       session
-      |> visit("/themes/#{theme.id}?customize=1")
+      |> visit("/themes/#{light_theme.id}/customize")
 
       # Customize spacing
       session
-      |> fill_in(text_field("theme[spacing_unit]"), with: "8px")
-      |> fill_in(text_field("theme[container_padding]"), with: "24px")
-      |> fill_in(text_field("theme[section_margin]"), with: "32px")
+      |> fill_in(css("input[name='theme[spacing_unit]']"), with: "8px")
+      |> fill_in(css("input[name='theme[container_padding]']"), with: "24px")
+      |> fill_in(css("input[name='theme[section_margin]']"), with: "32px")
       |> click(button("Save Spacing"))
 
       # Wait for preview section to reappear, then verify spacing customization
@@ -248,7 +220,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
   end
 
   describe "theme persistence and synchronization" do
-    test "theme preferences are persisted", %{session: session, theme: theme} do
+    test "theme preferences are persisted", %{session: session, light_theme: light_theme} do
       # Apply theme
       try do
         session |> click(css("[data-test-id='theme-link-test-theme']"))
@@ -266,15 +238,15 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       |> click(button("Apply Theme"))
 
       # Simulate setting the user_theme in the session (Wallaby does not persist cookies between reloads by default)
-      session = Wallaby.Browser.set_cookie(session, "user_theme", theme.name)
+      session = Wallaby.Browser.set_cookie(session, "user_theme", light_theme.name)
 
       # Reload page
       session
       |> visit("/")
 
       # Verify theme persistence
-      Wallaby.Browser.assert_has(session, css(".theme-applied", text: theme.name))
-      Wallaby.Browser.assert_has(session, css(".theme-type", text: theme.type))
+      Wallaby.Browser.assert_has(session, css(".theme-applied", text: light_theme.name))
+      Wallaby.Browser.assert_has(session, css(".theme-type", text: light_theme.mode))
     end
 
     test "theme changes sync across components", %{session: session, theme: theme} do

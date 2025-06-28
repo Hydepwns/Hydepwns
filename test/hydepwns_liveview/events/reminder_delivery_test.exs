@@ -3,17 +3,27 @@ defmodule HydepwnsLiveview.Events.ReminderDeliveryTest do
 
   alias HydepwnsLiveview.Events
   alias HydepwnsLiveview.Events.ReminderDelivery
+  alias HydepwnsLiveview.Events.Event
+  alias HydepwnsLiveview.Repo
 
   describe "send_reminder/1" do
     setup do
-      # Create an event
+      # Create a calendar event (not an event sourcing event)
       {:ok, event} =
-        Events.create_event(%{
-          title: "Test Event",
-          description: "Test Description",
-          start_time: DateTime.utc_now() |> DateTime.add(3600, :second),
-          end_time: DateTime.utc_now() |> DateTime.add(7200, :second)
+        %Event{}
+        |> Event.changeset(%{
+          type: "calendar_event.created",
+          data: %{
+            title: "Test Event",
+            description: "Test Description",
+            start_time: DateTime.utc_now() |> DateTime.add(3600, :second) |> DateTime.truncate(:second),
+            end_time: DateTime.utc_now() |> DateTime.add(7200, :second) |> DateTime.truncate(:second)
+          },
+          resource_type: "calendar_event",
+          resource_id: Ecto.UUID.generate()
         })
+        |> Repo.insert()
+
       IO.inspect(event, label: "DEBUG event after create_event")
 
       # Create event settings
@@ -29,7 +39,7 @@ defmodule HydepwnsLiveview.Events.ReminderDeliveryTest do
       {:ok, reminder} =
         Events.create_event_reminder(%{
           event_id: event.id,
-          reminder_time: DateTime.utc_now() |> DateTime.add(1800, :second), # 30 minutes from now
+          reminder_time: DateTime.utc_now() |> DateTime.add(1800, :second) |> DateTime.truncate(:second), # 30 minutes from now
           status: "pending",
           recipient: "test@example.com"
         })

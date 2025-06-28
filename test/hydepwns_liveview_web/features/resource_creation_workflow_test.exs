@@ -10,15 +10,15 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
   import HydepwnsLiveview.TestSupport.ResourceSystemHelper
   alias HydepwnsLiveviewWeb.TestMockHelper
 
-  defp accept_confirm(session) do
-    # Wallaby 0.30+ does not have accept_confirm, so we simulate clicking confirm
-    # If you use a custom modal, you may need to adjust this
-    session |> click(Query.button("OK"))
-  end
-
   setup do
     # Set up mocks first, before any resource creation
     TestMockHelper.setup_mocks()
+
+    # Start MockEventStore if not already started
+    case HydepwnsLiveview.TestSupport.MockEventStore.start_link([]) do
+      {:ok, _pid} -> :ok
+      {:error, {:already_started, _pid}} -> :ok
+    end
 
     setup_resource_system()
     resource = create_test_resource(%{type: "document", status: "published"})
@@ -28,23 +28,14 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
   test "user can create a new resource", %{session: session} do
     session
     |> visit("/resources/new")
-    |> fill_in(Query.text_field("Name"), with: "Test Resource")
+    |> fill_in(Query.text_field("Name"), with: "Unique Test Resource #{:rand.uniform(10000)}")
     |> fill_in(Query.text_field("Description"), with: "Test Description")
-    |> click(Query.button("Save Resource"))
-    # Manually visit the dashboard page to simulate the redirect
+    |> click(Query.button("Create Resource"))
     |> visit("/resources")
-    # Wait for the dashboard page to load
     |> Wallaby.Browser.assert_has(Query.text("Resources"))
-    # Print the page HTML for debugging
-    |> page_source()
-    |> then(fn html ->
-      IO.puts("\n=== PAGE HTML AFTER RESOURCE CREATION ===")
-      IO.puts(html)
-      IO.puts("=== END PAGE HTML ===\n")
-      html
-    end)
-    # Check for flash message
-    |> Wallaby.Browser.assert_has(Query.css("[data-test-id*='flash']"))
+    
+    # Assert that a resource link with the unique name is present
+    |> Wallaby.Browser.assert_has(Query.link("Unique Test Resource"))
   end
 
   test "user can edit an existing resource", %{session: session} do
@@ -59,12 +50,18 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
   end
 
   test "user can delete a resource", %{session: session} do
-    {:ok, _resource} = create_test_resource(%{})
-
+    {:ok, resource} = create_test_resource(%{name: "Resource to Delete"})
+    
     session
     |> visit("/resources")
-    |> click(Query.link("Delete"))
-    |> accept_confirm()
-    |> Wallaby.Browser.assert_has(Query.text("Resource deleted successfully"))
+    |> Wallaby.Browser.assert_has(Query.text("Resources"))
+    |> click(Query.css("[data-test-id='delete-resource-#{resource.id}']"))
+    |> Wallaby.Browser.assert_has(Query.text("Resources"))
+    
+    # Wait for the resource to be removed and assert it's no longer present
+    |> fn session ->
+      refute_has(session, Query.link("Resource to Delete"), timeout: 2000)
+      session
+    end.()
   end
 end

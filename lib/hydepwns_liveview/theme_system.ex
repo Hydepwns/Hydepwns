@@ -32,23 +32,29 @@ defmodule HydepwnsLiveview.ThemeSystem do
     table = ets_table()
     case :ets.info(table) do
       :undefined ->
-        :ets.new(table, [:named_table, :public, :set])
-        :ets.insert(table, {:next_id, 2})
-        default_theme = %MockTheme{
-          id: 1,
-          name: "Default Theme",
-          mode: "light",
-          primary_color: "#3B82F6",
-          secondary_color: "#10B981",
-          background_color: "#FFFFFF",
-          text_color: "#1F2937",
-          is_default: true,
-          settings: %{},
-          colors: %{},
-          inserted_at: DateTime.utc_now(),
-          updated_at: DateTime.utc_now()
-        }
-        :ets.insert(table, {1, default_theme})
+        try do
+          :ets.new(table, [:named_table, :public, :set])
+          :ets.insert(table, {:next_id, 2})
+          default_theme = %MockTheme{
+            id: 1,
+            name: "Default Theme",
+            mode: "light",
+            primary_color: "#3B82F6",
+            secondary_color: "#10B981",
+            background_color: "#FFFFFF",
+            text_color: "#1F2937",
+            is_default: true,
+            settings: %{},
+            colors: %{},
+            inserted_at: DateTime.utc_now(),
+            updated_at: DateTime.utc_now()
+          }
+          :ets.insert(table, {1, default_theme})
+        catch
+          :error, {:badarg, _} ->
+            # Table already exists, just continue
+            :ok
+        end
       _ ->
         :ok
     end
@@ -134,10 +140,25 @@ defmodule HydepwnsLiveview.ThemeSystem do
   def get_theme!(id) do
     ensure_ets_table()
     table = ets_table()
-    case :ets.lookup(table, id) do
-      [{^id, theme}] -> mock_to_theme(theme)
-      _ -> raise Ecto.NoResultsError, queryable: "themes", message: "Theme not found"
+    
+    # Handle special case for "new" theme
+    case id do
+      "new" ->
+        raise ArgumentError, "Cannot get theme with ID 'new' - use create_theme/1 instead"
+      id when is_binary(id) ->
+        case Integer.parse(id) do
+          {int_id, ""} -> int_id
+          _ -> raise ArgumentError, "Invalid theme ID: #{inspect(id)}"
+        end
+      id when is_integer(id) -> id
+      _ -> raise ArgumentError, "Invalid theme ID: #{inspect(id)}"
     end
+    |> then(fn int_id ->
+      case :ets.lookup(table, int_id) do
+        [{^int_id, theme}] -> mock_to_theme(theme)
+        _ -> raise Ecto.NoResultsError, queryable: "themes", message: "Theme not found"
+      end
+    end)
   end
 
   # For test isolation: clear all themes and reset next_id

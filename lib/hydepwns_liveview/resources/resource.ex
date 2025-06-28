@@ -37,6 +37,9 @@ defmodule HydepwnsLiveview.Resources.Resource do
   Also validates relationships and data format consistency.
   """
   def changeset(resource, attrs) do
+    # Pre-process content field to handle both string and map inputs
+    attrs = process_content_field(attrs)
+    
     resource
     |> cast(attrs, [
       :name,
@@ -56,7 +59,7 @@ defmodule HydepwnsLiveview.Resources.Resource do
     ])
     |> validate_required([:name, :type, :status])
     |> validate_length(:name, min: 3, max: 255)
-    |> validate_inclusion(:status, ["draft", "published", "archived", "deleted"])
+    |> validate_inclusion(:status, ["draft", "published", "archived", "deleted", "active"])
     |> validate_number(:version, greater_than: 0)
     |> validate_format(:type, ~r/^[a-z][a-z0-9_]*$/,
       message:
@@ -64,6 +67,20 @@ defmodule HydepwnsLiveview.Resources.Resource do
     )
     |> validate_circular_relationship()
     |> validate_relationship_type()
+  end
+
+  defp process_content_field(attrs) do
+    case Map.get(attrs, "content") || Map.get(attrs, :content) do
+      content when is_binary(content) ->
+        case Jason.decode(content) do
+          {:ok, decoded} -> Map.put(attrs, "content", decoded)
+          _ -> Map.put(attrs, "content", %{text: content})
+        end
+      content when is_map(content) ->
+        attrs
+      _ ->
+        Map.put(attrs, "content", %{})
+    end
   end
 
   defp validate_circular_relationship(changeset) do

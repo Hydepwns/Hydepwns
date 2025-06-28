@@ -800,6 +800,94 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   end
 
   @doc """
+  Deletes a snapshot by ID.
+
+  ## Parameters
+  * `id` - The ID of the snapshot to delete
+
+  ## Returns
+  * `{:ok, snapshot}` - The snapshot was deleted
+  * `{:error, :not_found}` - The snapshot was not found
+  * `{:error, reason}` - Error deleting the snapshot
+  """
+  @spec delete_snapshot(String.t()) :: {:ok, Snapshot.t()} | {:error, any()}
+  def delete_snapshot(id) do
+    try do
+      case Repo.get(Snapshot, id) do
+        nil ->
+          {:error, :not_found}
+
+        snapshot ->
+          Repo.delete(snapshot)
+      end
+    rescue
+      e ->
+        Logger.error("Error deleting snapshot: #{inspect(e)}")
+        {:error, e}
+    end
+  end
+
+  @doc """
+  Deletes versioned state by ID.
+
+  ## Parameters
+  * `id` - The ID of the versioned state to delete
+
+  ## Returns
+  * `{:ok, state}` - The versioned state was deleted
+  * `{:error, :not_found}` - The versioned state was not found
+  * `{:error, reason}` - Error deleting the versioned state
+  """
+  @spec delete_versioned_state(String.t()) :: {:ok, any()} | {:error, any()}
+  def delete_versioned_state(id) do
+    try do
+      case Repo.get(VersionedState, id) do
+        nil ->
+          {:error, :not_found}
+
+        state ->
+          Repo.delete(state)
+      end
+    rescue
+      e ->
+        Logger.error("Error deleting versioned state: #{inspect(e)}")
+        {:error, e}
+    end
+  end
+
+  @doc """
+  Gets the latest versioned state for a resource.
+
+  ## Parameters
+  * `resource_type` - The type of the resource
+  * `resource_id` - The ID of the resource
+
+  ## Returns
+  * `{:ok, state}` - The latest versioned state
+  * `{:error, :not_found}` - No versioned state found
+  * `{:error, reason}` - Error retrieving the versioned state
+  """
+  @spec get_latest_versioned_state(String.t(), String.t()) :: {:ok, any()} | {:error, any()}
+  def get_latest_versioned_state(resource_type, resource_id) do
+    query =
+      from vs in VersionedState,
+        where: vs._resource_type == ^resource_type and vs._resource_id == ^resource_id,
+        order_by: [desc: vs.version],
+        limit: 1
+
+    try do
+      case Repo.one(query) do
+        nil -> {:error, :not_found}
+        state -> {:ok, state}
+      end
+    rescue
+      e ->
+        Logger.error("Error retrieving latest versioned state: #{inspect(e)}")
+        {:error, e}
+    end
+  end
+
+  @doc """
   Stores an event in the event store.
 
   ## Parameters
@@ -866,6 +954,93 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
         {:error, reason}
     end
   end
+
+  @doc """
+  Gets a snapshot by ID.
+
+  ## Parameters
+  * `id` - The ID of the snapshot to retrieve
+
+  ## Returns
+  * `{:ok, snapshot}` - The snapshot was found
+  * `{:error, :not_found}` - No snapshot with the given ID exists
+  * `{:error, reason}` - Error retrieving the snapshot
+  """
+  @spec get_snapshot(String.t()) :: {:ok, Snapshot.t()} | {:error, any()}
+  def get_snapshot(id) do
+    try do
+      case Repo.get(Snapshot, id) do
+        nil -> {:error, :not_found}
+        snapshot -> {:ok, snapshot}
+      end
+    rescue
+      e ->
+        Logger.error("Error retrieving snapshot: #{inspect(e)}")
+        {:error, e}
+    end
+  end
+
+  @doc """
+  Gets a versioned state by ID.
+
+  ## Parameters
+  * `id` - The ID of the versioned state to retrieve
+
+  ## Returns
+  * `{:ok, state}` - The versioned state was found
+  * `{:error, :not_found}` - No versioned state with the given ID exists
+  * `{:error, reason}` - Error retrieving the versioned state
+  """
+  @spec get_versioned_state(String.t()) :: {:ok, any()} | {:error, any()}
+  def get_versioned_state(id) do
+    try do
+      case Repo.get(VersionedState, id) do
+        nil -> {:error, :not_found}
+        state -> {:ok, state}
+      end
+    rescue
+      e ->
+        Logger.error("Error retrieving versioned state: #{inspect(e)}")
+        {:error, e}
+    end
+  end
+
+  @doc """
+  Lists all events in the store.
+
+  ## Returns
+  * `{:ok, events}` - List of all events
+  * `{:error, reason}` - Error retrieving events
+  """
+  @spec list_all_events() :: {:ok, [Event.t()]} | {:error, any()}
+  def list_all_events() do
+    try do
+      events = Repo.all(Event)
+      {:ok, events}
+    rescue
+      e ->
+        Logger.error("Error listing all events: #{inspect(e)}")
+        {:error, e}
+    end
+  end
+
+  @doc """
+  Lists all replay sessions (stub).
+  """
+  @spec list_replay_sessions() :: {:ok, list()} | {:error, any()}
+  def list_replay_sessions() do
+    {:ok, []}
+  end
+
+  @doc """
+  Stub for list_snapshots/2 to match the bridge interface.
+  """
+  def list_snapshots(_resource_type, _resource_id), do: []
+
+  @doc """
+  Stub for list_versioned_states/2 to match the bridge interface.
+  """
+  def list_versioned_states(_resource_type, _resource_id), do: []
 
   # Private functions
 

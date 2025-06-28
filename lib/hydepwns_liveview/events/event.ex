@@ -16,19 +16,15 @@ defmodule HydepwnsLiveview.Events.Event do
     field :metadata, :map, default: %{}
     field :resource_type, :string
     field :resource_id, :string
-    field :timestamp, :utc_datetime
-    field :version, :integer, default: 1
-    field :aggregate_id, :string
-    field :aggregate_type, :string
-    field :correlation_id, :string
-    field :causation_id, :string
-    field :user_id, :binary_id
+    field :timestamp, :utc_datetime_usec
+    field :correlation_id, :binary_id
+    field :causation_id, :binary_id
 
     timestamps(type: :utc_datetime_usec)
   end
 
   @required_fields ~w(type data resource_type resource_id)a
-  @optional_fields ~w(metadata version aggregate_id aggregate_type correlation_id causation_id user_id)a
+  @optional_fields ~w(metadata correlation_id causation_id)a
 
   @doc """
   Creates a changeset for an event with validation.

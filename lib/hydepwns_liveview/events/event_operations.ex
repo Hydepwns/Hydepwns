@@ -16,16 +16,6 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   alias HydepwnsLiveview.Events.QueryBuilders.EventQuery
   alias HydepwnsLiveview.Events.Core.EventBus
 
-  # Use TestEventStore in test mode, real Repo otherwise
-  @dialyzer {:nowarn_function, event_store: 0}
-  defp event_store do
-    if Mix.env() == :test do
-      HydepwnsLiveview.Events.TestEventStore
-    else
-      Repo
-    end
-  end
-
   @doc """
   Stores an event in the event store.
 

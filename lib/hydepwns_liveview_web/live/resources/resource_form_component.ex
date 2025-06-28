@@ -14,42 +14,38 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
     # Normalize parent_id to "" for the form if nil
     resource = if Map.get(resource, :parent_id) == nil, do: Map.put(resource, :parent_id, ""), else: resource
     
-    # Convert content map to JSON string for form display
-    resource_with_json_content =
-      if Map.has_key?(resource, :content) and is_map(resource.content) do
-        %{resource | content: Jason.encode!(resource.content)}
-      else
-        resource
+    # Convert content map to plain text for form display
+    resource_with_text_content =
+      cond do
+        Map.has_key?(resource, :content) and is_map(resource.content) ->
+          %{resource | content: Map.get(resource.content, :text, "")}
+        true ->
+          resource
       end
     
     # Ensure required fields have default values for new resources (only on mount)
-    resource_with_defaults = 
-      if resource_with_json_content.id == nil do
-        %{resource_with_json_content | 
-          type: resource_with_json_content.type || "document",
-          status: resource_with_json_content.status || "draft"
+    _resource_with_defaults = 
+      if resource_with_text_content.id == nil do
+        %{resource_with_text_content | 
+          type: resource_with_text_content.type || "document",
+          status: resource_with_text_content.status || "draft"
         }
       else
-        resource_with_json_content
+        resource_with_text_content
       end
     
-    # Create changeset with existing resource data to preserve values like parent_id
-    # Convert struct to map, excluding Ecto metadata fields
-    resource_map = 
-      resource_with_defaults
-      |> Map.from_struct()
-      |> Map.drop([:__meta__])
-    
-    changeset = Resource.changeset(resource_with_defaults, resource_map)
+    # Create changeset with the processed resource data (with text content)
+    changeset = Resource.changeset(resource_with_text_content, %{})
+    # Force content to be a string for the form
+    content_text = resource_with_text_content.content || ""
+    changeset = %{changeset | data: %{changeset.data | content: content_text}}
+    changeset = if changeset.params, do: %{changeset | params: Map.put(changeset.params, "content", content_text)}, else: changeset
 
-    # Extract flash messages from assigns if present
-    flash_messages = Map.get(assigns, :flash_messages, %{})
-
+    IO.inspect(changeset.data.content, label: "[DEBUG] changeset.data.content before assign")
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(:changeset, changeset)
-     |> assign(:flash_messages, flash_messages)}
+     |> assign(:changeset, changeset)}
   end
 
   @impl true
@@ -59,6 +55,12 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
       socket.assigns.resource
       |> Resource.changeset(resource_params)
       |> Map.put(:action, :validate)
+    
+    # Ensure content is always plain text in the changeset
+    content_text = Map.get(resource_params, "content", "") || ""
+    changeset = %{changeset | data: %{changeset.data | content: content_text}}
+    changeset = if changeset.params, do: %{changeset | params: Map.put(changeset.params, "content", content_text)}, else: changeset
+    
     {:noreply, assign(socket, :changeset, changeset)}
   end
 
@@ -69,16 +71,24 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
   end
 
   defp parse_content_json(params) do
-    case Map.get(params, "content") do
+    content = Map.get(params, "content")
+    IO.inspect(content, label: "[DEBUG] parse_content_json input")
+    
+    result = case content do
       nil -> params
-      "" -> Map.put(params, "content", %{})
+      "" -> Map.put(params, "content", "")
+      content when is_map(content) ->
+        Map.put(params, "content", Map.get(content, :text, ""))
       content when is_binary(content) ->
         case Jason.decode(content) do
-          {:ok, map} -> Map.put(params, "content", map)
-          _ -> Map.put(params, "content", %{})
+          {:ok, %{"text" => text}} -> Map.put(params, "content", text)
+          _ -> Map.put(params, "content", content)
         end
       _ -> params
     end
+    
+    IO.inspect(result, label: "[DEBUG] parse_content_json output")
+    result
   end
 
   defp process_form_params(params) do
@@ -102,31 +112,51 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
   end
 
   defp save_resource(socket, :edit, resource_params) do
-    case ResourceSystem.update_resource(socket.assigns.resource.id, resource_params) do
+    IO.inspect(socket.assigns.parent_pid, label: "[DEBUG] parent_pid in save_resource")
+    
+    # Ensure content is always a map with :text key for the Resource schema
+    resource_params_with_map_content = 
+      case Map.get(resource_params, "content") do
+        content when is_binary(content) ->
+          Map.put(resource_params, "content", %{"text" => content})
+        content when is_map(content) ->
+          resource_params
+        _ ->
+          Map.put(resource_params, "content", %{"text" => ""})
+      end
+    
+    IO.puts("🔍 ResourceFormComponent: Content before update: #{inspect(resource_params_with_map_content["content"])}")
+    
+    case ResourceSystem.update_resource(socket.assigns.resource.id, resource_params_with_map_content) do
       {:ok, updated_resource} ->
         # Send event to parent LiveView for notification
+        IO.puts("🔍 Sending :resource_updated message to parent LiveView")
         send(socket.assigns.parent_pid, {:resource_updated, updated_resource})
         
         # Update the form with the new resource data
-        updated_resource_with_json_content =
+        updated_resource_with_text_content =
           if Map.has_key?(updated_resource, :content) and is_map(updated_resource.content) do
-            %{updated_resource | content: Jason.encode!(updated_resource.content)}
+            # Extract text from content map for form display
+            content_text = Map.get(updated_resource.content, :text, "")
+            %{updated_resource | content: content_text}
           else
             updated_resource
           end
         
+        # Convert struct to map with string keys only
         resource_map = 
-          updated_resource_with_json_content
+          updated_resource_with_text_content
           |> Map.from_struct()
           |> Map.drop([:__meta__])
+          |> Enum.map(fn {k, v} -> {to_string(k), v} end)
+          |> Map.new()
         
-        updated_changeset = Resource.changeset(updated_resource_with_json_content, resource_map)
+        updated_changeset = Resource.changeset(updated_resource_with_text_content, resource_map)
         
         {:noreply, 
          socket
-         |> assign(:resource, updated_resource_with_json_content)
-         |> assign(:changeset, updated_changeset)
-         |> put_flash(:info, "Resource updated successfully")}
+         |> assign(:resource, updated_resource_with_text_content)
+         |> assign(:changeset, updated_changeset)}
       {:error, %Ecto.Changeset{} = changeset} ->
         changeset = Map.put(changeset, :action, :validate)
         {:noreply, assign(socket, :changeset, changeset)}
@@ -150,17 +180,11 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
   def render(assigns) do
     ~H"""
     <div>
-      <%= if @flash_messages && @flash_messages[:info] do %>
-        <div class="alert alert-info" data-test-id="flash-info">
-          <%= @flash_messages[:info] %>
-        </div>
-      <% end %>
-
       <.form :let={f} for={@changeset} id="resource-form" phx-target={@myself} phx-change="validate" phx-submit="save">
         <div class="space-y-6">
           <div>
             <.input field={f[:name]} type="text" label="Name" />
-            <.error :for={error <- f[:name].errors}>
+            <.error :for={error <- f[:name].errors} data-test-id="name-error">
               <%= case error do
                 {message, _opts} -> message
                 message when is_binary(message) -> message
@@ -171,7 +195,18 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
 
           <div>
             <.input field={f[:description]} type="textarea" label="Description" />
-            <.error :for={error <- f[:description].errors}>
+            <.error :for={error <- f[:description].errors} data-test-id="description-error">
+              <%= case error do
+                {message, _opts} -> message
+                message when is_binary(message) -> message
+                other -> inspect(other)
+              end %>
+            </.error>
+          </div>
+
+          <div>
+            <.input field={f[:content]} type="textarea" label="Content" value={@changeset.data.content || ""} />
+            <.error :for={error <- f[:content].errors} data-test-id="content-error">
               <%= case error do
                 {message, _opts} -> message
                 message when is_binary(message) -> message
@@ -182,7 +217,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
 
           <div>
             <.input field={f[:type]} type="select" label="Type" options={[{"Document", "document"}, {"Folder", "folder"}, {"Task", "task"}, {"Note", "note"}]} />
-            <.error :for={error <- f[:type].errors}>
+            <.error :for={error <- f[:type].errors} data-test-id="type-error">
               <%= case error do
                 {message, _opts} -> message
                 message when is_binary(message) -> message
@@ -192,8 +227,8 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
           </div>
 
           <div>
-            <.input field={f[:status]} type="select" label="Status" options={[{"Draft", "draft"}, {"Published", "published"}, {"Archived", "archived"}]} />
-            <.error :for={error <- f[:status].errors}>
+            <.input field={f[:status]} type="select" label="Status" options={[{"Draft", "draft"}, {"Published", "published"}, {"Active", "active"}, {"Archived", "archived"}]} />
+            <.error :for={error <- f[:status].errors} data-test-id="status-error">
               <%= case error do
                 {message, _opts} -> message
                 message when is_binary(message) -> message

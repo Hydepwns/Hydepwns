@@ -8,5 +8,7 @@
     </div>
   </div>
 
-  <.live_component module={HydepwnsLiveviewWeb.ResourceFormComponent} id={@resource.id} title={@page_title} action={:edit} resource={@resource} resources={@resources} navigate={~p"/resources/#{@resource.id}"} parent_pid={self()} flash_messages={@flash} />
+  <.flash_group flash={@flash} />
+
+  <.live_component module={HydepwnsLiveviewWeb.ResourceFormComponent} id={@resource.id} title={@page_title} action={:edit} resource={@resource} resources={@resources} navigate={~p"/resources/#{@resource.id}"} parent_pid={self()} />
 </div>

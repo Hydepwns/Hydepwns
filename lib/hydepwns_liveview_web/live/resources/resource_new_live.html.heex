@@ -2,11 +2,13 @@
   <div class="flex justify-between items-center mb-8">
     <h1 class="text-3xl font-bold">New Resource</h1>
     <div class="flex space-x-4">
-      <.link navigate={~p"/resources"} class="text-blue-600 hover:text-blue-800">
+      <.link navigate={~p"/resources"} class="text-blue-600 hover:text-blue-800" data-test-id="cancel-resource-link">
         Back to Resources
       </.link>
     </div>
   </div>
+
+  <.flash_group flash={@flash} />
 
   <.live_component module={HydepwnsLiveviewWeb.ResourceFormComponent} id="new" title={@page_title} action={:new} resource={@resource} resources={@resources} navigate={~p"/resources"} parent_pid={self()} flash_messages={@flash} />
 </div>

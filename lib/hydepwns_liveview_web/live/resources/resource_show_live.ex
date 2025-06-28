@@ -44,6 +44,8 @@ defmodule HydepwnsLiveviewWeb.ResourceShowLive do
   @impl true
   def render(assigns) do
     ~H"""
+    <.flash_group flash={@flash} />
+    
     <div class="container mx-auto px-4 py-8">
       <div class="max-w-4xl mx-auto">
         <div class="mb-6">

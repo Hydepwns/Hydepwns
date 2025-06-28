@@ -7,6 +7,8 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
 
   import Phoenix.Component
 
+  alias HydepwnsLiveview.Events.EventStore
+
   def mount(_params, _session, socket) do
     socket =
       socket
@@ -17,7 +19,16 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
       |> assign_new(:flash_group_id, fn -> "resource-event-system-flash" end)
       |> assign(:show_filters, false)
 
-    socket
+    {:ok, socket}
+  end
+
+  def handle_params(%{"id" => resource_id}, _url, socket) do
+    {:ok, events} = EventStore.get_events_for_resource("resource", resource_id)
+    
+    {:noreply, 
+     socket
+     |> assign(:resource_id, resource_id)
+     |> assign(:events, events)}
   end
 
   def handle_event("filter_events", %{"event_filter" => filter_params}, socket) do

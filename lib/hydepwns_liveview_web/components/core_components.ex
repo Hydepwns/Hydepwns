@@ -125,14 +125,14 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
       role="alert"
       class={[
         "fixed top-2 right-2 mr-2 w-80 sm:w-96 z-50 rounded-lg p-3 ring-1",
-        @kind == :info && "bg-emerald-50 text-emerald-800 ring-emerald-500 fill-cyan-900 alert-success",
-        @kind == :error && "bg-rose-50 text-rose-900 shadow-md ring-rose-500 fill-rose-900"
+        ((@kind == :info) or (@kind == "info")) && "alert-success bg-emerald-50 text-emerald-800 ring-emerald-500 fill-cyan-900",
+        ((@kind == :error) or (@kind == "error")) && "alert-error bg-rose-50 text-rose-900 shadow-md ring-rose-500 fill-rose-900"
       ]}
-      data-test-id={(@kind == :info && "flash-success") || (@kind == :error && "flash-error")}
+      data-test-id={((@kind == :info) or (@kind == "info")) && "flash-success" || ((@kind == :error) or (@kind == "error")) && "flash-error"}
     >
       <p :if={@title} class="flex items-center gap-1.5 text-sm font-semibold leading-6">
-        <.icon :if={@kind == :info} name="hero-information-circle-mini" class="h-4 w-4" />
-        <.icon :if={@kind == :error} name="hero-exclamation-circle-mini" class="h-4 w-4" /> {@title}
+        <.icon :if={(@kind == :info) or (@kind == "info")} name="hero-information-circle-mini" class="h-4 w-4" />
+        <.icon :if={(@kind == :error) or (@kind == "error")} name="hero-exclamation-circle-mini" class="h-4 w-4" /> {@title}
       </p>
       <p class="mt-2 text-sm leading-5"><%= msg %></p>
       <button type="button" class="group absolute top-1 right-1 p-2" aria-label={gettext("close")}>

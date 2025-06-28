@@ -15,6 +15,12 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
 
   # Store a single event (Event struct)
   def store_event(%{type: _type, resource_type: _resource_type, resource_id: _resource_id} = event, _metadata) do
+    event =
+      if Map.get(event, :id) do
+        event
+      else
+        Map.put(event, :id, Ecto.UUID.generate())
+      end
     IO.puts("🔵 MockEventStore.store_event: #{event.type} for #{event.resource_type}:#{event.resource_id}")
     Agent.update(__MODULE__, fn state ->
       key = {to_atom(event.resource_type), event.resource_id}
@@ -59,16 +65,21 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
         |> Map.values()
         |> List.flatten()
         |> Enum.filter(fn event ->
-          case criteria do
-            %{resource_type: resource_type, resource_id: resource_id} ->
-              event.resource_type == to_atom(resource_type) && event.resource_id == resource_id
-            %{event_type: event_type} ->
-              event.type == event_type
-            _ ->
-              true
-          end
+          Enum.all?(criteria, fn
+            {:id, id} -> event.id == id
+            {:resource_type, resource_type} -> event.resource_type == to_atom(resource_type)
+            {:resource_id, resource_id} -> event.resource_id == resource_id
+            {:event_type, event_type} -> event.type == event_type
+            {:limit, _} -> true # limit handled after filtering
+            _ -> true
+          end)
         end)
       end)
+    events =
+      case criteria do
+        %{limit: limit} when is_integer(limit) and limit > 0 -> Enum.take(events, limit)
+        _ -> events
+      end
     IO.puts("🟢 MockEventStore.get_events: #{length(events)} events matching criteria")
     {:ok, events}
   end

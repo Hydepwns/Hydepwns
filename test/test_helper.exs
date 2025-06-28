@@ -21,6 +21,12 @@ Ecto.Adapters.SQL.Sandbox.mode(HydepwnsLiveview.Repo, :manual)
 # Set up global mocks for all tests
 HydepwnsLiveviewWeb.TestMockHelper.setup_mocks()
 
+# Start MockEventStore globally for all tests
+case HydepwnsLiveview.TestSupport.MockEventStore.start_link([]) do
+  {:ok, _pid} -> :ok
+  {:error, {:already_started, _pid}} -> :ok
+end
+
 # Define setup callback for all tests
 defmodule HydepwnsLiveview.TestSetup do
   use ExUnit.CaseTemplate

@@ -28,7 +28,20 @@ defmodule HydepwnsLiveview.TestSupport.ThemeSystemHelper do
     # Initialize the table with the theme system
     HydepwnsLiveview.ThemeSystem.reset_themes()
     
+    # Ensure the table is created and accessible
+    ensure_ets_table_exists(table)
+    
     {:ok, table}
+  end
+
+  defp ensure_ets_table_exists(table) do
+    case :ets.info(table) do
+      :undefined ->
+        :ets.new(table, [:named_table, :public, :set])
+        :ets.insert(table, {:next_id, 1})
+      _ ->
+        :ok
+    end
   end
 
   @doc """

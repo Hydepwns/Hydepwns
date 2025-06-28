@@ -28,41 +28,49 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
     HydepwnsLiveviewWeb.TestMockHelper.setup_mocks()
     
     # Start a sandbox owner for this test
-    pid = try do
-      Ecto.Adapters.SQL.Sandbox.start_owner!(HydepwnsLiveview.Repo, shared: not tags[:async])
-    rescue
-      e in RuntimeError ->
-        if String.contains?(e.message, "already_shared") do
-          # Sandbox is already shared, use the current process
-          self()
-        else
-          reraise e, __STACKTRACE__
-        end
-    end
+    {pid, started_owner?} =
+      try do
+        {Ecto.Adapters.SQL.Sandbox.start_owner!(HydepwnsLiveview.Repo, shared: not tags[:async]), true}
+      rescue
+        e in RuntimeError ->
+          if String.contains?(e.message, "already_shared") do
+            {self(), false}
+          else
+            reraise e, __STACKTRACE__
+          end
+      end
     
-    on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
-    
-    # Allow the current process to use the sandbox
-    Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), pid)
-
-    # Create metadata for the sandbox
-    metadata = Phoenix.Ecto.SQL.Sandbox.metadata_for(HydepwnsLiveview.Repo, pid)
-    {:ok, session} = Wallaby.start_session(metadata: metadata)
-
-    # Visit a default page to ensure LiveView is started and expose the PID
-    session = visit_and_wait(session, "/themes")
-
-    # Create screenshots directory if it doesn't exist
-    File.mkdir_p!("test/screenshots")
-
-    # Clean up previous screenshots if requested
-    if tags[:clean_screenshots] do
-      "test/screenshots/*.png"
-      |> Path.wildcard()
-      |> Enum.each(&File.rm!/1)
+    if started_owner? do
+      on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
+      Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), pid)
+      metadata = Phoenix.Ecto.SQL.Sandbox.metadata_for(HydepwnsLiveview.Repo, pid)
+      # Add theme system ETS table to metadata if available
+      metadata = if table = Process.get(:theme_system_ets_table) do
+        Map.put(metadata, :theme_system_ets_table, table)
+      else
+        metadata
+      end
+      {:ok, session} = Wallaby.start_session(metadata: metadata)
+      session = visit_and_wait(session, "/themes")
+      File.mkdir_p!("test/screenshots")
+      if tags[:clean_screenshots] do
+        "test/screenshots/*.png"
+        |> Path.wildcard()
+        |> Enum.each(&File.rm!/1)
+      end
+      {:ok, %{session: session}}
+    else
+      # If already shared, start session without metadata
+      {:ok, session} = Wallaby.start_session()
+      session = visit_and_wait(session, "/themes")
+      File.mkdir_p!("test/screenshots")
+      if tags[:clean_screenshots] do
+        "test/screenshots/*.png"
+        |> Path.wildcard()
+        |> Enum.each(&File.rm!/1)
+      end
+      {:ok, %{session: session}}
     end
-
-    {:ok, %{session: session}}
   end
 
   @doc """
@@ -145,6 +153,34 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
       else
         flunk("Element not found: #{inspect(query)} after #{timeout}ms")
       end
+    end
+  end
+
+  @doc """
+  Refutes that the given query is present in the session, with optional timeout (in ms).
+  Usage:
+      refute_has(session, css(".my-selector"), timeout: 2000)
+  """
+  def refute_has(session, query), do: do_refute_has(session, query, 1000, 100, System.monotonic_time(:millisecond))
+
+  def refute_has(session, query, opts) when is_list(opts) do
+    timeout = Keyword.get(opts, :timeout, 1000)
+    interval = Keyword.get(opts, :interval, 100)
+    start_time = System.monotonic_time(:millisecond)
+    do_refute_has(session, query, timeout, interval, start_time)
+  end
+
+  defp do_refute_has(session, query, timeout, interval, start_time) do
+    if Wallaby.Browser.has?(session, query) do
+      now = System.monotonic_time(:millisecond)
+      if now - start_time < timeout do
+        Process.sleep(interval)
+        do_refute_has(session, query, timeout, interval, start_time)
+      else
+        flunk("Element still present: #{inspect(query)} after #{timeout}ms")
+      end
+    else
+      true
     end
   end
 end

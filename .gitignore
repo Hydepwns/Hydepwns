@@ -63,3 +63,11 @@ npm-debug.log
 *.sublime-workspace
 *.sublime-project
 *.code-workspace
+
+# PostgreSQL database files
+.postgres/
+postgres.log
+
+# Nix development environment
+.envrc
+shell.nix

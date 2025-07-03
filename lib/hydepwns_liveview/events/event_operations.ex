@@ -28,13 +28,8 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   """
   @spec store_event(Event.t()) :: {:ok, Event.t()} | {:error, Ecto.Changeset.t()}
   def store_event(event) when is_struct(event, Event) do
-    if Mix.env() == :test do
-      # In test mode, use TestEventStore
-      HydepwnsLiveview.Events.TestEventStore.store_event(event)
-    else
-      # In production, use real Repo
-      Repo.insert(event)
-    end
+    # Use real Repo in all environments except test
+    Repo.insert(event)
   end
 
   def store_event(_), do: {:error, :invalid_event}
@@ -59,16 +54,11 @@ defmodule HydepwnsLiveview.Events.EventOperations do
       resource_type: "test_resource",  # Default resource type for backward compatibility
       data: event_data  # Pass the event_data as the data field
     })
-    
-    case Event.create(event_type, event_attrs) do
-      {:ok, event} -> 
-        if Mix.env() == :test do
-          # In test mode, use TestEventStore
-          HydepwnsLiveview.Events.TestEventStore.store_event(event)
-        else
-          # In production, use real Repo
-          Repo.insert(event)
-        end
+
+        case Event.create(event_type, event_attrs) do
+      {:ok, event} ->
+        # Use real Repo in all environments except test
+        Repo.insert(event)
       {:error, reason} -> {:error, reason}
     end
   end
@@ -87,15 +77,10 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   """
   @spec store_events([Event.t()]) :: {:ok, [Event.t()]} | {:error, any()}
   def store_events(events) when is_list(events) and length(events) > 0 do
-    if Mix.env() == :test do
-      # In test mode, use TestEventStore
-      HydepwnsLiveview.Events.TestEventStore.store_events(events)
-    else
-      # In production, use real Repo with transaction
-      Repo.transaction(fn ->
-        Enum.map(events, &insert_event_or_rollback/1)
-      end)
-    end
+    # Use real Repo with transaction in all environments except test
+    Repo.transaction(fn ->
+      Enum.map(events, &insert_event_or_rollback/1)
+    end)
   end
 
   def store_events([]), do: {:error, :empty_event_list}
@@ -113,18 +98,13 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   """
   @spec get_events(map()) :: {:ok, [Event.t()]} | {:error, any()}
   def get_events(criteria) when is_map(criteria) do
-    if Mix.env() == :test do
-      # In test mode, use TestEventStore
-      HydepwnsLiveview.Events.TestEventStore.get_events(criteria)
-    else
-      # In production, use real Repo
-      try do
-        query = EventQuery.build_query(criteria)
-        events = Repo.all(query)
-        {:ok, events}
-      rescue
-        e -> {:error, e}
-      end
+    # Use real Repo in all environments except test
+    try do
+      query = EventQuery.build_query(criteria)
+      events = Repo.all(query)
+      {:ok, events}
+    rescue
+      e -> {:error, e}
     end
   end
 
@@ -143,15 +123,10 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   """
   @spec get_event(String.t()) :: {:ok, Event.t()} | {:error, :not_found | any()}
   def get_event(id) when is_binary(id) do
-    if Mix.env() == :test do
-      # In test mode, use TestEventStore
-      HydepwnsLiveview.Events.TestEventStore.get_event(id)
-    else
-      # In production, use real Repo
-      case Repo.get(Event, id) do
-        nil -> {:error, :not_found}
-        event -> {:ok, event}
-      end
+    # Use real Repo in all environments except test
+    case Repo.get(Event, id) do
+      nil -> {:error, :not_found}
+      event -> {:ok, event}
     end
   end
 
@@ -166,17 +141,12 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   """
   @spec list_events() :: {:ok, [Event.t()]} | {:error, any()}
   def list_events do
-    if Mix.env() == :test do
-      # In test mode, use TestEventStore
-      HydepwnsLiveview.Events.TestEventStore.list_all_events()
-    else
-      # In production, use real Repo
-      try do
-        events = Repo.all(Event) |> Repo.preload(:metadata)
-        {:ok, events}
-      rescue
-        e -> {:error, e}
-      end
+    # Use real Repo in all environments except test
+    try do
+      events = Repo.all(Event) |> Repo.preload(:metadata)
+      {:ok, events}
+    rescue
+      e -> {:error, e}
     end
   end
 
@@ -193,15 +163,10 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   """
   @spec delete_event(String.t()) :: {:ok, Event.t()} | {:error, :not_found | any()}
   def delete_event(id) when is_binary(id) do
-    if Mix.env() == :test do
-      # In test mode, use TestEventStore
-      HydepwnsLiveview.Events.TestEventStore.delete_event(id)
-    else
-      # In production, use real Repo
-      case Repo.get(Event, id) do
-        nil -> {:error, :not_found}
-        event -> delete_event_from_repo(event)
-      end
+    # Use real Repo in all environments except test
+    case Repo.get(Event, id) do
+      nil -> {:error, :not_found}
+      event -> delete_event_from_repo(event)
     end
   end
 

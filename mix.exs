@@ -135,7 +135,7 @@ defmodule HydepwnsLiveview.MixProject do
       {:dialyxir, "~> 1.3", only: [:dev], runtime: false},
 
       # Add Signal Protocol for secure messaging
-      {:libsignal_protocol_nif, path: "lib/libsignal-protocol-nif", manager: :rebar3},
+      # {:nif, path: "lib/libsignal-protocol-nif", manager: :rebar3},
       # {:signal_nif,
       #  path: "lib/signal-nif",
       #  manager: :rebar3},

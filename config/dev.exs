@@ -2,7 +2,7 @@ import Config
 
 # Configure your database
 config :hydepwns_liveview, HydepwnsLiveview.Repo,
-  username: System.get_env("DEV_DB_USERNAME") || "postgres",
+  username: System.get_env("DEV_DB_USERNAME") || "droo",
   # If your user doesn't have a password
   password: System.get_env("DEV_DB_PASSWORD") || "",
   hostname: System.get_env("DEV_DB_HOST") || "localhost",

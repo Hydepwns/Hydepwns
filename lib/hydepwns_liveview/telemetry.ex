@@ -276,8 +276,10 @@ defmodule HydepwnsLiveview.Telemetry do
     _ -> 0.0
   end
 
-  # Get the count of errors
-  defp get_error_count do
+  @doc """
+  Get the count of validation errors.
+  """
+  def get_error_count do
     try do
       :ets.lookup(:validation_stats, :error_count)
       |> case do
@@ -289,8 +291,10 @@ defmodule HydepwnsLiveview.Telemetry do
     end
   end
 
-  # Get the count of successful validations
-  defp get_success_count do
+  @doc """
+  Get the count of successful validations.
+  """
+  def get_success_count do
     try do
       :ets.lookup(:validation_stats, :success_count)
       |> case do

@@ -14,6 +14,7 @@ defmodule HydepwnsLiveview.Application do
       [
         HydepwnsLiveviewWeb.Telemetry,
         HydepwnsLiveview.Telemetry,
+        HydepwnsLiveview.Telemetry.Alerts,
         HydepwnsLiveview.Resources.ResourceSystem,
         HydepwnsLiveview.Transformations.TransformationRegistry,
         HydepwnsLiveview.Transformations.TransformationMetrics,

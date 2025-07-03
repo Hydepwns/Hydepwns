@@ -142,6 +142,9 @@ defmodule HydepwnsLiveviewWeb.Router do
 
     live "/timeline", TimelineLive, :index, as: :timeline
 
+    # Telemetry dashboard
+    live "/telemetry", TelemetryDashboardLive, :index, as: :telemetry
+
     if Mix.env() == :test do
       live "/test-resource-live", TestResourceLive, :index, as: :test_resource_live
     end

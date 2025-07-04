@@ -51,6 +51,10 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
         metadata
       end
       {:ok, session} = Wallaby.start_session(metadata: metadata)
+      # Set the theme system ETS table in the session process
+      if table = Process.get(:theme_system_ets_table) do
+        Process.put(:theme_system_ets_table, table)
+      end
       session = visit_and_wait(session, "/themes")
       File.mkdir_p!("test/screenshots")
       if tags[:clean_screenshots] do

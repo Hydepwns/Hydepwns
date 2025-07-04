@@ -3,7 +3,7 @@
   "private": true,
   "dependencies": {
     "phoenix": "^1.7.21",
-    "phoenix_live_view": "^1.0.13"
+    "phoenix_live_view": "^1.0.17"
   },
   "scripts": {
     "deploy": "esbuild js/app.js --bundle --minify --target=es2017 --outdir=../priv/static/assets",

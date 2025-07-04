@@ -7,7 +7,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeEditLive do
   @impl Phoenix.LiveView
   def mount(_params, session, socket) do
     # Set the theme system ETS table from session metadata if provided (for tests)
-    if table = session[:theme_system_ets_table] do
+    if table = session["theme_system_ets_table"] || session[:theme_system_ets_table] do
       Process.put(:theme_system_ets_table, table)
     end
 
@@ -17,19 +17,36 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeEditLive do
   end
 
   @impl Phoenix.LiveView
+  def handle_params(%{"id" => id, "theme_table" => table} = _params, _url, socket) do
+    # Set the theme system ETS table from URL parameters (for tests)
+    # Convert string to atom for ETS table name
+    table_atom = String.to_existing_atom(table)
+    Process.put(:theme_system_ets_table, table_atom)
+    IO.puts("DEBUG: Set theme_system_ets_table from URL to #{table_atom}")
+    
+    theme = ThemeSystem.get_theme!(id)
+    changeset = ThemeSystem.change_theme(theme)
+    {:noreply, assign(socket, :theme, theme) |> assign(:changeset, changeset)}
+  end
+
+  @impl Phoenix.LiveView
   def handle_params(%{"id" => id}, _url, socket) do
     theme = ThemeSystem.get_theme!(id)
-    {:noreply, assign(socket, :theme, theme)}
+    changeset = ThemeSystem.change_theme(theme)
+    {:noreply, assign(socket, :theme, theme) |> assign(:changeset, changeset)}
   end
 
   @impl Phoenix.LiveView
   def handle_event("save", %{"theme" => theme_params}, socket) do
     case ThemeSystem.update_theme(socket.assigns.theme, theme_params) do
-      {:ok, _theme} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "Theme updated successfully")
-         |> push_navigate(to: ~p"/themes")}
+              {:ok, _theme} ->
+          theme_table = Process.get(:theme_system_ets_table)
+          navigate_to = if theme_table, do: "/themes?theme_table=#{theme_table}", else: ~p"/themes"
+          
+          {:noreply,
+           socket
+           |> put_flash(:info, "Theme updated successfully")
+           |> push_navigate(to: navigate_to)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :changeset, changeset)}
@@ -40,29 +57,43 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeEditLive do
   def render(assigns) do
     ~H"""
     <div class="container mx-auto px-4 py-8">
-      <%= HydepwnsLiveviewWeb.Components.Common.HeaderComponent.header(assigns) %>
+      <header class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Edit Theme</h1>
+        </div>
+      </header>
 
       <div class="bg-white shadow rounded-lg p-6">
         <div class="space-y-6">
           <div>
             <h3 class="text-lg font-medium">Edit Theme</h3>
-            <.form :let={f} for={%{}} id="theme-form" phx-submit="save">
+            <.form :let={f} for={@changeset} id="theme-form" phx-submit="save">
               <div class="space-y-4">
                 <div>
                   <.label_tag for={f[:name].id}>Name</.label_tag>
-                  <.input field={f[:name]} type="text" value={@theme.name} />
+                  <.input field={f[:name]} type="text" data-test-id="theme-form_name" />
                 </div>
 
                 <div>
                   <.label_tag for={f[:mode].id}>Mode</.label_tag>
-                  <.input field={f[:mode]} type="select" options={[Light: "light", Dark: "dark", System: "system"]} value={@theme.mode} />
+                  <.input field={f[:mode]} type="select" options={[Light: "light", Dark: "dark", System: "system"]} data-test-id="theme-form_mode" />
+                </div>
+
+                <div>
+                  <.label_tag for={f[:primary_color].id}>Primary Color</.label_tag>
+                  <.input field={f[:primary_color]} type="text" data-test-id="theme-form_primary_color" />
+                </div>
+
+                <div>
+                  <.label_tag for={f[:secondary_color].id}>Secondary Color</.label_tag>
+                  <.input field={f[:secondary_color]} type="text" data-test-id="theme-form_secondary_color" />
                 </div>
 
                 <div class="flex justify-end space-x-4">
                   <.link navigate={~p"/themes/#{@theme}"} class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
                     Cancel
                   </.link>
-                  <.button type="submit" phx-disable-with="Saving...">
+                  <.button type="submit" phx-disable-with="Saving..." data-test-id="save-theme">
                     Save Theme
                   </.button>
                 </div>

@@ -6,7 +6,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
   @impl Phoenix.LiveView
   def mount(_params, session, socket) do
     # Set the theme system ETS table from session metadata if provided (for tests)
-    if table = session["theme_system_ets_table"] do
+    if table = session["theme_system_ets_table"] || session[:theme_system_ets_table] do
       Process.put(:theme_system_ets_table, table)
       IO.puts("DEBUG: Set theme_system_ets_table from session to #{table}")
     else
@@ -113,6 +113,11 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
     assigns = assign(assigns, :title, "Theme Manager")
     ~H"""
     <div class="container mx-auto px-4 py-8" data-mode={@theme_class}>
+      <%= if Phoenix.Flash.get(@flash, :info) do %>
+        <div class="alert alert-success bg-green-100 border border-green-400 text-green-800 px-4 py-3 rounded relative mb-6" role="alert">
+          <%= Phoenix.Flash.get(@flash, :info) %>
+        </div>
+      <% end %>
       <header class="flex items-center justify-between mb-6">
         <div>
           <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Theme Manager</h1>

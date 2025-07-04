@@ -100,15 +100,24 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeCustomizeLive do
             <div class="space-y-4">
               <div>
                 <label for="theme[primary_color]" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Primary Color</label>
-                <input type="color" name="theme[primary_color]" id="theme[primary_color]" value={@theme.primary_color} class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <div class="mt-1 flex space-x-2">
+                  <input type="color" name="theme[primary_color]" id="theme[primary_color]_picker" value={@theme.primary_color} class="h-10 w-16 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                  <input type="text" name="theme[primary_color]" id="theme[primary_color]" value={@theme.primary_color} class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="#000000">
+                </div>
               </div>
               <div>
                 <label for="theme[secondary_color]" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Secondary Color</label>
-                <input type="color" name="theme[secondary_color]" id="theme[secondary_color]" value={@theme.secondary_color} class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <div class="mt-1 flex space-x-2">
+                  <input type="color" name="theme[secondary_color]" id="theme[secondary_color]_picker" value={@theme.secondary_color} class="h-10 w-16 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                  <input type="text" name="theme[secondary_color]" id="theme[secondary_color]" value={@theme.secondary_color} class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="#000000">
+                </div>
               </div>
               <div>
                 <label for="theme[accent_color]" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Accent Color</label>
-                <input type="color" name="theme[accent_color]" id="theme[accent_color]" value={Map.get(@theme.colors, "accent", "#3357FF")} class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <div class="mt-1 flex space-x-2">
+                  <input type="color" name="theme[accent_color]" id="theme[accent_color]_picker" value={Map.get(@theme.colors, "accent", "#3357FF")} class="h-10 w-16 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                  <input type="text" name="theme[accent_color]" id="theme[accent_color]" value={Map.get(@theme.colors, "accent", "#3357FF")} class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="#000000">
+                </div>
               </div>
             </div>
             <div class="mt-6">
@@ -222,6 +231,27 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeCustomizeLive do
         </div>
       </div>
     </div>
+    
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // Synchronize color picker and text input values
+        const colorInputs = document.querySelectorAll('input[type="color"]');
+        colorInputs.forEach(function(colorInput) {
+          const textInput = document.getElementById(colorInput.name);
+          if (textInput) {
+            // Update text input when color picker changes
+            colorInput.addEventListener('input', function() {
+              textInput.value = this.value;
+            });
+            
+            // Update color picker when text input changes
+            textInput.addEventListener('input', function() {
+              colorInput.value = this.value;
+            });
+          }
+        });
+      });
+    </script>
     """
   end
 end 

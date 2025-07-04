@@ -122,6 +122,9 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
                 Resource ID
               </th>
               <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Timestamp
               </th>
               <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -137,6 +140,9 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-test-id="event-resource-id">
                   <%= event.resource_id %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-test-id="event-status">
+                  <span class="event-status">processed</span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-test-id="event-timestamp">
                   <%= format_datetime(event.timestamp) %>

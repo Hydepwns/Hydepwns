@@ -373,6 +373,11 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
   @doc """
   Renders a button.
   """
+  attr :type, :string, default: "button"
+  attr :class, :string, default: nil
+  attr :rest, :global
+  slot :inner_block, required: true
+
   def button(assigns) do
     ~H"""
     <button
@@ -383,7 +388,7 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
       ]}
       {@rest}
     >
-      <%= render_slot(@inner_block_button) %>
+      <%= render_slot(@inner_block) %>
     </button>
     """
   end

@@ -9,14 +9,16 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    default_theme = ThemeSystem.ensure_default_theme()
-    theme_class = "#{default_theme.mode}-theme"
+    # Get current theme using the theme system
+    {:ok, current_theme} = ThemeSystem.get_current_theme()
+    theme_class = "#{current_theme.mode}-theme"
     toc_data = Content.get_toc_data()
 
     socket =
       socket
       |> assign(:page_title, "Home")
       |> assign(:theme_class, theme_class)
+      |> assign(:current_theme, current_theme)
       |> assign(:show_toc, true)
       |> assign(:toc_items, toc_data)
       |> assign(:current_section, nil)
@@ -196,6 +198,16 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
   def render(assigns) do
     ~H"""
     <div>
+      <!-- Theme Information Display -->
+      <div class="theme-info" style="background: #f8f9fa; padding: 10px; margin: 10px; border-radius: 5px; border: 1px solid #dee2e6;">
+        <div class="theme-applied" style="font-weight: bold; color: #495057;">
+          Current Theme: <%= @current_theme.name %>
+        </div>
+        <div class="theme-type" style="color: #6c757d; font-size: 0.9em;">
+          Mode: <%= @current_theme.mode %>
+        </div>
+      </div>
+
       <div class="accessibility-controls">
         <div class="animation-speed-controls">
           <label>Animation Speed:</label>

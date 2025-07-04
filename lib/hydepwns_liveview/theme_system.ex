@@ -261,6 +261,10 @@ defmodule HydepwnsLiveview.ThemeSystem do
   end
 
   def apply_theme(theme) do
+    # Store the applied theme in a global ETS table so it persists across processes
+    ensure_ets_table()
+    table = Process.get(:theme_system_ets_table) || :theme_system_default
+    :ets.insert(table, {:applied_theme, theme})
     {:ok, theme}
   end
 
@@ -299,7 +303,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
 
   defp build_name_taken_changeset do
     %Ecto.Changeset{
-      data: nil,
+      data: %HydepwnsLiveview.ThemeSystem.Models.Theme{},
       changes: %{},
       errors: [{:name, {"has already been taken", [validation: :unique]}}],
       valid?: false,
@@ -436,7 +440,16 @@ defmodule HydepwnsLiveview.ThemeSystem do
   end
 
   def get_current_theme do
-    {:ok, ensure_default_theme() |> mock_to_theme()}
+    # Check if there's an applied theme stored in ETS table
+    ensure_ets_table()
+    table = Process.get(:theme_system_ets_table) || :theme_system_default
+    
+    case :ets.lookup(table, :applied_theme) do
+      [] ->
+        {:ok, ensure_default_theme() |> mock_to_theme()}
+      [{:applied_theme, theme}] ->
+        {:ok, theme}
+    end
   end
 
   # Private validation function
@@ -454,7 +467,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
   end
 
   defp validate_required_fields(params) do
-    required_fields = [:name, :mode, :primary_color, :secondary_color, :background_color, :text_color]
+    required_fields = [:name, :mode]
     missing_fields = Enum.filter(required_fields, fn field -> 
       value = Map.get(params, field) || Map.get(params, to_string(field))
       is_nil(value) || value == ""
@@ -462,7 +475,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
     
     if missing_fields != [] do
       changeset = %Ecto.Changeset{
-        data: nil,
+        data: %HydepwnsLiveview.ThemeSystem.Models.Theme{},
         changes: %{},
         errors: Enum.map(missing_fields, fn field -> {field, {"can't be blank", [validation: :required]}} end),
         valid?: false,
@@ -480,7 +493,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
     
     if mode && mode not in valid_modes do
       changeset = %Ecto.Changeset{
-        data: nil,
+        data: %HydepwnsLiveview.ThemeSystem.Models.Theme{},
         changes: %{},
         errors: [{:mode, {"is invalid", [validation: :inclusion, enum: valid_modes]}}],
         valid?: false,
@@ -501,7 +514,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
     
     if invalid_colors != [] do
       changeset = %Ecto.Changeset{
-        data: nil,
+        data: %HydepwnsLiveview.ThemeSystem.Models.Theme{},
         changes: %{},
         errors: Enum.map(invalid_colors, fn field -> {field, {"must be a valid hex color", [validation: :format]}} end),
         valid?: false,

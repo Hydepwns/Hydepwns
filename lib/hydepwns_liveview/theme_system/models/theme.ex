@@ -20,6 +20,16 @@ defmodule HydepwnsLiveview.ThemeSystem.Models.Theme do
     field :__unset_other_defaults__, :boolean, virtual: true
     field :colors, :map, virtual: true, default: %{}
     field :settings, :map, virtual: true, default: %{}
+    
+    # Typography fields
+    field :font_family, :string, virtual: true
+    field :font_size, :string, virtual: true
+    field :line_height, :string, virtual: true
+    
+    # Spacing fields
+    field :spacing_unit, :string, virtual: true
+    field :container_padding, :string, virtual: true
+    field :section_margin, :string, virtual: true
 
     timestamps(type: :utc_datetime)
   end
@@ -46,7 +56,13 @@ defmodule HydepwnsLiveview.ThemeSystem.Models.Theme do
       :background_color,
       :text_color,
       :is_default,
-      :settings
+      :settings,
+      :font_family,
+      :font_size,
+      :line_height,
+      :spacing_unit,
+      :container_padding,
+      :section_margin
     ])
     |> validate_required([
       :name,

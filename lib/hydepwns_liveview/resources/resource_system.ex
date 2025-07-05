@@ -106,7 +106,7 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
             IO.puts("🔍 ResourceSystem.update_resource: Applying transformations")
             case TransformationPipeline.apply_transformations(
               updated_resource,
-              Resource,
+              :resource,
               :update,
               phase: :after_validation,
               original_resource: resource

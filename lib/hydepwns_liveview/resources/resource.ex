@@ -73,13 +73,13 @@ defmodule HydepwnsLiveview.Resources.Resource do
     case Map.get(attrs, "content") || Map.get(attrs, :content) do
       content when is_binary(content) ->
         case Jason.decode(content) do
-          {:ok, decoded} -> Map.put(attrs, "content", decoded)
-          _ -> Map.put(attrs, "content", %{text: content})
+          {:ok, decoded} -> Map.put(attrs, :content, decoded)
+          _ -> Map.put(attrs, :content, %{text: content})
         end
       content when is_map(content) ->
         attrs
       _ ->
-        Map.put(attrs, "content", %{})
+        Map.put(attrs, :content, %{})
     end
   end
 
@@ -133,6 +133,8 @@ defmodule HydepwnsLiveview.Resources.Resource do
       true ->
         case HydepwnsLiveview.Resources.ResourceSystem.get_resource(parent_id) do
           {:ok, parent_resource} ->
+            # Check if the parent's type is incompatible with this resource's type
+            # The logic should be: can this resource (child) have parent_resource (parent) as its parent?
             if is_incompatible_relationship?(parent_resource.type, resource_type) do
               add_error(changeset, :parent_id, "Incompatible resource types")
             else

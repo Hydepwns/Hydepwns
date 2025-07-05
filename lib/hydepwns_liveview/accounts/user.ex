@@ -11,6 +11,7 @@ defmodule HydepwnsLiveview.Accounts.User do
     field :email, :string
     field :password, :string, virtual: true
     field :password_confirmation, :string, virtual: true
+    field :current_password, :string, virtual: true
     field :password_hash, :string
     field :role, :string, default: "user"
     field :active, :boolean, default: true
@@ -64,8 +65,9 @@ defmodule HydepwnsLiveview.Accounts.User do
   """
   def password_change_changeset(user, attrs) do
     user
-    |> cast(attrs, [:password, :password_confirmation])
-    |> validate_required([:password, :password_confirmation])
+    |> cast(attrs, [:current_password, :password, :password_confirmation])
+    |> validate_required([:current_password, :password, :password_confirmation])
+    |> validate_current_password()
     |> validate_length(:password, min: 6)
     |> validate_confirmation(:password)
     |> put_password_hash()
@@ -160,6 +162,20 @@ defmodule HydepwnsLiveview.Accounts.User do
 
       _ ->
         changeset
+    end
+  end
+
+  defp validate_current_password(changeset) do
+    case get_change(changeset, :current_password) do
+      nil ->
+        add_error(changeset, :current_password, "is required")
+
+      current_password ->
+        if Bcrypt.verify_pass(current_password, changeset.data.password_hash) do
+          changeset
+        else
+          add_error(changeset, :current_password, "is not valid")
+        end
     end
   end
 end

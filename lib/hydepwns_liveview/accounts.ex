@@ -223,7 +223,7 @@ defmodule HydepwnsLiveview.Accounts do
   """
   def generate_user_session_token(user) do
     token = :crypto.strong_rand_bytes(32) |> Base.encode64()
-    Repo.insert(%UserToken{user_id: user.id, token: token})
+    Repo.insert(%UserToken{user_id: user.id, token: token, context: "session"})
     token
   end
 

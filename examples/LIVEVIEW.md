@@ -87,6 +87,7 @@ The project includes a robust testing setup with:
 
 - **Mox-based mocking** for external dependencies
 - **RepoMock** for database operation testing
+- **Wallaby fallback helpers** for reliable element detection
 - **Automated error analysis** with categorized warnings and errors
 - **Component testing** for JavaScript functionality
 - **Integration tests** for end-to-end workflows

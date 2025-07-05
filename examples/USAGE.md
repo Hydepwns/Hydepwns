@@ -48,6 +48,7 @@ mix test
 
 - **Mock System**: Uses `Mox` for mocking external dependencies
 - **RepoMock**: Comprehensive mock for database operations in tests
+- **Wallaby Fallback**: Helper for reliable element detection in LiveView tests
 - **Error Summarization**: Automated script to categorize and summarize test warnings and errors
 - **Component Testing**: JavaScript component tests with Jest and testing utilities
 

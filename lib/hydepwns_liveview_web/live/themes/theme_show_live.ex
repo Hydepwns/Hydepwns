@@ -12,7 +12,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeShowLive do
 
     default_theme = ThemeSystem.ensure_default_theme()
     theme_class = "#{default_theme.mode}-theme"
-    {:ok, assign(socket, theme_class: theme_class, page_title: "Theme Details", show_delete_confirm: false)}
+    {:ok, assign(socket, theme_class: theme_class, page_title: "Theme Details", show_delete_confirm: false, applied_theme: nil)}
   end
 
   @impl Phoenix.LiveView
@@ -28,10 +28,11 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeShowLive do
         {:noreply, 
          socket
          |> put_flash(:error, "Invalid theme ID")
-         |> push_navigate(to: ~p"/themes")}
+         |> push_navigate(to: ~p"/themes")
+         |> assign(:applied_theme, nil)}
       _ ->
         theme = ThemeSystem.get_theme!(id)
-        {:noreply, assign(socket, :theme, theme) |> assign(:show_delete_confirm, false)}
+        {:noreply, assign(socket, :theme, theme) |> assign(:show_delete_confirm, false) |> assign(:applied_theme, nil)}
     end
   end
 
@@ -42,10 +43,11 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeShowLive do
         {:noreply, 
          socket
          |> put_flash(:error, "Invalid theme ID")
-         |> push_navigate(to: ~p"/themes")}
+         |> push_navigate(to: ~p"/themes")
+         |> assign(:applied_theme, nil)}
       _ ->
         theme = ThemeSystem.get_theme!(id)
-        {:noreply, assign(socket, :theme, theme) |> assign(:show_delete_confirm, false)}
+        {:noreply, assign(socket, :theme, theme) |> assign(:show_delete_confirm, false) |> assign(:applied_theme, nil)}
     end
   end
 
@@ -80,13 +82,21 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeShowLive do
 
     {:noreply,
      socket
-     |> put_flash(:info, "Theme applied successfully")}
+     |> put_flash(:info, "Theme applied successfully")
+     |> assign(:applied_theme, socket.assigns.theme)}
   end
 
   @impl Phoenix.LiveView
   def render(assigns) do
+    IO.inspect(assigns, label: "[DEBUG] ThemeShowLive assigns in render")
     ~H"""
     <div class="container mx-auto px-4 py-8">
+      <%= if Phoenix.Flash.get(@flash, :info) do %>
+        <div class="alert alert-success bg-green-100 border border-green-400 text-green-800 px-4 py-3 rounded relative mb-6" role="alert">
+          <%= Phoenix.Flash.get(@flash, :info) %>
+        </div>
+      <% end %>
+      
       <header class="flex items-center justify-between mb-6">
         <div>
           <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Theme Details</h1>
@@ -112,6 +122,12 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeShowLive do
               </div>
             </dl>
           </div>
+
+          <%= if @applied_theme do %>
+            <div class="theme-applied">
+              <%= @applied_theme.name %>
+            </div>
+          <% end %>
 
           <div class="flex justify-end space-x-4">
             <.link navigate={~p"/themes"} class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">

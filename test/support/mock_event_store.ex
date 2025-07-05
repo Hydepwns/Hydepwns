@@ -69,6 +69,8 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
             {:id, id} -> event.id == id
             {:resource_type, resource_type} -> event.resource_type == to_atom(resource_type)
             {:resource_id, resource_id} -> event.resource_id == resource_id
+            {:event_type, event_types} when is_list(event_types) -> 
+              Enum.member?(event_types, event.type)
             {:event_type, event_type} -> event.type == event_type
             {:limit, _} -> true # limit handled after filtering
             _ -> true

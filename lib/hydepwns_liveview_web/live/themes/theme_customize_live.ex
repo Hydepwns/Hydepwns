@@ -18,14 +18,31 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeCustomizeLive do
 
   @impl true
   def handle_event("save_colors", %{"theme" => theme_params}, socket) do
-    case ThemeSystem.update_theme(socket.assigns.theme, theme_params) do
+    # Always prefer text field values over color picker values for testing reliability
+    processed_params = theme_params
+    |> Map.put("primary_color", theme_params["primary_color_text"] || theme_params["primary_color"])
+    |> Map.put("secondary_color", theme_params["secondary_color_text"] || theme_params["secondary_color"])
+    |> Map.put("background_color", theme_params["background_color_text"] || theme_params["background_color"])
+    |> Map.put("text_color", theme_params["text_color_text"] || theme_params["text_color"])
+    |> Map.put("accent_color", theme_params["accent_color_text"] || theme_params["accent_color"])
+    |> Map.drop(["primary_color_text", "secondary_color_text", "background_color_text", "text_color_text", "accent_color_text"])
+    # Include required fields from existing theme
+    |> Map.put("name", socket.assigns.theme.name)
+    |> Map.put("mode", socket.assigns.theme.mode)
+    
+    IO.inspect(processed_params, label: "[DEBUG] Processed theme params")
+    
+    case ThemeSystem.update_theme(socket.assigns.theme, processed_params) do
       {:ok, theme} ->
+        IO.inspect("Colors saved successfully", label: "[DEBUG] Setting flash message")
         {:noreply,
          socket
          |> put_flash(:info, "Colors saved successfully")
          |> assign(:theme, theme)}
 
-      {:error, _changeset} ->
+      {:error, changeset} ->
+        IO.inspect(changeset.errors, label: "[DEBUG] Validation errors")
+        IO.inspect("Failed to save colors", label: "[DEBUG] Setting error flash message")
         {:noreply, put_flash(socket, :error, "Failed to save colors")}
     end
   end
@@ -70,15 +87,27 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeCustomizeLive do
         # Handle case where checkboxes are not checked
         socket.assigns.theme.settings || %{}
     end
-    
-    case ThemeSystem.update_theme(socket.assigns.theme, %{settings: settings}) do
+
+    # Include required fields for validation
+    update_params = %{
+      name: socket.assigns.theme.name,
+      mode: socket.assigns.theme.mode,
+      settings: settings
+    }
+
+    IO.inspect(params, label: "[DEBUG] Accessibility params")
+    IO.inspect(settings, label: "[DEBUG] Processed settings")
+
+    case ThemeSystem.update_theme(socket.assigns.theme, update_params) do
       {:ok, theme} ->
+        IO.inspect("Accessibility settings applied successfully", label: "[DEBUG] Setting flash message")
         {:noreply,
          socket
          |> put_flash(:info, "Accessibility settings applied successfully")
          |> assign(:theme, theme)}
 
-      {:error, _changeset} ->
+      {:error, changeset} ->
+        IO.inspect(changeset, label: "[DEBUG] Accessibility update failed")
         {:noreply, put_flash(socket, :error, "Failed to apply accessibility settings")}
     end
   end
@@ -87,6 +116,18 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeCustomizeLive do
   def render(assigns) do
     ~H"""
     <div class="container mx-auto px-4 py-8" data-mode={@theme_class}>
+      <%= if Phoenix.Flash.get(@flash, :info) do %>
+        <div class="alert alert-success bg-green-100 border border-green-400 text-green-800 px-4 py-3 rounded relative mb-6" role="alert">
+          <%= Phoenix.Flash.get(@flash, :info) %>
+        </div>
+      <% end %>
+      
+      <%= if Phoenix.Flash.get(@flash, :error) do %>
+        <div class="alert alert-error bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded relative mb-6" role="alert">
+          <%= Phoenix.Flash.get(@flash, :error) %>
+        </div>
+      <% end %>
+      
       <header class="mb-6">
         <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Customize Theme</h1>
         <p class="text-gray-600 dark:text-gray-400">Customize the appearance of your theme</p>
@@ -102,21 +143,35 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeCustomizeLive do
                 <label for="theme[primary_color]" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Primary Color</label>
                 <div class="mt-1 flex space-x-2">
                   <input type="color" name="theme[primary_color]" id="theme[primary_color]_picker" value={@theme.primary_color} class="h-10 w-16 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                  <input type="text" name="theme[primary_color]" id="theme[primary_color]" value={@theme.primary_color} class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="#000000">
+                  <input type="text" name="theme[primary_color_text]" id="theme[primary_color]" value={@theme.primary_color} class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="#000000">
                 </div>
               </div>
               <div>
                 <label for="theme[secondary_color]" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Secondary Color</label>
                 <div class="mt-1 flex space-x-2">
                   <input type="color" name="theme[secondary_color]" id="theme[secondary_color]_picker" value={@theme.secondary_color} class="h-10 w-16 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                  <input type="text" name="theme[secondary_color]" id="theme[secondary_color]" value={@theme.secondary_color} class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="#000000">
+                  <input type="text" name="theme[secondary_color_text]" id="theme[secondary_color]" value={@theme.secondary_color} class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="#000000">
                 </div>
               </div>
               <div>
                 <label for="theme[accent_color]" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Accent Color</label>
                 <div class="mt-1 flex space-x-2">
                   <input type="color" name="theme[accent_color]" id="theme[accent_color]_picker" value={Map.get(@theme.colors, "accent", "#3357FF")} class="h-10 w-16 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                  <input type="text" name="theme[accent_color]" id="theme[accent_color]" value={Map.get(@theme.colors, "accent", "#3357FF")} class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="#000000">
+                  <input type="text" name="theme[accent_color_text]" id="theme[accent_color]" value={Map.get(@theme.colors, "accent", "#3357FF")} class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="#000000">
+                </div>
+              </div>
+              <div>
+                <label for="theme[background_color]" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Background Color</label>
+                <div class="mt-1 flex space-x-2">
+                  <input type="color" name="theme[background_color]" id="theme[background_color]_picker" value={@theme.background_color} class="h-10 w-16 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                  <input type="text" name="theme[background_color_text]" id="theme[background_color]" value={@theme.background_color} class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="#000000">
+                </div>
+              </div>
+              <div>
+                <label for="theme[text_color]" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Text Color</label>
+                <div class="mt-1 flex space-x-2">
+                  <input type="color" name="theme[text_color]" id="theme[text_color]_picker" value={@theme.text_color} class="h-10 w-16 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                  <input type="text" name="theme[text_color_text]" id="theme[text_color]" value={@theme.text_color} class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="#000000">
                 </div>
               </div>
             </div>
@@ -129,9 +184,11 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeCustomizeLive do
           <div class="mt-6">
             <h3 class="text-md font-medium mb-3">Preview</h3>
             <div class="flex space-x-2">
-              <div class="w-8 h-8 rounded color-preview" style={"background-color: #{@theme.primary_color}"}></div>
-              <div class="w-8 h-8 rounded color-preview" style={"background-color: #{@theme.secondary_color}"}></div>
-              <div class="w-8 h-8 rounded color-preview" style={"background-color: #{Map.get(@theme.colors, "accent", "#3357FF")}"}></div>
+              <div class="w-8 h-8 rounded color-preview" style={"background-color: #{@theme.primary_color}"} title="Primary"></div>
+              <div class="w-8 h-8 rounded color-preview" style={"background-color: #{@theme.secondary_color}"} title="Secondary"></div>
+              <div class="w-8 h-8 rounded color-preview" style={"background-color: #{Map.get(@theme.colors, "accent", "#3357FF")}"} title="Accent"></div>
+              <div class="w-8 h-8 rounded color-preview" style={"background-color: #{@theme.background_color}"} title="Background"></div>
+              <div class="w-8 h-8 rounded color-preview border" style={"background-color: #{@theme.text_color}"} title="Text"></div>
             </div>
           </div>
         </div>
@@ -237,7 +294,8 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeCustomizeLive do
         // Synchronize color picker and text input values
         const colorInputs = document.querySelectorAll('input[type="color"]');
         colorInputs.forEach(function(colorInput) {
-          const textInput = document.getElementById(colorInput.name);
+          const textInputName = colorInput.name + '_text';
+          const textInput = document.querySelector(`input[name="${textInputName}"]`);
           if (textInput) {
             // Update text input when color picker changes
             colorInput.addEventListener('input', function() {

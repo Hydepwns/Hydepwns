@@ -54,7 +54,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
       |> click(button("Save"))
 
       # DEBUG: Wait a moment for any DOM updates
-      :timer.sleep(1000)
+      :timer.sleep(1500)
       
       # DEBUG: Print the current page HTML to see what's actually rendered
       html = Wallaby.Browser.page_source(session)
@@ -79,7 +79,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventWorkflowTest do
       end)
 
       # Verify success message - add more specific waiting
-      :timer.sleep(1000)
+      :timer.sleep(1500)
       Wallaby.Browser.assert_has(
         session,
         css(".alert-success", text: "Resource updated successfully")

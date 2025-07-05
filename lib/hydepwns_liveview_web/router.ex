@@ -16,6 +16,21 @@ defmodule HydepwnsLiveviewWeb.Router do
     plug :accepts, ["json"]
   end
 
+  # Health check pipeline (no authentication required)
+  pipeline :health do
+    plug :accepts, ["json"]
+  end
+
+  # Health check routes (no authentication required)
+  scope "/health", HydepwnsLiveviewWeb do
+    pipe_through :health
+
+    get "/", HealthController, :index
+    get "/detailed", HealthController, :detailed
+    get "/ready", HealthController, :ready
+    get "/live", HealthController, :live
+  end
+
   # Main application routes
   scope "/", HydepwnsLiveviewWeb do
     pipe_through :browser

@@ -23,7 +23,10 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
   end
 
   def handle_params(%{"id" => resource_id}, _url, socket) do
-    {:ok, events} = EventStore.get_events_for_resource("resource", resource_id)
+    {:ok, events} = EventStore.get_events_for_resource(:resource, resource_id)
+    
+    IO.puts("🔍 ResourceEventSystemLive: Retrieved #{length(events)} events for resource #{resource_id}")
+    IO.puts("🔍 ResourceEventSystemLive: Event types: #{Enum.map(events, & &1.type)}")
     
     {:noreply, 
      socket
@@ -70,6 +73,9 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
   def render(assigns) do
     ~H"""
     <div class="container mx-auto px-4 py-8">
+      <!-- DEBUG: Events count: <%= length(@events) %> -->
+      <!-- DEBUG: Events: <%= inspect(@events, pretty: true) %> -->
+      
       <div class="flex justify-between items-center mb-8">
         <h1 class="text-3xl font-bold">Resource Event System</h1>
         <div class="flex gap-4">
@@ -133,6 +139,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
+            <!-- Debug: Events count: <%= length(@events) %> -->
             <%= for event <- @events do %>
               <tr class="event-row" data-test-id="event-row">
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-test-id="event-type">

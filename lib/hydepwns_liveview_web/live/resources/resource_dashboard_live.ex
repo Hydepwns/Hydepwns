@@ -120,4 +120,9 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
       |> assign(:notifications, notifications)
     }
   end
+
+  @impl true
+  def handle_info(_message, socket) do
+    {:noreply, socket}
+  end
 end

@@ -24,8 +24,6 @@ defmodule HydepwnsLiveview.Events.ReminderDeliveryTest do
         })
         |> Repo.insert()
 
-      IO.inspect(event, label: "DEBUG event after create_event")
-
       # Create event settings
       {:ok, settings} =
         Events.create_event_settings(%{

@@ -2,8 +2,13 @@ ExUnit.start()
 {:ok, _} = Application.ensure_all_started(:hydepwns_liveview)
 
 # Ensure the ETS table for mock resources exists and is public
-unless :ets.whereis(:mock_resources) != :undefined do
+if :ets.whereis(:mock_resources) == :undefined do
   :ets.new(:mock_resources, [:set, :public, :named_table])
+end
+
+# Ensure the theme system ETS table exists for all tests
+if :ets.whereis(:theme_system_default) == :undefined do
+  :ets.new(:theme_system_default, [:set, :public, :named_table])
 end
 
 # Configure Ecto sandbox for proper async test support
@@ -33,6 +38,8 @@ defmodule HydepwnsLiveview.TestSetup do
 
   setup do
     HydepwnsLiveview.Resources.ResourceSystem.reset_store()
+    # Ensure theme system has a default theme for tests
+    HydepwnsLiveview.ThemeSystem.ensure_default_theme()
     :ok
   end
 end

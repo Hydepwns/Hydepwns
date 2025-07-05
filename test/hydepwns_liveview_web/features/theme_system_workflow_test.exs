@@ -4,6 +4,8 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
   import Wallaby.Query
   import Wallaby.Browser
   import HydepwnsLiveview.TestSupport.ThemeSystemHelper
+  import HydepwnsLiveviewWeb.TestHelpers.WallabyFallback
+  import HydepwnsLiveviewWeb.TestHelpers.WallabyUIHelper
 
   @moduledoc """
   End-to-end tests for the Theme System workflow.
@@ -40,8 +42,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       })
 
     # Verify themes are created
-    themes = HydepwnsLiveview.ThemeSystem.list_themes()
-    IO.puts("DEBUG: Themes created in test: #{inspect(themes, pretty: true)}")
+    _themes = HydepwnsLiveview.ThemeSystem.list_themes()
 
     # Pass the table name through URL parameters
     session = visit(session, "/themes?theme_table=#{table}")
@@ -55,10 +56,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       session
       |> visit("/themes/new")
 
-      # Debug: Print page source to see what's actually rendered
-      IO.puts("\n--- DEBUG: Page source after visiting /themes/new ---")
-      IO.puts(Wallaby.Browser.page_source(session))
-      IO.puts("--- END PAGE SOURCE ---\n")
+
 
       # Create new theme with only the fields that exist
       session
@@ -75,9 +73,8 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
     end
 
     test "_theme can be edited and updated", %{session: session, light_theme: _light_theme} do
-      # Debug: print all theme names in DB before clicking link
+      # Get themes from DB
       themes = HydepwnsLiveview.ThemeSystem.list_themes()
-      IO.puts("\n[DEBUG] Themes in DB before click: #{inspect(Enum.map(themes, & &1.name))}\n")
       
       # Find the Test Theme
       test_theme = Enum.find(themes, fn theme -> theme.name == "Test Theme" end)
@@ -104,10 +101,9 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       Wallaby.Browser.assert_has(session, css("[data-test-id='theme-name-5']", text: "Test Theme"))
     end
 
-    test "theme can be deleted", %{session: session, light_theme: light_theme} do
-      # Debug: print all theme names in DB before clicking link
+    test "theme can be deleted", %{session: session, light_theme: _light_theme} do
+      # Get themes from DB
       themes = HydepwnsLiveview.ThemeSystem.list_themes()
-      IO.puts("\n[DEBUG] Themes in DB before click: #{inspect(Enum.map(themes, & &1.name))}\n")
       
       # Find the Test Theme
       test_theme = Enum.find(themes, fn theme -> theme.name == "Test Theme" end)
@@ -125,7 +121,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
         css(".alert-success", text: "Theme deleted successfully")
       )
 
-      Wallaby.Browser.refute_has(session, css(".theme-item", text: light_theme.name))
+      Wallaby.Browser.refute_has(session, css(".theme-item", text: "Test Theme"))
     end
   end
 
@@ -148,60 +144,17 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
         css(".alert-success", text: "Colors saved successfully")
       )
 
-      # Wait longer for LiveView to update and DOM to be fully rendered
-      :timer.sleep(500)
+      # Wait for LiveView to update and DOM to be fully rendered
+      session = wait_for_element(session, css(".color-preview"))
 
-      # Debug: Print page source to see what's actually rendered
-      IO.puts("\n--- DEBUG: Page source after saving colors ---")
-      IO.puts(Wallaby.Browser.page_source(session))
-      IO.puts("--- END PAGE SOURCE ---\n")
-
-      # Try to find color preview elements - use all() to get elements even if not visible
-      previews = Wallaby.Browser.all(session, css(".color-preview"))
-      IO.puts("\n--- DEBUG: Found #{length(previews)} color preview elements ---")
-      
-      # Try alternative selectors to see if Wallaby can find the elements
-      divs_with_style = Wallaby.Browser.all(session, css("div[style*='background-color']"))
-      IO.puts("\n--- DEBUG: Found #{length(divs_with_style)} divs with background-color style ---")
-      
-      # Try finding by title attribute
-      titled_divs = Wallaby.Browser.all(session, css("div[title]"))
-      IO.puts("\n--- DEBUG: Found #{length(titled_divs)} divs with title attribute ---")
-      
-      # If we found elements, check their visibility
-      if length(previews) > 0 do
-        Enum.each(previews, fn preview ->
-          style = Wallaby.Element.attr(preview, "style")
-          IO.puts("Color preview style: #{style}")
-        end)
-      end
-      
-      # As a workaround, parse the page source for the color preview elements
-      page_source = Wallaby.Browser.page_source(session)
-      color_preview_pattern = ~r/<div[^>]*class="[^"]*color-preview[^"]*"[^>]*style="[^"]*background-color: (#[A-Fa-f0-9]{6})[^"]*"[^>]*>/s
-      color_matches = Regex.scan(color_preview_pattern, page_source)
-      IO.puts("\n--- DEBUG: Found #{length(color_matches)} color preview elements via regex ---")
-      Enum.each(color_matches, fn [full_match, color] ->
-        IO.puts("Regex match: #{color}")
-      end)
-      
-      # Use the regex results for assertions if Wallaby can't find the elements
-      if length(previews) == 0 and length(color_matches) > 0 do
-        IO.puts("\n--- Using regex fallback for assertions ---")
-        colors_found = Enum.map(color_matches, fn [_, color] -> color end)
-        assert Enum.member?(colors_found, "#FF5733"), "Primary color #FF5733 not found"
-        assert Enum.member?(colors_found, "#33FF57"), "Secondary color #33FF57 not found"
-        assert Enum.member?(colors_found, "#3357FF"), "Accent color #3357FF not found"
-      else
-        # Original Wallaby assertions
-        assert length(previews) >= 3
-
-        # Check that at least one preview has each expected color in its style attribute
-        preview_styles = Enum.map(previews, &Wallaby.Element.attr(&1, "style"))
-        assert Enum.any?(preview_styles, &String.contains?(&1, "#FF5733"))
-        assert Enum.any?(preview_styles, &String.contains?(&1, "#33FF57"))
-        assert Enum.any?(preview_styles, &String.contains?(&1, "#3357FF"))
-      end
+      # Use WallabyFallback helper for reliable color preview detection
+      patterns = common_patterns()
+      find_elements_with_fallback(
+        session,
+        ".color-preview",
+        patterns.color_preview,
+        ["#FF5733", "#33FF57", "#3357FF"]
+      )
     end
 
     test "theme typography can be customized", %{session: session, light_theme: light_theme} do
@@ -216,14 +169,23 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       |> fill_in(css("input[name='theme[line_height]']"), with: "1.5")
       |> click(button("Save Typography"))
 
-      # Verify typography customization
-      Wallaby.Browser.assert_has(
-        session,
-        css(".typography-preview", style: "font-family: Helvetica")
-      )
+      # Wait for the typography preview to be updated
+      session = wait_for_element(session, css(".typography-preview"))
 
-      Wallaby.Browser.assert_has(session, css(".typography-preview", style: "font-size: 16px"))
-      Wallaby.Browser.assert_has(session, css(".typography-preview", style: "line-height: 1.5"))
+      # Verify typography customization by checking the style attribute
+      session = Wallaby.Browser.assert_has(session, css(".typography-preview"))
+      
+      # Get the typography preview element and check its style attribute
+      elements = Wallaby.Browser.all(session, css(".typography-preview"))
+      assert length(elements) > 0, "Expected to find typography-preview element"
+      
+      element = List.first(elements)
+      style_attr = Wallaby.Element.attr(element, "style")
+      
+      # Verify the style attribute contains the expected typography values
+      assert style_attr =~ "font-family: Helvetica", "Expected style to contain font-family: Helvetica"
+      assert style_attr =~ "font-size: 16px", "Expected style to contain font-size: 16px"
+      assert style_attr =~ "line-height: 1.5", "Expected style to contain line-height: 1.5"
     end
 
     test "theme spacing can be customized", %{session: session, light_theme: light_theme} do
@@ -238,28 +200,25 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       |> fill_in(css("input[name='theme[section_margin]']"), with: "32px")
       |> click(button("Save Spacing"))
 
-      # Debug: Print page source after saving spacing to see what's rendered
-      IO.puts("\n--- DEBUG: Page source after saving spacing ---")
-      IO.puts(Wallaby.Browser.page_source(session))
-      IO.puts("--- END PAGE SOURCE ---\n")
-
       # Wait for preview section to reappear, then verify spacing customization
-      Wallaby.Browser.assert_has(session, css("[data-test-id='spacing-preview-section']"))
+      session = wait_for_element(session, css("[data-test-id='spacing-preview-section']"))
+      
       # Verify the preview container has the correct padding and margin
       Wallaby.Browser.assert_has(session, css("div[style*='padding: 24px'][style*='margin: 32px']"))
-      # Wait a moment for LiveView to update, then verify the spacing elements exist
-      :timer.sleep(100)
-      # Check that the spacing preview section exists and has the correct structure
-      Wallaby.Browser.assert_has(session, css("[data-test-id='spacing-preview-section']"))
+      
+      # Wait for LiveView to update, then verify the spacing elements exist
+      session = wait_for_element(session, css("[data-test-id='spacing-preview-section']"))
+      
       # Check that the preview container has the correct padding and margin
       Wallaby.Browser.assert_has(session, css("div[style*='padding: 24px'][style*='margin: 32px']"))
+      
       # Check that the spacing elements exist by looking for the space-y-2 container
       Wallaby.Browser.assert_has(session, css(".space-y-2"))
     end
   end
 
   describe "theme persistence and synchronization" do
-    test "theme preferences are persisted", %{session: session, light_theme: light_theme} do
+    test "theme preferences are persisted", %{session: session, light_theme: _light_theme} do
       # Find the Test Theme
       themes = HydepwnsLiveview.ThemeSystem.list_themes()
       test_theme = Enum.find(themes, fn theme -> theme.name == "Test Theme" end)
@@ -275,7 +234,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       Wallaby.Browser.assert_has(session, css(".alert-success", text: "Theme applied successfully"))
     end
 
-    test "theme changes sync across components", %{session: session, light_theme: theme} do
+    test "theme changes sync across components", %{session: session, light_theme: _theme} do
       # Find the Test Theme
       themes = HydepwnsLiveview.ThemeSystem.list_themes()
       test_theme = Enum.find(themes, fn theme -> theme.name == "Test Theme" end)
@@ -293,7 +252,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
 
     test "theme changes persist across sessions", %{
       session: session,
-      light_theme: theme
+      light_theme: _theme
     } do
       # Find the Test Theme
       themes = HydepwnsLiveview.ThemeSystem.list_themes()
@@ -312,7 +271,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
   end
 
   describe "theme performance" do
-    test "theme changes are applied efficiently", %{session: session, light_theme: theme} do
+    test "theme changes are applied efficiently", %{session: session, light_theme: _theme} do
       # Navigate directly to the theme show page with the theme table parameter
       themes = HydepwnsLiveview.ThemeSystem.list_themes()
       test_theme = Enum.find(themes, fn theme -> theme.name == "Test Theme" end)
@@ -321,10 +280,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       session
       |> click(button("Apply Theme"))
 
-      # Debug: Print page source after applying theme
-      IO.puts("\n--- DEBUG: Page source after clicking Apply Theme ---")
-      IO.puts(Wallaby.Browser.page_source(session))
-      IO.puts("--- END PAGE SOURCE ---\n")
+
 
       # Verify theme application
       Wallaby.Browser.assert_has(session, css(".theme-applied", text: test_theme.name))
@@ -352,9 +308,6 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       # Fetch themes to get the Test Theme
       themes = HydepwnsLiveview.ThemeSystem.list_themes()
       test_theme = Enum.find(themes, fn theme -> theme.name == "Test Theme" end)
-      
-      IO.puts("\n[DEBUG] test_theme: #{inspect(test_theme)}\n")
-      IO.puts("\n[DEBUG] second_theme: #{inspect(second_theme)}\n")
 
       # Navigate to the first theme and apply it
       session = visit(session, "/themes/#{test_theme.id}?theme_table=#{table}")
@@ -407,10 +360,5 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
     end
   end
 
-  # Helper to create a new Wallaby session with the same metadata as the test context
-  # Usage: new_session = new_session(metadata)
-  defp new_session do
-    {:ok, session} = Wallaby.start_session()
-    session
-  end
+
 end

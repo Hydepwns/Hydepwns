@@ -65,12 +65,11 @@ defmodule HydepwnsLiveview.Events.ReminderWorkerTest do
     # Manually trigger the reminder worker to process reminders
     send(HydepwnsLiveview.Events.ReminderWorker, :check_reminders)
     
-    # Wait longer for processing
-    Process.sleep(200)
+    # Wait for processing to complete
+    wait_for_reminder_processing(due_reminder.id)
 
     # Check that the due reminder was processed
     updated_reminder = Events.get_event_reminder!(due_reminder.id)
-    IO.inspect(updated_reminder, label: "Updated reminder status")
     assert updated_reminder.status == "sent"
     assert updated_reminder.sent_at != nil
   end
@@ -80,11 +79,31 @@ defmodule HydepwnsLiveview.Events.ReminderWorkerTest do
     send(HydepwnsLiveview.Events.ReminderWorker, :check_reminders)
     
     # Wait a bit for processing
-    Process.sleep(50)
+    wait_for_reminder_processing(future_reminder.id)
 
     # Check that the future reminder was not processed
     updated_reminder = Events.get_event_reminder!(future_reminder.id)
     assert updated_reminder.status == "pending"
     assert updated_reminder.sent_at == nil
+  end
+
+  # Helper function to wait for reminder processing
+  defp wait_for_reminder_processing(reminder_id, max_attempts \\ 10) do
+    wait_for_reminder_processing(reminder_id, max_attempts, 0)
+  end
+
+  defp wait_for_reminder_processing(_reminder_id, max_attempts, attempts) when attempts >= max_attempts do
+    :ok
+  end
+
+  defp wait_for_reminder_processing(reminder_id, max_attempts, attempts) do
+    reminder = Events.get_event_reminder!(reminder_id)
+    
+    case reminder.status do
+      "sent" -> :ok
+      "pending" -> 
+        Process.sleep(50)
+        wait_for_reminder_processing(reminder_id, max_attempts, attempts + 1)
+    end
   end
 end

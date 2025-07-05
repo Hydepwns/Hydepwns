@@ -211,7 +211,7 @@ defmodule HydepwnsLiveviewWeb.TestMockHelper do
       metadata: changeset.changes[:metadata] || %{},
       settings: changeset.changes[:settings] || %{},
       version: changeset.changes[:version] || 1,
-      parent_id: changeset.changes[:parent_id],
+      parent_id: Map.get(changeset.changes, :parent_id, nil),
       child_ids: changeset.changes[:child_ids] || [],
       tags: changeset.changes[:tags] || [],
       categories: changeset.changes[:categories] || [],

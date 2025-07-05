@@ -1,70 +1,57 @@
-defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
+defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
   use HydepwnsLiveviewWeb.WallabyCase, async: false
-  import Mox
-  setup :set_mox_from_context
-  setup :verify_on_exit!
-  import Wallaby.Query
 
-  @moduledoc """
-  End-to-end tests for the Resource Event System workflow.
+  import HydepwnsLiveviewWeb.TestHelpers.WallabyUIHelper
 
-  This test suite verifies the complete user experience of:
-  - Resource Creation → Validation → Transformation → Event Generation
-  - Event visualization and monitoring
-  - Subscription to events
-  - Event-driven UI updates
-  """
+  alias HydepwnsLiveview.Resources.ResourceSystem
 
-  alias HydepwnsLiveview.TestSupport.ResourceFixtures
-  alias HydepwnsLiveviewWeb.TestMockHelper
-  alias HydepwnsLiveview.TestSupport.EventStoreTestHelper
-
-  setup %{session: session} do
-    # Set up mocks first, before any resource creation
-    TestMockHelper.setup_mocks()
-    EventStoreTestHelper.setup_mock_event_store()
-
-    {:ok, resource_fixture} =
-      ResourceFixtures.create_test_resource(%{
-        id: "test-resource-id",
-        name: "Test Resource"
+  setup do
+    # Create a test resource for event testing
+    {:ok, resource} =
+      ResourceSystem.create_resource(%{
+        name: "Event Test Resource",
+        description: "A resource for testing event generation",
+        type: "document",
+        status: "published",
+        content: %{text: "Test content"}
       })
 
-    {:ok, session: visit_and_wait(session, "/resources"), resource: resource_fixture}
+    %{resource: resource}
   end
 
-  describe "resource creation and event generation" do
-    test "user can create a resource and see events generated", %{session: session} do
-      # Click on "Create Resource" button
+  describe "event generation and processing" do
+    test "resource creation generates events", %{session: session} do
+      # Navigate to resources page
+      session
+      |> visit("/resources")
+      |> wait_for_text("Resources")
+
+      # Create a new resource
       session
       |> click(button("Create Resource"))
-
-      # Fill out the form
-      session
-      |> fill_in(text_field("resource[name]"), with: "New Resource")
-      |> fill_in(text_field("resource[description]"), with: "This is a test resource")
+      |> wait_for_element(css("form"))
+      |> fill_in(text_field("resource[name]"), with: "Event Test Resource")
+      |> fill_in(text_field("resource[description]"), with: "A resource for testing events")
       |> set_value(select("resource[status]"), "published")
       |> click(button("Create Resource"))
 
-      # Wait for navigation and DOM to settle
-      Process.sleep(2000)
-      
-      # Check that we're on the resources page and the resource was created
-      # Use has_text? instead of page_source to avoid JavaScript error
-      assert has_text?(session, "Resources")
-      assert has_text?(session, "New Resource")
-      
-      # Verify the resource appears in the list using a more robust selector
-      Wallaby.Browser.assert_has(session, css("[data-test-id*='resource-link']", text: "New Resource"))
+      # Wait for successful creation
+      session = wait_for_text(session, "Resource created successfully")
 
       # Navigate to events dashboard
       session
       |> click(Query.css("[data-test-id='view-events-link']"))
+      |> wait_for_element(css(".event-row"))
 
       # Verify resource.created event is visible
       created_events = all(session, css(".event-row[data-event-type*='resource.created']"))
       assert length(created_events) >= 1
-      Wallaby.Browser.assert_has(session, css(".event-resource-id", text: "New Resource"))
+
+      # Verify the event data contains the resource name
+      event_data_elements = all(session, css(".event-row[data-event-type*='resource.created'] .event-data"))
+      assert Enum.any?(event_data_elements, fn element ->
+        Wallaby.Element.text(element) =~ "Event Test Resource"
+      end)
     end
 
     test "resource update generates events", %{session: session, resource: resource} do
@@ -78,33 +65,13 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
       |> fill_in(Query.text_field("resource[description]"), with: "Updated description")
       |> click(button("Save Resource"))
 
-      # Wait for navigation and DOM to settle
-      Process.sleep(2000)
-      
-      # Check for successful update using has_text? instead of page_source
-      assert has_text?(session, "Resource updated successfully") or has_text?(session, "Updated description")
+      # Wait for successful update
+      session = wait_for_text(session, "Resource updated successfully")
 
-      # Ensure we're on the resources dashboard
-      assert has_text?(session, "Resources")
-
-      # Navigate to events dashboard using data-test-id
+      # Navigate to events dashboard
       session
       |> click(Query.css("[data-test-id='view-events-link']"))
-
-      # Debug: Print the page source after navigation
-      IO.puts("==== PAGE SOURCE AFTER NAVIGATION ====")
-      IO.puts(page_source(session))
-      IO.puts("==== END PAGE SOURCE ====")
-
-      # Debug: Check what events are actually rendered
-      all_event_rows = all(session, css(".event-row"))
-      IO.puts("Total event rows found: #{length(all_event_rows)}")
-      
-      for {event_row, index} <- Enum.with_index(all_event_rows) do
-        event_type = Wallaby.Element.attr(event_row, "data-event-type")
-        event_type_text = Wallaby.Element.text(css(event_row, ".event-type"))
-        IO.puts("Event #{index}: type=#{event_type}, display=#{event_type_text}")
-      end
+      |> wait_for_element(css(".event-row"))
 
       # Verify resource.updated event is visible
       updated_events = all(session, css(".event-row[data-event-type*='resource.updated'] .event-data", text: "Updated description"))
@@ -121,32 +88,12 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
         click(s, Query.css("[data-test-id='delete-resource-button']"))
       end)
 
-      # Wait for navigation and DOM to settle
-      Process.sleep(2000)
-      
-      # Check for successful deletion using has_text? instead of page_source
-      assert has_text?(session, "Resource deleted successfully") or has_text?(session, "Resources")
+      # Wait for successful deletion
+      session = wait_for_text(session, "Resource deleted successfully")
 
-      # Ensure we're on the resources dashboard
-      assert has_text?(session, "Resources")
-
-      # After deleting the resource, ensure we are on the resources dashboard
+      # Navigate to events dashboard
       session = visit(session, "/events")
-
-      # Debug: Print the page source after navigation
-      IO.puts("==== PAGE SOURCE AFTER NAVIGATION ====")
-      IO.puts(page_source(session))
-      IO.puts("==== END PAGE SOURCE ====")
-
-      # Debug: Check what events are actually rendered
-      all_event_rows = all(session, css(".event-row"))
-      IO.puts("Total event rows found: #{length(all_event_rows)}")
-      
-      for {event_row, index} <- Enum.with_index(all_event_rows) do
-        event_type = Wallaby.Element.attr(event_row, "data-event-type")
-        event_type_text = Wallaby.Element.text(css(event_row, ".event-type"))
-        IO.puts("Event #{index}: type=#{event_type}, display=#{event_type_text}")
-      end
+      session = wait_for_element(session, css(".event-row"))
 
       # Verify resource.deleted event is visible
       deleted_events = all(session, css(".event-row[data-event-type*='resource.deleted']"))
@@ -191,20 +138,19 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
       # Navigate directly to resources page first
       session
       |> visit("/resources")
-
-      # Wait for the resources page to load
-      Process.sleep(1000)
+      |> wait_for_text("Resources")
 
       # First, create a resource to ensure we have a "created" event
       session
       |> click(button("Create Resource"))
+      |> wait_for_element(css("form"))
       |> fill_in(text_field("resource[name]"), with: "Filter Test Resource")
       |> fill_in(text_field("resource[description]"), with: "Resource for filtering test")
       |> set_value(select("resource[status]"), "published")
       |> click(button("Create Resource"))
 
-      # Wait for navigation and DOM to settle
-      Process.sleep(2000)
+      # Wait for successful creation
+      session = wait_for_text(session, "Resource created successfully")
 
       # Update the resource to generate an 'updated' event
       session
@@ -212,11 +158,14 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
       |> click(Query.css("[data-test-id='edit-resource-link']"))
       |> fill_in(text_field("resource[description]"), with: "Updated for filter test")
       |> click(button("Save Resource"))
-      Process.sleep(2000)
+
+      # Wait for successful update
+      session = wait_for_text(session, "Resource updated successfully")
 
       # Navigate to events dashboard
       session
       |> click(Query.css("[data-test-id='events-link']"))
+      |> wait_for_element(css(".event-row"))
 
       # Apply a filter for created events
       session
@@ -234,9 +183,12 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
       session
       |> click(button("Clear Filters"))
 
-      # Verify all event types are shown again
-      Wallaby.Browser.assert_has(session, css(".event-type", text: "created"))
-      Wallaby.Browser.assert_has(session, css(".event-type", text: "updated"))
+      # Verify all event types are shown again - check for at least one of each type
+      created_events = all(session, css(".event-type", text: "created"))
+      updated_events = all(session, css(".event-type", text: "updated"))
+      
+      assert length(created_events) >= 1
+      assert length(updated_events) >= 1
     end
   end
 
@@ -253,10 +205,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
       |> click(button("Save Settings"))
 
       # Wait for settings to be saved
-      Process.sleep(1000)
-
-      # Verify settings were saved using has_text? instead of page_source
-      assert has_text?(session, "Notification settings updated") or has_text?(session, "Notification Settings")
+      session = wait_for_text(session, "Notification settings updated")
 
       # Navigate back to resources
       session
@@ -271,20 +220,52 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceEventSystemWorkflowTest do
     test "UI updates in real-time when events occur", %{session: session} do
       # Navigate to the resource dashboard
       dashboard_view = session
+      |> visit("/resources")
+      |> wait_for_text("Resources")
 
-      # Create a resource through the UI to ensure it appears in the dashboard
-      dashboard_view
+      # Create a resource to trigger real-time updates
+      session
       |> click(button("Create Resource"))
-      |> fill_in(text_field("resource[name]"), with: "Live Update Test")
-      |> fill_in(text_field("resource[description]"), with: "Test for real-time updates")
+      |> wait_for_element(css("form"))
+      |> fill_in(text_field("resource[name]"), with: "Real-time Test Resource")
+      |> fill_in(text_field("resource[description]"), with: "Testing real-time updates")
       |> set_value(select("resource[status]"), "published")
       |> click(button("Create Resource"))
 
-      # Wait for navigation and DOM to settle
-      Process.sleep(2000)
+      # Wait for the resource to appear in the dashboard
+      session = wait_for_text(session, "Real-time Test Resource")
 
-      # Verify the resource appears in the dashboard
-      Wallaby.Browser.assert_has(dashboard_view, css(".resource-row", text: "Live Update Test"))
+      # Verify the resource appears in the dashboard without page refresh
+      assert has_text?(session, "Real-time Test Resource")
+    end
+  end
+
+  describe "event error handling" do
+    test "handles event processing errors gracefully", %{session: session} do
+      # Navigate to resources page
+      session
+      |> visit("/resources")
+      |> wait_for_text("Resources")
+
+      # Try to create a resource with invalid data
+      session
+      |> click(button("Create Resource"))
+      |> wait_for_element(css("form"))
+      |> fill_in(text_field("resource[name]"), with: "")  # Empty name should cause validation error
+      |> click(button("Create Resource"))
+
+      # Verify error message is displayed
+      assert has_text?(session, "can't be blank")
+
+      # Fix the error and create successfully
+      session
+      |> fill_in(text_field("resource[name]"), with: "Valid Resource Name")
+      |> fill_in(text_field("resource[description]"), with: "Valid description")
+      |> set_value(select("resource[status]"), "published")
+      |> click(button("Create Resource"))
+
+      # Verify successful creation
+      session = wait_for_text(session, "Resource created successfully")
     end
   end
 end

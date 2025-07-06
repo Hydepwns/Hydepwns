@@ -57,8 +57,29 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
     end
   end
 
-  # Get events based on criteria
+  # Get events based on criteria - handle both maps and keyword lists
+  def get_events(criteria) when is_map(criteria) do
+    get_events_with_criteria(criteria)
+  end
+
+  def get_events(criteria) when is_list(criteria) do
+    # Convert keyword list to map for consistent processing
+    criteria_map = Enum.into(criteria, %{})
+    get_events_with_criteria(criteria_map)
+  end
+
   def get_events(criteria) do
+    # Handle other types by converting to map
+    criteria_map = case criteria do
+      criteria when is_map(criteria) -> criteria
+      criteria when is_list(criteria) -> Enum.into(criteria, %{})
+      _ -> %{}
+    end
+    get_events_with_criteria(criteria_map)
+  end
+
+  # Private function to handle criteria filtering
+  defp get_events_with_criteria(criteria) do
     events =
       Agent.get(__MODULE__, fn state ->
         state
@@ -67,21 +88,37 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
         |> Enum.filter(fn event ->
           Enum.all?(criteria, fn
             {:id, id} -> event.id == id
-            {:resource_type, resource_type} -> event.resource_type == to_atom(resource_type)
+            {"id", id} -> event.id == id
+            {:resource_type, resource_type} -> 
+              # Handle both string and atom resource types
+              event.resource_type == to_atom(resource_type) or 
+              event.resource_type == resource_type
+            {"resource_type", resource_type} -> 
+              # Handle both string and atom resource types
+              event.resource_type == to_atom(resource_type) or 
+              event.resource_type == resource_type
             {:resource_id, resource_id} -> event.resource_id == resource_id
+            {"resource_id", resource_id} -> event.resource_id == resource_id
             {:event_type, event_types} when is_list(event_types) -> 
               Enum.member?(event_types, event.type)
+            {"event_type", event_types} when is_list(event_types) -> 
+              Enum.member?(event_types, event.type)
             {:event_type, event_type} -> event.type == event_type
+            {"event_type", event_type} -> event.type == event_type
             {:limit, _} -> true # limit handled after filtering
+            {"limit", _} -> true # limit handled after filtering
             _ -> true
           end)
         end)
       end)
+    
     events =
       case criteria do
         %{limit: limit} when is_integer(limit) and limit > 0 -> Enum.take(events, limit)
+        %{"limit" => limit} when is_integer(limit) and limit > 0 -> Enum.take(events, limit)
         _ -> events
       end
+    
     IO.puts("🟢 MockEventStore.get_events: #{length(events)} events matching criteria")
     {:ok, events}
   end

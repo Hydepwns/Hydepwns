@@ -139,7 +139,14 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
 
   @impl true
   def handle_call({:subscribe_process, subscriber, event_types}, _from, state) do
-    subscribers = Map.update(state.subscribers, event_types, [subscriber], &[subscriber | &1])
+    # Handle both single event type and list of event types
+    event_types_list = if is_list(event_types), do: event_types, else: [event_types]
+    
+    # Add subscriber to each event type
+    subscribers = Enum.reduce(event_types_list, state.subscribers, fn event_type, acc ->
+      Map.update(acc, event_type, [subscriber], &[subscriber | &1])
+    end)
+    
     {:reply, :ok, %{state | subscribers: subscribers}}
   end
 
@@ -151,7 +158,14 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
 
   @impl true
   def handle_call({:unsubscribe_process, subscriber, event_types}, _from, state) do
-    subscribers = Map.update(state.subscribers, event_types, [subscriber], &List.delete(&1, subscriber))
+    # Handle both single event type and list of event types
+    event_types_list = if is_list(event_types), do: event_types, else: [event_types]
+    
+    # Remove subscriber from each event type
+    subscribers = Enum.reduce(event_types_list, state.subscribers, fn event_type, acc ->
+      Map.update(acc, event_type, [], &List.delete(&1, subscriber))
+    end)
+    
     {:reply, :ok, %{state | subscribers: subscribers}}
   end
 
@@ -176,7 +190,7 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
 
   @impl true
   def handle_cast({:publish, event, opts}, state) do
-    event_type = event.__struct__
+    event_type = event.type
     subscribers = get_subscribers_for_type(state, event_type)
     notify_subscribers(subscribers, event, opts)
     {:noreply, state}
@@ -195,17 +209,23 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
   # Private functions
 
   defp get_subscribers_for_type(state, event_type) do
-    state.subscribers
-    |> Enum.filter(fn {_subscriber, types} ->
-      types == :all or event_type in types
-    end)
-    |> Enum.map(fn {subscriber, _types} -> subscriber end)
+    # Get subscribers for this specific event type
+    specific_subscribers = Map.get(state.subscribers, event_type, [])
+    
+    # Get subscribers for :all events
+    all_subscribers = Map.get(state.subscribers, :all, [])
+    
+    # Combine and deduplicate
+    (specific_subscribers ++ all_subscribers)
+    |> Enum.uniq()
+    |> Enum.filter(&is_pid/1)
+    |> Enum.filter(&Process.alive?/1)
   end
 
   defp notify_subscribers(subscribers, event, opts) do
     Enum.each(subscribers, fn subscriber ->
       if is_pid(subscriber) and Process.alive?(subscriber) do
-        send(subscriber, {:event, event, opts})
+        send(subscriber, {:event, event})
       end
     end)
   end

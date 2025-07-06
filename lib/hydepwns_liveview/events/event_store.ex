@@ -103,7 +103,7 @@ defmodule HydepwnsLiveview.Events.EventStore do
   @spec get_events_for_resource_at(String.t(), String.t(), DateTime.t()) ::
           {:ok, [Event.t()]} | {:error, any()}
   def get_events_for_resource_at(resource_type, resource_id, timestamp) do
-    EventOperations.get_events(%{
+    event_store_module().get_events(%{
       resource_type: resource_type,
       resource_id: resource_id,
       timestamp: timestamp
@@ -121,7 +121,7 @@ defmodule HydepwnsLiveview.Events.EventStore do
   * `{:error, :not_found}` - The event was not found
   """
   @spec get_event(String.t()) :: {:ok, Event.t()} | {:error, :not_found}
-  def get_event(id), do: EventOperations.get_event(id)
+  def get_event(id), do: event_store_module().get_event(id)
 
   @doc """
   Deletes an event by its ID.
@@ -156,7 +156,7 @@ defmodule HydepwnsLiveview.Events.EventStore do
   """
   @spec list_all_events() :: {:ok, [Event.t()]} | {:error, any()}
   def list_all_events do
-    EventOperations.get_events(%{})
+    event_store_module().get_events(%{})
   end
 
   # Replay Operations

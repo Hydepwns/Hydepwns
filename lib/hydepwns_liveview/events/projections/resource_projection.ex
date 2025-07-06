@@ -36,8 +36,12 @@ defmodule HydepwnsLiveview.Events.Projections.ResourceProjection do
       last_updated: nil
     }
 
-    # Subscribe to events
-    EventBus.subscribe(self())
+    # Subscribe to specific event types for robustness
+    EventBus.subscribe(self(), [
+      "resource.created",
+      "resource.updated", 
+      "resource.deleted"
+    ])
 
     {:ok, state}
   end
@@ -55,6 +59,7 @@ defmodule HydepwnsLiveview.Events.Projections.ResourceProjection do
 
   @impl true
   def handle_info({:event, event}, state) do
+    Logger.info("ResourceProjection received event: #{event.type} for resource: #{event.resource_id}")
     new_state = update_state(state, event)
     {:noreply, new_state}
   end
@@ -63,7 +68,8 @@ defmodule HydepwnsLiveview.Events.Projections.ResourceProjection do
 
   defp update_state(state, event) do
     case event do
-      %{type: "resource_created", resource_id: id, data: data} ->
+      %{type: "resource.created", resource_id: id, data: data} ->
+        Logger.info("ResourceProjection: Processing resource.created for #{id}")
         %{
           state
           | resources: Map.put(state.resources, id, data),
@@ -71,7 +77,8 @@ defmodule HydepwnsLiveview.Events.Projections.ResourceProjection do
             last_updated: DateTime.utc_now()
         }
 
-      %{type: "resource_updated", resource_id: id, data: data} ->
+      %{type: "resource.updated", resource_id: id, data: data} ->
+        Logger.info("ResourceProjection: Processing resource.updated for #{id}")
         %{
           state
           | resources: Map.update(state.resources, id, data, &Map.merge(&1, data)),
@@ -79,7 +86,8 @@ defmodule HydepwnsLiveview.Events.Projections.ResourceProjection do
             last_updated: DateTime.utc_now()
         }
 
-      %{type: "resource_deleted", resource_id: id} ->
+      %{type: "resource.deleted", resource_id: id} ->
+        Logger.info("ResourceProjection: Processing resource.deleted for #{id}")
         %{
           state
           | resources: Map.delete(state.resources, id),
@@ -88,6 +96,7 @@ defmodule HydepwnsLiveview.Events.Projections.ResourceProjection do
         }
 
       _ ->
+        Logger.debug("ResourceProjection: Ignoring event type: #{event.type}")
         state
     end
   end

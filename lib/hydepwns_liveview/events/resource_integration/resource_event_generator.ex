@@ -8,6 +8,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator do
 
   alias HydepwnsLiveview.Events.Event
   alias HydepwnsLiveview.Events.EventOperations
+  alias HydepwnsLiveview.Events.EventStore
 
   @doc """
   Generates and publishes an event for a resource creation.
@@ -31,7 +32,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator do
              data: resource_info.data,
              metadata: Map.merge(%{action: "create"}, metadata)
            }),
-         {:ok, stored_event} <- EventOperations.store_event(event),
+         {:ok, stored_event} <- EventStore.store_event(event),
          :ok <- HydepwnsLiveview.Events.EventBus.publish(stored_event) do
       {:ok, stored_event}
     else
@@ -62,7 +63,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator do
              data: Map.merge(resource_info.data, %{changes: changes}),
              metadata: Map.merge(%{action: "update"}, metadata)
            }),
-         {:ok, stored_event} <- EventOperations.store_event(event),
+         {:ok, stored_event} <- EventStore.store_event(event),
          :ok <- HydepwnsLiveview.Events.EventBus.publish(stored_event) do
       {:ok, stored_event}
     else
@@ -92,7 +93,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator do
              data: resource_info.data,
              metadata: Map.merge(%{action: "delete"}, metadata)
            }),
-         {:ok, stored_event} <- EventOperations.store_event(event),
+         {:ok, stored_event} <- EventStore.store_event(event),
          :ok <- HydepwnsLiveview.Events.EventBus.publish(stored_event) do
       {:ok, stored_event}
     else
@@ -124,7 +125,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator do
              data: Map.merge(resource_info.data, data),
              metadata: metadata
            }),
-         {:ok, stored_event} <- EventOperations.store_event(event),
+         {:ok, stored_event} <- EventStore.store_event(event),
          :ok <- HydepwnsLiveview.Events.EventBus.publish(stored_event) do
       {:ok, stored_event}
     else

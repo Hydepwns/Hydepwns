@@ -14,7 +14,7 @@ end
 # Configure Ecto sandbox for proper async test support
 Ecto.Adapters.SQL.Sandbox.mode(HydepwnsLiveview.Repo, :manual)
 
-# {:ok, _} = Application.ensure_all_started(:wallaby)
+{:ok, _} = Application.ensure_all_started(:wallaby)
 
 # Start the resource system
 {:ok, _} =

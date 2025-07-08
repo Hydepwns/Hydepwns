@@ -33,8 +33,25 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
       Map.put(event, :id, Ecto.UUID.generate())
     end
 
-    new_state = %{state | events: [event | state.events]}
-    {:reply, {:ok, event}, new_state}
+    # Convert Event struct to map for storage
+    event_map = case event do
+      %{__struct__: HydepwnsLiveview.Events.Schemas.Event} ->
+        %{
+          id: event.id,
+          type: event.type,
+          data: event.data,
+          resource_type: event.resource_type,
+          resource_id: event.resource_id,
+          correlation_id: event.correlation_id,
+          causation_id: event.causation_id,
+          metadata: event.metadata,
+          timestamp: event.timestamp
+        }
+      _ -> event
+    end
+
+    new_state = %{state | events: [event_map | state.events]}
+    {:reply, {:ok, event_map}, new_state}
   end
 
   def handle_call({:store_event, event}, _from, state) when is_map(event) do
@@ -45,8 +62,58 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
       Map.put(event, :id, Ecto.UUID.generate())
     end
 
-    new_state = %{state | events: [event | state.events]}
-    {:reply, {:ok, event}, new_state}
+    # Convert Event struct to map for storage
+    event_map = case event do
+      %{__struct__: HydepwnsLiveview.Events.Schemas.Event} ->
+        %{
+          id: event.id,
+          type: event.type,
+          data: event.data,
+          resource_type: event.resource_type,
+          resource_id: event.resource_id,
+          correlation_id: event.correlation_id,
+          causation_id: event.causation_id,
+          metadata: event.metadata,
+          timestamp: event.timestamp
+        }
+      _ -> event
+    end
+
+    new_state = %{state | events: [event_map | state.events]}
+    {:reply, {:ok, event_map}, new_state}
+  end
+
+  def handle_call({:store_events, events}, _from, state) when is_list(events) do
+    # Handle multiple events
+    {stored_events, new_state} = Enum.reduce(events, {[], state}, fn event, {acc, current_state} ->
+      event = if Map.get(event, :id) do
+        event
+      else
+        Map.put(event, :id, Ecto.UUID.generate())
+      end
+
+      # Convert Event struct to map for storage
+      event_map = case event do
+        %{__struct__: HydepwnsLiveview.Events.Schemas.Event} ->
+          %{
+            id: event.id,
+            type: event.type,
+            data: event.data,
+            resource_type: event.resource_type,
+            resource_id: event.resource_id,
+            correlation_id: event.correlation_id,
+            causation_id: event.causation_id,
+            metadata: event.metadata,
+            timestamp: event.timestamp
+          }
+        _ -> event
+      end
+
+      new_state = %{current_state | events: [event_map | current_state.events]}
+      {[event_map | acc], new_state}
+    end)
+
+    {:reply, {:ok, Enum.reverse(stored_events)}, new_state}
   end
 
   def handle_call({:get_events, criteria}, _from, state) do
@@ -71,7 +138,16 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
     events = Enum.filter(state.events, fn event ->
       event.resource_type == resource_type && event.resource_id == resource_id
     end)
-    {:reply, {:ok, events}, state}
+    {:reply, {:ok, Enum.reverse(events)}, state}
+  end
+
+  def handle_call({:get_events_for_resource_at, resource_type, resource_id, timestamp}, _from, state) do
+    events = Enum.filter(state.events, fn event ->
+      event.resource_type == resource_type &&
+      event.resource_id == resource_id &&
+      DateTime.compare(event.timestamp, timestamp) == :lte
+    end)
+    {:reply, {:ok, Enum.reverse(events)}, state}
   end
 
   def handle_call(:get_all_events, _from, state) do
@@ -85,6 +161,10 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
 
   def store_event(event, metadata \\ %{}) when is_map(event) do
     GenServer.call(__MODULE__, {:store_event, event, metadata})
+  end
+
+  def store_events(events) when is_list(events) do
+    GenServer.call(__MODULE__, {:store_events, events})
   end
 
   def get_events(criteria) do
@@ -101,6 +181,10 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
 
   def get_events_for_resource(resource_type, resource_id) do
     GenServer.call(__MODULE__, {:get_events_for_resource, resource_type, resource_id})
+  end
+
+  def get_events_for_resource_at(resource_type, resource_id, timestamp) do
+    GenServer.call(__MODULE__, {:get_events_for_resource_at, resource_type, resource_id, timestamp})
   end
 
   def get_all_events do

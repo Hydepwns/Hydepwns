@@ -2,6 +2,7 @@ defmodule HydepwnsLiveview.Events.EventSettings do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @primary_key {:id, :binary_id, autogenerate: true}
   schema "event_settings" do
     field :timezone, :string, default: "UTC"
     field :default_status, :string, default: "draft"

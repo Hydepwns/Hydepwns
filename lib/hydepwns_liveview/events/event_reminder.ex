@@ -5,6 +5,7 @@ defmodule HydepwnsLiveview.Events.EventReminder do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "event_reminders" do
     field :reminder_time, :utc_datetime

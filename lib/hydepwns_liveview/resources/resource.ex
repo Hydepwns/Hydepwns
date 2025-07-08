@@ -39,7 +39,7 @@ defmodule HydepwnsLiveview.Resources.Resource do
   def changeset(resource, attrs) do
     # Pre-process content field to handle both string and map inputs
     attrs = process_content_field(attrs)
-    
+
     resource
     |> cast(attrs, [
       :name,
@@ -70,7 +70,13 @@ defmodule HydepwnsLiveview.Resources.Resource do
   end
 
   defp process_content_field(attrs) do
-    case Map.get(attrs, "content") || Map.get(attrs, :content) do
+    # Convert all keys to atoms to ensure consistency
+    attrs = for {key, value} <- attrs, into: %{} do
+      new_key = if is_binary(key), do: String.to_atom(key), else: key
+      {new_key, value}
+    end
+
+    case Map.get(attrs, :content) do
       content when is_binary(content) ->
         case Jason.decode(content) do
           {:ok, decoded} -> Map.put(attrs, :content, decoded)
@@ -86,7 +92,7 @@ defmodule HydepwnsLiveview.Resources.Resource do
   defp validate_circular_relationship(changeset) do
     parent_id = get_field(changeset, :parent_id)
     id = get_field(changeset, :id)
-    
+
     cond do
       !parent_id || !id ->
         changeset
@@ -113,7 +119,7 @@ defmodule HydepwnsLiveview.Resources.Resource do
         true
       true ->
         visited = MapSet.put(visited, current_id)
-        
+
         case HydepwnsLiveview.Resources.ResourceSystem.get_resource(current_id) do
           {:ok, %{parent_id: parent_id}} when not is_nil(parent_id) ->
             check_parent_chain(parent_id, target_id, visited)
@@ -126,7 +132,7 @@ defmodule HydepwnsLiveview.Resources.Resource do
   defp validate_relationship_type(changeset) do
     parent_id = get_field(changeset, :parent_id)
     resource_type = get_field(changeset, :type)
-    
+
     cond do
       !parent_id ->
         changeset

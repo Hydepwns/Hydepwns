@@ -58,15 +58,15 @@ config :wallaby,
         args: [
           "no-sandbox",
           "disable-dev-shm-usage",
-          "disable-gpu",
-          "disable-web-security",
-          "allow-running-insecure-content"
+          "--enable-javascript",
+          "--disable-web-security=false"
         ]
       }
     }
   ],
   chromedriver: [
-    path: Path.expand("assets/drivers/chromedriver-mac-arm64/chromedriver")
+    path: "chromedriver",
+    binary: "/nix/store/543z3c6jdqf4j9zkfy58il7vracyn28g-google-chrome-137.0.7151.103/share/google/chrome/chrome"
   ],
   base_url: "http://localhost:4002"
 

@@ -16,6 +16,16 @@ let
   # Additional tools
   inotify-tools = pkgs.inotify-tools;
   
+  # Build tools for NIF compilation
+  cmake = pkgs.cmake;
+  gcc = pkgs.gcc;
+  make = pkgs.gnumake;
+  openssl = pkgs.openssl;
+  
+  # Chrome and ChromeDriver for Wallaby testing
+  chrome = pkgs.google-chrome;
+  chromedriver = pkgs.chromedriver;
+  
 in pkgs.mkShell {
   buildInputs = [
     # Elixir and Erlang
@@ -33,6 +43,16 @@ in pkgs.mkShell {
     inotify-tools
     pkgs.git
     beamPkgs.rebar3
+    
+    # Build tools
+    cmake
+    gcc
+    make
+    openssl
+    
+    # Browser testing
+    chrome
+    chromedriver
     
     # Optional: Additional useful tools
     pkgs.curl
@@ -60,6 +80,13 @@ in pkgs.mkShell {
   # Set environment variables
   ERL_AFLAGS = "-kernel shell_history enabled";
   ERL_LIBS = "${erlang}/lib/erlang/lib";
+  
+  # OpenSSL environment variables for NIF compilation
+  OPENSSL_ROOT_DIR = "${openssl}";
+  OPENSSL_INCLUDE_DIR = "${openssl}/include";
+  OPENSSL_LIBRARIES = "${openssl}/lib";
+  OPENSSL_CRYPTO_LIBRARY = "${openssl}/lib/libcrypto.so";
+  OPENSSL_SSL_LIBRARY = "${openssl}/lib/libssl.so";
   
   # PostgreSQL setup
   PGDATA = "./.postgres";

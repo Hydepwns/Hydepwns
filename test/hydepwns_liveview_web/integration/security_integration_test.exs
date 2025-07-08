@@ -9,12 +9,12 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
   import Mox
   setup :set_mox_from_context
   setup :verify_on_exit!
-  
+
   # Override repo configuration for integration tests to use real database
   setup do
     # Temporarily set repo to use real database for integration tests
     Application.put_env(:hydepwns_liveview, :repo, HydepwnsLiveview.Repo)
-    on_exit(fn -> 
+    on_exit(fn ->
       # Restore mock repo after test
       Application.put_env(:hydepwns_liveview, :repo, HydepwnsLiveview.RepoMock)
     end)
@@ -68,11 +68,11 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
       # Try to access protected endpoint without authentication
       conn = get(conn, "/users/settings")
       assert conn.status == 302  # Redirect to login
-      
+
       # Try to access API endpoint without authentication
       conn = get(conn, "/api/users/profile")
       assert conn.status == 401  # Unauthorized
-      
+
       response = json_response(conn, 401)
       assert response["error"] == "Unauthorized"
     end
@@ -82,12 +82,12 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
       conn = conn |> put_req_header("authorization", "Bearer invalid-token")
       conn = get(conn, "/api/users/profile")
       assert conn.status == 401
-      
+
       # Try with malformed token
       conn = conn |> put_req_header("authorization", "Bearer malformed.token.here")
       conn = get(conn, "/api/users/profile")
       assert conn.status == 401
-      
+
       # Try with expired token
       expired_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MzQ1Njc4OTl9.expired"
       conn = conn |> put_req_header("authorization", "Bearer #{expired_token}")
@@ -99,15 +99,15 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
       # Create valid session
       token = Accounts.generate_user_session_token(user)
       session = %{"user_token" => token}
-      
+
       # Access with valid session
       {:ok, view, _html} = live(conn, "/users/settings", session: session)
       assert view |> has_element?("h1", "User Settings")
-      
+
       # Try to access with modified token
       modified_token = token <> "tampered"
       modified_session = %{"user_token" => modified_token}
-      
+
       # Should reject modified token
       assert_raise Phoenix.LiveView.RedirectError, fn ->
         live(conn, "/users/settings", session: modified_session)
@@ -118,12 +118,12 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
       # Login user
       token = Accounts.generate_user_session_token(user)
       session = %{"user_token" => token}
-      
+
       {:ok, view, _html} = live(conn, "/users/settings", session: session)
-      
+
       # Perform logout
       view |> element("a", "Logout") |> render_click()
-      
+
       # Should redirect to login page
       assert_redirect(view, "/users/log_in")
     end
@@ -137,7 +137,7 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
             "password" => "wrong_password"
           }
         })
-        
+
         if i < 5 do
           assert conn.status == 422  # Validation error
         else
@@ -153,12 +153,12 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
       # Login as regular user
       token = Accounts.generate_user_session_token(user)
       session = %{"user_token" => token}
-      
+
       # Try to access admin-only endpoint
       conn = conn |> put_req_header("authorization", "Bearer #{token}")
       conn = get(conn, "/api/admin/users")
       assert conn.status == 403  # Forbidden
-      
+
       response = json_response(conn, 403)
       assert response["error"] == "Forbidden"
     end
@@ -167,13 +167,13 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
       # Login as regular user
       token = Accounts.generate_user_session_token(user)
       session = %{"user_token" => token}
-      
+
       # Try to modify user role to admin
       conn = conn |> put_req_header("authorization", "Bearer #{token}")
       conn = put(conn, "/api/users/#{user.id}", %{
         "user" => %{"role" => "admin"}
       })
-      
+
       # Should be forbidden
       assert conn.status == 403
     end
@@ -186,12 +186,12 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
         status: "published",
         owner_id: admin.id
       })
-      
+
       # Try to access as regular user
       token = Accounts.generate_user_session_token(user)
       conn = conn |> put_req_header("authorization", "Bearer #{token}")
       conn = get(conn, "/api/resources/#{admin_resource.id}")
-      
+
       # Should be forbidden unless user has permission
       assert conn.status in [403, 404]  # Forbidden or Not Found
     end
@@ -200,14 +200,14 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
       # Login as regular user
       token = Accounts.generate_user_session_token(user)
       conn = conn |> put_req_header("authorization", "Bearer #{token}")
-      
+
       # Try to access different API endpoints
       endpoints = [
         "/api/admin/users",
         "/api/admin/events",
         "/api/admin/system"
       ]
-      
+
       Enum.each(endpoints, fn endpoint ->
         conn = get(conn, endpoint)
         assert conn.status == 403  # Forbidden
@@ -225,14 +225,14 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
         "admin'--",
         "1' UNION SELECT * FROM users--"
       ]
-      
+
       Enum.each(malicious_inputs, fn malicious_input ->
         # Try to use malicious input in search
         conn = get(conn, "/api/resources?search=#{malicious_input}")
-        
+
         # Should not crash and should handle gracefully
         assert conn.status in [200, 400, 422]
-        
+
         # Should not return sensitive data
         if conn.status == 200 do
           response = json_response(conn, 200)
@@ -251,10 +251,10 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
         "<svg onload=alert('XSS')>",
         "';alert('XSS');//"
       ]
-      
+
       token = Accounts.generate_user_session_token(user)
       conn = conn |> put_req_header("authorization", "Bearer #{token}")
-      
+
       Enum.each(xss_payloads, fn xss_payload ->
         # Try to create resource with XSS payload
         conn = post(conn, "/api/resources", %{
@@ -265,7 +265,7 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
             "status" => "published"
           }
         })
-        
+
         if conn.status == 201 do
           response = json_response(conn, 201)
           # Content should be escaped
@@ -279,7 +279,7 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
     test "prevents CSRF attacks", %{conn: conn, regular_user: user} do
       # Test CSRF protection
       token = Accounts.generate_user_session_token(user)
-      
+
       # Try to make request without CSRF token
       conn = post(conn, "/api/resources", %{
         "resource" => %{
@@ -288,7 +288,7 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
           "status" => "published"
         }
       })
-      
+
       # Should be rejected due to missing CSRF token
       assert conn.status == 403  # Forbidden
     end
@@ -301,16 +301,16 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
         %{filename: "malicious.exe", content: "binary content"},
         %{filename: "malicious.sh", content: "#!/bin/bash\nrm -rf /"}
       ]
-      
+
       token = Accounts.generate_user_session_token(user)
       conn = conn |> put_req_header("authorization", "Bearer #{token}")
-      
+
       Enum.each(malicious_files, fn malicious_file ->
         # Try to upload malicious file
         conn = post(conn, "/api/upload", %{
           "file" => malicious_file
         })
-        
+
         # Should be rejected
         assert conn.status in [400, 403, 422]
       end)
@@ -325,7 +325,7 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
         "`whoami`",
         "$(id)"
       ]
-      
+
       Enum.each(command_injections, fn injection ->
         # Try to use in various inputs
         conn = post(conn, "/api/resources", %{
@@ -335,10 +335,10 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
             "status" => "published"
           }
         })
-        
+
         # Should handle gracefully
         assert conn.status in [201, 400, 422]
-        
+
         # Should not execute commands
         if conn.status == 201 do
           response = json_response(conn, 201)
@@ -353,7 +353,7 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
     test "encrypts sensitive data", %{conn: conn, regular_user: user} do
       # Test password encryption
       password = "sensitive_password"
-      
+
       # Create user with password
       {:ok, user} = Accounts.register_user(%{
         email: "encryption_test@example.com",
@@ -361,7 +361,7 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
         password_confirmation: password,
         name: "Encryption Test User"
       })
-      
+
       # Password should be encrypted in database
       # This would require database access to verify
       # For now, we'll test that the user can authenticate
@@ -373,13 +373,13 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
       # Test that sensitive data is not exposed
       token = Accounts.generate_user_session_token(user)
       conn = conn |> put_req_header("authorization", "Bearer #{token}")
-      
+
       # Get user profile
       conn = get(conn, "/api/users/profile")
       assert conn.status == 200
-      
+
       response = json_response(conn, 200)
-      
+
       # Should not expose sensitive fields
       refute Map.has_key?(response["data"], "password")
       refute Map.has_key?(response["data"], "password_hash")
@@ -394,10 +394,10 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
         "private_token_xyz789",
         "credit_card_1234567890123456"
       ]
-      
+
       token = Accounts.generate_user_session_token(user)
       conn = conn |> put_req_header("authorization", "Bearer #{token}")
-      
+
       Enum.each(sensitive_data, fn sensitive ->
         # Try to create resource with sensitive data
         conn = post(conn, "/api/resources", %{
@@ -408,7 +408,7 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
             "status" => "published"
           }
         })
-        
+
         if conn.status == 201 do
           response = json_response(conn, 201)
           # Sensitive data should be sanitized in response
@@ -420,11 +420,11 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
     test "implements secure session management", %{conn: conn, regular_user: user} do
       # Test session security
       token = Accounts.generate_user_session_token(user)
-      
+
       # Session should have proper attributes
       session_data = Accounts.get_user_by_session_token(token)
       assert session_data != nil
-      
+
       # Test session expiration
       # This would require time manipulation to test properly
       # For now, we'll verify the session is valid
@@ -439,7 +439,7 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
         conn = get(conn, "/api/resources")
         conn.status
       end
-      
+
       # Should eventually hit rate limit
       assert Enum.any?(responses, &(&1 == 429))
     end
@@ -448,7 +448,7 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
       # Test API version validation
       conn = get(conn, "/api/v1/resources")
       assert conn.status in [200, 404]  # Should handle versioning
-      
+
       conn = get(conn, "/api/v999/resources")
       assert conn.status == 404  # Invalid version
     end
@@ -457,7 +457,7 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
       # Test that errors don't leak sensitive information
       conn = get(conn, "/api/nonexistent")
       assert conn.status == 404
-      
+
       response = json_response(conn, 404)
       refute response =~ "password"
       refute response =~ "secret"
@@ -476,7 +476,7 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
     test "implements secure headers", %{conn: conn} do
       # Test security headers
       conn = get(conn, "/health")
-      
+
       # Check for security headers
       assert get_resp_header(conn, "x-frame-options") == ["DENY"]
       assert get_resp_header(conn, "x-content-type-options") == ["nosniff"]
@@ -495,9 +495,9 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
       # Test secure cookie settings
       token = Accounts.generate_user_session_token(user)
       session = %{"user_token" => token}
-      
+
       {:ok, _view, _html} = live(conn, "/users/settings", session: session)
-      
+
       # Check cookie attributes
       # This would require access to cookie settings
       # For now, we'll verify the session works
@@ -508,7 +508,7 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
   describe "Security Monitoring" do
     test "logs security events", %{conn: conn} do
       # Mock security logging
-      HydepwnsLiveview.Security.Logger
+      HydepwnsLiveview.MockSecurityLogger
       |> expect(:log_security_event, fn event_type, details ->
         assert event_type == "failed_login"
         assert details["email"] == "nonexistent@example.com"
@@ -522,19 +522,19 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
           "password" => "wrong_password"
         }
       })
-      
+
       # Log the security event
-      result = HydepwnsLiveview.Security.Logger.log_security_event(
+      result = HydepwnsLiveview.MockSecurityLogger.log_security_event(
         "failed_login",
         %{"email" => "nonexistent@example.com", "ip" => "127.0.0.1"}
       )
-      
+
       assert {:ok, "event-logged"} = result
     end
 
-    test "detects suspicious activity", %{conn: conn} do
+        test "detects suspicious activity", %{conn: conn} do
       # Mock suspicious activity detection
-      HydepwnsLiveview.Security.Detector
+      HydepwnsLiveview.MockSecurityDetector
       |> expect(:detect_suspicious_activity, fn activity ->
         assert activity["type"] == "multiple_failed_logins"
         assert activity["count"] > 5
@@ -550,20 +550,20 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
           }
         })
       end
-      
+
       # Detect suspicious activity
-      result = HydepwnsLiveview.Security.Detector.detect_suspicious_activity(%{
+      result = HydepwnsLiveview.MockSecurityDetector.detect_suspicious_activity(%{
         "type" => "multiple_failed_logins",
         "count" => 10,
         "ip" => "127.0.0.1"
       })
-      
+
       assert {:warning, "Suspicious activity detected"} = result
     end
 
-    test "implements security alerts", %{conn: conn} do
+        test "implements security alerts", %{conn: conn} do
       # Mock security alerting
-      HydepwnsLiveview.Security.Alerting
+      HydepwnsLiveview.MockSecurityAlerting
       |> expect(:send_alert, fn alert_type, details ->
         assert alert_type == "security_breach"
         assert details["severity"] == "high"
@@ -571,7 +571,7 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
       end)
 
       # Send security alert
-      result = HydepwnsLiveview.Security.Alerting.send_alert(
+      result = HydepwnsLiveview.MockSecurityAlerting.send_alert(
         "security_breach",
         %{
           "severity" => "high",
@@ -579,8 +579,8 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
           "timestamp" => DateTime.utc_now()
         }
       )
-      
+
       assert {:ok, "alert-sent"} = result
     end
   end
-end 
+end

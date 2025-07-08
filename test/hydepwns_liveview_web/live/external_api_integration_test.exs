@@ -20,7 +20,7 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
     # Set up mocks for all tests
     Application.put_env(:hydepwns_liveview, :external_api, HydepwnsLiveview.MockExternalAPI)
     TestMockHelper.setup_mocks()
-    
+
     # Set up database mock expectations
     HydepwnsLiveview.RepoMock
     |> stub(:get, fn _module, _id, _opts ->
@@ -34,7 +34,7 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
         child_ids: []
       }
     end)
-    
+
     :ok
   end
 
@@ -44,6 +44,7 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
       # This is a placeholder test - replace with an actual route in your app
       # that would make external API calls. Uses string path instead of ~p.
       {:ok, view, _html} = live(conn, "/resources/123")
+      Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), view.pid)
 
       # Assert that the data from the mocked API is displayed
       assert has_element?(view, "[data-test-id='resource-name']", "Test Resource")
@@ -54,6 +55,7 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
     test "handles API errors gracefully", %{conn: conn} do
       # This is a placeholder test. Uses string path instead of ~p.
       {:ok, view, _html} = live(conn, "/resources/123")
+      Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), view.pid)
 
       # Since the LiveView doesn't actually call external API, just verify it loads
       assert has_element?(view, "[data-test-id='resource-name']", "Test Resource")
@@ -74,7 +76,8 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
         })
 
       # Load the EDIT page using string path instead of ~p
-      {:ok, _view, _html} = live(conn, "/resources/#{resource_id}/edit")
+      {:ok, view, _html} = live(conn, "/resources/#{resource_id}/edit")
+      Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), view.pid)
 
       # assert has_element?(view, "form")
 

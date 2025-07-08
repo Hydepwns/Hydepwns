@@ -102,4 +102,4 @@ defmodule HydepwnsLiveview.Resources.UserResourceTest do
       assert rebuilt.active == false
     end
   end
-end 
+end

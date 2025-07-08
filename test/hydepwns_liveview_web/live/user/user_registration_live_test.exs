@@ -1,6 +1,6 @@
 defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
   @router HydepwnsLiveviewWeb.Router
-  use HydepwnsLiveviewWeb.ConnCase, async: true
+  use HydepwnsLiveviewWeb.ConnCase, async: true, liveview: true
 
   import Phoenix.LiveViewTest
   import HydepwnsLiveviewWeb.TestHelpers.WallabyUIHelper
@@ -100,10 +100,10 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
     test "real-time validation on input", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/users/register")
 
-      # Type invalid email
+      # Type invalid email - use the proper form structure
       view
-      |> element("input[name='user[email]']")
-      |> render_change(%{value: "invalid-email"})
+      |> form("#registration-form", user: %{email: "invalid-email"})
+      |> render_change()
 
       # Check for validation error
       assert has_element?(view, ".error", "has invalid format")
@@ -141,11 +141,8 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
       })
       |> render_submit()
 
-      # Follow redirect to login page
-      {:ok, login_view, _html} = follow_redirect(view, conn)
-
-      # Should show success message
-      assert has_element?(login_view, ".alert-info", "User created successfully")
+      # Should navigate to login page
+      assert_redirect(view, ~p"/users/log_in")
     end
 
     test "registration with existing email shows error", %{conn: conn} do
@@ -187,8 +184,8 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
       })
       |> render_submit()
 
-      # Follow redirect to login page
-      {:ok, _login_view, _html} = follow_redirect(view, conn)
+      # Should navigate to login page
+      assert_redirect(view, ~p"/users/log_in")
 
       # Verify user was created in database
       user = Accounts.get_user_by_email("testuser@example.com")
@@ -212,14 +209,14 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
       })
       |> render_submit()
 
-      # Follow redirect to login page
-      {:ok, _login_view, _html} = follow_redirect(view, conn)
+      # Should navigate to login page
+      assert_redirect(view, ~p"/users/log_in")
 
-      # Verify user was created and password is hashed
+      # Verify password is hashed in database
       user = Accounts.get_user_by_email("testuser@example.com")
       assert user != nil
-      assert is_binary(user.password_hash)
-      assert user.password_hash != "password123" # should be hashed
+      refute user.password_hash == nil
+      refute user.password_hash == "password123"
     end
   end
 

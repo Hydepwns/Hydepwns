@@ -3,6 +3,11 @@ defmodule HydepwnsLiveview.Resources.ResourceSystemTest do
   alias HydepwnsLiveview.Resources.ResourceSystem
   alias HydepwnsLiveview.Resources.Resource
 
+  setup do
+    HydepwnsLiveviewWeb.TestMockHelper.setup_mocks()
+    :ok
+  end
+
   describe "ResourceSystem core logic" do
     test "creates a resource successfully" do
       attrs = %{name: "Test Resource", type: "document", status: "published", content: %{text: "Test content"}}
@@ -38,4 +43,4 @@ defmodule HydepwnsLiveview.Resources.ResourceSystemTest do
       assert resource.name == "Event Resource"
     end
   end
-end 
+end

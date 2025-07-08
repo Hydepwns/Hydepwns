@@ -150,7 +150,16 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator do
            data: Map.drop(resource, [:__resource_module__, :__meta__, :__struct__])
          }}
 
-      # Handle structs with __meta__ field (likely Ecto schemas)
+      # Handle Resource struct specifically
+      is_map(resource) && resource.__struct__ == HydepwnsLiveview.Resources.Resource ->
+        {:ok,
+         %{
+           id: extract_id(resource),
+           type: resource.type,
+           data: Map.drop(resource, [:__meta__, :__struct__])
+         }}
+
+      # Handle other structs with __meta__ field (likely Ecto schemas)
       is_map(resource) && Map.has_key?(resource, :__struct__) && Map.has_key?(resource, :__meta__) ->
         resource_type = resource_type_from_module(resource.__struct__)
 

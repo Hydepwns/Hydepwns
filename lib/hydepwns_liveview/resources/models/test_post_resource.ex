@@ -1,10 +1,10 @@
 defmodule HydepwnsLiveview.Resources.TestPostResource do
   @moduledoc """
   Test-only event-sourced resource for testing the PostResource behavior.
-  
+
   This module is used exclusively for testing and should not be used in production code.
   """
-  
+
   use HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource
 
   def initial_state do
@@ -44,6 +44,6 @@ defmodule HydepwnsLiveview.Resources.TestPostResource do
 
   def apply_event(%{type: "post.created", data: data}, state), do: Map.merge(state, data)
   def apply_event(%{type: "post.updated", data: data}, state), do: Map.merge(state, data)
-  def apply_event(%{type: "post.deleted"}, state), do: Map.put(state, :published, false)
+  def apply_event(%{type: "post.deleted"}, state), do: Map.merge(state, %{published: false})
   def apply_event(_event, state), do: state
-end 
+end

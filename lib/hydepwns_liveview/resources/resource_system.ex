@@ -9,6 +9,7 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
   alias HydepwnsLiveview.RepoHelper
   alias HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator
   alias HydepwnsLiveview.Transformations.TransformationPipeline
+  import Ecto.Query
 
   @doc """
   Starts the resource system.
@@ -27,13 +28,13 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
   """
   def create_resource(attrs) do
     IO.puts("🔍 ResourceSystem.create_resource: Starting with attrs: #{inspect(attrs)}")
-    
+
     changeset = %Resource{}
     |> Resource.changeset(attrs)
-    
+
     IO.puts("🔍 ResourceSystem.create_resource: Changeset valid? #{changeset.valid?}")
     IO.puts("🔍 ResourceSystem.create_resource: Changeset errors: #{inspect(changeset.errors)}")
-    
+
     case RepoHelper.insert(changeset) do
       {:ok, resource} ->
         IO.puts("✅ ResourceSystem.create_resource: Resource created successfully with ID: #{resource.id}")
@@ -63,6 +64,33 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
   """
   def list_resources do
     RepoHelper.all(Resource)
+  end
+
+  @doc """
+  Lists resources with optional filtering.
+  """
+  def list_resources(filters) when is_map(filters) do
+    query = from(r in Resource)
+
+    query = case filters do
+      %{type: type} when not is_nil(type) ->
+        from(r in query, where: r.type == ^type)
+      _ -> query
+    end
+
+    query = case filters do
+      %{status: status} when not is_nil(status) ->
+        from(r in query, where: r.status == ^status)
+      _ -> query
+    end
+
+    query = case filters do
+      %{parent_id: parent_id} when not is_nil(parent_id) ->
+        from(r in query, where: r.parent_id == ^parent_id)
+      _ -> query
+    end
+
+    RepoHelper.all(query)
   end
 
   @doc """
@@ -101,7 +129,7 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
                 IO.puts("❌ ResourceSystem.update_resource: resource_updated event generation failed: #{inspect(reason)}")
             end
             Phoenix.PubSub.broadcast(HydepwnsLiveview.PubSub, "resources", {:resource_updated, updated_resource})
-            
+
             # Apply transformations and generate transformed event
             IO.puts("🔍 ResourceSystem.update_resource: Applying transformations")
             case TransformationPipeline.apply_transformations(
@@ -123,13 +151,13 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
                 Phoenix.PubSub.broadcast(HydepwnsLiveview.PubSub, "resources", {:resource_transformed, transformed_resource})
                 IO.puts("✅ ResourceSystem.update_resource: Returning transformed resource")
                 {:ok, transformed_resource}
-              
+
               {:error, _resource, _context} ->
                 IO.puts("❌ ResourceSystem.update_resource: Transformations failed, returning updated resource")
                 # Transformation failed, but still return the updated resource
                 {:ok, updated_resource}
             end
-          error -> 
+          error ->
             IO.puts("❌ ResourceSystem.update_resource: RepoHelper.update failed: #{inspect(error)}")
             error
         end

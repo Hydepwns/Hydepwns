@@ -32,6 +32,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
     table = ets_table()
     case :ets.info(table) do
       :undefined ->
+        # Use a more robust approach to handle concurrent table creation
         try do
           :ets.new(table, [:named_table, :public, :set])
           :ets.insert(table, {:next_id, 2})
@@ -52,6 +53,9 @@ defmodule HydepwnsLiveview.ThemeSystem do
           :ets.insert(table, {1, default_theme})
         catch
           :error, {:badarg, _} ->
+            # Table already exists, just continue
+            :ok
+          :error, :badarg ->
             # Table already exists, just continue
             :ok
         end
@@ -140,7 +144,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
   def get_theme!(id) do
     ensure_ets_table()
     table = ets_table()
-    
+
     # Handle special case for "new" theme
     case id do
       "new" ->
@@ -210,7 +214,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
         }
       %MockTheme{} -> theme
     end
-    
+
     # First, unset all existing defaults
     get_themes()
     |> Enum.filter(fn t -> t.is_default end)
@@ -218,7 +222,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
       updated_theme = %{t | is_default: false, updated_at: DateTime.utc_now()}
       set_theme(updated_theme)
     end)
-    
+
     # Then set the new default
     updated_theme = %{mock_theme | is_default: true, updated_at: DateTime.utc_now()}
     set_theme(updated_theme)
@@ -227,7 +231,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
 
   def update_theme(theme, params) do
     ensure_ets_table()
-    
+
     # Convert Theme to MockTheme if needed
     mock_theme = case theme do
       %HydepwnsLiveview.ThemeSystem.Models.Theme{} ->
@@ -247,7 +251,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
         }
       %MockTheme{} -> theme
     end
-    
+
     # Validate the params
     case validate_theme_params(params) do
       {:ok, validated_params} ->
@@ -280,7 +284,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
 
   def create_theme(params) do
     ensure_ets_table()
-    
+
     case validate_theme_params(params) do
       {:ok, validated_params} ->
         handle_theme_creation(validated_params)
@@ -292,7 +296,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
   defp handle_theme_creation(validated_params) do
     theme_name = validated_params[:name]
     existing_theme = get_theme_by_name(theme_name)
-    
+
     if existing_theme do
       {:error, build_name_taken_changeset()}
     else
@@ -337,7 +341,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
   defp build_theme_struct(id, params) do
     is_system_theme = params[:mode] == "system"
     colors = build_colors_map(params, is_system_theme)
-    
+
     %MockTheme{
       id: id,
       name: params[:name] || "Theme #{id}",
@@ -388,7 +392,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
 
   defp build_custom_colors(base_colors, params) do
     accent_color = get_accent_color(params)
-    
+
     base_colors
     |> Map.put(:accent, accent_color)
     |> Map.put(:border, "#6b7280")
@@ -434,7 +438,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
         }
       %MockTheme{} -> theme
     end
-    
+
     delete_theme_by_id(mock_theme.id)
     {:ok, mock_to_theme(mock_theme)}
   end
@@ -443,7 +447,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
     # Check if there's an applied theme stored in ETS table
     ensure_ets_table()
     table = Process.get(:theme_system_ets_table) || :theme_system_default
-    
+
     case :ets.lookup(table, :applied_theme) do
       [] ->
         {:ok, ensure_default_theme() |> mock_to_theme()}
@@ -468,11 +472,11 @@ defmodule HydepwnsLiveview.ThemeSystem do
 
   defp validate_required_fields(params) do
     required_fields = [:name, :mode]
-    missing_fields = Enum.filter(required_fields, fn field -> 
+    missing_fields = Enum.filter(required_fields, fn field ->
       value = Map.get(params, field) || Map.get(params, to_string(field))
       is_nil(value) || value == ""
     end)
-    
+
     if missing_fields != [] do
       changeset = %Ecto.Changeset{
         data: %HydepwnsLiveview.ThemeSystem.Models.Theme{},
@@ -490,7 +494,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
   defp validate_mode(params) do
     mode = Map.get(params, :mode) || Map.get(params, "mode")
     valid_modes = ["light", "dark", "dim", "system", "synthwave"]
-    
+
     if mode && mode not in valid_modes do
       changeset = %Ecto.Changeset{
         data: %HydepwnsLiveview.ThemeSystem.Models.Theme{},
@@ -511,7 +515,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
       color = Map.get(params, field) || Map.get(params, to_string(field))
       color && !Regex.match?(~r/^#[0-9A-Fa-f]{6}$/, color)
     end)
-    
+
     if invalid_colors != [] do
       changeset = %Ecto.Changeset{
         data: %HydepwnsLiveview.ThemeSystem.Models.Theme{},

@@ -57,21 +57,33 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
   end
 
   def input(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
-    errors = if input_value(assigns[:form], field.name), do: field.errors, else: []
+    errors = field.errors
 
     # Filter out non-attribute values from rest
     rest = assigns[:rest] || %{}
     rest = if is_map(rest) do
-      # Only keep valid HTML attribute keys
+      # Only keep valid HTML attribute keys, including LiveView attributes
       rest
       |> Map.drop([:value, :field, :form, :content, :metadata, :settings])
-      |> Map.filter(fn {k, v} -> 
-        is_atom(k) or is_binary(k) and 
-        (is_binary(v) or is_number(v) or is_boolean(v) or is_nil(v))
+      |> Map.filter(fn {k, v} ->
+        is_atom(k) or is_binary(k) and
+        (is_binary(v) or is_number(v) or is_boolean(v) or is_nil(v) or
+         (is_atom(k) and Atom.to_string(k) |> String.starts_with?("phx-")))
       end)
     else
       %{}
     end
+
+    # Add all phx-* attributes from assigns to rest
+    rest = assigns
+    |> Enum.filter(fn {k, _v} ->
+      k = if is_atom(k), do: Atom.to_string(k), else: k
+      String.starts_with?(k, "phx-")
+    end)
+    |> Enum.reduce(rest, fn {k, v}, acc -> Map.put(acc, k, v) end)
+
+    # Ensure required attribute is included if specified
+    rest = if assigns[:required], do: Map.put(rest, :required, true), else: rest
 
     assigns
     |> assign(field: nil, id: assigns[:id] || field.id)
@@ -158,14 +170,16 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
     ~H"""
     <div class="form-group">
       <.label_tag for={@id}>{@label}</.label_tag>
-      <input 
+      <input
         type={@type_input}
-        id={@id} 
-        name={@name} 
-        value={@value} 
-        class={["form-control", @errors != [] && "is-invalid"]}
+        id={@id}
+        name={@name}
+        value={@value}
+        class={["form-control", @errors != [] && "is-invalid", @errors != [] && "error"]}
+        required={@rest[:required] || @required}
+        {@rest}
       />
-      <.error :for={msg <- @errors}>{msg}</.error>
+      <.error :for={msg <- @errors} class="error">{msg}</.error>
     </div>
     """
   end
@@ -189,7 +203,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
 
   def error(assigns) do
     ~H"""
-    <p class="mt-3 flex gap-3 text-sm leading-6 text-rose-600" {@rest}>
+    <p class="error mt-3 flex gap-3 text-sm leading-6 text-rose-600" {@rest}>
       <.icon name="hero-exclamation-circle-mini" class="mt-0.5 h-5 w-5 flex-none" /> {render_slot(@inner_block)}
     </p>
     """

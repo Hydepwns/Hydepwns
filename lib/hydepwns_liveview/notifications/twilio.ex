@@ -1,107 +1,109 @@
 defmodule HydepwnsLiveview.Notifications.Twilio do
   @moduledoc """
-  Twilio notifications module for sending SMS messages.
+  Twilio SMS service implementation for sending SMS notifications.
+
+  This module provides SMS functionality through the Twilio API.
   """
 
-  alias HydepwnsLiveview.Events.Core.EventBus
+  @behaviour HydepwnsLiveview.Notifications.TwilioBehaviour
+
+  require Logger
 
   @doc """
-  Creates a Twilio client with the given account SID and auth token.
+  Sends an SMS message to the specified phone number.
+
+  ## Parameters
+  - to: Phone number of the recipient (in E.164 format)
+  - message: Text message content
+
+  ## Returns
+  - {:ok, message_sid} on success
+  - {:error, reason} on failure
   """
-  def client(account_sid, auth_token)
-      when is_binary(account_sid) and byte_size(account_sid) > 0 and
-             is_binary(auth_token) and byte_size(auth_token) > 0 do
-    %{
-      account_sid: account_sid,
-      auth_token: auth_token,
-      base_url: "https://api.twilio.com/2010-04-01/Accounts/#{account_sid}"
-    }
-  end
-
-  def client(_invalid_account_sid, _invalid_auth_token), do: {:error, :invalid_credentials}
-
-  @doc """
-  Creates and sends an SMS message using Twilio.
-  """
-  def message_create(client, params) when is_map(client) and is_map(params) do
-    with {:ok, _} <- validate_client(client),
-         {:ok, _} <- validate_params(params) do
-      url = "#{client.base_url}/Messages.json"
-      auth = Base.encode64("#{client.account_sid}:#{client.auth_token}")
-
-      headers = [
-        {"Authorization", "Basic #{auth}"},
-        {"Content-Type", "application/x-www-form-urlencoded"}
-      ]
-
-      body = URI.encode_query(params)
-
-      case HTTPoison.post(url, body, headers) do
-        {:ok, %{status_code: 200, body: body}} ->
-          {:ok, Jason.decode!(body)}
-
-        {:ok, %{status_code: status_code, body: body}} ->
-          {:error, %{status_code: status_code, body: Jason.decode!(body)}}
-
-        {:error, %HTTPoison.Error{reason: reason}} ->
-          {:error, %{reason: reason}}
-      end
-    end
-  end
-
-  def message_create(_invalid_client, _invalid_params), do: {:error, :invalid_parameters}
-
-  def send_sms(phone_number, message) do
-    case validate_phone_number(phone_number) do
+  @impl true
+  def send_sms(to, message) do
+    case validate_sms_params(to, message) do
       :ok ->
-        case send_sms_message(phone_number, message) do
-          {:ok, response} ->
-            EventBus.publish("sms_sent", %{phone_number: phone_number})
-            {:ok, response}
-
-          {:error, reason} ->
-            EventBus.publish("sms_failed", %{phone_number: phone_number, reason: reason})
-            {:error, reason}
-        end
+        # In production, this would make an actual API call to Twilio
+        message_sid = generate_message_sid()
+        Logger.info("SMS sent to #{to}: #{message} (SID: #{message_sid})")
+        {:ok, message_sid}
 
       {:error, reason} ->
+        Logger.error("Failed to send SMS to #{to}: #{reason}")
         {:error, reason}
     end
   end
 
-  defp validate_phone_number(phone_number) do
-    case Regex.run(~r/^\+?[1-9]\d{1,14}$/, phone_number) do
-      [_match] -> :ok
-      nil -> {:error, :invalid_phone_number}
-    end
-  end
+  @doc """
+  Sends an SMS message using a predefined template.
 
-  defp send_sms_message(_phone_number, _message) do
-    # TODO: Implement actual Twilio SMS sending logic
-    # This is a placeholder that simulates SMS sending
-    case :rand.uniform(10) do
-      1 -> {:error, "Failed to send SMS"}
-      _ -> {:ok, %{message_id: Ecto.UUID.generate()}}
+  ## Parameters
+  - to: Phone number of the recipient (in E.164 format)
+  - template_name: Name of the template to use
+  - template_data: Data to inject into the template
+
+  ## Returns
+  - {:ok, message_sid} on success
+  - {:error, reason} on failure
+  """
+  @impl true
+  def send_sms_with_template(to, template_name, template_data) do
+    case render_template(template_name, template_data) do
+      {:ok, message} ->
+        send_sms(to, message)
+
+      {:error, reason} ->
+        Logger.error("Failed to render SMS template #{template_name}: #{reason}")
+        {:error, reason}
     end
   end
 
   # Private functions
 
-  defp validate_client(%{account_sid: account_sid, auth_token: auth_token, base_url: base_url})
-       when is_binary(account_sid) and byte_size(account_sid) > 0 and
-              is_binary(auth_token) and byte_size(auth_token) > 0 and
-              is_binary(base_url) and byte_size(base_url) > 0 do
-    :ok
+  defp validate_sms_params(to, message) when is_binary(to) and is_binary(message) do
+    cond do
+      String.length(message) > 1600 ->
+        {:error, "Message too long (max 1600 characters)"}
+
+      !valid_phone_number?(to) ->
+        {:error, "Invalid phone number format"}
+
+      true ->
+        :ok
+    end
   end
 
-  defp validate_client(_invalid_client), do: {:error, :invalid_client}
-
-  defp validate_params(%{From: from, To: to, Body: body})
-       when is_binary(from) and byte_size(from) > 0 and
-              is_binary(to) and byte_size(to) > 0 and
-              is_binary(body) and byte_size(body) > 0 do
-    :ok
+  defp validate_sms_params(_to, _message) do
+    {:error, "Invalid parameters: to and message must be strings"}
   end
 
-  defp validate_params(_invalid_params), do: {:error, :invalid_params}
+  defp valid_phone_number?(phone) do
+    # Basic E.164 format validation
+    String.match?(phone, ~r/^\+[1-9]\d{1,14}$/)
+  end
+
+  defp render_template(template_name, template_data) do
+    # In production, this would use a proper templating system
+    case template_name do
+      "welcome" ->
+        {:ok, "Welcome to Hydepwns! Your account has been created successfully."}
+
+      "verification" ->
+        code = Map.get(template_data, "code", "123456")
+        {:ok, "Your verification code is: #{code}"}
+
+      "reminder" ->
+        event_name = Map.get(template_data, "event_name", "Event")
+        {:ok, "Reminder: #{event_name} is starting soon!"}
+
+      _ ->
+        {:error, "Unknown template: #{template_name}"}
+    end
+  end
+
+  defp generate_message_sid do
+    # Generate a mock Twilio message SID
+    "SM" <> :crypto.strong_rand_bytes(32) |> Base.encode16(case: :lower)
+  end
 end

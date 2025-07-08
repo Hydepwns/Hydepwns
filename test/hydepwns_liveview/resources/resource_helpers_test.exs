@@ -34,9 +34,12 @@ defmodule HydepwnsLiveview.Resources.ResourceHelpersTest do
 
   describe "update_resource/3" do
     test "updates socket assigns" do
-      socket = %{assigns: %{foo: 1}}
+      # Create a proper Phoenix socket for testing
+      socket = %Phoenix.LiveView.Socket{}
+      socket = Phoenix.Component.assign(socket, :foo, 1)
+
       assert {:ok, updated} = ResourceHelpers.update_resource(socket, :bar, 2)
       assert updated.assigns.bar == 2
     end
   end
-end 
+end

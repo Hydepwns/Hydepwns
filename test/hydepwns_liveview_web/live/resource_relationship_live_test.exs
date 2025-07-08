@@ -1,5 +1,5 @@
 defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
-  use HydepwnsLiveviewWeb.ConnCase, async: true
+  use HydepwnsLiveviewWeb.ConnCase, async: false
   import Phoenix.LiveViewTest
   import Mox
   setup :set_mox_from_context
@@ -7,7 +7,7 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
 
   @moduledoc """
   LiveView tests for Resource Relationship Management using Phoenix.LiveViewTest.
-  
+
   These tests provide more reliable state assertions by directly interacting
   with the LiveView process, avoiding PubSub timing issues that can occur
   in Wallaby browser tests.
@@ -80,11 +80,11 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
       {:ok, _updated_child} = HydepwnsLiveview.Resources.ResourceSystem.update_resource(child.id, %{"parent_id" => nil})
       {:ok, view, _html} = live(conn, "/resources/#{child.id}")
       assert has_element?(view, "h1", child.name)
-      
+
       # Click edit link and handle the live redirect
       {:error, {:live_redirect, %{to: edit_path}}} = element(view, "a[data-test-id='edit-resource-link']") |> render_click()
       {:ok, edit_view, _html} = live(conn, edit_path)
-      
+
       # Now fill and submit the form on the edit page
       edit_view
       |> form("#resource-form", %{
@@ -114,7 +114,7 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
         type: "document"
       })
       {:ok, folder} = ResourceFixtures.create_test_resource(%{
-        id: "folder-1410", 
+        id: "folder-1410",
         name: "Test Folder",
         type: "folder"
       })
@@ -167,4 +167,4 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
       assert updated_parent.parent_id == nil
     end
   end
-end 
+end

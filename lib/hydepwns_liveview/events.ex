@@ -20,7 +20,7 @@ defmodule HydepwnsLiveview.Events do
   * List of events matching the filters
   """
   def list_events(_filters \\ %{}, _opts \\ []) do
-    case EventStore.list_events() do
+    case HydepwnsLiveview.Events.EventStore.list_all_events() do
       {:ok, events} -> events
       {:error, _} -> []
     end
@@ -39,7 +39,7 @@ defmodule HydepwnsLiveview.Events do
   Returns nil if the Event does not exist.
   """
   def get_event(id) do
-    case EventStore.get_events(%{id: id}) do
+    case HydepwnsLiveview.Events.EventStore.get_events(%{id: id}) do
       {:ok, [event]} -> {:ok, event}
       {:ok, []} -> {:error, :not_found}
       {:error, reason} -> {:error, reason}
@@ -56,17 +56,17 @@ defmodule HydepwnsLiveview.Events do
       event_type = "calendar_event.created"
       resource_id = Ecto.UUID.generate()
       resource_type = "calendar_event"
-      
+
       event_data = %{
         resource_id: resource_id,
         resource_type: resource_type,
         data: attrs
       }
-      
-      EventStore.store_event(event_type, event_data)
+
+      HydepwnsLiveview.Events.EventStore.store_event(event_type, event_data)
     else
       # This is an event sourcing event, use the original logic
-      EventStore.store_event(attrs.type, attrs)
+      HydepwnsLiveview.Events.EventStore.store_event(attrs.type, attrs)
     end
   end
 
@@ -115,7 +115,7 @@ defmodule HydepwnsLiveview.Events do
   Returns the list of past events.
   """
   def list_events_past do
-    case EventStore.get_events(%{
+    case HydepwnsLiveview.Events.EventStore.get_events(%{
            timestamp: %{lt: DateTime.utc_now()},
            sort: [timestamp: :desc]
          }) do
@@ -128,7 +128,7 @@ defmodule HydepwnsLiveview.Events do
   Returns the list of upcoming events.
   """
   def list_events_upcoming do
-    case EventStore.get_events(%{
+    case HydepwnsLiveview.Events.EventStore.get_events(%{
            timestamp: %{gte: DateTime.utc_now()},
            sort: [timestamp: :asc]
          }) do
@@ -141,7 +141,7 @@ defmodule HydepwnsLiveview.Events do
   Gets events for a specific resource.
   """
   def get_events_for_resource(resource_type, resource_id) do
-    EventStore.get_events(%{
+    HydepwnsLiveview.Events.EventStore.get_events(%{
       resource_type: resource_type,
       resource_id: resource_id,
       sort: [timestamp: :desc]
@@ -152,7 +152,7 @@ defmodule HydepwnsLiveview.Events do
   Gets events with the given criteria.
   """
   def get_events(criteria) do
-    EventStore.get_events(criteria)
+    HydepwnsLiveview.Events.EventStore.get_events(criteria)
   end
 
   @doc """
@@ -544,5 +544,5 @@ defmodule HydepwnsLiveview.Events do
   end
 
   # Wrapper for compatibility: create_event/2
-  def create_event(type, attrs), do: EventStore.store_event(type, attrs)
+  def create_event(type, attrs), do: HydepwnsLiveview.Events.EventStore.store_event(type, attrs)
 end

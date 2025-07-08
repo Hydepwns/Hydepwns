@@ -42,10 +42,10 @@ defmodule HydepwnsLiveviewWeb.UserAuth do
     if socket.assigns.current_user do
       {:cont, socket}
     else
-      {:halt,
-       socket
-       |> Phoenix.LiveView.put_flash(:error, "You must log in to access this page.")
-       |> Phoenix.LiveView.redirect(to: Routes.user_session_path(socket, :new))}
+      socket = socket
+      |> Phoenix.LiveView.redirect(to: Routes.user_session_path(socket, :new))
+
+      {:halt, socket}
     end
   end
 
@@ -73,30 +73,51 @@ defmodule HydepwnsLiveviewWeb.UserAuth do
     if socket.assigns.current_user && socket.assigns.current_user.role == "admin" do
       {:cont, socket}
     else
-      {:halt,
-       socket
-       |> Phoenix.LiveView.put_flash(:error, "You must be an admin to access this page.")
-       |> Phoenix.LiveView.redirect(to: Routes.user_session_path(socket, :new))}
+      socket = socket
+      |> Phoenix.LiveView.redirect(to: Routes.user_session_path(socket, :new))
+
+      {:halt, socket}
     end
   end
 
   defp assign_current_user(socket, session) do
+    # Ensure socket has proper assigns structure with __changed__ key
+    socket = ensure_socket_assigns(socket)
+
     assign_new(socket, :current_user, fn ->
       if user_token = session["user_token"], do: Accounts.get_user_by_session_token(user_token)
     end)
   end
 
+  defp ensure_socket_assigns(socket) do
+    assigns = socket.assigns
+
+    assigns = if Map.has_key?(assigns, :__changed__) do
+      assigns
+    else
+      Map.put(assigns, :__changed__, %{})
+    end
+
+    assigns = if Map.has_key?(assigns, :flash) do
+      assigns
+    else
+      Map.put(assigns, :flash, %{})
+    end
+
+    %{socket | assigns: assigns}
+  end
+
   def log_in_user(socket, user, params \\ %{}) do
+    # Ensure socket has proper assigns structure
+    socket = ensure_socket_assigns(socket)
+
     token = Accounts.generate_user_session_token(user)
-    user_return_to = get_session(socket, :user_return_to)
+    user_return_to = socket.assigns[:user_return_to] || signed_in_path(socket)
 
     socket
-    |> Plug.Conn.assign(:current_user, user)
-    |> Plug.Conn.assign(:user_token, token)
-    |> put_session(:user_token, token)
-    |> put_session(:live_socket_id, "users_sessions:#{Base.url_encode64(token)}")
-    |> maybe_write_remember_me_cookie(token, params)
-    |> Phoenix.LiveView.redirect(to: user_return_to || signed_in_path(socket))
+    |> Phoenix.Component.assign(:current_user, user)
+    |> Phoenix.Component.assign(:user_token, token)
+    |> Phoenix.LiveView.redirect(to: user_return_to)
   end
 
   def log_in_user_liveview(socket, user, params \\ %{}, opts \\ []) do
@@ -126,12 +147,18 @@ defmodule HydepwnsLiveviewWeb.UserAuth do
   end
 
   def log_out_user(socket) do
-    user_token = get_session(socket, :user_token)
+    # Ensure socket has proper assigns structure
+    socket = ensure_socket_assigns(socket)
+
+    # For LiveView sockets, we can't use Plug.Conn functions
+    # The session token should be available in socket.assigns
+    user_token = socket.assigns[:user_token]
     user_token && Accounts.delete_session_token(user_token)
 
+    # For LiveView, we need to redirect without using Plug.Conn functions
     socket
-    |> clear_session()
-    |> delete_resp_cookie(:remember_token)
+    |> Phoenix.Component.assign(:current_user, nil)
+    |> Phoenix.Component.assign(:user_token, nil)
     |> Phoenix.LiveView.redirect(to: ~p"/")
   end
 

@@ -65,7 +65,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLive do
           <div class="space-y-6">
             <div>
               <.label_tag for={f[:email].id}>Email</.label_tag>
-              <.input field={f[:email]} type="email" required />
+              <.input field={f[:email]} type="email" required phx-change="validate" />
               <.error :for={msg <- Keyword.get_values(f[:email].errors, :email)}>
                 <%= msg %>
               </.error>
@@ -73,7 +73,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLive do
 
             <div>
               <.label_tag for={f[:name].id}>Name</.label_tag>
-              <.input field={f[:name]} type="text" required />
+              <.input field={f[:name]} type="text" required phx-change="validate" />
               <.error :for={msg <- Keyword.get_values(f[:name].errors, :name)}>
                 <%= msg %>
               </.error>
@@ -81,7 +81,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLive do
 
             <div>
               <.label_tag for={f[:password].id}>Password</.label_tag>
-              <.input field={f[:password]} type="password" required />
+              <.input field={f[:password]} type="password" required phx-change="validate" />
               <.error :for={msg <- Keyword.get_values(f[:password].errors, :password)}>
                 <%= msg %>
               </.error>
@@ -89,7 +89,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLive do
 
             <div>
               <.label_tag for={f[:password_confirmation].id}>Confirm Password</.label_tag>
-              <.input field={f[:password_confirmation]} type="password" required />
+              <.input field={f[:password_confirmation]} type="password" required phx-change="validate" />
               <.error :for={msg <- Keyword.get_values(f[:password_confirmation].errors, :password_confirmation)}>
                 <%= msg %>
               </.error>

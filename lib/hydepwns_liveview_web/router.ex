@@ -52,7 +52,10 @@ defmodule HydepwnsLiveviewWeb.Router do
     # User routes
     live "/users", UserLive, :index, as: :users
     live "/users/log_in", UserSessionLive, :new, as: :user_session
+    post "/users/log_in", UserSessionController, :create
+    delete "/users/log_out", UserSessionController, :delete
     live "/users/register", UserRegistrationLive, :new, as: :user_registration
+    post "/users/register", UserRegistrationController, :create
     live "/users/settings", UserSettingsLive, :edit, as: :user_settings
     live "/users/profile", UserProfileLive, :edit, as: :user_profile
     live "/users/:id", UserShowLive, :show, as: :user_show

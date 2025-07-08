@@ -8,6 +8,8 @@ defmodule HydepwnsLiveviewWeb.UserSettingsLive do
   alias HydepwnsLiveview.Accounts
   import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label_tag: 1, error: 1]
 
+  on_mount {HydepwnsLiveviewWeb.UserAuth, :require_authenticated_user}
+
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
     default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()
@@ -25,6 +27,14 @@ defmodule HydepwnsLiveviewWeb.UserSettingsLive do
     |> assign(:page_title, "Settings")
     |> assign(:user, Accounts.get_user!(id))
     |> assign(:changeset, Accounts.change_user_settings(Accounts.get_user!(id)))
+  end
+
+  defp apply_action(socket, :edit, _params) do
+    # For settings page without specific user ID, use current user
+    socket
+    |> assign(:page_title, "Settings")
+    |> assign(:user, socket.assigns.current_user)
+    |> assign(:changeset, Accounts.change_user_settings(socket.assigns.current_user))
   end
 
   @impl Phoenix.LiveView

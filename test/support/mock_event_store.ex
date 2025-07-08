@@ -1,175 +1,122 @@
 defmodule HydepwnsLiveview.TestSupport.MockEventStore do
-  use Agent
+  @moduledoc """
+  Mock EventStore for testing purposes.
+  """
+  use GenServer
 
-  def start_link(_opts) do
-    IO.puts("🟣 MockEventStore.start_link called")
-    result = Agent.start_link(fn -> %{} end, name: __MODULE__)
-    IO.puts("🟣 MockEventStore.start_link result: #{inspect(result)}")
-    result
+  def start_link(opts) do
+    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
-  def reset do
-    IO.puts("🟣 MockEventStore.reset called")
-    Agent.update(__MODULE__, fn _ -> %{} end)
+  def init(_opts) do
+    {:ok, %{events: [], next_id: 1}}
   end
 
-  # Store a single event (Event struct)
-  def store_event(%{type: _type, resource_type: _resource_type, resource_id: _resource_id} = event, _metadata) do
-    event =
-      if Map.get(event, :id) do
-        event
-      else
-        Map.put(event, :id, Ecto.UUID.generate())
-      end
-    IO.puts("🔵 MockEventStore.store_event: #{event.type} for #{event.resource_type}:#{event.resource_id}")
-    Agent.update(__MODULE__, fn state ->
-      key = {to_atom(event.resource_type), event.resource_id}
-      new_state = Map.update(state, key, [event], fn events -> events ++ [event] end)
-      IO.puts("🔵 MockEventStore.store_event: state after update: #{inspect(new_state)}")
-      new_state
-    end)
-    {:ok, event}
-  end
-
-  # Store a single event (type and data)
-  def store_event(type, data) when is_binary(type) and is_map(data) do
+  def handle_call({:store_event, type, data}, _from, state) when is_binary(type) and is_map(data) do
     event = %{
+      id: Ecto.UUID.generate(),
       type: type,
       data: data,
-      resource_type: "test_resource",
-      resource_id: "123",
-      id: Ecto.UUID.generate(),
-      timestamp: DateTime.utc_now()
+      timestamp: DateTime.utc_now(),
+      metadata: %{}
     }
-    store_event(event)
+
+    new_state = %{state | events: [event | state.events]}
+    {:reply, {:ok, event}, new_state}
   end
 
-  def store_event(%{type: _type, resource_type: _resource_type, resource_id: _resource_id} = event) do
-    store_event(event, %{})
-  end
-
-  # Store multiple events
-  def store_events(events) when is_list(events) do
-    results = Enum.map(events, &store_event/1)
-    case Enum.find(results, fn {status, _} -> status == :error end) do
-      nil -> {:ok, Enum.map(results, fn {:ok, event} -> event end)}
-      error -> error
+  def handle_call({:store_event, event, _metadata}, _from, state) when is_map(event) do
+    # Handle single event object
+    event = if Map.get(event, :id) do
+      event
+    else
+      Map.put(event, :id, Ecto.UUID.generate())
     end
+
+    new_state = %{state | events: [event | state.events]}
+    {:reply, {:ok, event}, new_state}
   end
 
-  # Get events based on criteria - handle both maps and keyword lists
-  def get_events(criteria) when is_map(criteria) do
-    get_events_with_criteria(criteria)
+  def handle_call({:store_event, event}, _from, state) when is_map(event) do
+    # Handle single event object without metadata
+    event = if Map.get(event, :id) do
+      event
+    else
+      Map.put(event, :id, Ecto.UUID.generate())
+    end
+
+    new_state = %{state | events: [event | state.events]}
+    {:reply, {:ok, event}, new_state}
   end
 
-  def get_events(criteria) when is_list(criteria) do
-    # Convert keyword list to map for consistent processing
-    criteria_map = Enum.into(criteria, %{})
-    get_events_with_criteria(criteria_map)
+  def handle_call({:get_events, criteria}, _from, state) do
+    events = filter_events(state.events, criteria)
+    {:reply, {:ok, events}, state}
+  end
+
+  def handle_call(:list_events, _from, state) do
+    {:reply, {:ok, state.events}, state}
+  end
+
+  def handle_call(:reset, _from, _state) do
+    {:reply, :ok, %{events: [], next_id: 1}}
+  end
+
+  def handle_call({:get_event, id}, _from, state) do
+    event = Enum.find(state.events, fn event -> event.id == id end)
+    {:reply, {:ok, event}, state}
+  end
+
+  def handle_call({:get_events_for_resource, resource_type, resource_id}, _from, state) do
+    events = Enum.filter(state.events, fn event ->
+      event.resource_type == resource_type && event.resource_id == resource_id
+    end)
+    {:reply, {:ok, events}, state}
+  end
+
+  def handle_call(:get_all_events, _from, state) do
+    {:reply, {:ok, state.events}, state}
+  end
+
+  # Client API
+  def store_event(type, data) when is_binary(type) and is_map(data) do
+    GenServer.call(__MODULE__, {:store_event, type, data})
+  end
+
+  def store_event(event, metadata \\ %{}) when is_map(event) do
+    GenServer.call(__MODULE__, {:store_event, event, metadata})
   end
 
   def get_events(criteria) do
-    # Handle other types by converting to map
-    criteria_map = case criteria do
-      criteria when is_map(criteria) -> criteria
-      criteria when is_list(criteria) -> Enum.into(criteria, %{})
-      _ -> %{}
-    end
-    get_events_with_criteria(criteria_map)
+    GenServer.call(__MODULE__, {:get_events, criteria})
   end
 
-  # Private function to handle criteria filtering
-  defp get_events_with_criteria(criteria) do
-    events =
-      Agent.get(__MODULE__, fn state ->
-        state
-        |> Map.values()
-        |> List.flatten()
-        |> Enum.filter(fn event ->
-          Enum.all?(criteria, fn
-            {:id, id} -> event.id == id
-            {"id", id} -> event.id == id
-            {:resource_type, resource_type} -> 
-              # Handle both string and atom resource types
-              event.resource_type == to_atom(resource_type) or 
-              event.resource_type == resource_type
-            {"resource_type", resource_type} -> 
-              # Handle both string and atom resource types
-              event.resource_type == to_atom(resource_type) or 
-              event.resource_type == resource_type
-            {:resource_id, resource_id} -> event.resource_id == resource_id
-            {"resource_id", resource_id} -> event.resource_id == resource_id
-            {:event_type, event_types} when is_list(event_types) -> 
-              Enum.member?(event_types, event.type)
-            {"event_type", event_types} when is_list(event_types) -> 
-              Enum.member?(event_types, event.type)
-            {:event_type, event_type} -> event.type == event_type
-            {"event_type", event_type} -> event.type == event_type
-            {:limit, _} -> true # limit handled after filtering
-            {"limit", _} -> true # limit handled after filtering
-            _ -> true
-          end)
-        end)
-      end)
-    
-    events =
-      case criteria do
-        %{limit: limit} when is_integer(limit) and limit > 0 -> Enum.take(events, limit)
-        %{"limit" => limit} when is_integer(limit) and limit > 0 -> Enum.take(events, limit)
-        _ -> events
-      end
-    
-    IO.puts("🟢 MockEventStore.get_events: #{length(events)} events matching criteria")
-    {:ok, events}
-  end
-
-  def get_events_for_resource(resource_type, resource_id) do
-    events =
-      Agent.get(__MODULE__, fn state ->
-        IO.puts("🟡 MockEventStore.get_events_for_resource: current state: #{inspect(state)}")
-        Map.get(state, {to_atom(resource_type), resource_id}, [])
-      end)
-    IO.puts("🟡 MockEventStore.get_events_for_resource: #{resource_type}:#{resource_id} -> #{length(events)} events")
-    {:ok, events}
-  end
-
-  def get_events_for_resource(resource_type, resource_id, _opts) do
-    get_events_for_resource(resource_type, resource_id)
-  end
-
-  def get_events_for_resource_at(resource_type, resource_id, timestamp) do
-    events =
-      Agent.get(__MODULE__, fn state ->
-        Map.get(state, {to_atom(resource_type), resource_id}, [])
-        |> Enum.filter(fn event -> DateTime.compare(event.timestamp, timestamp) != :gt end)
-      end)
-    IO.puts("🟢 MockEventStore.get_events_for_resource_at: #{resource_type}:#{resource_id} at #{timestamp} -> #{length(events)} events")
-    {:ok, events}
-  end
-
-  def get_all_events do
-    events =
-      Agent.get(__MODULE__, fn state ->
-        state
-        |> Map.values()
-        |> List.flatten()
-      end)
-    IO.puts("🟢 MockEventStore.get_all_events: #{length(events)} total events")
-    {:ok, events}
+  def list_events do
+    GenServer.call(__MODULE__, :list_events)
   end
 
   def get_event(id) do
-    events =
-      Agent.get(__MODULE__, fn state ->
-        state
-        |> Map.values()
-        |> List.flatten()
-        |> Enum.find(fn event -> event.id == id end)
-      end)
-    IO.puts("🟢 MockEventStore.get_event: #{id} -> #{if events, do: "found", else: "not found"}")
-    {:ok, events}
+    GenServer.call(__MODULE__, {:get_event, id})
   end
 
-  defp to_atom(val) when is_atom(val), do: val
-  defp to_atom(val) when is_binary(val), do: String.to_atom(val)
-end 
+  def get_events_for_resource(resource_type, resource_id) do
+    GenServer.call(__MODULE__, {:get_events_for_resource, resource_type, resource_id})
+  end
+
+  def get_all_events do
+    GenServer.call(__MODULE__, :get_all_events)
+  end
+
+  def reset do
+    GenServer.call(__MODULE__, :reset)
+  end
+
+  # Private functions
+  defp filter_events(events, criteria) do
+    Enum.filter(events, fn event ->
+      Enum.all?(criteria, fn {key, value} ->
+        Map.get(event, key) == value
+      end)
+    end)
+  end
+end

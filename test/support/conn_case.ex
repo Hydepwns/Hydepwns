@@ -23,6 +23,7 @@ defmodule HydepwnsLiveviewWeb.ConnCase do
       import Phoenix.ConnTest
       import HydepwnsLiveviewWeb.ConnCase
       import Phoenix.Component
+      import Phoenix.VerifiedRoutes
 
       # Ensure Router and its Helpers are compiled and available
       require HydepwnsLiveviewWeb.Router
@@ -50,13 +51,16 @@ defmodule HydepwnsLiveviewWeb.ConnCase do
   setup tags do
     # Set up sandbox based on test type
     if tags[:async] do
-      # For async tests, use shared sandbox
+      # For async tests, use shared sandbox with better connection management
       :ok = Ecto.Adapters.SQL.Sandbox.checkout(HydepwnsLiveview.Repo)
       Ecto.Adapters.SQL.Sandbox.mode(HydepwnsLiveview.Repo, {:shared, self()})
+
+      # Allow the current process to use the connection
+      Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), self())
     else
       # For sync tests, use manual sandbox with owner
       pid = HydepwnsLiveview.DataCase.setup_sandbox(tags)
-      
+
       if tags[:liveview] do
         Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), pid)
       end

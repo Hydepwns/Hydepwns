@@ -9,6 +9,7 @@ config :hydepwns_liveview, HydepwnsLiveview.Repo,
   username: System.get_env("TEST_DB_USERNAME") || "postgres",
   password: System.get_env("TEST_DB_PASSWORD") || "",
   hostname: System.get_env("TEST_DB_HOST") || "localhost",
+  socket_dir: System.get_env("TEST_DB_SOCKET_DIR") || nil,
   database:
     System.get_env("TEST_DB_NAME") ||
       "hydepwns_liveview_test#{System.get_env("MIX_TEST_PARTITION")}",

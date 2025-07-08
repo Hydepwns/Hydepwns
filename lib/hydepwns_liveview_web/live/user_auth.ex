@@ -99,11 +99,29 @@ defmodule HydepwnsLiveviewWeb.UserAuth do
     |> Phoenix.LiveView.redirect(to: user_return_to || signed_in_path(socket))
   end
 
+  def log_in_user_liveview(socket, user, params \\ %{}, opts \\ []) do
+    token = Accounts.generate_user_session_token(user)
+    user_return_to = opts[:redirect_to] || socket.assigns[:user_return_to] || signed_in_path_liveview(socket)
+
+    socket
+    |> Phoenix.Component.assign(:current_user, user)
+    |> Phoenix.Component.assign(:user_token, token)
+    |> maybe_write_remember_me_cookie_liveview(token, params)
+    |> then(fn socket ->
+      Phoenix.LiveView.push_navigate(socket, to: user_return_to)
+    end)
+  end
+
   defp maybe_write_remember_me_cookie(socket, token, %{"remember_me" => "true"}) do
     put_resp_cookie(socket, :remember_token, token, max_age: 60 * 60 * 24 * 30)
   end
 
   defp maybe_write_remember_me_cookie(socket, _token, _params) do
+    socket
+  end
+
+  defp maybe_write_remember_me_cookie_liveview(socket, _token, _params) do
+    # For LiveView, we don't set cookies directly
     socket
   end
 
@@ -118,6 +136,8 @@ defmodule HydepwnsLiveviewWeb.UserAuth do
   end
 
   defp signed_in_path(_socket), do: ~p"/"
+
+  defp signed_in_path_liveview(_socket), do: ~p"/"
 
   @doc """
   Updates a user's password.

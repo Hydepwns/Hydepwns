@@ -8,6 +8,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLive do
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveview.Accounts.User
   import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label_tag: 1, error: 1]
+  import Phoenix.Controller, only: [get_csrf_token: 0]
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
@@ -59,11 +60,12 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLive do
       <h1 class="text-2xl font-bold mb-6">Register</h1>
 
       <.form :let={f} for={@changeset} id="registration-form" phx-change="validate" phx-submit="save">
+        <input type="hidden" name="_csrf_token" value={get_csrf_token()} />
         <div class="bg-white shadow rounded-lg p-6">
           <div class="space-y-6">
             <div>
               <.label_tag for={f[:email].id}>Email</.label_tag>
-              <.input field={f[:email]} type="email" />
+              <.input field={f[:email]} type="email" required />
               <.error :for={msg <- Keyword.get_values(f[:email].errors, :email)}>
                 <%= msg %>
               </.error>
@@ -71,7 +73,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLive do
 
             <div>
               <.label_tag for={f[:name].id}>Name</.label_tag>
-              <.input field={f[:name]} type="text" />
+              <.input field={f[:name]} type="text" required />
               <.error :for={msg <- Keyword.get_values(f[:name].errors, :name)}>
                 <%= msg %>
               </.error>
@@ -79,7 +81,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLive do
 
             <div>
               <.label_tag for={f[:password].id}>Password</.label_tag>
-              <.input field={f[:password]} type="password" />
+              <.input field={f[:password]} type="password" required />
               <.error :for={msg <- Keyword.get_values(f[:password].errors, :password)}>
                 <%= msg %>
               </.error>
@@ -87,7 +89,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLive do
 
             <div>
               <.label_tag for={f[:password_confirmation].id}>Confirm Password</.label_tag>
-              <.input field={f[:password_confirmation]} type="password" />
+              <.input field={f[:password_confirmation]} type="password" required />
               <.error :for={msg <- Keyword.get_values(f[:password_confirmation].errors, :password_confirmation)}>
                 <%= msg %>
               </.error>

@@ -1,8 +1,10 @@
 defmodule HydepwnsLiveviewWeb.UserAuthTest do
-  use HydepwnsLiveviewWeb.ConnCase, async: true
+  @router HydepwnsLiveviewWeb.Router
+  use HydepwnsLiveviewWeb.ConnCase, async: false
 
   import Phoenix.LiveViewTest
   import HydepwnsLiveviewWeb.TestHelpers.WallabyUIHelper
+
 
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveviewWeb.UserAuth
@@ -15,14 +17,14 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
       password: "password123",
       role: "admin"
     })
-    
+
     {:ok, regular_user} = Accounts.create_user(%{
       name: "Regular User",
       email: "user@example.com",
       password: "password123",
       role: "user"
     })
-    
+
     {:ok, editor_user} = Accounts.create_user(%{
       name: "Editor User",
       email: "editor@example.com",
@@ -38,15 +40,15 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
       # Create a session with user token
       token = Accounts.generate_user_session_token(user)
       session = %{"user_token" => token}
-      
+
       # Simulate the on_mount callback
       socket = %Phoenix.LiveView.Socket{
         assigns: %{},
         endpoint: HydepwnsLiveviewWeb.Endpoint
       }
-      
+
       result = UserAuth.on_mount(:require_authenticated_user, %{}, session, socket)
-      
+
       assert {:cont, updated_socket} = result
       assert updated_socket.assigns.current_user.id == user.id
     end
@@ -54,14 +56,14 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
     test "require_authenticated_user redirects unauthenticated users", %{conn: conn} do
       # Empty session
       session = %{}
-      
+
       socket = %Phoenix.LiveView.Socket{
         assigns: %{},
         endpoint: HydepwnsLiveviewWeb.Endpoint
       }
-      
+
       result = UserAuth.on_mount(:require_authenticated_user, %{}, session, socket)
-      
+
       assert {:halt, updated_socket} = result
       assert updated_socket.assigns.flash[:error] == "You must log in to access this page."
     end
@@ -70,14 +72,14 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
       # Create a session with user token
       token = Accounts.generate_user_session_token(user)
       session = %{"user_token" => token}
-      
+
       socket = %Phoenix.LiveView.Socket{
         assigns: %{},
         endpoint: HydepwnsLiveviewWeb.Endpoint
       }
-      
+
       result = UserAuth.on_mount(:mount_current_user, %{}, session, socket)
-      
+
       assert {:cont, updated_socket} = result
       assert updated_socket.assigns.current_user.id == user.id
     end
@@ -85,14 +87,14 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
     test "mount_current_user handles missing session gracefully", %{conn: conn} do
       # Empty session
       session = %{}
-      
+
       socket = %Phoenix.LiveView.Socket{
         assigns: %{},
         endpoint: HydepwnsLiveviewWeb.Endpoint
       }
-      
+
       result = UserAuth.on_mount(:mount_current_user, %{}, session, socket)
-      
+
       assert {:cont, updated_socket} = result
       assert updated_socket.assigns.current_user == nil
     end
@@ -101,14 +103,14 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
       # Create a session with user token
       token = Accounts.generate_user_session_token(user)
       session = %{"user_token" => token}
-      
+
       socket = %Phoenix.LiveView.Socket{
         assigns: %{},
         endpoint: HydepwnsLiveviewWeb.Endpoint
       }
-      
+
       result = UserAuth.on_mount(:redirect_if_user_is_authenticated, %{}, session, socket)
-      
+
       assert {:halt, updated_socket} = result
       # Should redirect to user profile page
       assert updated_socket.assigns.current_user.id == user.id
@@ -117,14 +119,14 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
     test "redirect_if_user_is_authenticated allows unauthenticated users", %{conn: conn} do
       # Empty session
       session = %{}
-      
+
       socket = %Phoenix.LiveView.Socket{
         assigns: %{},
         endpoint: HydepwnsLiveviewWeb.Endpoint
       }
-      
+
       result = UserAuth.on_mount(:redirect_if_user_is_authenticated, %{}, session, socket)
-      
+
       assert {:cont, updated_socket} = result
       assert updated_socket.assigns.current_user == nil
     end
@@ -135,14 +137,14 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
       # Create a session with admin user token
       token = Accounts.generate_user_session_token(user)
       session = %{"user_token" => token}
-      
+
       socket = %Phoenix.LiveView.Socket{
         assigns: %{},
         endpoint: HydepwnsLiveviewWeb.Endpoint
       }
-      
+
       result = UserAuth.on_mount(:require_admin_user, %{}, session, socket)
-      
+
       assert {:cont, updated_socket} = result
       assert updated_socket.assigns.current_user.id == user.id
       assert updated_socket.assigns.current_user.role == "admin"
@@ -152,14 +154,14 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
       # Create a session with regular user token
       token = Accounts.generate_user_session_token(user)
       session = %{"user_token" => token}
-      
+
       socket = %Phoenix.LiveView.Socket{
         assigns: %{},
         endpoint: HydepwnsLiveviewWeb.Endpoint
       }
-      
+
       result = UserAuth.on_mount(:require_admin_user, %{}, session, socket)
-      
+
       assert {:halt, updated_socket} = result
       assert updated_socket.assigns.flash[:error] == "You must be an admin to access this page."
     end
@@ -167,14 +169,14 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
     test "require_admin_user redirects unauthenticated users", %{conn: conn} do
       # Empty session
       session = %{}
-      
+
       socket = %Phoenix.LiveView.Socket{
         assigns: %{},
         endpoint: HydepwnsLiveviewWeb.Endpoint
       }
-      
+
       result = UserAuth.on_mount(:require_admin_user, %{}, session, socket)
-      
+
       assert {:halt, updated_socket} = result
       assert updated_socket.assigns.flash[:error] == "You must be an admin to access this page."
     end
@@ -186,9 +188,9 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
         assigns: %{},
         endpoint: HydepwnsLiveviewWeb.Endpoint
       }
-      
+
       result = UserAuth.log_in_user(socket, user)
-      
+
       # Should redirect to home page
       assert result.assigns.current_user.id == user.id
       assert result.assigns.user_token != nil
@@ -199,9 +201,9 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
         assigns: %{},
         endpoint: HydepwnsLiveviewWeb.Endpoint
       }
-      
+
       result = UserAuth.log_in_user(socket, user, %{"remember_me" => "true"})
-      
+
       # Should have remember token cookie
       assert result.assigns.current_user.id == user.id
       # Note: In tests, we can't easily check cookies, but the function should handle it
@@ -211,14 +213,14 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
       # First create a session
       token = Accounts.generate_user_session_token(user)
       session = %{"user_token" => token}
-      
+
       socket = %Phoenix.LiveView.Socket{
         assigns: %{current_user: user, user_token: token},
         endpoint: HydepwnsLiveviewWeb.Endpoint
       }
-      
+
       result = UserAuth.log_out_user(socket)
-      
+
       # Should redirect to home page
       assert result.assigns.current_user == nil
     end
@@ -231,9 +233,9 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
         "password" => "newpassword123",
         "password_confirmation" => "newpassword123"
       }
-      
+
       result = UserAuth.update_user_password(user, attrs)
-      
+
       assert {:ok, updated_user} = result
       assert updated_user.id == user.id
     end
@@ -244,11 +246,11 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
         "password" => "newpassword123",
         "password_confirmation" => "newpassword123"
       }
-      
+
       result = UserAuth.update_user_password(user, attrs)
-      
+
       assert {:error, changeset} = result
-      assert %{current_password: ["is not valid"]} = errors_on(changeset)
+      assert %{current_password: ["is not valid"]} = changeset.errors
     end
   end
 
@@ -264,7 +266,7 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
       # Login as regular user
       token = Accounts.generate_user_session_token(user)
       session = %{"user_token" => token}
-      
+
       # Try to access admin route
       assert_raise Phoenix.LiveView.RedirectError, fn ->
         live(conn, ~p"/admin")
@@ -275,7 +277,7 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
       # Create session with user
       token = Accounts.generate_user_session_token(user)
       session = %{"user_token" => token}
-      
+
       # Should be able to access user settings
       {:ok, view, html} = live(conn, ~p"/users/settings", session: session)
       assert html =~ "User Settings"
@@ -286,14 +288,14 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
     test "handles invalid session tokens gracefully", %{conn: conn} do
       # Session with invalid token
       session = %{"user_token" => "invalid_token"}
-      
+
       socket = %Phoenix.LiveView.Socket{
         assigns: %{},
         endpoint: HydepwnsLiveviewWeb.Endpoint
       }
-      
+
       result = UserAuth.on_mount(:require_authenticated_user, %{}, session, socket)
-      
+
       assert {:halt, updated_socket} = result
       assert updated_socket.assigns.flash[:error] == "You must log in to access this page."
     end
@@ -302,18 +304,18 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
       # Create a token and then delete it (simulating expiration)
       token = Accounts.generate_user_session_token(user)
       Accounts.delete_session_token(token)
-      
+
       session = %{"user_token" => token}
-      
+
       socket = %Phoenix.LiveView.Socket{
         assigns: %{},
         endpoint: HydepwnsLiveviewWeb.Endpoint
       }
-      
+
       result = UserAuth.on_mount(:require_authenticated_user, %{}, session, socket)
-      
+
       assert {:halt, updated_socket} = result
       assert updated_socket.assigns.flash[:error] == "You must log in to access this page."
     end
   end
-end 
+end

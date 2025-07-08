@@ -43,6 +43,11 @@ defmodule HydepwnsLiveviewWeb.UserShowLive do
   end
 
   @impl Phoenix.LiveView
+  def handle_event("logout", _params, socket) do
+    {:noreply, push_navigate(socket, to: "/")}
+  end
+
+  @impl Phoenix.LiveView
   def handle_event("save", %{"user" => user_params}, socket) do
     case Accounts.update_user(socket.assigns.user, user_params) do
       {:ok, user} ->
@@ -73,6 +78,9 @@ defmodule HydepwnsLiveviewWeb.UserShowLive do
           </.link>
           <button phx-click="delete" phx-value-id={@user.id} data-confirm="Are you sure?" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
             Delete
+          </button>
+          <button phx-click="logout" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+            Log out
           </button>
         </div>
       </div>

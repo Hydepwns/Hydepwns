@@ -1,4 +1,5 @@
 defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
+  @router HydepwnsLiveviewWeb.Router
   use HydepwnsLiveviewWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
@@ -9,7 +10,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
   describe "registration page" do
     test "renders registration form", %{conn: conn} do
       {:ok, view, html} = live(conn, ~p"/users/register")
-      
+
       assert html =~ "Register"
       assert has_element?(view, "#registration-form")
       assert has_element?(view, "input[name='user[email]']")
@@ -21,7 +22,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
 
     test "shows login link", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/users/register")
-      
+
       assert has_element?(view, "a", "Cancel")
       assert has_element?(view, "a[href='/users/log_in']")
     end
@@ -30,7 +31,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
   describe "form validation" do
     test "validates email format", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/users/register")
-      
+
       # Submit form with invalid email
       view
       |> form("#registration-form", user: %{
@@ -40,14 +41,14 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
         password_confirmation: "password123"
       })
       |> render_submit()
-      
+
       # Check for validation error
       assert has_element?(view, ".error", "has invalid format")
     end
 
     test "validates required fields", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/users/register")
-      
+
       # Submit form with empty fields
       view
       |> form("#registration-form", user: %{
@@ -57,14 +58,14 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
         password_confirmation: ""
       })
       |> render_submit()
-      
+
       # Check for validation errors
       assert has_element?(view, ".error", "can't be blank")
     end
 
     test "validates password length", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/users/register")
-      
+
       # Submit form with short password
       view
       |> form("#registration-form", user: %{
@@ -74,14 +75,14 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
         password_confirmation: "123"
       })
       |> render_submit()
-      
+
       # Check for validation error
       assert has_element?(view, ".error", "should be at least 6 character(s)")
     end
 
     test "validates password confirmation", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/users/register")
-      
+
       # Submit form with mismatched passwords
       view
       |> form("#registration-form", user: %{
@@ -91,19 +92,19 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
         password_confirmation: "different_password"
       })
       |> render_submit()
-      
+
       # Check for validation error
       assert has_element?(view, ".error", "does not match confirmation")
     end
 
     test "real-time validation on input", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/users/register")
-      
+
       # Type invalid email
       view
       |> element("input[name='user[email]']")
       |> render_change(%{value: "invalid-email"})
-      
+
       # Check for validation error
       assert has_element?(view, ".error", "has invalid format")
     end
@@ -112,7 +113,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
   describe "registration process" do
     test "successful registration redirects to login", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/users/register")
-      
+
       # Submit valid registration data
       view
       |> form("#registration-form", user: %{
@@ -122,14 +123,14 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
         password_confirmation: "password123"
       })
       |> render_submit()
-      
+
       # Should redirect to login page
       assert_redirect(view, ~p"/users/log_in")
     end
 
     test "successful registration shows success message", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/users/register")
-      
+
       # Submit valid registration data
       view
       |> form("#registration-form", user: %{
@@ -139,10 +140,10 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
         password_confirmation: "password123"
       })
       |> render_submit()
-      
+
       # Follow redirect to login page
       {:ok, login_view, _html} = follow_redirect(view, conn)
-      
+
       # Should show success message
       assert has_element?(login_view, ".alert-info", "User created successfully")
     end
@@ -156,7 +157,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
       })
 
       {:ok, view, _html} = live(conn, ~p"/users/register")
-      
+
       # Try to register with same email
       view
       |> form("#registration-form", user: %{
@@ -166,7 +167,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
         password_confirmation: "password123"
       })
       |> render_submit()
-      
+
       # Should show error message
       assert has_element?(view, ".error", "has already been taken")
     end
@@ -175,7 +176,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
   describe "user creation" do
     test "creates user with correct attributes", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/users/register")
-      
+
       # Submit valid registration data
       view
       |> form("#registration-form", user: %{
@@ -185,10 +186,10 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
         password_confirmation: "password123"
       })
       |> render_submit()
-      
+
       # Follow redirect to login page
       {:ok, _login_view, _html} = follow_redirect(view, conn)
-      
+
       # Verify user was created in database
       user = Accounts.get_user_by_email("testuser@example.com")
       assert user != nil
@@ -200,7 +201,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
 
     test "password is properly hashed", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/users/register")
-      
+
       # Submit valid registration data
       view
       |> form("#registration-form", user: %{
@@ -210,10 +211,10 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
         password_confirmation: "password123"
       })
       |> render_submit()
-      
+
       # Follow redirect to login page
       {:ok, _login_view, _html} = follow_redirect(view, conn)
-      
+
       # Verify user was created and password is hashed
       user = Accounts.get_user_by_email("testuser@example.com")
       assert user != nil
@@ -225,7 +226,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
   describe "security" do
     test "password fields are properly masked", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/users/register")
-      
+
       # Check that password fields have type="password"
       assert has_element?(view, "input[type='password'][name='user[password]']")
       assert has_element?(view, "input[type='password'][name='user[password_confirmation]']")
@@ -233,7 +234,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
 
     test "form has CSRF protection", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/users/register")
-      
+
       # Check for CSRF token
       assert has_element?(view, "input[name='_csrf_token']")
     end
@@ -242,7 +243,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
   describe "accessibility" do
     test "form has proper labels", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/users/register")
-      
+
       # Check for proper labels
       assert has_element?(view, "label", "Email")
       assert has_element?(view, "label", "Name")
@@ -252,7 +253,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
 
     test "form has proper ARIA attributes", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/users/register")
-      
+
       # Check for required attributes
       assert has_element?(view, "input[required][name='user[email]']")
       assert has_element?(view, "input[required][name='user[name]']")
@@ -260,4 +261,4 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
       assert has_element?(view, "input[required][name='user[password_confirmation]']")
     end
   end
-end 
+end

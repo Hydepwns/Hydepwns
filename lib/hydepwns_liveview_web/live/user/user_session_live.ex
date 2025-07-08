@@ -5,7 +5,8 @@ defmodule HydepwnsLiveviewWeb.UserSessionLive do
 
   use HydepwnsLiveviewWeb, :live_view
 
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label_tag: 1, error: 1]
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label_tag: 1]
+  import Phoenix.Controller, only: [get_csrf_token: 0]
 
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveview.Accounts.User
@@ -24,17 +25,51 @@ defmodule HydepwnsLiveviewWeb.UserSessionLive do
   end
 
   defp apply_action(socket, :new, _params) do
+    user = %User{}
     socket
     |> assign(:page_title, "Log in")
-    |> assign(:user, %User{})
-    |> assign(:changeset, Accounts.change_user_session(%User{}))
+    |> assign(:user, user)
+    |> assign(:changeset, User.login_changeset(user, %{}))
+  end
+
+  @impl Phoenix.LiveView
+  def handle_event("validate", %{"user" => user_params, "value" => value}, socket) do
+    # Handle case where both user params and value are sent
+    user_params = Map.put(user_params, "email", value)
+
+    changeset =
+      socket.assigns.user
+      |> User.login_changeset(user_params)
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign(socket, :changeset, changeset)}
   end
 
   @impl Phoenix.LiveView
   def handle_event("validate", %{"user" => user_params}, socket) do
     changeset =
       socket.assigns.user
-      |> Accounts.change_user_session(user_params)
+      |> User.login_changeset(user_params)
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign(socket, :changeset, changeset)}
+  end
+
+  @impl Phoenix.LiveView
+  def handle_event("validate", %{"value" => value}, socket) do
+    # Handle individual input changes (for real-time validation)
+    # We need to construct the user params from the current form state
+    current_params = %{
+      "email" => socket.assigns.changeset.changes[:email] || "",
+      "password" => socket.assigns.changeset.changes[:password] || ""
+    }
+
+    # Update with the new value (assuming it's for email field)
+    user_params = Map.put(current_params, "email", value)
+
+    changeset =
+      socket.assigns.user
+      |> User.login_changeset(user_params)
       |> Map.put(:action, :validate)
 
     {:noreply, assign(socket, :changeset, changeset)}
@@ -42,18 +77,21 @@ defmodule HydepwnsLiveviewWeb.UserSessionLive do
 
   @impl Phoenix.LiveView
   def handle_event("save", %{"user" => user_params}, socket) do
-    case UserAuth.log_in_user(socket, user_params) do
+    case Accounts.authenticate_user(user_params) do
       {:ok, user} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "Welcome back!")
-         |> push_navigate(to: ~p"/users/#{user}")}
+        {:noreply, push_navigate(socket, to: "/users/#{user.id}")}
 
       {:error, _reason} ->
+        # Always assign a changeset with errors for failed login
+        changeset =
+          socket.assigns.user
+          |> User.login_changeset(user_params)
+          |> Map.put(:action, :insert)
+
         {:noreply,
          socket
          |> put_flash(:error, "Invalid email or password")
-         |> assign(:changeset, Accounts.change_user_session(%{}))}
+         |> assign(:changeset, changeset)}
     end
   end
 
@@ -61,25 +99,21 @@ defmodule HydepwnsLiveviewWeb.UserSessionLive do
   def render(assigns) do
     ~H"""
     <div class="container mx-auto px-4 py-8">
+      <.flash_group flash={@flash} />
       <h1 class="text-2xl font-bold mb-6">Log in</h1>
 
       <.form :let={f} for={@changeset} id="login-form" phx-change="validate" phx-submit="save">
+        <input type="hidden" name="_csrf_token" value={get_csrf_token()} />
         <div class="bg-white shadow rounded-lg p-6">
           <div class="space-y-6">
             <div>
               <.label_tag for={f[:email].id}>Email</.label_tag>
-              <.input field={f[:email]} type="email" />
-              <.error :for={msg <- Keyword.get_values(f[:email].errors, :email)}>
-                <%= msg %>
-              </.error>
+              <.input field={f[:email]} type="email" required phx-change="validate" />
             </div>
 
             <div>
               <.label_tag for={f[:password].id}>Password</.label_tag>
-              <.input field={f[:password]} type="password" />
-              <.error :for={msg <- Keyword.get_values(f[:password].errors, :password)}>
-                <%= msg %>
-              </.error>
+              <.input field={f[:password]} type="password" required phx-change="validate" />
             </div>
 
             <div class="flex justify-end">

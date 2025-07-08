@@ -23,15 +23,40 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
   end
 
   def handle_params(%{"id" => resource_id}, _url, socket) do
-    {:ok, events} = EventStore.get_events_for_resource(:resource, resource_id)
-    
-    IO.puts("🔍 ResourceEventSystemLive: Retrieved #{length(events)} events for resource #{resource_id}")
-    IO.puts("🔍 ResourceEventSystemLive: Event types: #{Enum.map(events, & &1.type)}")
-    
-    {:noreply, 
-     socket
-     |> assign(:resource_id, resource_id)
-     |> assign(:events, events)}
+    # First get the resource to determine its type
+    case HydepwnsLiveview.Resources.ResourceSystem.get_resource(resource_id) do
+      {:ok, resource} ->
+        # Query for events with the specific resource type
+        {:ok, events} = EventStore.get_events_for_resource(resource.type, resource_id)
+
+        # Convert Event structs to maps for template rendering
+        event_maps = Enum.map(events, fn event ->
+          %{
+            id: event.id,
+            type: event.type,
+            resource_id: event.resource_id,
+            resource_type: event.resource_type,
+            data: event.data,
+            metadata: event.metadata,
+            correlation_id: event.correlation_id,
+            causation_id: event.causation_id,
+            timestamp: event.timestamp
+          }
+        end)
+
+        {:noreply,
+         socket
+         |> assign(:resource_id, resource_id)
+         |> assign(:resource_type, resource.type)
+         |> assign(:events, event_maps)}
+
+      {:error, :not_found} ->
+        {:noreply,
+         socket
+         |> assign(:resource_id, resource_id)
+         |> assign(:resource_type, nil)
+         |> assign(:events, [])}
+    end
   end
 
   def handle_event("filter_events", %{"event_filter" => filter_params}, socket) do
@@ -75,7 +100,9 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
     <div class="container mx-auto px-4 py-8">
       <!-- DEBUG: Events count: <%= length(@events) %> -->
       <!-- DEBUG: Events: <%= inspect(@events, pretty: true) %> -->
-      
+      <!-- DEBUG: Resource ID: <%= @resource_id %> -->
+      <!-- DEBUG: Resource Type: <%= @resource_type %> -->
+
       <div class="flex justify-between items-center mb-8">
         <h1 class="text-3xl font-bold">Resource Event System</h1>
         <div class="flex gap-4">
@@ -140,7 +167,9 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
             <!-- Debug: Events count: <%= length(@events) %> -->
+            <!-- Debug: Events loop start -->
             <%= for event <- @events do %>
+              <!-- Debug: Rendering event: <%= event.type %> -->
               <tr class="event-row" data-test-id="event-row">
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-test-id="event-type">
                   <%= event.type %>
@@ -159,6 +188,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
                 </td>
               </tr>
             <% end %>
+            <!-- Debug: Events loop end -->
           </tbody>
         </table>
       </div>

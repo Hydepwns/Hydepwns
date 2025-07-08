@@ -29,12 +29,13 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeCustomizeLive do
     # Include required fields from existing theme
     |> Map.put("name", socket.assigns.theme.name)
     |> Map.put("mode", socket.assigns.theme.mode)
-    
+
     IO.inspect(processed_params, label: "[DEBUG] Processed theme params")
-    
+
     case ThemeSystem.update_theme(socket.assigns.theme, processed_params) do
       {:ok, theme} ->
         IO.inspect("Colors saved successfully", label: "[DEBUG] Setting flash message")
+        IO.inspect(theme, label: "[DEBUG] Updated theme after save")
         {:noreply,
          socket
          |> put_flash(:info, "Colors saved successfully")
@@ -121,13 +122,13 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeCustomizeLive do
           <%= Phoenix.Flash.get(@flash, :info) %>
         </div>
       <% end %>
-      
+
       <%= if Phoenix.Flash.get(@flash, :error) do %>
         <div class="alert alert-error bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded relative mb-6" role="alert">
           <%= Phoenix.Flash.get(@flash, :error) %>
         </div>
       <% end %>
-      
+
       <header class="mb-6">
         <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Customize Theme</h1>
         <p class="text-gray-600 dark:text-gray-400">Customize the appearance of your theme</p>
@@ -179,16 +180,20 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeCustomizeLive do
               <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Save Colors</button>
             </div>
           </form>
-          
+
           <!-- Color Preview -->
-          <div class="mt-6">
+          <div class="mt-6" data-test-id="color-preview-section">
             <h3 class="text-md font-medium mb-3">Preview</h3>
-            <div class="flex space-x-2">
-              <div class="w-8 h-8 rounded color-preview" style={"background-color: #{@theme.primary_color}"} title="Primary"></div>
-              <div class="w-8 h-8 rounded color-preview" style={"background-color: #{@theme.secondary_color}"} title="Secondary"></div>
-              <div class="w-8 h-8 rounded color-preview" style={"background-color: #{Map.get(@theme.colors, "accent", "#3357FF")}"} title="Accent"></div>
-              <div class="w-8 h-8 rounded color-preview" style={"background-color: #{@theme.background_color}"} title="Background"></div>
-              <div class="w-8 h-8 rounded color-preview border" style={"background-color: #{@theme.text_color}"} title="Text"></div>
+            <!-- DEBUG: Primary color: <%= @theme.primary_color %> -->
+            <!-- DEBUG: Secondary color: <%= @theme.secondary_color %> -->
+            <!-- DEBUG: Background color: <%= @theme.background_color %> -->
+            <!-- DEBUG: Text color: <%= @theme.text_color %> -->
+            <div class="flex space-x-2" data-test-id="color-preview-container">
+              <div class="w-8 h-8 rounded color-preview" data-test-id="color-preview-primary" style={"background-color: #{@theme.primary_color}"} title="Primary"></div>
+              <div class="w-8 h-8 rounded color-preview" data-test-id="color-preview-secondary" style={"background-color: #{@theme.secondary_color}"} title="Secondary"></div>
+              <div class="w-8 h-8 rounded color-preview" data-test-id="color-preview-accent" style={"background-color: #{Map.get(@theme.colors, "accent", "#3357FF")}"} title="Accent"></div>
+              <div class="w-8 h-8 rounded color-preview" data-test-id="color-preview-background" style={"background-color: #{@theme.background_color}"} title="Background"></div>
+              <div class="w-8 h-8 rounded color-preview border" data-test-id="color-preview-text" style={"background-color: #{@theme.text_color}"} title="Text"></div>
             </div>
           </div>
         </div>
@@ -215,7 +220,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeCustomizeLive do
               <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Save Typography</button>
             </div>
           </form>
-          
+
           <!-- Typography Preview -->
           <div class="mt-6">
             <h3 class="text-md font-medium mb-3">Preview</h3>
@@ -247,7 +252,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeCustomizeLive do
               <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Save Spacing</button>
             </div>
           </form>
-          
+
           <!-- Spacing Preview -->
           <div class="mt-6" data-test-id="spacing-preview-section">
             <h3 class="text-md font-medium mb-3">Preview</h3>
@@ -279,7 +284,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeCustomizeLive do
               <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Apply</button>
             </div>
           </form>
-          
+
           <!-- Accessibility Status -->
           <div class="mt-6">
             <div class="contrast-ratio text-sm text-green-600">4.5:1</div>
@@ -288,7 +293,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeCustomizeLive do
         </div>
       </div>
     </div>
-    
+
     <script>
       document.addEventListener('DOMContentLoaded', function() {
         // Synchronize color picker and text input values
@@ -301,7 +306,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeCustomizeLive do
             colorInput.addEventListener('input', function() {
               textInput.value = this.value;
             });
-            
+
             // Update color picker when text input changes
             textInput.addEventListener('input', function() {
               colorInput.value = this.value;
@@ -312,4 +317,4 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeCustomizeLive do
     </script>
     """
   end
-end 
+end

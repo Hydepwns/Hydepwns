@@ -95,6 +95,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
     |> assign_new(:label, fn -> nil end)
     |> assign_new(:multiple, fn -> assigns[:multiple] || false end)
     |> assign_new(:prompt, fn -> assigns[:prompt] end)
+    |> assign_new(:required, fn -> false end)
     |> input()
   end
 
@@ -167,6 +168,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
   end
 
   def input(assigns) do
+    assigns = assign_new(assigns, :required, fn -> false end)
     ~H"""
     <div class="form-group">
       <.label_tag for={@id}>{@label}</.label_tag>

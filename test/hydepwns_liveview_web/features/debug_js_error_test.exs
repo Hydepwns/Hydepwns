@@ -13,12 +13,29 @@ defmodule HydepwnsLiveviewWeb.DebugJSErrorTest do
   alias HydepwnsLiveviewWeb.TestMockHelper
 
   setup %{session: session} = _context do
+    # Override repo configuration for feature tests to use real database
+    # This allows us to test the full resource workflow with real database persistence
+    original_repo = Application.get_env(:hydepwns_liveview, :repo)
+    Application.put_env(:hydepwns_liveview, :repo, HydepwnsLiveview.Repo)
+
+    on_exit(fn ->
+      Application.put_env(:hydepwns_liveview, :repo, original_repo)
+    end)
+
     # Set up mocks first, before any resource creation
     TestMockHelper.setup_mocks()
 
     # Set up Ecto SQL Sandbox for Wallaby tests
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(HydepwnsLiveview.Repo)
     Ecto.Adapters.SQL.Sandbox.mode(HydepwnsLiveview.Repo, {:shared, self()})
+
+    # Create a test resource for the parent selector in the form
+    import HydepwnsLiveview.TestSupport.ResourceFixtures
+    {:ok, _resource} = create_test_resource(%{
+      name: "Test Parent Resource",
+      type: "folder",
+      status: "published"
+    })
 
     {:ok, session: visit_and_wait(session, "/resources")}
   end
@@ -29,9 +46,9 @@ defmodule HydepwnsLiveviewWeb.DebugJSErrorTest do
     |> wait_for_text("Resources")
 
     # Use the link instead of button for creating resources
-    session
+    session = session
     |> click(Query.css("[data-test-id='create-resource-link']"))
-    |> wait_for_element(css("form"))
+    |> wait_for_element(css("form#resource-form"))
     |> fill_in(text_field("resource[name]"), with: "Test Resource")
     |> fill_in(text_field("resource[description]"), with: "Test Description")
     |> set_value(select("resource[status]"), "published")
@@ -52,7 +69,7 @@ defmodule HydepwnsLiveviewWeb.DebugJSErrorTest do
 
     # Try to create a resource using the link
     session = click(session, Query.css("[data-test-id='create-resource-link']"))
-    session = wait_for_element(session, css("form"))
+    session = wait_for_element(session, css("form#resource-form"))
 
     # Verify we're on the resource creation form
     assert has_text?(session, "New Resource")

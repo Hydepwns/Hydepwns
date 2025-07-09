@@ -20,23 +20,32 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
   alias HydepwnsLiveviewWeb.TestMockHelper
 
   setup %{session: session} = _context do
+    # Override repo configuration for feature tests to use real database
+    # This allows us to test the full resource workflow with real database persistence
+    original_repo = Application.get_env(:hydepwns_liveview, :repo)
+    Application.put_env(:hydepwns_liveview, :repo, HydepwnsLiveview.Repo)
+
+    on_exit(fn ->
+      Application.put_env(:hydepwns_liveview, :repo, original_repo)
+    end)
+
     # Start the MockEventStore if not already started
     case Process.whereis(HydepwnsLiveview.TestSupport.MockEventStore) do
       nil ->
-        {:ok, _pid} = start_supervised(HydepwnsLiveview.TestSupport.MockEventStore)
-      _pid ->
+        {:ok, pid} = start_supervised(HydepwnsLiveview.TestSupport.MockEventStore)
+        pid
+      pid ->
         :ok
     end
 
     # Set up mocks first, before any resource creation
     TestMockHelper.setup_mocks()
 
-    # Set up Ecto SQL Sandbox for Wallaby tests
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(HydepwnsLiveview.Repo)
-    Ecto.Adapters.SQL.Sandbox.mode(HydepwnsLiveview.Repo, {:shared, self()})
+
 
     unique = System.unique_integer([:positive])
 
+        # Create resources in test setup (not through UI)
     {:ok, parent} =
       ResourceFixtures.create_test_resource(%{
         id: "parent-#{unique}",
@@ -51,7 +60,10 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
         type: "document"
       })
 
-    {:ok, session: visit_and_wait(session, "/resources"), parent: parent, child: child}
+    # Visit the dashboard
+    session = visit_and_wait(session, "/resources")
+
+    {:ok, session: session, parent: parent, child: child}
   end
 
   describe "resource relationship management" do
@@ -107,8 +119,9 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       IO.puts("DEBUG: Events in MockEventStore for resource #{child.id}: #{inspect(events)}")
 
       # Continue with session
-      session
-      |> click(Wallaby.Query.css("a[data-test-id='events-link']"))
+      session =
+        session
+        |> click(Wallaby.Query.css("a[data-test-id='events-link']"))
 
       # Debug: Check what's on the page
       page_source = Wallaby.Browser.page_source(session)
@@ -116,6 +129,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       IO.puts("DEBUG: Page source contains 'event-row': #{String.contains?(page_source, "event-row")}")
       IO.puts("DEBUG: Page source contains 'document.updated': #{String.contains?(page_source, "document.updated")}")
 
+      session
       |> wait_for_element(css(".event-row"))
       |> Wallaby.Browser.assert_has(css(".event-row", text: "document.updated"))
     end
@@ -221,6 +235,11 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
 
       # Wait for successful save
       session = wait_for_flash_message(session, "success", "Resource updated successfully")
+
+      # Navigate back to dashboard to find the parent resource
+      session = visit_and_wait(session, "/resources")
+      session = wait_for_text(session, "Resources")
+      session = wait_for_resource_link(session, parent.id)
 
       # Try to make parent a child of child (circular)
       session

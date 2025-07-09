@@ -29,7 +29,7 @@ defmodule HydepwnsLiveviewWeb.FontOptimizationsTest do
     end
 
     test "style guide page includes font examples", %{conn: conn} do
-      {:ok, _view, html} = live(conn, "/style-guide")
+      {:ok, view, html} = live(conn, "/style-guide")
 
       # Test that the font examples are present
       assert html =~ "Monaspace Argon"

@@ -39,7 +39,7 @@ defmodule HydepwnsLiveviewWeb.ErrorBoundaryTest do
     end
 
     @tag :skip
-    test "handles missing LiveView modules gracefully", %{conn: conn} do
+    test "handles missing LiveView modules gracefully", %{_conn: _conn} do
       # Skipped: Phoenix does not consistently raise or return a 404 for missing routes in test mode.
       # See https://github.com/phoenixframework/phoenix/issues/4004 for details.
       # resp = get(conn, "/non-existent-live-view")
@@ -54,7 +54,7 @@ defmodule HydepwnsLiveviewWeb.ErrorBoundaryTest do
     end
 
     @tag :skip
-    test "handles authorization errors gracefully", %{conn: conn, regular_user: user} do
+    test "handles authorization errors gracefully", %{_conn: _conn, regular_user: _user} do
       # Skipped: Phoenix does not consistently raise or return a 404 for missing routes in test mode.
       # See https://github.com/phoenixframework/phoenix/issues/4004 for details.
       # token = Accounts.generate_user_session_token(user)

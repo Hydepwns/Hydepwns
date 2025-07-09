@@ -122,7 +122,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
 
   test "event visualization shows processing status", %{session: session} do
     # Create a test resource for timeline testing
-    {:ok, resource} = ResourceFixtures.create_test_resource(%{
+    {:ok, _resource} = ResourceFixtures.create_test_resource(%{
       name: "Event Visualization Test Resource",
       status: "published",
       type: "document",

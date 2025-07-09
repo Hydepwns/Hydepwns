@@ -1,6 +1,5 @@
 defmodule HydepwnsLiveviewWeb.ResourceNewLiveTest do
-  use HydepwnsLiveviewWeb.ConnCase
-  import Phoenix.LiveViewTest
+  use HydepwnsLiveviewWeb.WallabyCase
   import Mox
   setup :set_mox_from_context
   setup :verify_on_exit!
@@ -18,176 +17,166 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLiveTest do
     {:ok, %{}}
   end
 
-  describe "resource creation workflow" do
-    test "creates resource and sets flash message", %{conn: conn} do
-      {:ok, view, _html} = live(conn, "/resources/new")
-      view
-      |> form("#resource-form", resource: %{
-        name: "Test Resource",
-        description: "Test Description",
-        type: "document",
-        content: "{}"
-      })
-      |> render_submit()
-      
-      # The LiveView should redirect to /resources, but follow_redirect doesn't detect it
-      # So we manually navigate to the dashboard to check for the created resource
-      {:ok, _dashboard_view, dashboard_html} = live(conn, "/resources")
-      
+    describe "resource creation workflow" do
+        test "creates resource and sets flash message", %{session: session} do
+      session = visit_and_wait(session, "/resources/new")
+
+      # Debug: Check what's actually on the page
+      page_source = Wallaby.Browser.page_source(session)
+      IO.puts("DEBUG: Page source contains 'resource_name': #{String.contains?(page_source, "resource_name")}")
+      IO.puts("DEBUG: Page source contains 'resource-form': #{String.contains?(page_source, "resource-form")}")
+      IO.puts("DEBUG: Page source contains 'name': #{String.contains?(page_source, "name")}")
+
+      session
+      |> fill_in(css("input[name='resource[name]']"), with: "Test Resource")
+      |> fill_in(css("textarea[name='resource[description]']"), with: "Test Description")
+      |> fill_in(css("select[name='resource[type]']"), with: "document")
+      |> fill_in(css("textarea[name='resource[content]']"), with: "{}")
+      |> click(css("#resource-form button[type='submit']"))
+
+      # Wait for redirect and check the dashboard
+      session = visit_and_wait(session, "/resources")
+
       # Assert that the resource was created and appears in the list
-      assert dashboard_html =~ "Test Resource"
-      assert dashboard_html =~ "Test Description"
-      assert dashboard_html =~ "document"
+      Wallaby.Browser.has?(session, css("body", text: "Test Resource"))
+      Wallaby.Browser.has?(session, css("body", text: "Test Description"))
+      Wallaby.Browser.has?(session, css("body", text: "document"))
       # Note: Flash messages don't persist across LiveView sessions, so we don't test for them
     end
 
-    test "handles validation errors without setting flash", %{conn: conn} do
-      {:ok, view, _html} = live(conn, "/resources/new")
-      view
-      |> form("#resource-form", resource: %{
-        name: "",  # Empty name should trigger validation error
-        description: "Test Description",
-        type: "document",
-        content: "{}"
-      })
-      |> render_submit()
-      
-      # Check that validation error is displayed
-      assert has_element?(view, "[data-test-id='name-error']")
-      assert has_element?(view, "p", "can't be blank")
-      
+        test "handles validation errors without setting flash", %{session: session} do
+      session = visit_and_wait(session, "/resources/new")
+
+      session
+      |> fill_in(css("input[name='resource[name]']"), with: "")  # Empty name should trigger validation error
+      |> fill_in(css("textarea[name='resource[description]']"), with: "Test Description")
+      |> fill_in(css("select[name='resource[type]']"), with: "document")
+      |> fill_in(css("textarea[name='resource[content]']"), with: "{}")
+      |> click(css("#resource-form button[type='submit']"))
+
+            # Check that validation error is displayed
+      Wallaby.Browser.has?(session, css("[data-test-id='name-error']"))
+      Wallaby.Browser.has?(session, css("p", text: "can't be blank"))
+
       # Check that no redirect occurred (form should still be visible)
-      assert has_element?(view, "h1", "New Resource")
+      Wallaby.Browser.has?(session, css("h1", text: "New Resource"))
     end
 
-    test "updates resource and sets flash message", %{conn: conn} do
+        test "updates resource and sets flash message", %{session: session} do
       {:ok, resource} = create_test_resource(%{name: "Original Name", type: "document", status: "published"})
-      {:ok, view, _html} = live(conn, "/resources/#{resource.id}/edit")
-      view
-      |> form("#resource-form", resource: %{
-        name: "Updated Name",
-        description: "Updated Description",
-        type: "document",
-        content: "{}"
-      })
-      |> render_submit()
-      
-      # The LiveView should redirect to /resources, but follow_redirect doesn't detect it
-      # So we manually navigate to the dashboard to check for the updated resource
-      {:ok, _dashboard_view, dashboard_html} = live(conn, "/resources")
-      
+      session = visit_and_wait(session, "/resources/#{resource.id}/edit")
+
+      session
+      |> fill_in(css("input[name='resource[name]']"), with: "Updated Name")
+      |> fill_in(css("textarea[name='resource[description]']"), with: "Updated Description")
+      |> fill_in(css("select[name='resource[type]']"), with: "document")
+      |> fill_in(css("textarea[name='resource[content]']"), with: "{}")
+      |> click(css("#resource-form button[type='submit']"))
+
+      # Wait for redirect and check the dashboard
+      session = visit_and_wait(session, "/resources")
+
       # Assert that the resource was updated and appears in the list
-      assert dashboard_html =~ "Updated Name"
-      assert dashboard_html =~ "Updated Description"
-      assert dashboard_html =~ "document"
+      Wallaby.Browser.has?(session, css("body", text: "Updated Name"))
+      Wallaby.Browser.has?(session, css("body", text: "Updated Description"))
+      Wallaby.Browser.has?(session, css("body", text: "document"))
       # Note: Flash messages don't persist across LiveView sessions, so we don't test for them
     end
   end
 
   describe "navigation" do
-    test "navigation can navigate back to resources list", %{conn: conn} do
-      {:ok, view, _html} = live(conn, "/resources/new")
+    test "navigation can navigate back to resources list", %{session: session} do
+      session = visit_and_wait(session, "/resources/new")
 
       # Click the back link
-      view
-      |> element("[data-test-id='cancel-resource-link']")
-      |> render_click()
+      session
+      |> click(css("[data-test-id='cancel-resource-link']"))
 
       # Verify we navigated back to the resources list
-      assert_redirect(view, "/resources")
+      Wallaby.Browser.has?(session, css("h1", text: "Resources"))
     end
 
-    test "can cancel form submission", %{conn: conn} do
-      {:ok, view, _html} = live(conn, "/resources/new")
-      view
-      |> element("[data-test-id='cancel-resource-link']")
-      |> render_click()
-      assert_redirect(view, "/resources")
+    test "can cancel form submission", %{session: session} do
+      session = visit_and_wait(session, "/resources/new")
+      session
+      |> click(css("[data-test-id='cancel-resource-link']"))
+      Wallaby.Browser.has?(session, css("h1", text: "Resources"))
     end
   end
 
-  describe "flash message rendering" do
-    test "flash message disappears after being displayed", %{conn: conn} do
-      {:ok, view, _html} = live(conn, "/resources/new")
-      view
-      |> form("#resource-form", resource: %{
-        name: "Flash Test Resource",
-        description: "Test Description",
-        type: "document",
-        content: "{}"
-      })
-      |> render_submit()
-      
-      # The LiveView should redirect to /resources, but follow_redirect doesn't detect it
-      # So we manually navigate to the dashboard to check for the created resource
-      {:ok, _dashboard_view, dashboard_html} = live(conn, "/resources")
-      
+    describe "flash message rendering" do
+    test "flash message disappears after being displayed", %{session: session} do
+      session = visit_and_wait(session, "/resources/new")
+
+      session
+      |> fill_in(css("input[name='resource[name]']"), with: "Flash Test Resource")
+      |> fill_in(css("textarea[name='resource[description]']"), with: "Test Description")
+      |> fill_in(css("select[name='resource[type]']"), with: "document")
+      |> fill_in(css("textarea[name='resource[content]']"), with: "{}")
+      |> click(css("#resource-form button[type='submit']"))
+
+      # Wait for redirect and check the dashboard
+      session = visit_and_wait(session, "/resources")
+
       # Assert that the resource was created and appears in the list
-      assert dashboard_html =~ "Flash Test Resource"
-      assert dashboard_html =~ "Test Description"
-      assert dashboard_html =~ "document"
+      Wallaby.Browser.has?(session, css("body", text: "Flash Test Resource"))
+      Wallaby.Browser.has?(session, css("body", text: "Test Description"))
+      Wallaby.Browser.has?(session, css("body", text: "document"))
       # Note: Flash messages don't persist across LiveView sessions, so we don't test for them
     end
   end
 
-  describe "form validation" do
-    test "validates form fields in real-time", %{conn: conn} do
-      {:ok, view, _html} = live(conn, "/resources/new")
-      
+    describe "form validation" do
+    test "validates form fields in real-time", %{session: session} do
+      session = visit_and_wait(session, "/resources/new")
+
       # Submit form with empty name to trigger validation
-      view
-      |> form("#resource-form", resource: %{
-        name: "",
-        description: "",
-        type: "document",
-        content: "{}"
-      })
-      |> render_submit()
-      
+      session
+      |> fill_in(css("input[name='resource[name]']"), with: "")
+      |> fill_in(css("textarea[name='resource[description]']"), with: "")
+      |> fill_in(css("select[name='resource[type]']"), with: "document")
+      |> fill_in(css("textarea[name='resource[content]']"), with: "{}")
+      |> click(css("#resource-form button[type='submit']"))
+
       # Check that validation error is displayed
-      assert has_element?(view, "[data-test-id='name-error']")
-      assert has_element?(view, "p", "can't be blank")
+      Wallaby.Browser.has?(session, css("[data-test-id='name-error']"))
+      Wallaby.Browser.has?(session, css("p", text: "can't be blank"))
     end
 
-    test "validates required fields", %{conn: conn} do
-      {:ok, view, _html} = live(conn, "/resources/new")
-      
+    test "validates required fields", %{session: session} do
+      session = visit_and_wait(session, "/resources/new")
+
       # Submit form with empty required fields
-      view
-      |> form("#resource-form", resource: %{
-        name: "",
-        description: "",
-        type: "document",
-        content: "{}"
-      })
-      |> render_submit()
-      
-      # Check that validation errors are displayed
-      assert has_element?(view, "[data-test-id='name-error']")
-      assert has_element?(view, "p", "can't be blank")
-      
+      session
+      |> fill_in(css("input[name='resource[name]']"), with: "")
+      |> fill_in(css("textarea[name='resource[description]']"), with: "")
+      |> fill_in(css("select[name='resource[type]']"), with: "document")
+      |> fill_in(css("textarea[name='resource[content]']"), with: "{}")
+      |> click(css("#resource-form button[type='submit']"))
+
+            # Check that validation errors are displayed
+      Wallaby.Browser.has?(session, css("[data-test-id='name-error']"))
+      Wallaby.Browser.has?(session, css("p", text: "can't be blank"))
+
       # Form should still be visible (no redirect on validation error)
-      assert has_element?(view, "h1", "New Resource")
+      Wallaby.Browser.has?(session, css("h1", text: "New Resource"))
     end
 
-    test "accepts valid form data", %{conn: conn} do
-      {:ok, view, _html} = live(conn, "/resources/new")
-      
+    test "accepts valid form data", %{session: session} do
+      session = visit_and_wait(session, "/resources/new")
+
       # Submit form with valid data
-      view
-      |> form("#resource-form", resource: %{
-        name: "Valid Resource",
-        description: "Valid Description",
-        type: "document",
-        content: "{}"
-      })
-      |> render_submit()
-      
-      # The LiveView should redirect to /resources, but follow_redirect doesn't detect it
-      # So we manually navigate to the dashboard to check for the created resource
-      {:ok, _dashboard_view, dashboard_html} = live(conn, "/resources")
-      assert dashboard_html =~ "Valid Resource"
-      assert dashboard_html =~ "Valid Description"
+      session
+      |> fill_in(css("input[name='resource[name]']"), with: "Valid Resource")
+      |> fill_in(css("textarea[name='resource[description]']"), with: "Valid Description")
+      |> fill_in(css("select[name='resource[type]']"), with: "document")
+      |> fill_in(css("textarea[name='resource[content]']"), with: "{}")
+      |> click(css("#resource-form button[type='submit']"))
+
+      # Wait for redirect and check the dashboard
+      session = visit_and_wait(session, "/resources")
+      Wallaby.Browser.has?(session, css("body", text: "Valid Resource"))
+      Wallaby.Browser.has?(session, css("body", text: "Valid Description"))
     end
   end
-end 
+end

@@ -50,7 +50,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
   end
 
   describe "External API Integration" do
-    test "fetches data from external API", %{conn: conn} do
+    test "fetches data from external API", %{_conn: _conn} do
       # Mock successful API response
       HydepwnsLiveview.MockExternalAPI
       |> expect(:fetch_data, fn id ->
@@ -75,7 +75,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       assert data["external_metadata"]["source"] == "external_api"
     end
 
-    test "handles external API errors gracefully", %{conn: conn} do
+    test "handles external API errors gracefully", %{_conn: _conn} do
       # Mock API error
       HydepwnsLiveview.MockExternalAPI
       |> expect(:fetch_data, fn _id ->
@@ -88,7 +88,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       assert {:error, "External service unavailable"} = result
     end
 
-    test "retries failed API calls", %{conn: conn} do
+    test "retries failed API calls", %{_conn: _conn} do
       # Mock API to succeed
       HydepwnsLiveview.MockExternalAPI
       |> expect(:fetch_data, fn id ->
@@ -103,7 +103,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       assert data["name"] == "Retry Success Resource"
     end
 
-    test "handles API rate limiting", %{conn: conn} do
+    test "handles API rate limiting", %{_conn: _conn} do
       # Mock rate limit response
       HydepwnsLiveview.MockExternalAPI
       |> expect(:fetch_data, fn _id ->
@@ -118,7 +118,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
   end
 
   describe "Third-Party Service Integration" do
-    test "integrates with email service", %{conn: conn} do
+    test "integrates with email service", %{_conn: _conn} do
       # Mock email service
       HydepwnsLiveview.Notifications.EmailAdapter
       |> expect(:send_email, fn to, subject, body ->
@@ -138,7 +138,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       assert {:ok, "email-sent-123"} = result
     end
 
-    test "integrates with SMS service", %{conn: conn} do
+    test "integrates with SMS service", %{_conn: _conn} do
       # Mock SMS service
       HydepwnsLiveview.Notifications.Twilio
       |> expect(:send_sms, fn to, message ->
@@ -156,7 +156,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       assert {:ok, "sms-sent-456"} = result
     end
 
-    test "integrates with push notification service", %{conn: conn} do
+    test "integrates with push notification service", %{_conn: _conn} do
       # Mock push notification service
       HydepwnsLiveview.Events.Adapters.PushAdapter
       |> expect(:send_notification, fn device_token, notification ->
@@ -181,7 +181,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       assert {:ok, "push-sent-789"} = result
     end
 
-    test "integrates with analytics service", %{conn: conn} do
+    test "integrates with analytics service", %{_conn: _conn} do
       # Mock analytics service
       HydepwnsLiveview.Integration.AnalyticsAdapter
       |> expect(:track_event, fn event_name, properties ->
@@ -201,7 +201,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
   end
 
   describe "Webhook Integration" do
-    test "sends webhooks for resource events", %{conn: conn} do
+    test "sends webhooks for resource events", %{_conn: _conn} do
       # Mock webhook service
       HydepwnsLiveview.Integration.WebhookAdapter
       |> expect(:send_webhook, fn url, payload ->
@@ -226,7 +226,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       assert {:ok, "webhook-sent"} = result
     end
 
-    test "handles webhook delivery failures", %{conn: conn} do
+    test "handles webhook delivery failures", %{_conn: _conn} do
       # Mock webhook failure
       HydepwnsLiveview.Integration.WebhookAdapter
       |> expect(:send_webhook, fn _url, _payload ->
@@ -242,7 +242,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       assert {:error, "Webhook delivery failed"} = result
     end
 
-    test "retries failed webhooks", %{conn: conn} do
+    test "retries failed webhooks", %{_conn: _conn} do
       # Mock webhook to succeed
       HydepwnsLiveview.Integration.WebhookAdapter
       |> expect(:send_webhook, fn _url, _payload ->
@@ -259,7 +259,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       assert {:ok, "webhook-retry-success"} = result
     end
 
-    test "validates webhook signatures", %{conn: conn} do
+    test "validates webhook signatures", %{_conn: _conn} do
       # Mock webhook signature validation
       HydepwnsLiveview.Integration.WebhookAdapter
       |> expect(:validate_signature, fn payload, signature, secret ->
@@ -281,7 +281,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
   end
 
   describe "External Data Synchronization" do
-    test "synchronizes data with external system", %{conn: conn} do
+    test "synchronizes data with external system", %{_conn: _conn} do
       # Mock external system
       HydepwnsLiveview.Integration.ExternalSyncAdapter
       |> expect(:sync_resource, fn resource ->
@@ -304,7 +304,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       assert sync_result.synced_at != nil
     end
 
-    test "handles synchronization conflicts", %{conn: conn} do
+    test "handles synchronization conflicts", %{_conn: _conn} do
       # Mock synchronization conflict
       HydepwnsLiveview.Integration.ExternalSyncAdapter
       |> expect(:sync_resource, fn _resource ->
@@ -327,7 +327,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       assert conflict_info.remote_version == 2
     end
 
-    test "performs incremental synchronization", %{conn: conn} do
+    test "performs incremental synchronization", %{_conn: _conn} do
       # Mock incremental sync
       HydepwnsLiveview.Integration.ExternalSyncAdapter
       |> expect(:incremental_sync, fn since_timestamp ->
@@ -349,7 +349,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       assert Enum.at(changes, 1).action == "updated"
     end
 
-    test "handles synchronization failures", %{conn: conn} do
+    test "handles synchronization failures", %{_conn: _conn} do
       # Mock sync failure
       HydepwnsLiveview.Integration.ExternalSyncAdapter
       |> expect(:sync_resource, fn _resource ->
@@ -367,7 +367,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
   end
 
   describe "External Service Monitoring" do
-    test "monitors external service health", %{conn: conn} do
+    test "monitors external service health", %{_conn: _conn} do
       # Mock health check
       HydepwnsLiveview.Integration.ExternalServiceMonitor
       |> expect(:check_health, fn service_name ->
@@ -387,7 +387,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       assert health_info.response_time < 1000
     end
 
-    test "detects external service failures", %{conn: conn} do
+    test "detects external service failures", %{_conn: _conn} do
       # Mock health check failure
       HydepwnsLiveview.Integration.ExternalServiceMonitor
       |> expect(:check_health, fn service_name ->
@@ -401,7 +401,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       assert {:error, "Service unavailable"} = result
     end
 
-    test "tracks external service metrics", %{conn: conn} do
+    test "tracks external service metrics", %{_conn: _conn} do
       # Mock metrics tracking
       HydepwnsLiveview.Integration.ExternalServiceMonitor
       |> expect(:track_metric, fn service_name, metric_name, value ->
@@ -423,7 +423,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
   end
 
   describe "External Service Security" do
-    test "validates external service credentials", %{conn: conn} do
+    test "validates external service credentials", %{_conn: _conn} do
       # Mock credential validation
       HydepwnsLiveview.Integration.ExternalServiceAuth
       |> expect(:validate_credentials, fn service_name, credentials ->
@@ -441,7 +441,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       assert {:ok, true} = result
     end
 
-    test "handles invalid credentials", %{conn: conn} do
+    test "handles invalid credentials", %{_conn: _conn} do
       # Mock invalid credentials
       HydepwnsLiveview.Integration.ExternalServiceAuth
       |> expect(:validate_credentials, fn _service_name, credentials ->
@@ -458,7 +458,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       assert {:error, "Invalid API key"} = result
     end
 
-    test "encrypts sensitive data for external services", %{conn: conn} do
+    test "encrypts sensitive data for external services", %{_conn: _conn} do
       # Mock encryption
       HydepwnsLiveview.Integration.ExternalServiceAuth
       |> expect(:encrypt_data, fn data, key ->
@@ -478,7 +478,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
   end
 
   describe "External Service Performance" do
-    test "handles high external service load", %{conn: conn} do
+    test "handles high external service load", %{_conn: _conn} do
       # Mock high load scenario - expect 10 calls
       HydepwnsLiveview.MockExternalAPI
       |> expect(:fetch_data, 10, fn id ->
@@ -511,7 +511,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       assert duration < 5000  # Less than 5 seconds for 10 concurrent requests
     end
 
-    test "implements circuit breaker pattern", %{conn: conn} do
+    test "implements circuit breaker pattern", %{_conn: _conn} do
       # Mock circuit breaker
       HydepwnsLiveview.Integration.CircuitBreaker
       |> expect(:call, fn service_name, operation, _fun ->

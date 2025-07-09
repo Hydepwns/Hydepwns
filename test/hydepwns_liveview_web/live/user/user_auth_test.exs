@@ -36,7 +36,7 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
   end
 
   describe "authentication guards" do
-    test "require_authenticated_user allows authenticated users", %{conn: conn, regular_user: user} do
+    test "require_authenticated_user allows authenticated users", %{_conn: _conn, regular_user: user} do
       # Create a session with user token
       token = Accounts.generate_user_session_token(user)
       session = %{"user_token" => token}
@@ -53,7 +53,7 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
       assert updated_socket.assigns.current_user.id == user.id
     end
 
-    test "require_authenticated_user redirects unauthenticated users", %{conn: conn} do
+    test "require_authenticated_user redirects unauthenticated users", %{_conn: _conn} do
       # Empty session
       session = %{}
 
@@ -70,7 +70,7 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
       assert updated_socket.assigns.current_user == nil
     end
 
-    test "mount_current_user assigns current user", %{conn: conn, regular_user: user} do
+    test "mount_current_user assigns current user", %{_conn: _conn, regular_user: user} do
       # Create a session with user token
       token = Accounts.generate_user_session_token(user)
       session = %{"user_token" => token}
@@ -86,7 +86,7 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
       assert updated_socket.assigns.current_user.id == user.id
     end
 
-    test "mount_current_user handles missing session gracefully", %{conn: conn} do
+    test "mount_current_user handles missing session gracefully", %{_conn: _conn} do
       # Empty session
       session = %{}
 
@@ -101,7 +101,7 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
       assert updated_socket.assigns.current_user == nil
     end
 
-    test "redirect_if_user_is_authenticated redirects authenticated users", %{conn: conn, regular_user: user} do
+    test "redirect_if_user_is_authenticated redirects authenticated users", %{_conn: _conn, regular_user: user} do
       # Create a session with user token
       token = Accounts.generate_user_session_token(user)
       session = %{"user_token" => token}
@@ -118,7 +118,7 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
       assert updated_socket.assigns.current_user.id == user.id
     end
 
-    test "redirect_if_user_is_authenticated allows unauthenticated users", %{conn: conn} do
+    test "redirect_if_user_is_authenticated allows unauthenticated users", %{_conn: _conn} do
       # Empty session
       session = %{}
 
@@ -135,7 +135,7 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
   end
 
   describe "role-based access control" do
-    test "require_admin_user allows admin users", %{conn: conn, admin_user: user} do
+    test "require_admin_user allows admin users", %{_conn: _conn, admin_user: user} do
       # Create a session with admin user token
       token = Accounts.generate_user_session_token(user)
       session = %{"user_token" => token}
@@ -152,7 +152,7 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
       assert updated_socket.assigns.current_user.role == "admin"
     end
 
-    test "require_admin_user redirects non-admin users", %{conn: conn, regular_user: user} do
+    test "require_admin_user redirects non-admin users", %{_conn: _conn, regular_user: user} do
       # Create a session with regular user token
       token = Accounts.generate_user_session_token(user)
       session = %{"user_token" => token}
@@ -170,7 +170,7 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
       assert updated_socket.assigns.current_user.role == "user"
     end
 
-    test "require_admin_user redirects unauthenticated users", %{conn: conn} do
+    test "require_admin_user redirects unauthenticated users", %{_conn: _conn} do
       # Empty session
       session = %{}
 
@@ -188,7 +188,7 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
   end
 
   describe "session management" do
-    test "log_in_user creates session and redirects", %{conn: conn, regular_user: user} do
+    test "log_in_user creates session and redirects", %{_conn: _conn, regular_user: user} do
       socket = %Phoenix.LiveView.Socket{
         assigns: %{},
         endpoint: HydepwnsLiveviewWeb.Endpoint
@@ -201,7 +201,7 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
       assert result.assigns.user_token != nil
     end
 
-    test "log_in_user with remember me sets cookie", %{conn: conn, regular_user: user} do
+    test "log_in_user with remember me sets cookie", %{_conn: _conn, regular_user: user} do
       socket = %Phoenix.LiveView.Socket{
         assigns: %{},
         endpoint: HydepwnsLiveviewWeb.Endpoint
@@ -214,10 +214,10 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
       # Note: In tests, we can't easily check cookies, but the function should handle it
     end
 
-    test "log_out_user clears session", %{conn: conn, regular_user: user} do
+    test "log_out_user clears session", %{_conn: _conn, regular_user: user} do
       # First create a session
       token = Accounts.generate_user_session_token(user)
-      session = %{"user_token" => token}
+      _session = %{"user_token" => token}
 
       socket = %Phoenix.LiveView.Socket{
         assigns: %{current_user: user, user_token: token},
@@ -232,7 +232,7 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
   end
 
   describe "password management" do
-    test "update_user_password with valid data", %{conn: conn, regular_user: user} do
+    test "update_user_password with valid data", %{_conn: _conn, regular_user: user} do
       attrs = %{
         "current_password" => "password123",
         "password" => "newpassword123",
@@ -245,7 +245,7 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
       assert updated_user.id == user.id
     end
 
-    test "update_user_password with invalid current password", %{conn: conn, regular_user: user} do
+    test "update_user_password with invalid current password", %{_conn: _conn, regular_user: user} do
       attrs = %{
         "current_password" => "wrong_password",
         "password" => "newpassword123",
@@ -287,13 +287,13 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
       conn = Plug.Test.init_test_session(conn, %{"user_token" => token})
 
       # Should be able to access user settings
-      {:ok, view, html} = live(conn, ~p"/users/settings")
+      {:ok, _view, html} = live(conn, ~p"/users/settings")
       assert html =~ "Settings"
     end
   end
 
   describe "error handling" do
-    test "handles invalid session tokens gracefully", %{conn: conn} do
+    test "handles invalid session tokens gracefully", %{_conn: _conn} do
       # Session with invalid token
       session = %{"user_token" => "invalid_token"}
 
@@ -309,7 +309,7 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
       assert updated_socket.assigns.current_user == nil
     end
 
-    test "handles expired session tokens", %{conn: conn, regular_user: user} do
+    test "handles expired session tokens", %{_conn: _conn, regular_user: user} do
       # Create a session token and then delete it to simulate expiration
       token = Accounts.generate_user_session_token(user)
       # Delete the token to simulate expiration
@@ -328,7 +328,7 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
       assert updated_socket.assigns.current_user == nil
     end
 
-    test "handles malformed session tokens gracefully", %{conn: conn} do
+    test "handles malformed session tokens gracefully", %{_conn: _conn} do
       # Session with malformed token
       session = %{"user_token" => "malformed.token.here"}
 
@@ -344,7 +344,7 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
       assert updated_socket.assigns.current_user == nil
     end
 
-    test "handles database errors gracefully", %{conn: conn} do
+    test "handles database errors gracefully", %{_conn: _conn} do
       # Mock a database error scenario
       session = %{"user_token" => "error_token"}
 

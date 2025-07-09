@@ -22,20 +22,25 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
   alias HydepwnsLiveviewWeb.TestMockHelper
 
   setup %{session: session} = _context do
+    # Override repo configuration for feature tests to use real database
+    # This allows us to test the full resource workflow with real database persistence
+    original_repo = Application.get_env(:hydepwns_liveview, :repo)
+    Application.put_env(:hydepwns_liveview, :repo, HydepwnsLiveview.Repo)
+
+    on_exit(fn ->
+      Application.put_env(:hydepwns_liveview, :repo, original_repo)
+    end)
+
     # Start the MockEventStore if not already started
     case Process.whereis(HydepwnsLiveview.TestSupport.MockEventStore) do
       nil ->
-        {:ok, _pid} = start_supervised(HydepwnsLiveview.TestSupport.MockEventStore)
-      _pid ->
+        {:ok, pid} = start_supervised(HydepwnsLiveview.TestSupport.MockEventStore)
+      pid ->
         :ok
     end
 
     # Set up mocks first, before any resource creation
     TestMockHelper.setup_mocks()
-
-    # Set up Ecto SQL Sandbox for Wallaby tests
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(HydepwnsLiveview.Repo)
-    Ecto.Adapters.SQL.Sandbox.mode(HydepwnsLiveview.Repo, {:shared, self()})
 
     # Create a test resource for tests that need it
     {:ok, resource} = ResourceFixtures.create_test_resource(%{
@@ -46,7 +51,22 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
       content: %{text: "Test content"}
     })
 
-    {:ok, session: visit_and_wait(session, "/resources"), resource: resource}
+    # Visit resources page and wait for it to load
+    session = visit_and_wait(session, "/resources")
+
+    # Debug: Check what resources are in the database
+    resources_in_db = HydepwnsLiveview.Repo.all(HydepwnsLiveview.Resources.Resource)
+    IO.puts("DEBUG: Resources in database: #{inspect(resources_in_db, pretty: true)}")
+
+    # Debug: Check page source to see what's rendered
+    page_source = Wallaby.Browser.page_source(session)
+    IO.puts("DEBUG: Page source contains resource name: #{String.contains?(page_source, resource.name)}")
+    IO.puts("DEBUG: Page source contains 'No resources found': #{String.contains?(page_source, "No resources found")}")
+
+    # Wait for the resource to be visible on the page
+    session = wait_for_text(session, resource.name, timeout: 5000)
+
+    {:ok, session: session, resource: resource}
   end
 
   describe "event generation and processing" do

@@ -13,7 +13,7 @@ defmodule HydepwnsLiveviewWeb.StyleGuideLiveTest do
 
   describe "StyleGuideLive" do
     test "renders the style guide page", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/style-guide")
+      {:ok, view, html} = live(conn, ~p"/style-guide")
 
       # Test that the page title is correct
       assert html =~ "Style Guide"
@@ -31,7 +31,7 @@ defmodule HydepwnsLiveviewWeb.StyleGuideLiveTest do
     end
 
     test "can change theme", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/style-guide")
+      {:ok, view, html} = live(conn, ~p"/style-guide")
 
       # Test that the theme can be changed using the theme toggle in the style guide
       view

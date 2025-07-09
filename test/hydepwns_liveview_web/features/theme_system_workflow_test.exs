@@ -42,7 +42,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       })
 
     # Verify themes are created
-    _themes = HydepwnsLiveview.ThemeSystem.list_themes()
+    themes = HydepwnsLiveview.ThemeSystem.list_themes()
 
     # Pass the table name through URL parameters
     session = visit(session, "/themes?theme_table=#{table}")
@@ -51,7 +51,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
   end
 
   describe "theme management and application" do
-    test "_theme can be created and applied", %{session: session, light_theme: _light_theme} do
+    test "theme can be created and applied", %{session: session, light_theme: light_theme} do
       # Navigate directly to theme creation page
       session
       |> visit("/themes/new")
@@ -72,7 +72,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       )
     end
 
-    test "_theme can be edited and updated", %{session: session, light_theme: _light_theme} do
+    test "theme can be edited and updated", %{session: session, light_theme: light_theme} do
       # Get themes from DB
       themes = HydepwnsLiveview.ThemeSystem.list_themes()
 
@@ -101,7 +101,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       Wallaby.Browser.assert_has(session, css("[data-test-id='theme-name-5']", text: "Test Theme"))
     end
 
-    test "theme can be deleted", %{session: session, light_theme: _light_theme} do
+    test "theme can be deleted", %{session: session, light_theme: light_theme} do
       # Get themes from DB
       themes = HydepwnsLiveview.ThemeSystem.list_themes()
 
@@ -293,7 +293,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
   end
 
   describe "theme persistence and synchronization" do
-    test "theme preferences are persisted", %{session: session, light_theme: _light_theme} do
+    test "theme preferences are persisted", %{session: session, light_theme: light_theme} do
       # Find the Test Theme
       themes = HydepwnsLiveview.ThemeSystem.list_themes()
       test_theme = Enum.find(themes, fn theme -> theme.name == "Test Theme" end)
@@ -309,7 +309,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       Wallaby.Browser.assert_has(session, css(".alert-success", text: "Theme applied successfully"))
     end
 
-    test "theme changes sync across components", %{session: session, light_theme: _theme} do
+    test "theme changes sync across components", %{session: session, light_theme: light_theme} do
       # Find the Test Theme
       themes = HydepwnsLiveview.ThemeSystem.list_themes()
       test_theme = Enum.find(themes, fn theme -> theme.name == "Test Theme" end)
@@ -327,7 +327,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
 
     test "theme changes persist across sessions", %{
       session: session,
-      light_theme: _theme
+      light_theme: light_theme
     } do
       # Find the Test Theme
       themes = HydepwnsLiveview.ThemeSystem.list_themes()
@@ -346,7 +346,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
   end
 
   describe "theme performance" do
-    test "theme changes are applied efficiently", %{session: session, light_theme: _theme} do
+    test "theme changes are applied efficiently", %{session: session, light_theme: light_theme} do
       # Navigate directly to the theme show page with the theme table parameter
       themes = HydepwnsLiveview.ThemeSystem.list_themes()
       test_theme = Enum.find(themes, fn theme -> theme.name == "Test Theme" end)
@@ -367,7 +367,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       )
     end
 
-    test "_theme switching is smooth", %{session: session, light_theme: _theme} do
+    test "theme switching is smooth", %{session: session, light_theme: light_theme} do
       table = Process.get(:theme_system_ets_table)
 
       # Create second theme directly via API to ensure it's in the same ETS table context
@@ -403,10 +403,10 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
   end
 
   describe "theme accessibility" do
-    test "theme maintains accessibility standards", %{session: session, light_theme: theme} do
+    test "theme maintains accessibility standards", %{session: session, light_theme: light_theme} do
       # Navigate directly to theme customization page
       session
-      |> visit("/themes/#{theme.id}/customize")
+      |> visit("/themes/#{light_theme.id}/customize")
 
       # Apply high contrast theme (fill in all required color fields)
       session
@@ -420,10 +420,10 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       Wallaby.Browser.assert_has(session, css(".alert-success", text: "Colors saved successfully"))
     end
 
-    test "_theme supports reduced motion", %{session: session, light_theme: theme} do
+    test "theme supports reduced motion", %{session: session, light_theme: light_theme} do
       # Navigate to theme customization page
       session
-      |> visit("/themes/#{theme.id}/customize")
+      |> visit("/themes/#{light_theme.id}/customize")
 
       # Apply reduced motion setting
       session

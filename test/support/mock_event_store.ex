@@ -17,9 +17,15 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
       id: Ecto.UUID.generate(),
       type: type,
       data: data,
+      resource_type: data[:resource_type] || data["resource_type"] || "unknown",
+      resource_id: data[:resource_id] || data["resource_id"] || data[:id] || data["id"] || "unknown",
+      correlation_id: Ecto.UUID.generate(),
+      causation_id: nil,
       timestamp: DateTime.utc_now(),
-      metadata: %{}
+      metadata: data[:metadata] || data["metadata"] || %{}
     }
+
+
 
     new_state = %{state | events: [event | state.events]}
     {:reply, {:ok, event}, new_state}
@@ -35,7 +41,7 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
 
     # Convert Event struct to map for storage
     event_map = case event do
-      %{__struct__: HydepwnsLiveview.Events.Schemas.Event} ->
+      %{__struct__: HydepwnsLiveview.Events.Core.Event} ->
         %{
           id: event.id,
           type: event.type,
@@ -49,6 +55,8 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
         }
       _ -> event
     end
+
+
 
     new_state = %{state | events: [event_map | state.events]}
     {:reply, {:ok, event_map}, new_state}
@@ -64,7 +72,7 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
 
     # Convert Event struct to map for storage
     event_map = case event do
-      %{__struct__: HydepwnsLiveview.Events.Schemas.Event} ->
+      %{__struct__: HydepwnsLiveview.Events.Core.Event} ->
         %{
           id: event.id,
           type: event.type,
@@ -78,6 +86,8 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
         }
       _ -> event
     end
+
+
 
     new_state = %{state | events: [event_map | state.events]}
     {:reply, {:ok, event_map}, new_state}
@@ -94,7 +104,7 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
 
       # Convert Event struct to map for storage
       event_map = case event do
-        %{__struct__: HydepwnsLiveview.Events.Schemas.Event} ->
+        %{__struct__: HydepwnsLiveview.Events.Core.Event} ->
           %{
             id: event.id,
             type: event.type,
@@ -108,6 +118,8 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
           }
         _ -> event
       end
+
+
 
       new_state = %{current_state | events: [event_map | current_state.events]}
       {[event_map | acc], new_state}
@@ -164,6 +176,8 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
         _ ->
           {nil, nil}
       end
+
+
 
       event_resource_type == resource_type && event_resource_id == resource_id
     end)

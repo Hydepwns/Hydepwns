@@ -16,8 +16,8 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
 
     # Start MockEventStore if not already started
     case HydepwnsLiveview.TestSupport.MockEventStore.start_link([]) do
-      {:ok, _pid} -> :ok
-      {:error, {:already_started, _pid}} -> :ok
+      {:ok, pid} -> :ok
+      {:error, {:already_started, pid}} -> :ok
     end
 
     setup_resource_system()

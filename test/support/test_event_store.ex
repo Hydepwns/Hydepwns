@@ -1,7 +1,7 @@
 defmodule HydepwnsLiveview.Events.TestEventStore do
   @moduledoc """
   Test-specific EventStore module that delegates to MockEventStore during tests.
-  
+
   This module is only used during tests and provides the same API as the real EventStore
   but delegates all operations to the MockEventStore for in-memory testing.
   """
@@ -18,10 +18,15 @@ defmodule HydepwnsLiveview.Events.TestEventStore do
   end
   def store_event(type, data) when is_binary(type) and is_map(data) do
     event = %{
+      id: Ecto.UUID.generate(),
       type: type,
       data: data,
-      resource_id: data[:resource_id] || data[:id],
-      resource_type: data[:resource_type] || "unknown"
+      resource_id: data[:resource_id] || data["resource_id"] || data[:id] || data["id"] || "unknown",
+      resource_type: data[:resource_type] || data["resource_type"] || "unknown",
+      correlation_id: Ecto.UUID.generate(),
+      causation_id: nil,
+      timestamp: DateTime.utc_now(),
+      metadata: data[:metadata] || data["metadata"] || %{}
     }
     MockEventStore.store_event(event, %{})
   end
@@ -204,4 +209,4 @@ defmodule HydepwnsLiveview.Events.TestEventStore do
   def delete_versioned_state(id) do
     {:ok, %{id: id, resource_type: "test", resource_id: "test"}}
   end
-end 
+end

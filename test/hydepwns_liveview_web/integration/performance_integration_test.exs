@@ -94,9 +94,9 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
       assert load_time < 1000  # Should load within 1 second
     end
 
-    test "database queries perform efficiently", %{conn: conn} do
+    test "database queries perform efficiently", %{_conn: _conn} do
       # Create multiple resources for testing
-      resources = for i <- 1..100 do
+      _resources = for i <- 1..100 do
         {:ok, resource} = ResourceSystem.create_resource(%{
           name: "Query Test Resource #{i}",
           type: "document",
@@ -116,7 +116,7 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
       assert query_time < 1000  # Should query within 1 second
     end
 
-    test "event processing maintains performance under load", %{conn: conn} do
+    test "event processing maintains performance under load", %{_conn: _conn} do
       # Subscribe to events
       HydepwnsLiveview.Events.Core.EventBus.subscribe(["document.created"])
 
@@ -195,7 +195,7 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
       assert throughput > 10  # Should handle at least 10 requests per second
     end
 
-    test "handles concurrent resource creation", %{conn: conn} do
+    test "handles concurrent resource creation", %{_conn: _conn} do
       # Test concurrent resource creation
       start_time = System.monotonic_time(:millisecond)
 
@@ -256,7 +256,7 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
   end
 
   describe "Memory Usage Performance" do
-    test "memory usage remains stable under load", %{conn: conn} do
+    test "memory usage remains stable under load", %{_conn: _conn} do
       # Get initial memory usage
       initial_memory = :erlang.memory(:total)
 
@@ -278,7 +278,7 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
       assert memory_increase < 100 * 1024 * 1024
     end
 
-    test "garbage collection works efficiently", %{conn: conn} do
+    test "garbage collection works efficiently", %{_conn: _conn} do
       # Force garbage collection
       :erlang.garbage_collect()
       initial_memory = :erlang.memory(:total)
@@ -303,7 +303,7 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
       assert memory_diff < 50 * 1024 * 1024  # Less than 50MB difference
     end
 
-    test "handles large data sets efficiently", %{conn: conn} do
+    test "handles large data sets efficiently", %{_conn: _conn} do
       # Create resources with large content
       large_content = %{
         text: String.duplicate("Large content test ", 1000),
@@ -333,7 +333,7 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
   end
 
   describe "Scalability Testing" do
-    test "scales horizontally with multiple processes", %{conn: conn} do
+    test "scales horizontally with multiple processes", %{_conn: _conn} do
       # Test with multiple concurrent processes
       process_count = 10
 
@@ -360,7 +360,7 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
       assert total_time < 10000  # Less than 10 seconds for 100 total resources
     end
 
-    test "maintains performance with increasing data size", %{conn: conn} do
+    test "maintains performance with increasing data size", %{_conn: _conn} do
       # Test performance with different data sizes
       data_sizes = [10, 100, 1000]
 
@@ -391,7 +391,7 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
       end
     end
 
-    test "handles connection pool scaling", %{conn: conn} do
+    test "handles connection pool scaling", %{_conn: _conn} do
       # Test database connection pool under load
       pool_size = 20
 
@@ -441,7 +441,7 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
       assert {:ok, "metric-tracked"} = result
     end
 
-    test "detects performance degradation", %{conn: conn} do
+    test "detects performance degradation", %{_conn: _conn} do
       # Mock performance monitoring with degradation detection
       HydepwnsLiveview.MockPerformanceMonitor
       |> expect(:check_performance, fn ->
@@ -460,7 +460,7 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
       assert degradation_info.recommendation == "Consider optimization"
     end
 
-    test "generates performance reports", %{conn: conn} do
+    test "generates performance reports", %{_conn: _conn} do
       # Mock performance reporting
       HydepwnsLiveview.MockPerformanceMonitor
       |> expect(:generate_report, fn time_range ->
@@ -485,7 +485,7 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
   end
 
   describe "Performance Optimization" do
-    test "implements caching for frequently accessed data", %{conn: conn} do
+    test "implements caching for frequently accessed data", %{_conn: _conn} do
       # Mock caching
       HydepwnsLiveview.MockPerformanceCache
       |> expect(:get, fn key ->
@@ -501,7 +501,7 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
       assert Enum.at(cached_data, 0).name == "Cached Resource"
     end
 
-    test "implements database query optimization", %{conn: conn} do
+    test "implements database query optimization", %{_conn: _conn} do
       # Test optimized query performance
       start_time = System.monotonic_time(:millisecond)
 

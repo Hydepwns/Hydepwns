@@ -25,7 +25,7 @@ defmodule HydepwnsLiveview.TypeValidationTest do
       assert {:ok, _} = SocketValidator.type_validation(socket, :integer_value, :integer)
       assert {:ok, _} = SocketValidator.type_validation(socket, :boolean_value, :boolean)
       assert {:ok, _} = SocketValidator.type_validation(socket, :map_value, :map)
-      assert {:ok, _} = SocketValidator.type_validation(socket, :list_value, :list)
+      assert {:ok, _} = SocketValidator.type_validation(socket, :list_value, {:list, :integer})
 
       assert {:ok, _} =
                SocketValidator.type_validation(

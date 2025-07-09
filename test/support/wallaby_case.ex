@@ -26,7 +26,7 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
   setup tags do
     # Set up mocks before starting the session
     HydepwnsLiveviewWeb.TestMockHelper.setup_mocks()
-    
+
     # Start a sandbox owner for this test
     {pid, started_owner?} =
       try do
@@ -39,10 +39,11 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
             reraise e, __STACKTRACE__
           end
       end
-    
+
     if started_owner? do
       on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
       Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), pid)
+
       metadata = Phoenix.Ecto.SQL.Sandbox.metadata_for(HydepwnsLiveview.Repo, pid)
       # Add theme system ETS table to metadata if available
       metadata = if table = Process.get(:theme_system_ets_table) do
@@ -51,6 +52,7 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
         metadata
       end
       {:ok, session} = Wallaby.start_session(metadata: metadata)
+
       # Set the theme system ETS table in the session process
       if table = Process.get(:theme_system_ets_table) do
         Process.put(:theme_system_ets_table, table)

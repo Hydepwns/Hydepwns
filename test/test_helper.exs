@@ -1,6 +1,9 @@
 ExUnit.start()
 {:ok, _} = Application.ensure_all_started(:hydepwns_liveview)
 
+# Load test support files
+Code.require_file("test/support/signal_nif_stub.ex")
+
 # Ensure the ETS table for mock resources exists and is public
 if :ets.whereis(:mock_resources) == :undefined do
   :ets.new(:mock_resources, [:set, :public, :named_table])

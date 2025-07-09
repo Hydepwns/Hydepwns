@@ -156,7 +156,7 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
     test "enforces role-based access control", %{conn: conn, regular_user: user} do
       # Login as regular user
       token = Accounts.generate_user_session_token(user)
-      session = %{"user_token" => token}
+      _session = %{"user_token" => token}
 
       # Try to access admin-only endpoint
       conn = conn |> put_req_header("authorization", "Bearer #{token}")
@@ -170,7 +170,7 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
     test "prevents privilege escalation", %{conn: conn, regular_user: user} do
       # Login as regular user
       token = Accounts.generate_user_session_token(user)
-      session = %{"user_token" => token}
+      _session = %{"user_token" => token}
 
       # Try to modify user role to admin
       conn = conn |> put_req_header("authorization", "Bearer #{token}")
@@ -280,7 +280,7 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
       end)
     end
 
-    test "prevents CSRF attacks", %{conn: conn, regular_user: user} do
+    test "prevents CSRF attacks", %{conn: conn, regular_user: _user} do
       # Test CSRF protection on browser endpoint (which has CSRF protection)
       # API endpoints require authentication, so they return 401 before CSRF check
 
@@ -353,7 +353,7 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
   end
 
   describe "Data Protection Security" do
-    test "encrypts sensitive data", %{conn: conn, regular_user: user} do
+    test "encrypts sensitive data", %{_conn: _conn, regular_user: _user} do
       # Test password encryption
       password = "sensitive_password"
 
@@ -421,7 +421,7 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
       end)
     end
 
-    test "implements secure session management", %{conn: conn, regular_user: user} do
+    test "implements secure session management", %{_conn: _conn, regular_user: user} do
       # Test session security
       token = Accounts.generate_user_session_token(user)
 
@@ -548,7 +548,7 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
       end)
 
       # Simulate suspicious activity
-      for _ <- 1..10 do
+      for i <- 1..10 do
         post(conn, "/users/log_in", %{
           "user" => %{
             "email" => "suspicious@example.com",

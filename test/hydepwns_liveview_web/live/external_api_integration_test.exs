@@ -54,7 +54,7 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
     @tag :external_api_integration
     test "handles API errors gracefully", %{conn: conn} do
       # This is a placeholder test. Uses string path instead of ~p.
-      {:ok, view, _html} = live(conn, "/resources/123")
+      {:ok, view, html} = live(conn, "/resources/123")
       Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), view.pid)
 
       # Since the LiveView doesn't actually call external API, just verify it loads
@@ -76,7 +76,7 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
         })
 
       # Load the EDIT page using string path instead of ~p
-      {:ok, view, _html} = live(conn, "/resources/#{resource_id}/edit")
+      {:ok, view, html} = live(conn, "/resources/#{resource_id}/edit")
       Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), view.pid)
 
       # assert has_element?(view, "form")

@@ -25,7 +25,7 @@ defmodule HydepwnsLiveview.Security.Detector do
       %{"type" => "rapid_requests", "count" => count} when count > 100 ->
         {:warning, "Potential DDoS attack detected"}
 
-      %{"type" => "unusual_access_pattern", "details" => details} ->
+      %{"type" => "unusual_access_pattern", "details" => _details} ->
         {:warning, "Unusual access pattern detected"}
 
       _ ->

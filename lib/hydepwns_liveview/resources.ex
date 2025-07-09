@@ -19,11 +19,11 @@ defmodule HydepwnsLiveview.Resources do
         "type" => "document",
         "content" => %{"text" => "Hello world"}
       })
-      
+
       # Get resource statistics
       stats = get_resource_stats()
       # => %{total: 10, published: 5, draft: 5}
-      
+
       # List child resources
       children = list_child_resources("parent-123")
   """
@@ -135,7 +135,7 @@ defmodule HydepwnsLiveview.Resources do
   Lists all resources.
   """
   def list_resources do
-    ResourceSystem.list_resources()
+    ResourceSystem.list_resources([])
   end
 
   @doc """

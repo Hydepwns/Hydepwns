@@ -9,6 +9,9 @@ defmodule HydepwnsLiveview.Resources.Resource do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @derive {Jason.Encoder, only: [
+    :id, :name, :type, :status, :description, :content, :metadata, :settings, :version, :parent_id, :child_ids, :tags, :categories, :created_by, :updated_by, :inserted_at, :updated_at
+  ]}
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "resources" do
@@ -28,6 +31,13 @@ defmodule HydepwnsLiveview.Resources.Resource do
     field :updated_by, :binary_id
 
     timestamps(type: :utc_datetime_usec)
+  end
+
+  # Implement String.Chars protocol for Resource struct
+  defimpl String.Chars, for: __MODULE__ do
+    def to_string(resource) do
+      "#{resource.name} (#{resource.id})"
+    end
   end
 
   @doc """

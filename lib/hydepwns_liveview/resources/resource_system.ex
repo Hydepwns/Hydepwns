@@ -20,6 +20,7 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
 
   @impl true
   def init(_opts) do
+    init_cache()
     {:ok, %{}}
   end
 
@@ -35,21 +36,23 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
     IO.puts("🔍 ResourceSystem.create_resource: Changeset valid? #{changeset.valid?}")
     IO.puts("🔍 ResourceSystem.create_resource: Changeset errors: #{inspect(changeset.errors)}")
 
-    case RepoHelper.insert(changeset) do
-      {:ok, resource} ->
-        IO.puts("✅ ResourceSystem.create_resource: Resource created successfully with ID: #{resource.id}")
-        # Generate event for resource creation
-        IO.puts("🔵 ResourceSystem.create_resource: Resource created, generating event for #{resource.id}")
-        case ResourceEventGenerator.resource_created(resource, %{action: "create"}) do
-          {:ok, event} ->
-            IO.puts("✅ ResourceSystem.create_resource: Event generated successfully: #{event.type}")
-            Phoenix.PubSub.broadcast(HydepwnsLiveview.PubSub, "resources", {:resource_created, resource})
-            {:ok, resource}
-          {:error, reason} ->
-            IO.puts("❌ ResourceSystem.create_resource: Event generation failed: #{inspect(reason)}")
-            Phoenix.PubSub.broadcast(HydepwnsLiveview.PubSub, "resources", {:resource_created, resource})
-            {:ok, resource}  # Still return the resource even if event generation fails
-        end
+            case RepoHelper.insert(changeset) do
+          {:ok, resource} ->
+            IO.puts("✅ ResourceSystem.create_resource: Resource created successfully with ID: #{resource.id}")
+            # Invalidate cache
+            invalidate_resource_cache()
+            # Generate event for resource creation
+            IO.puts("🔵 ResourceSystem.create_resource: Resource created, generating event for #{resource.id}")
+            case ResourceEventGenerator.resource_created(resource, %{action: "create"}) do
+              {:ok, event} ->
+                IO.puts("✅ ResourceSystem.create_resource: Event generated successfully: #{event.type}")
+                Phoenix.PubSub.broadcast(HydepwnsLiveview.PubSub, "resources", {:resource_created, resource})
+                {:ok, resource}
+              {:error, reason} ->
+                IO.puts("❌ ResourceSystem.create_resource: Event generation failed: #{inspect(reason)}")
+                Phoenix.PubSub.broadcast(HydepwnsLiveview.PubSub, "resources", {:resource_created, resource})
+                {:ok, resource}  # Still return the resource even if event generation fails
+            end
       {:error, changeset} ->
         IO.puts("❌ ResourceSystem.create_resource: Insert failed with errors: #{inspect(changeset.errors)}")
         {:error, changeset}
@@ -59,17 +62,40 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
     end
   end
 
-  @doc """
-  Lists all resources.
+    @doc """
+  Lists all resources with optional pagination and caching.
   """
-  def list_resources do
-    RepoHelper.all(Resource)
+  def list_resources(opts \\ []) do
+    limit = Keyword.get(opts, :limit, 50)
+    offset = Keyword.get(opts, :offset, 0)
+    use_cache = Keyword.get(opts, :use_cache, true)
+
+    if use_cache do
+      cached_list_resources(limit, offset)
+    else
+      direct_list_resources(limit, offset)
+    end
   end
 
   @doc """
-  Lists resources with optional filtering.
+  Lists resources with optional filtering and pagination.
   """
-  def list_resources(filters) when is_map(filters) do
+  def list_resources_with_filters(filters, opts \\ []) when is_map(filters) do
+    limit = Keyword.get(opts, :limit, 50)
+    offset = Keyword.get(opts, :offset, 0)
+    use_cache = Keyword.get(opts, :use_cache, true)
+
+    if use_cache do
+      cached_list_resources_with_filters(filters, limit, offset)
+    else
+      direct_list_resources_with_filters(filters, limit, offset)
+    end
+  end
+
+  @doc """
+  Gets the total count of resources (for pagination).
+  """
+  def count_resources(filters \\ %{}) do
     query = from(r in Resource)
 
     query = case filters do
@@ -90,7 +116,122 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
       _ -> query
     end
 
-    RepoHelper.all(query)
+    RepoHelper.aggregate(query, :count, :id)
+  end
+
+  # Private functions for direct database queries
+  defp direct_list_resources(limit, offset) do
+    resources =
+      Resource
+      |> order_by([r], desc: r.inserted_at)
+      |> limit(^limit)
+      |> offset(^offset)
+      |> RepoHelper.all()
+
+    if Mix.env() == :test do
+      IO.puts("[DEBUG] direct_list_resources/2 returned #{length(resources)} resources: #{inspect(Enum.map(resources, & &1.name))}")
+    end
+    resources
+  end
+
+  defp direct_list_resources_with_filters(filters, limit, offset) do
+    query = from(r in Resource)
+
+    query = case filters do
+      %{type: type} when not is_nil(type) ->
+        from(r in query, where: r.type == ^type)
+      _ -> query
+    end
+
+    query = case filters do
+      %{status: status} when not is_nil(status) ->
+        from(r in query, where: r.status == ^status)
+      _ -> query
+    end
+
+    query = case filters do
+      %{parent_id: parent_id} when not is_nil(parent_id) ->
+        from(r in query, where: r.parent_id == ^parent_id)
+      _ -> query
+    end
+
+    query
+    |> order_by([r], desc: r.inserted_at)
+    |> limit(^limit)
+    |> offset(^offset)
+    |> RepoHelper.all()
+  end
+
+  # Private functions for cached queries
+  defp cached_list_resources(limit, offset) do
+    cache_key = "resources:list:#{limit}:#{offset}"
+
+    case get_cache(cache_key) do
+      {:ok, resources} ->
+        resources
+      {:error, :not_found} ->
+        resources = direct_list_resources(limit, offset)
+        set_cache(cache_key, resources, 300) # Cache for 5 minutes
+        resources
+    end
+  end
+
+  defp cached_list_resources_with_filters(filters, limit, offset) do
+    cache_key = "resources:filtered:#{hash_filters(filters)}:#{limit}:#{offset}"
+
+    case get_cache(cache_key) do
+      {:ok, resources} ->
+        resources
+      {:error, :not_found} ->
+        resources = direct_list_resources_with_filters(filters, limit, offset)
+        set_cache(cache_key, resources, 300) # Cache for 5 minutes
+        resources
+    end
+  end
+
+  # Simple cache implementation using ETS
+  defp get_cache(key) do
+    case :ets.lookup(:resource_cache, key) do
+      [{^key, value, expiry}] ->
+        if DateTime.compare(expiry, DateTime.utc_now()) == :gt do
+          {:ok, value}
+        else
+          :ets.delete(:resource_cache, key)
+          {:error, :not_found}
+        end
+      [] ->
+        {:error, :not_found}
+    end
+  end
+
+  defp set_cache(key, value, ttl_seconds) do
+    expiry = DateTime.add(DateTime.utc_now(), ttl_seconds, :second)
+    :ets.insert(:resource_cache, {key, value, expiry})
+    :ok
+  end
+
+  defp hash_filters(filters) do
+    :erlang.phash2(filters)
+  end
+
+  # Initialize cache table on startup
+  defp init_cache do
+    case :ets.info(:resource_cache) do
+      :undefined ->
+        :ets.new(:resource_cache, [:set, :public, :named_table])
+      _ ->
+        :ok
+    end
+  end
+
+  # Invalidate all resource cache entries
+  defp invalidate_resource_cache do
+    :ets.delete_all_objects(:resource_cache)
+  end
+
+  # Reset the cache (for testing)
+  def reset_cache do
+    :ets.delete_all_objects(:resource_cache)
   end
 
   @doc """
@@ -114,12 +255,14 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
         {:error, :not_found}
 
       resource ->
-        IO.puts("🔍 ResourceSystem.update_resource: Found resource, creating changeset")
+        IO.puts("🔍 ResourceSystem.update_resource: Found resource #{resource.id}, creating changeset")
         case resource
              |> Resource.changeset(attrs)
              |> RepoHelper.update() do
           {:ok, updated_resource} ->
             IO.puts("✅ ResourceSystem.update_resource: Resource updated successfully")
+            # Invalidate cache
+            invalidate_resource_cache()
             # Generate event for resource update
             IO.puts("🔍 ResourceSystem.update_resource: Generating resource_updated event")
             case ResourceEventGenerator.resource_updated(updated_resource, attrs, %{action: "update"}) do
@@ -175,6 +318,8 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
       resource ->
         case RepoHelper.delete(resource) do
           {:ok, deleted_resource} ->
+            # Invalidate cache
+            invalidate_resource_cache()
             # Generate event for resource deletion
             ResourceEventGenerator.resource_deleted(deleted_resource, %{action: "delete"})
             {:ok, deleted_resource}

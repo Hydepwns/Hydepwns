@@ -91,11 +91,12 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
         "resource[parent_id]" => parent.id
       })
       |> render_submit()
-      assert_redirect(edit_view, "/resources")
-      {:ok, dashboard_view, _html} = follow_redirect(edit_view, conn)
+      assert_redirect(edit_view, "/resources/#{child.id}")
+      # Instead of follow_redirect, fetch the new LiveView
+      {:ok, show_view, _html} = live(conn, "/resources/#{child.id}")
       updated_child = HydepwnsLiveview.Resources.ResourceSystem.get_resource(child.id) |> elem(1)
       assert updated_child.parent_id == parent.id
-      assert has_element?(dashboard_view, "a[data-test-id='resource-link-#{child.id}']")
+      assert has_element?(show_view, "h1", child.name)
     end
 
     test "resource list updates reflect relationships", %{conn: conn, parent: parent, child: child} do

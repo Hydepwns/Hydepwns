@@ -16,7 +16,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEditLive do
          socket
          |> assign(:page_title, "Edit Resource")
          |> assign(:resource, resource)
-         |> assign(:resources, ResourceSystem.list_resources())}
+         |> assign(:resources, ResourceSystem.list_resources([]))}
 
       {:error, :not_found} ->
         {:noreply,
@@ -27,12 +27,12 @@ defmodule HydepwnsLiveviewWeb.ResourceEditLive do
   end
 
   @impl true
-  def handle_info({:resource_updated, _resource}, socket) do
+  def handle_info({:resource_updated, resource}, socket) do
     IO.puts("🔍 ResourceEditLive: Received :resource_updated message")
     IO.puts("🔍 Setting flash message for resource update")
     {:noreply,
       socket
       |> put_flash(:info, "Resource updated successfully")
-      |> redirect(to: ~p"/resources")}
+      |> redirect(to: ~p"/resources/#{resource.id}")}
   end
 end

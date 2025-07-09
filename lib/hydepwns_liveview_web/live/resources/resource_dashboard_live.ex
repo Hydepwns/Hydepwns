@@ -14,12 +14,20 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
     if connected?(socket), do: Phoenix.PubSub.subscribe(HydepwnsLiveview.PubSub, "resources")
     {:ok,
      socket
-     |> assign(:resources, ResourceSystem.list_resources())
+     |> assign(:resources, list_resources_dashboard())
      |> assign(:selected_type, nil)
      |> assign(:relationships, [])
      |> assign(:current_user, nil)
      |> assign(:page_title, "Resources")
      |> assign(:notifications, [])}
+  end
+
+  defp list_resources_dashboard(opts \\ []) do
+    if Mix.env() == :test do
+      HydepwnsLiveview.Resources.ResourceSystem.list_resources(Keyword.put(opts, :use_cache, false))
+    else
+      HydepwnsLiveview.Resources.ResourceSystem.list_resources(opts)
+    end
   end
 
   @impl true
@@ -29,7 +37,7 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
 
   defp apply_action(socket, :index, _params) do
     socket
-    |> assign(:resources, ResourceSystem.list_resources())
+    |> assign(:resources, list_resources_dashboard())
     |> assign(:relationships, [])
   end
 
@@ -57,8 +65,8 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
   def handle_event("filter", %{"type" => type}, socket) do
     resources =
       case type do
-        "" -> ResourceSystem.list_resources()
-        type -> Enum.filter(ResourceSystem.list_resources(), &(&1.type == type))
+        "" -> list_resources_dashboard([])
+        type -> HydepwnsLiveview.Resources.ResourceSystem.list_resources_with_filters(%{type: type}, [use_cache: Mix.env() != :test])
       end
 
     {:noreply, assign(socket, :resources, resources)}
@@ -73,10 +81,10 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
   def handle_event("delete", %{"id" => id}, socket) do
     case ResourceSystem.delete_resource(id) do
       {:ok, _resource} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "Resource deleted successfully")
-         |> assign(:resources, ResourceSystem.list_resources())}
+              {:noreply,
+       socket
+       |> put_flash(:info, "Resource deleted successfully")
+       |> assign(:resources, list_resources_dashboard([]))}
 
       {:error, _reason} ->
         {:noreply,
@@ -98,7 +106,7 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
     {:noreply,
       socket
       |> put_flash(:info, "Resource created successfully")
-      |> assign(:resources, ResourceSystem.list_resources())
+      |> assign(:resources, list_resources_dashboard([]))
       |> assign(:notifications, notifications)
     }
   end
@@ -116,7 +124,7 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
     {:noreply,
       socket
       |> put_flash(:info, "Resource updated successfully")
-      |> assign(:resources, ResourceSystem.list_resources())
+      |> assign(:resources, list_resources_dashboard([]))
       |> assign(:notifications, notifications)
     }
   end

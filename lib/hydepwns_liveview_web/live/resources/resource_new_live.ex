@@ -10,7 +10,7 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLive do
      socket
      |> assign(:page_title, "New Resource")
      |> assign(:resource, %Resource{})
-     |> assign(:resources, ResourceSystem.list_resources())}
+     |> assign(:resources, ResourceSystem.list_resources([]))}
   end
 
   @impl true

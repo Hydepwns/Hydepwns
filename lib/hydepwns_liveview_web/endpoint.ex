@@ -49,6 +49,12 @@ defmodule HydepwnsLiveviewWeb.Endpoint do
   plug Plug.MethodOverride
   plug Plug.Head
   plug Plug.Session, @session_options
+
+  # Use built-in secure browser headers
+  # plug :put_secure_browser_headers
+  # Add custom security headers
+  plug HydepwnsLiveviewWeb.Plugs.CustomSecurityHeaders
+
   plug HydepwnsLiveviewWeb.Router
 
   if Application.compile_env(:hydepwns_liveview, :sql_sandbox, false) do

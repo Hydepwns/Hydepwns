@@ -10,6 +10,14 @@ defmodule HydepwnsLiveview.Application do
     # Initialize telemetry storage for socket validation
     HydepwnsLiveview.Telemetry.init_storage()
 
+    # Ensure ETS table for rate limiting exists at startup
+    table_name = :rate_limits
+    case :ets.info(table_name) do
+      :undefined ->
+        :ets.new(table_name, [:set, :public, :named_table])
+      _ -> :ok
+    end
+
     children =
       [
         HydepwnsLiveviewWeb.Telemetry,
@@ -18,7 +26,8 @@ defmodule HydepwnsLiveview.Application do
         HydepwnsLiveview.Resources.ResourceSystem,
         HydepwnsLiveview.Transformations.TransformationRegistry,
         HydepwnsLiveview.Transformations.TransformationMetrics,
-        HydepwnsLiveview.Events.Core.EventSupervisor
+        HydepwnsLiveview.Events.Core.EventSupervisor,
+        HydepwnsLiveview.RateLimitSupervisor
       ] ++
         if Mix.env() != :test do
           [HydepwnsLiveview.Events.Core.EventMonitor]

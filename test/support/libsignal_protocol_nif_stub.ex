@@ -1,10 +1,14 @@
-defmodule SignalNifStub do
+defmodule :libsignal_protocol_nif do
   @moduledoc """
-  Stub module for signal_nif functions used in tests.
-
-  This module provides stub implementations of the signal_nif functions
-  that are expected to be undefined in the test environment.
+  Test stub for libsignal_protocol_nif module to eliminate undefined function warnings.
   """
+
+  @doc """
+  Stub for init/0
+  """
+  def init do
+    :ok
+  end
 
   @doc """
   Stub for generate_identity_key_pair/0
@@ -25,6 +29,13 @@ defmodule SignalNifStub do
   """
   def generate_signed_pre_key(_identity_key, key_id) do
     {:ok, {key_id, "stub_signed_pre_key", "stub_signature"}}
+  end
+
+  @doc """
+  Stub for create_session/1
+  """
+  def create_session(_recipient_id) do
+    {:ok, :mock_session}
   end
 
   @doc """

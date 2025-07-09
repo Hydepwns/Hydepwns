@@ -18,7 +18,7 @@ defmodule HydepwnsLiveviewWeb.HealthController do
     |> json(%{
       status: "healthy",
       timestamp: DateTime.utc_now() |> DateTime.to_iso8601(),
-      version: Application.spec(:hydepwns_liveview, :vsn) || "unknown"
+      version: (Application.spec(:hydepwns_liveview, :vsn) || "unknown") |> to_string()
     })
   end
 
@@ -30,7 +30,7 @@ defmodule HydepwnsLiveviewWeb.HealthController do
     health_status = %{
       status: "healthy",
       timestamp: DateTime.utc_now() |> DateTime.to_iso8601(),
-      version: Application.spec(:hydepwns_liveview, :vsn) || "unknown",
+      version: (Application.spec(:hydepwns_liveview, :vsn) || "unknown") |> to_string(),
       checks: %{
         database: check_database(),
         memory: check_memory(),
@@ -39,8 +39,8 @@ defmodule HydepwnsLiveviewWeb.HealthController do
     }
 
     # Determine overall status
-    overall_status = 
-      if Enum.all?(Map.values(health_status.checks), fn {status, _} -> status == :ok end) do
+    overall_status =
+      if Enum.all?(Map.values(health_status.checks), fn check -> check.status == "ok" end) do
         "healthy"
       else
         "degraded"
@@ -54,13 +54,11 @@ defmodule HydepwnsLiveviewWeb.HealthController do
     |> json(%{health_status | status: overall_status})
   end
 
-  @doc """
-  Database connectivity check.
-  """
+  # Database connectivity check.
   defp check_database do
     case Repo.query("SELECT 1") do
-      {:ok, _result} -> {:ok, "connected"}
-      {:error, error} -> {:error, "disconnected: #{inspect(error)}"}
+      {:ok, _result} -> %{status: "ok", message: "connected"}
+      {:error, error} -> %{status: "error", message: "disconnected: #{inspect(error)}"}
     end
   end
 
@@ -75,13 +73,13 @@ defmodule HydepwnsLiveviewWeb.HealthController do
         usage_percent = (process / total) * 100
 
         if usage_percent < 90 do
-          {:ok, "#{Float.round(usage_percent, 2)}%"}
+          %{status: "ok", usage: "#{Float.round(usage_percent, 2)}%"}
         else
-          {:warning, "#{Float.round(usage_percent, 2)}% (high)"}
+          %{status: "warning", usage: "#{Float.round(usage_percent, 2)}% (high)"}
         end
 
       _ ->
-        {:error, "unable to check memory"}
+        %{status: "error", message: "unable to check memory"}
     end
   end
 
@@ -90,8 +88,8 @@ defmodule HydepwnsLiveviewWeb.HealthController do
   """
   defp check_disk do
     case File.stat(".") do
-      {:ok, _stat} -> {:ok, "accessible"}
-      {:error, error} -> {:error, "inaccessible: #{inspect(error)}"}
+      {:ok, _stat} -> %{status: "ok", message: "accessible"}
+      {:error, error} -> %{status: "error", message: "inaccessible: #{inspect(error)}"}
     end
   end
 
@@ -124,4 +122,4 @@ defmodule HydepwnsLiveviewWeb.HealthController do
     |> put_resp_content_type("application/json")
     |> json(live_status)
   end
-end 
+end

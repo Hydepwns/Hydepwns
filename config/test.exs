@@ -20,7 +20,7 @@ config :hydepwns_liveview, HydepwnsLiveview.Repo,
 # you can enable the server option below.
 config :hydepwns_liveview, HydepwnsLiveviewWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
-  secret_key_base: System.get_env("TEST_SECRET_KEY_BASE") || "test_secret_key_base",
+  secret_key_base: System.get_env("TEST_SECRET_KEY_BASE") || String.duplicate("a", 64),
   server: false
 
 # In test we don't send emails
@@ -76,6 +76,9 @@ config :hydepwns_liveview, HydepwnsLiveviewWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
   debug_errors: true,
   secret_key_base: String.duplicate("a", 64)
+
+# Enable SQL sandbox for the application
+config :hydepwns_liveview, :sql_sandbox, true
 
 # Set testing flag for relationship resolver
 config :hydepwns_liveview, :testing, true

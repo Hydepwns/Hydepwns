@@ -11,7 +11,8 @@ defmodule HydepwnsLiveview.TestSupport.ResourceSystemHelper do
   """
   def setup_resource_system() do
     # The ResourceSystem is already started in the supervision tree
-    # Just reset the store to ensure a clean state
+    # Reset the store and cache to ensure a clean state
     ResourceSystem.reset_store()
+    ResourceSystem.reset_cache()
   end
 end

@@ -117,7 +117,19 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
   end
 
   def handle_call({:get_events, criteria}, _from, state) do
-    events = filter_events(state.events, criteria)
+    # Extract limit from criteria and remove it from filtering
+    limit = Map.get(criteria, :limit)
+    filter_criteria = Map.drop(criteria, [:limit])
+
+    events = filter_events(state.events, filter_criteria)
+
+    # Apply limit if specified
+    events = if limit do
+      Enum.take(events, limit)
+    else
+      events
+    end
+
     {:reply, {:ok, events}, state}
   end
 
@@ -193,8 +205,12 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
     GenServer.call(__MODULE__, {:store_event, type, data})
   end
 
-  def store_event(event, metadata \\ %{}) when is_map(event) do
+  def store_event(event, metadata) when is_map(event) do
     GenServer.call(__MODULE__, {:store_event, event, metadata})
+  end
+
+  def store_event(event) when is_map(event) do
+    GenServer.call(__MODULE__, {:store_event, event, %{}})
   end
 
   def store_events(events) when is_list(events) do
@@ -229,11 +245,33 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
     GenServer.call(__MODULE__, :reset)
   end
 
-  # Private functions
+    # Private functions
   defp filter_events(events, criteria) do
     Enum.filter(events, fn event ->
       Enum.all?(criteria, fn {key, value} ->
-        Map.get(event, key) == value
+        # Handle the case where :event_type should match :type
+        case key do
+          :event_type ->
+            # Handle both Event structs and maps
+            case event do
+              %HydepwnsLiveview.Events.Core.Event{} ->
+                event.type == value
+              %{} ->
+                Map.get(event, :type) == value
+              _ ->
+                false
+            end
+          _ ->
+            # Handle both Event structs and maps
+            case event do
+              %HydepwnsLiveview.Events.Core.Event{} ->
+                Map.get(Map.from_struct(event), key) == value
+              %{} ->
+                Map.get(event, key) == value
+              _ ->
+                false
+            end
+        end
       end)
     end)
   end

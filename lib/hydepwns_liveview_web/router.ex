@@ -14,6 +14,30 @@ defmodule HydepwnsLiveviewWeb.Router do
   # API pipeline for future use
   pipeline :api do
     plug :accepts, ["json"]
+    plug :fetch_session
+    plug :protect_from_forgery
+    plug HydepwnsLiveviewWeb.Plugs.RateLimitPlug
+    plug HydepwnsLiveviewWeb.Plugs.ContentTypePlug
+  end
+
+  # API pipeline with authentication
+  pipeline :api_auth do
+    plug :accepts, ["json"]
+    plug :fetch_session
+    plug :protect_from_forgery
+    plug HydepwnsLiveviewWeb.Plugs.RateLimitPlug
+    plug HydepwnsLiveviewWeb.Plugs.ContentTypePlug
+    plug HydepwnsLiveviewWeb.Plugs.AuthPlug
+  end
+
+  # API pipeline with admin authentication
+  pipeline :api_admin do
+    plug :accepts, ["json"]
+    plug :fetch_session
+    plug :protect_from_forgery
+    plug HydepwnsLiveviewWeb.Plugs.RateLimitPlug
+    plug HydepwnsLiveviewWeb.Plugs.ContentTypePlug
+    plug HydepwnsLiveviewWeb.Plugs.AuthPlug, :call_admin
   end
 
   # Health check pipeline (no authentication required)
@@ -29,6 +53,51 @@ defmodule HydepwnsLiveviewWeb.Router do
     get "/detailed", HealthController, :detailed
     get "/ready", HealthController, :ready
     get "/live", HealthController, :live
+  end
+
+  # API routes
+  scope "/api", HydepwnsLiveviewWeb do
+    # Public API routes (no authentication required)
+    pipe_through :api
+    get "/resources", Api.ResourceController, :index
+    get "/resources/:id", Api.ResourceController, :show
+
+    # Authenticated API routes
+    pipe_through :api_auth
+    post "/resources", Api.ResourceController, :create
+    put "/resources/:id", Api.ResourceController, :update
+    delete "/resources/:id", Api.ResourceController, :delete
+    get "/users/profile", Api.UserController, :profile
+    put "/users/:id", Api.UserController, :update
+    post "/upload", Api.UploadController, :create
+
+    # Admin API routes
+    scope "/admin" do
+      pipe_through :api_admin
+      get "/users", Api.AdminController, :users
+      get "/events", Api.AdminController, :events
+      get "/system", Api.AdminController, :system
+    end
+  end
+
+  # API v1 routes (alias for /api)
+  scope "/api/v1", HydepwnsLiveviewWeb do
+    pipe_through :api
+    get "/resources", Api.ResourceController, :index
+    get "/resources/:id", Api.ResourceController, :show
+    pipe_through :api_auth
+    post "/resources", Api.ResourceController, :create
+    put "/resources/:id", Api.ResourceController, :update
+    delete "/resources/:id", Api.ResourceController, :delete
+    get "/users/profile", Api.UserController, :profile
+    put "/users/:id", Api.UserController, :update
+    post "/upload", Api.UploadController, :create
+    scope "/admin" do
+      pipe_through :api_admin
+      get "/users", Api.AdminController, :users
+      get "/events", Api.AdminController, :events
+      get "/system", Api.AdminController, :system
+    end
   end
 
   # Main application routes

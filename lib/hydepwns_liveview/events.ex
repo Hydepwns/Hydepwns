@@ -6,7 +6,6 @@ defmodule HydepwnsLiveview.Events do
   import Ecto.Query, warn: false
   alias HydepwnsLiveview.Repo
   alias HydepwnsLiveview.Events.Core.Event
-  alias HydepwnsLiveview.Events.EventOperations
   alias HydepwnsLiveview.Events.{EventSettings, EventReminder, EventNotification}
 
   @doc """

@@ -13,7 +13,6 @@ defmodule HydepwnsLiveviewWeb.TelemetryDashboardLive do
   use HydepwnsLiveviewWeb, :live_view
 
   alias HydepwnsLiveview.Telemetry
-  alias HydepwnsLiveview.Utils.PerformanceOptimizer
   alias HydepwnsLiveviewWeb.Helpers.TelemetryDashboardHelper
 
   @refresh_interval 5000 # 5 seconds

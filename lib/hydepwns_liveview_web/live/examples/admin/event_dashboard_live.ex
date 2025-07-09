@@ -10,9 +10,19 @@ defmodule HydepwnsLiveviewWeb.Admin.EventDashboardLive do
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
-    default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()
-    theme_class = "#{default_theme.mode}-theme"
-    {:ok, assign(socket, theme_class: theme_class)}
+    user = socket.assigns[:current_user]
+    cond do
+      is_nil(user) or user.role != "admin" ->
+        socket =
+          socket
+          |> Phoenix.LiveView.put_flash(:error, "You must be an admin to access this page.")
+          |> Phoenix.LiveView.push_navigate(to: "/")
+        {:ok, socket}
+      true ->
+        default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()
+        theme_class = "#{default_theme.mode}-theme"
+        {:ok, assign(socket, theme_class: theme_class)}
+    end
   end
 
   @impl Phoenix.LiveView

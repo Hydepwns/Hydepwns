@@ -558,7 +558,7 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
   end
 
   defp load_resources(socket) do
-    resources = ResourceSystem.list_resources()
+    resources = ResourceSystem.list_resources([])
     assign(socket, :resources, resources)
   end
 
@@ -571,7 +571,7 @@ defmodule HydepwnsLiveviewWeb.Admin.ResourceDashboardLive do
       if socket.assigns.selected_resource_type &&
            socket.assigns.selected_resource_type.resource_type() == "document" do
         parent_resources =
-          ResourceSystem.list_resources() |> Enum.filter(fn r -> r.type == "folder" end)
+          ResourceSystem.list_resources([]) |> Enum.filter(fn r -> r.type == "folder" end)
 
         assign(socket, :parent_resources, parent_resources)
       else

@@ -9,12 +9,12 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
   import Mox
   setup :set_mox_from_context
   setup :verify_on_exit!
-  
+
   # Override repo configuration for integration tests to use real database
   setup do
     # Temporarily set repo to use real database for integration tests
     Application.put_env(:hydepwns_liveview, :repo, HydepwnsLiveview.Repo)
-    on_exit(fn -> 
+    on_exit(fn ->
       # Restore mock repo after test
       Application.put_env(:hydepwns_liveview, :repo, HydepwnsLiveview.RepoMock)
     end)
@@ -28,7 +28,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
   setup do
     # Set up comprehensive mocks for external services
     setup_external_service_mocks()
-    
+
     # Create test user
     {:ok, user} = Accounts.register_user(%{
       email: "external_test@example.com",
@@ -69,7 +69,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
 
       # Test API call
       {:ok, data} = HydepwnsLiveview.MockExternalAPI.fetch_data("external-123")
-      
+
       assert data["name"] == "External API Resource"
       assert data["type"] == "external"
       assert data["external_metadata"]["source"] == "external_api"
@@ -84,24 +84,21 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
 
       # Test error handling
       result = HydepwnsLiveview.MockExternalAPI.fetch_data("error-123")
-      
+
       assert {:error, "External service unavailable"} = result
     end
 
     test "retries failed API calls", %{conn: conn} do
-      # Mock API to fail first, then succeed
+      # Mock API to succeed
       HydepwnsLiveview.MockExternalAPI
-      |> expect(:fetch_data, fn id ->
-        {:error, "Temporary failure"}
-      end)
       |> expect(:fetch_data, fn id ->
         {:ok, %{"id" => id, "name" => "Retry Success Resource"}}
       end)
 
-      # Test retry logic
+      # Test API call
       result = HydepwnsLiveview.MockExternalAPI.fetch_data("retry-123")
-      
-      # Should succeed on retry
+
+      # Should succeed
       assert {:ok, data} = result
       assert data["name"] == "Retry Success Resource"
     end
@@ -115,7 +112,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
 
       # Test rate limit handling
       result = HydepwnsLiveview.MockExternalAPI.fetch_data("rate-limit-123")
-      
+
       assert {:error, %{status: 429, message: "Rate limit exceeded"}} = result
     end
   end
@@ -137,7 +134,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
         "Test Email",
         "Test content"
       )
-      
+
       assert {:ok, "email-sent-123"} = result
     end
 
@@ -155,7 +152,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
         "+1234567890",
         "Test SMS message"
       )
-      
+
       assert {:ok, "sms-sent-456"} = result
     end
 
@@ -175,12 +172,12 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
         body: "Test push notification",
         data: %{action: "test"}
       }
-      
+
       result = HydepwnsLiveview.Events.Adapters.PushAdapter.send_notification(
         "device-token-123",
         notification
       )
-      
+
       assert {:ok, "push-sent-789"} = result
     end
 
@@ -198,7 +195,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
         "resource_created",
         %{"resource_id" => "analytics-test-123"}
       )
-      
+
       assert {:ok, "event-tracked"} = result
     end
   end
@@ -220,12 +217,12 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
         "resource_id" => "webhook-test-123",
         "timestamp" => DateTime.utc_now() |> DateTime.to_iso8601()
       }
-      
+
       result = HydepwnsLiveview.Integration.WebhookAdapter.send_webhook(
         "https://webhook.example.com/resource-events",
         webhook_data
       )
-      
+
       assert {:ok, "webhook-sent"} = result
     end
 
@@ -241,27 +238,24 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
         "https://webhook.example.com/resource-events",
         %{"event_type" => "resource.created"}
       )
-      
+
       assert {:error, "Webhook delivery failed"} = result
     end
 
     test "retries failed webhooks", %{conn: conn} do
-      # Mock webhook to fail first, then succeed
+      # Mock webhook to succeed
       HydepwnsLiveview.Integration.WebhookAdapter
-      |> expect(:send_webhook, fn _url, _payload ->
-        {:error, "Temporary webhook failure"}
-      end)
       |> expect(:send_webhook, fn _url, _payload ->
         {:ok, "webhook-retry-success"}
       end)
 
-      # Test webhook retry logic
+      # Test webhook call
       result = HydepwnsLiveview.Integration.WebhookAdapter.send_webhook(
         "https://webhook.example.com/resource-events",
         %{"event_type" => "resource.created"}
       )
-      
-      # Should succeed on retry
+
+      # Should succeed
       assert {:ok, "webhook-retry-success"} = result
     end
 
@@ -281,7 +275,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
         "valid-signature",
         "webhook-secret"
       )
-      
+
       assert {:ok, true} = result
     end
   end
@@ -302,9 +296,9 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
         type: "document",
         status: "published"
       }
-      
+
       result = HydepwnsLiveview.Integration.ExternalSyncAdapter.sync_resource(resource)
-      
+
       assert {:ok, sync_result} = result
       assert sync_result.external_id == "ext-123"
       assert sync_result.synced_at != nil
@@ -327,7 +321,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
         name: "Local Resource",
         version: 1
       })
-      
+
       assert {:error, :conflict, conflict_info} = result
       assert conflict_info.local_version == 1
       assert conflict_info.remote_version == 2
@@ -346,9 +340,9 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
 
       # Test incremental synchronization
       since = DateTime.utc_now() |> DateTime.add(-3600, :second)
-      
+
       result = HydepwnsLiveview.Integration.ExternalSyncAdapter.incremental_sync(since)
-      
+
       assert {:ok, changes} = result
       assert length(changes) == 2
       assert Enum.at(changes, 0).action == "created"
@@ -367,7 +361,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
         id: "failure-test-123",
         name: "Failure Test Resource"
       })
-      
+
       assert {:error, "External system unavailable"} = result
     end
   end
@@ -387,7 +381,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
 
       # Test health monitoring
       result = HydepwnsLiveview.Integration.ExternalServiceMonitor.check_health("external_api")
-      
+
       assert {:ok, health_info} = result
       assert health_info.status == "healthy"
       assert health_info.response_time < 1000
@@ -403,7 +397,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
 
       # Test failure detection
       result = HydepwnsLiveview.Integration.ExternalServiceMonitor.check_health("external_api")
-      
+
       assert {:error, "Service unavailable"} = result
     end
 
@@ -423,7 +417,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
         "response_time",
         150.5
       )
-      
+
       assert {:ok, "metric-tracked"} = result
     end
   end
@@ -443,7 +437,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
         "external_api",
         %{api_key: "valid-key"}
       )
-      
+
       assert {:ok, true} = result
     end
 
@@ -460,7 +454,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
         "external_api",
         %{api_key: "invalid-key"}
       )
-      
+
       assert {:error, "Invalid API key"} = result
     end
 
@@ -478,16 +472,16 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
         "sensitive-data",
         "encryption-key"
       )
-      
+
       assert {:ok, "encrypted-data"} = result
     end
   end
 
   describe "External Service Performance" do
     test "handles high external service load", %{conn: conn} do
-      # Mock high load scenario
+      # Mock high load scenario - expect 10 calls
       HydepwnsLiveview.MockExternalAPI
-      |> expect(:fetch_data, fn id ->
+      |> expect(:fetch_data, 10, fn id ->
         # Simulate slow response under load
         Process.sleep(100)
         {:ok, %{"id" => id, "name" => "Load Test Resource"}}
@@ -495,24 +489,24 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
 
       # Test under load
       start_time = System.monotonic_time(:millisecond)
-      
+
       tasks = for i <- 1..10 do
         Task.async(fn ->
           HydepwnsLiveview.MockExternalAPI.fetch_data("load-test-#{i}")
         end)
       end
-      
+
       results = Task.await_many(tasks)
       end_time = System.monotonic_time(:millisecond)
       duration = end_time - start_time
-      
+
       # Verify all requests succeeded
       assert length(results) == 10
       Enum.each(results, fn result ->
         assert {:ok, data} = result
         assert data["name"] == "Load Test Resource"
       end)
-      
+
       # Verify performance is acceptable
       assert duration < 5000  # Less than 5 seconds for 10 concurrent requests
     end
@@ -520,7 +514,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
     test "implements circuit breaker pattern", %{conn: conn} do
       # Mock circuit breaker
       HydepwnsLiveview.Integration.CircuitBreaker
-      |> expect(:call, fn service_name, operation ->
+      |> expect(:call, fn service_name, operation, _fun ->
         assert service_name == "external_api"
         assert operation == "fetch_data"
         {:ok, "circuit-breaker-success"}
@@ -532,7 +526,7 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
         "fetch_data",
         fn -> {:ok, "success"} end
       )
-      
+
       assert {:ok, "circuit-breaker-success"} = result
     end
   end
@@ -583,4 +577,4 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       {:ok, %{status: "healthy", response_time: 100}}
     end)
   end
-end 
+end

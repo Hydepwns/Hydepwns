@@ -52,7 +52,7 @@ defmodule HydepwnsLiveview.Notifications.EmailAdapter do
   - {:error, reason} on failure
   """
   @impl true
-  def send_html_email(to, subject, html_body, text_body \\ nil) do
+  def send_html_email(to, subject, html_body, _text_body \\ nil) do
     # For now, delegate to the regular send_email function
     # In a real implementation, this would handle HTML emails differently
     send_email(to, subject, html_body)

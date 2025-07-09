@@ -26,7 +26,7 @@ defmodule HydepwnsLiveview.Events.Adapters.PushAdapter do
       :ok ->
         # In production, this would send to FCM, APNS, or similar service
         notification_id = generate_notification_id()
-        push_data = %{
+        _push_data = %{
           id: notification_id,
           device_token: device_token,
           notification: notification,
@@ -94,7 +94,7 @@ defmodule HydepwnsLiveview.Events.Adapters.PushAdapter do
       :ok ->
         # In production, this would send to topic subscribers
         notification_id = generate_notification_id()
-        topic_data = %{
+        _topic_data = %{
           id: notification_id,
           topic: topic,
           notification: notification,
@@ -128,7 +128,7 @@ defmodule HydepwnsLiveview.Events.Adapters.PushAdapter do
       :ok ->
         # In production, this would schedule with a job queue
         scheduled_id = generate_scheduled_id()
-        scheduled_data = %{
+        _scheduled_data = %{
           id: scheduled_id,
           device_token: device_token,
           notification: notification,

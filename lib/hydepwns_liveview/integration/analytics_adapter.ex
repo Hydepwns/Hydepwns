@@ -26,7 +26,7 @@ defmodule HydepwnsLiveview.Integration.AnalyticsAdapter do
       :ok ->
         # In production, this would send to an analytics service
         event_id = generate_event_id()
-        analytics_event = %{
+        _analytics_event = %{
           id: event_id,
           name: event_name,
           data: event_data,
@@ -125,7 +125,7 @@ defmodule HydepwnsLiveview.Integration.AnalyticsAdapter do
       :ok ->
         # In production, this would send to a metrics service
         metric_id = generate_metric_id()
-        metric_data = %{
+        _metric_data = %{
           id: metric_id,
           name: metric_name,
           value: metric_value,

@@ -176,8 +176,10 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
           <tbody class="bg-white divide-y divide-gray-200">
             <!-- Debug: Events count: <%= length(@events) %> -->
             <!-- Debug: Events loop start -->
+            <!-- DEBUG: About to loop through <%= length(@events) %> events -->
+            <!-- DEBUG: Events data: <%= inspect(@events, pretty: true) %> -->
             <%= for event <- @events do %>
-              <!-- Debug: Rendering event: <%= event.type %> -->
+              <!-- DEBUG: Rendering event: <%= event.type %> -->
               <tr class="event-row" data-test-id="event-row">
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-test-id="event-type">
                   <%= event.type %>

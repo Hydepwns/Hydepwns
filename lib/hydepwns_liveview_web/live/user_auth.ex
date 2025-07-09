@@ -3,8 +3,7 @@ defmodule HydepwnsLiveviewWeb.UserAuth do
   Handles user authentication for LiveView.
   """
 
-  import Plug.Conn
-  import Phoenix.Component, only: [assign: 2, assign: 3]
+
 
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveviewWeb.Router.Helpers, as: Routes
@@ -118,13 +117,7 @@ defmodule HydepwnsLiveviewWeb.UserAuth do
     end)
   end
 
-  defp maybe_write_remember_me_cookie(socket, token, %{"remember_me" => "true"}) do
-    put_resp_cookie(socket, :remember_token, token, max_age: 60 * 60 * 24 * 30)
-  end
 
-  defp maybe_write_remember_me_cookie(socket, _token, _params) do
-    socket
-  end
 
   defp maybe_write_remember_me_cookie_liveview(socket, _token, _params) do
     # For LiveView, we don't set cookies directly
@@ -147,8 +140,7 @@ defmodule HydepwnsLiveviewWeb.UserAuth do
     |> Phoenix.LiveView.redirect(to: Routes.home_path(socket.endpoint, :index))
   end
 
-  defp signed_in_path(socket), do: Routes.home_path(socket.endpoint, :index)
-  defp signed_in_path_liveview(socket), do: Routes.home_path(socket.endpoint, :index)
+
 
   @doc """
   Updates a user's password.

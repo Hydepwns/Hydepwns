@@ -97,7 +97,7 @@ defmodule HydepwnsLiveviewWeb.NotificationComponent do
   defp render_notification(notification, component_id, myself) do
     # Ensure myself is not nil or empty to prevent invalid phx-target
     myself = if myself && myself != "" && myself != "#", do: myself, else: nil
-    
+
     assigns = %{
       notification: notification,
       component_id: component_id,
@@ -129,13 +129,21 @@ defmodule HydepwnsLiveviewWeb.NotificationComponent do
           </button>
         </div>
       </div>
-      
+
       <div :if={Map.get(@notification, :actions) && length(Map.get(@notification, :actions, [])) > 0} class="notification__action-buttons">
-        <button :for={action <- Map.get(@notification, :actions, [])} :if={@myself} phx-click="notification_action" phx-value-id={@notification.id} phx-value-action={action.id} phx-target={@myself} class={"notification__action-button notification__action-button--#{action.style || "default"}"}>
-          {action.label}
-        </button>
+        <%= for action <- Map.get(@notification, :actions, []) do %>
+          <%= if action[:href] do %>
+            <a href={action[:href]} class={"notification__action-button notification__action-button--#{action.style || "default"}"} data-test-id={"#{action.id}-resource-link"}>
+              <%= action.label %>
+            </a>
+          <% else %>
+            <button :if={@myself} phx-click="notification_action" phx-value-id={@notification.id} phx-value-action={action.id} phx-target={@myself} class={"notification__action-button notification__action-button--#{action.style || "default"}"} data-test-id={"#{action.id}-resource-link"}>
+              <%= action.label %>
+            </button>
+          <% end %>
+        <% end %>
       </div>
-      
+
       <div :if={!@notification.persistent} class="notification__progress">
         <div class="notification__progress-bar" style="width: 100%"></div>
       </div>

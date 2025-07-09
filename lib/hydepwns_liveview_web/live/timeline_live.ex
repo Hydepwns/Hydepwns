@@ -26,7 +26,7 @@ defmodule HydepwnsLiveviewWeb.TimelineLive do
                 <%= event.data["description"] || event.data[:description] || "No details" %>
               </span>
               <span class="event-timestamp text-xs text-gray-400 ml-2" data-test-id="event-timestamp">
-                <%= event.inserted_at || event.timestamp %>
+                <%= event.timestamp || get_in(event, [:data, :inserted_at]) %>
               </span>
             </div>
           <% end %>
@@ -35,4 +35,4 @@ defmodule HydepwnsLiveviewWeb.TimelineLive do
     </div>
     """
   end
-end 
+end

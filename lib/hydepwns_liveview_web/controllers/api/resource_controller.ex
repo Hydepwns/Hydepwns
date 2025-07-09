@@ -85,7 +85,7 @@ defmodule HydepwnsLiveviewWeb.Api.ResourceController do
     case validate_uuid(id) do
       :ok ->
         case ResourceSystem.get_resource(id) do
-          {:ok, resource} ->
+          {:ok, _resource} ->
             case ResourceSystem.update_resource(id, resource_params) do
               {:ok, updated_resource} ->
                 json(conn, %{data: sanitize_resource(updated_resource)})
@@ -113,7 +113,7 @@ defmodule HydepwnsLiveviewWeb.Api.ResourceController do
     case validate_uuid(id) do
       :ok ->
         case ResourceSystem.get_resource(id) do
-          {:ok, resource} ->
+          {:ok, _resource} ->
             case ResourceSystem.delete_resource(id) do
               {:ok, _} ->
                 conn

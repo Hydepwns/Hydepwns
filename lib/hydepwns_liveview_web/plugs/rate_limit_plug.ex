@@ -48,7 +48,7 @@ defmodule HydepwnsLiveviewWeb.Plugs.RateLimitPlug do
   end
 
   defp check_rate_limit(client_id) do
-    table_name = :rate_limits
+    _table_name = :rate_limits
 
     # Assume table exists (created at app startup)
     now = System.system_time(:second)

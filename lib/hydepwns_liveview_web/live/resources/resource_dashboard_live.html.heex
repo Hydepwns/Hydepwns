@@ -39,7 +39,7 @@
     </div>
   </div>
 
-  <% IO.inspect(Enum.map(@resources, & &1.id), label: "[DEBUG] Resource IDs in dashboard") %>
+
 
   <%= if Enum.empty?(@resources) do %>
     <div class="text-gray-500 text-center py-8">

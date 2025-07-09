@@ -45,7 +45,7 @@ defmodule HydepwnsLiveviewWeb.ResourceShowLive do
   def render(assigns) do
     ~H"""
     <.flash_group flash={@flash} />
-    
+
     <div class="container mx-auto px-4 py-8">
       <div class="max-w-4xl mx-auto">
         <div class="mb-6">
@@ -97,7 +97,7 @@ defmodule HydepwnsLiveviewWeb.ResourceShowLive do
 
                 <div class="relationship-row" data-test-id="children-relationship-row">
                   <h4 class="font-medium">Child Resources</h4>
-                  <%= if Enum.any?(@resource.child_ids) do %>
+                  <%= if @resource.child_ids && Enum.any?(@resource.child_ids) do %>
                     <div class="space-y-2">
                       <%= for child_id <- @resource.child_ids do %>
                         <.link navigate={~p"/resources/#{child_id}"} class="text-blue-600 hover:text-blue-800 block" data-test-id="child-resource-link">

@@ -62,9 +62,6 @@ defmodule HydepwnsLiveviewWeb.HealthController do
     end
   end
 
-  @doc """
-  Memory usage check.
-  """
   defp check_memory do
     case :erlang.memory() do
       memory when is_list(memory) ->
@@ -83,9 +80,6 @@ defmodule HydepwnsLiveviewWeb.HealthController do
     end
   end
 
-  @doc """
-  Disk space check.
-  """
   defp check_disk do
     case File.stat(".") do
       {:ok, _stat} -> %{status: "ok", message: "accessible"}

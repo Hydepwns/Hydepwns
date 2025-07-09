@@ -11,7 +11,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationController do
         |> put_session(:user_token, token)
         |> put_flash(:info, "Account created and logged in successfully.")
         |> redirect(to: "/")
-      {:error, %Ecto.Changeset{} = changeset} ->
+      {:error, %Ecto.Changeset{} = _changeset} ->
         conn
         |> put_flash(:error, "Registration failed. Please check your input.")
         |> redirect(to: "/users/register")

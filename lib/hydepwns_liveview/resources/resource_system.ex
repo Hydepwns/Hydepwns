@@ -237,6 +237,10 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
   @doc """
   Gets a resource by id.
   """
+  def get_resource(id) when is_nil(id) or id == "" do
+    {:error, :not_found}
+  end
+
   def get_resource(id) do
     case RepoHelper.get(Resource, id) do
       nil -> {:error, :not_found}
@@ -321,7 +325,14 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
             # Invalidate cache
             invalidate_resource_cache()
             # Generate event for resource deletion
-            ResourceEventGenerator.resource_deleted(deleted_resource, %{action: "delete"})
+            case ResourceEventGenerator.resource_deleted(deleted_resource, %{action: "delete"}) do
+              {:ok, _event} ->
+                IO.puts("✅ ResourceSystem.delete_resource: resource_deleted event generated successfully")
+              {:error, reason} ->
+                IO.puts("❌ ResourceSystem.delete_resource: resource_deleted event generation failed: #{inspect(reason)}")
+            end
+            # Broadcast PubSub message for real-time updates
+            Phoenix.PubSub.broadcast(HydepwnsLiveview.PubSub, "resources", {:resource_deleted, deleted_resource})
             {:ok, deleted_resource}
           error -> error
         end

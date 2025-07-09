@@ -132,7 +132,7 @@ defmodule HydepwnsLiveview.Integration.ExternalSyncAdapter do
         {:ok, result} ->
           {:ok, Map.put(result, :retry_successful, true)}
 
-        {:error, reason} ->
+        {:error, _reason} ->
           handle_sync_failure(sync_operation, retry_count + 1)
       end
     else

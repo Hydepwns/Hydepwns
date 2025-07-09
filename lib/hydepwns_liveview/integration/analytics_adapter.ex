@@ -178,7 +178,7 @@ defmodule HydepwnsLiveview.Integration.AnalyticsAdapter do
   - {:ok, analytics_data} on success
   - {:error, reason} on failure
   """
-  def get_analytics_data(start_date, end_date, filters \\ %{}) when is_struct(start_date, DateTime) and is_struct(end_date, DateTime) do
+  def get_analytics_data(start_date, end_date, _filters \\ %{}) when is_struct(start_date, DateTime) and is_struct(end_date, DateTime) do
     case validate_date_range(start_date, end_date) do
       :ok ->
         # In production, this would fetch from analytics service

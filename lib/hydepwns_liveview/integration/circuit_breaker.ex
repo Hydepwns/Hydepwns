@@ -181,7 +181,7 @@ defmodule HydepwnsLiveview.Integration.CircuitBreaker do
     end
   end
 
-  defp get_circuit_config(service_name) do
+  defp get_circuit_config(_service_name) do
     # Default configuration - in production this would come from config
     %{
       failure_threshold: 5,

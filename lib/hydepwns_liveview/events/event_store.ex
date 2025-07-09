@@ -5,7 +5,6 @@ defmodule HydepwnsLiveview.Events.EventStore do
   a unified interface for clients.
   """
 
-  alias HydepwnsLiveview.Events.EventOperations
   alias HydepwnsLiveview.Events.ReplayOperations
   alias HydepwnsLiveview.Events.SnapshotOperations
   alias HydepwnsLiveview.Events.Schemas.{ReplaySession, Snapshot, VersionedState}
@@ -239,7 +238,7 @@ defmodule HydepwnsLiveview.Events.EventStore do
   * `{:error, reason}` - Error retrieving the snapshot
   """
   @spec get_latest_snapshot(String.t(), String.t()) :: {:ok, Snapshot.t()} | {:error, any()}
-  def get_latest_snapshot(resource_type, resource_id) 
+  def get_latest_snapshot(resource_type, resource_id)
       when is_binary(resource_type) and is_binary(resource_id) do
     SnapshotOperations.get_latest_snapshot(resource_type, resource_id)
   end

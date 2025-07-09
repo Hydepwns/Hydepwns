@@ -32,7 +32,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator do
              metadata: Map.merge(%{action: "create"}, metadata)
            }),
          {:ok, stored_event} <- EventStore.store_event(event),
-         :ok <- HydepwnsLiveview.Events.EventBus.publish(stored_event) do
+         :ok <- HydepwnsLiveview.Events.Core.EventBus.publish(stored_event) do
       {:ok, stored_event}
     else
       error -> error
@@ -63,7 +63,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator do
              metadata: Map.merge(%{action: "update"}, metadata)
            }),
          {:ok, stored_event} <- EventStore.store_event(event),
-         :ok <- HydepwnsLiveview.Events.EventBus.publish(stored_event) do
+         :ok <- HydepwnsLiveview.Events.Core.EventBus.publish(stored_event) do
       {:ok, stored_event}
     else
       error -> error
@@ -93,7 +93,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator do
              metadata: Map.merge(%{action: "delete"}, metadata)
            }),
          {:ok, stored_event} <- EventStore.store_event(event),
-         :ok <- HydepwnsLiveview.Events.EventBus.publish(stored_event) do
+         :ok <- HydepwnsLiveview.Events.Core.EventBus.publish(stored_event) do
       {:ok, stored_event}
     else
       error -> error
@@ -125,7 +125,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator do
              metadata: metadata
            }),
          {:ok, stored_event} <- EventStore.store_event(event),
-         :ok <- HydepwnsLiveview.Events.EventBus.publish(stored_event) do
+         :ok <- HydepwnsLiveview.Events.Core.EventBus.publish(stored_event) do
       {:ok, stored_event}
     else
       error -> error

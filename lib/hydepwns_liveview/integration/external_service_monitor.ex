@@ -53,7 +53,7 @@ defmodule HydepwnsLiveview.Integration.ExternalServiceMonitor do
   """
   def detect_service_failure(service_name) when is_binary(service_name) do
     case check_health(service_name) do
-      {:ok, %{status: "healthy"} = health_info} ->
+      {:ok, %{status: "healthy"} = _health_info} ->
         {:ok, :healthy}
 
       {:ok, %{status: "unhealthy"} = health_info} ->
@@ -97,7 +97,7 @@ defmodule HydepwnsLiveview.Integration.ExternalServiceMonitor do
       :ok ->
         # In production, this would send metrics to a monitoring system
         metric_id = generate_metric_id()
-        metric_data = %{
+        _metric_data = %{
           id: metric_id,
           service_name: service_name,
           metric_name: metric_name,
@@ -161,7 +161,7 @@ defmodule HydepwnsLiveview.Integration.ExternalServiceMonitor do
     case validate_alert_config(alert_config) do
       :ok ->
         alert_id = generate_alert_id()
-        alert = %{
+        _alert = %{
           id: alert_id,
           service_name: service_name,
           config: alert_config,

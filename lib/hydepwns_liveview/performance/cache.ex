@@ -52,7 +52,8 @@ defmodule HydepwnsLiveview.Performance.Cache do
   - `{:ok, "stored"}` on success
   - `{:error, reason}` on failure
   """
-  def put(key, _data, ttl \\ 3600) when is_binary(key) do
+  def put(key, data, ttl \\ 3600)
+  def put(key, _data, ttl) when is_binary(key) do
     # In a real implementation, this would store in Redis, Memcached, etc.
     # For now, we'll just return success
 

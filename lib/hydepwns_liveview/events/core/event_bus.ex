@@ -141,12 +141,12 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
   def handle_call({:subscribe_process, subscriber, event_types}, _from, state) do
     # Handle both single event type and list of event types
     event_types_list = if is_list(event_types), do: event_types, else: [event_types]
-    
+
     # Add subscriber to each event type
     subscribers = Enum.reduce(event_types_list, state.subscribers, fn event_type, acc ->
       Map.update(acc, event_type, [subscriber], &[subscriber | &1])
     end)
-    
+
     {:reply, :ok, %{state | subscribers: subscribers}}
   end
 
@@ -160,12 +160,12 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
   def handle_call({:unsubscribe_process, subscriber, event_types}, _from, state) do
     # Handle both single event type and list of event types
     event_types_list = if is_list(event_types), do: event_types, else: [event_types]
-    
+
     # Remove subscriber from each event type
     subscribers = Enum.reduce(event_types_list, state.subscribers, fn event_type, acc ->
       Map.update(acc, event_type, [], &List.delete(&1, subscriber))
     end)
-    
+
     {:reply, :ok, %{state | subscribers: subscribers}}
   end
 
@@ -211,10 +211,10 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
   defp get_subscribers_for_type(state, event_type) do
     # Get subscribers for this specific event type
     specific_subscribers = Map.get(state.subscribers, event_type, [])
-    
+
     # Get subscribers for :all events
     all_subscribers = Map.get(state.subscribers, :all, [])
-    
+
     # Combine and deduplicate
     (specific_subscribers ++ all_subscribers)
     |> Enum.uniq()
@@ -222,9 +222,11 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
     |> Enum.filter(&Process.alive?/1)
   end
 
-  defp notify_subscribers(subscribers, event, opts) do
+  defp notify_subscribers(subscribers, event, _opts) do
     Enum.each(subscribers, fn subscriber ->
       if is_pid(subscriber) and Process.alive?(subscriber) do
+        require Logger
+        Logger.debug("[EventBus] Sending event '#{event.type}' from #{inspect(self())} to subscriber #{inspect(subscriber)}")
         send(subscriber, {:event, event})
       end
     end)

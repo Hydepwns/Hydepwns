@@ -8,7 +8,7 @@ defmodule HydepwnsLiveviewWeb.Event.EventIndexLive do
     {:ok, events} = HydepwnsLiveview.Events.EventStore.list_all_events()
     IO.puts("🔍 EventIndexLive: Raw events from EventStore: #{length(events)}")
     IO.puts("🔍 EventIndexLive: First event: #{inspect(List.first(events))}")
-    
+
     # Convert plain maps to Event structs for template rendering
     event_structs = Enum.map(events, fn event ->
       case event do
@@ -30,10 +30,10 @@ defmodule HydepwnsLiveviewWeb.Event.EventIndexLive do
           }
       end
     end)
-    
+
     IO.puts("🔍 EventIndexLive: Event structs after conversion: #{length(event_structs)}")
     IO.puts("🔍 EventIndexLive: First event struct: #{inspect(List.first(event_structs))}")
-    
+
     {:ok,
      socket
      |> assign(:page_title, "Events")
@@ -84,6 +84,8 @@ defmodule HydepwnsLiveviewWeb.Event.EventIndexLive do
       </form>
 
       <div class="bg-white shadow-lg rounded-lg p-6">
+        <!-- DEBUG: Events count: <%= length(@events) %> -->
+        <!-- DEBUG: Events: <%= inspect(@events, pretty: true) %> -->
         <%= if Enum.empty?(@events) do %>
           <div class="text-center text-gray-500 py-8">
             <p class="text-lg">No events found</p>
@@ -92,12 +94,13 @@ defmodule HydepwnsLiveviewWeb.Event.EventIndexLive do
         <% else %>
           <div class="space-y-4">
             <%= for event <- @events do %>
-              <div class="event-row flex items-center gap-4 py-2 border-b" data-event-type={event.type}>
+              <!-- DEBUG: Rendering event: <%= event.type %> -->
+              <div class="event-row flex items-center gap-4 py-2 border-b" data-event-type={event.type} data-test-id="event-row">
                 <span class="event-type font-mono text-xs bg-gray-200 px-2 py-1 rounded">
                   <%= String.split(event.type, ".") |> List.last() %>
                 </span>
                 <span class="event-resource-id text-sm text-gray-700">
-                  <%= event.data["name"] || event.data[:name] %>
+                  <%= event.data["name"] || event.data[:name] || "" %>
                 </span>
                 <span class="event-resource-id text-xs text-gray-500">
                   <%= event.resource_id %>
@@ -116,4 +119,4 @@ defmodule HydepwnsLiveviewWeb.Event.EventIndexLive do
     </div>
     """
   end
-end 
+end

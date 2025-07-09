@@ -29,6 +29,9 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
         # Query for events with the specific resource type
         {:ok, events} = EventStore.get_events_for_resource(resource.type, resource_id)
 
+        # Debug: Log what we got from EventStore
+        IO.puts("DEBUG: EventStore.get_events_for_resource returned: #{inspect(events)}")
+
         # Convert Event structs to maps for template rendering
         event_maps = Enum.map(events, fn event ->
           %{
@@ -43,6 +46,9 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
             timestamp: event.timestamp
           }
         end)
+
+        # Debug: Log what we're assigning to the template
+        IO.puts("DEBUG: Assigning events to template: #{inspect(event_maps)}")
 
         {:noreply,
          socket
@@ -102,6 +108,8 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
       <!-- DEBUG: Events: <%= inspect(@events, pretty: true) %> -->
       <!-- DEBUG: Resource ID: <%= @resource_id %> -->
       <!-- DEBUG: Resource Type: <%= @resource_type %> -->
+      <!-- DEBUG: Template rendering started -->
+      <!-- DEBUG: Events assign type: <%= inspect(@events, limit: :infinity) %> -->
 
       <div class="flex justify-between items-center mb-8">
         <h1 class="text-3xl font-bold">Resource Event System</h1>
@@ -192,6 +200,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
           </tbody>
         </table>
       </div>
+      <!-- DEBUG: Template rendering completed -->
     </div>
     """
   end

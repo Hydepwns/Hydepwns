@@ -272,10 +272,11 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
       token = Accounts.generate_user_session_token(user)
       session = %{"user_token" => token}
 
-      # Try to access admin route
-      assert_raise Phoenix.Router.NoRouteError, fn ->
-        get(conn, ~p"/admin")
-      end
+      # Try to access admin route - should redirect non-admin users
+      conn = Plug.Test.init_test_session(conn, session)
+      resp = get(conn, ~p"/admin/event-dashboard")
+      assert resp.status == 302
+      assert Phoenix.Flash.get(resp.assigns.flash, :error) == "You must be an admin to access this page."
     end
 
     test "authenticated user can access protected routes", %{conn: conn, regular_user: user} do
@@ -311,6 +312,7 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
     test "handles expired session tokens", %{conn: conn, regular_user: user} do
       # Create a session token and then delete it to simulate expiration
       token = Accounts.generate_user_session_token(user)
+      # Delete the token to simulate expiration
       Accounts.delete_session_token(token)
       session = %{"user_token" => token}
 
@@ -323,6 +325,39 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
 
       assert {:halt, updated_socket} = result
       # Check that no user is assigned due to expired token
+      assert updated_socket.assigns.current_user == nil
+    end
+
+    test "handles malformed session tokens gracefully", %{conn: conn} do
+      # Session with malformed token
+      session = %{"user_token" => "malformed.token.here"}
+
+      socket = %Phoenix.LiveView.Socket{
+        assigns: %{},
+        endpoint: HydepwnsLiveviewWeb.Endpoint
+      }
+
+      result = UserAuth.on_mount(:require_authenticated_user, %{}, session, socket)
+
+      assert {:halt, updated_socket} = result
+      # Check that no user is assigned due to malformed token
+      assert updated_socket.assigns.current_user == nil
+    end
+
+    test "handles database errors gracefully", %{conn: conn} do
+      # Mock a database error scenario
+      session = %{"user_token" => "error_token"}
+
+      socket = %Phoenix.LiveView.Socket{
+        assigns: %{},
+        endpoint: HydepwnsLiveviewWeb.Endpoint
+      }
+
+      # This should handle database errors gracefully
+      result = UserAuth.on_mount(:require_authenticated_user, %{}, session, socket)
+
+      assert {:halt, updated_socket} = result
+      # Check that no user is assigned due to database error
       assert updated_socket.assigns.current_user == nil
     end
   end

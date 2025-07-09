@@ -10,7 +10,6 @@ defmodule HydepwnsLiveviewWeb.UserSessionLive do
 
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveview.Accounts.User
-  alias HydepwnsLiveviewWeb.UserAuth
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do

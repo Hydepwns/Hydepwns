@@ -62,6 +62,11 @@ defmodule HydepwnsLiveviewWeb.UserSettingsLive do
   end
 
   @impl Phoenix.LiveView
+  def handle_event(_event, _params, socket) do
+    {:noreply, put_flash(socket, :error, "Unknown event received.")}
+  end
+
+  @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
     <div class="container mx-auto px-4 py-8">

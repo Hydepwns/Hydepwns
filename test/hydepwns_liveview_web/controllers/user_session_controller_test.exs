@@ -16,14 +16,14 @@ defmodule HydepwnsLiveviewWeb.UserSessionControllerTest do
   test "successful login sets session and redirects", %{conn: conn, user: user} do
     conn = post(conn, "/users/log_in", user: %{email: user.email, password: "password123"})
     assert get_session(conn, :user_token)
-    assert get_flash(conn, :info) =~ "Logged in successfully"
+    assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "Logged in successfully"
     assert redirected_to(conn) == "/"
   end
 
   test "failed login shows error and redirects to login", %{conn: conn} do
     conn = post(conn, "/users/log_in", user: %{email: "wrong@example.com", password: "badpass"})
     refute get_session(conn, :user_token)
-    assert get_flash(conn, :error) =~ "Invalid email or password"
+    assert Phoenix.Flash.get(conn.assigns.flash, :error) =~ "Invalid email or password"
     assert redirected_to(conn) == "/users/log_in"
   end
 
@@ -34,7 +34,7 @@ defmodule HydepwnsLiveviewWeb.UserSessionControllerTest do
 
     # Log out
     conn = delete(conn, "/users/log_out")
-    assert get_flash(conn, :info) =~ "Logged out successfully"
+    assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "Logged out successfully"
     assert redirected_to(conn) == "/"
     # Check that the session cookie is cleared
     assert conn.resp_cookies["_hydepwns_liveview_key"][:max_age] == 0

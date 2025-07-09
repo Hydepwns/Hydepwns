@@ -20,9 +20,21 @@ defmodule HydepwnsLiveviewWeb.UserShowLive do
   end
 
   defp apply_action(socket, :show, %{"id" => id}) do
-    socket
-    |> assign(:page_title, "User Details")
-    |> assign(:user, Accounts.get_user!(id))
+    case Integer.parse(id) do
+      {_id, ""} ->
+        socket
+        |> assign(:page_title, "User Details")
+        |> assign(:user, Accounts.get_user!(id))
+      _ ->
+        socket
+        |> put_flash(:error, "Invalid user ID")
+        |> push_navigate(to: ~p"/users")
+    end
+  rescue
+    Ecto.Query.CastError ->
+      socket
+      |> put_flash(:error, "Invalid user ID")
+      |> push_navigate(to: ~p"/users")
   end
 
   @impl Phoenix.LiveView

@@ -3,38 +3,11 @@ defmodule HydepwnsLiveviewWeb.UserAuth do
   Handles user authentication for LiveView.
   """
 
-  use HydepwnsLiveviewWeb, :live_view
-
   import Plug.Conn
+  import Phoenix.Component, only: [assign: 2, assign: 3]
 
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveviewWeb.Router.Helpers, as: Routes
-
-  @impl Phoenix.LiveView
-  def mount(_params, _session, socket) do
-    default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()
-    theme_class = "#{default_theme.mode}-theme"
-    {:ok, assign(socket, theme_class: theme_class)}
-  end
-
-  @impl Phoenix.LiveView
-  def handle_params(_params, _url, socket) do
-    {:noreply, socket}
-  end
-
-  @impl Phoenix.LiveView
-  def handle_event(_event, _params, socket) do
-    {:noreply, socket}
-  end
-
-  @impl Phoenix.LiveView
-  def render(assigns) do
-    ~H"""
-    <div class={@theme_class}>
-      <%= @inner_content %>
-    </div>
-    """
-  end
 
   def on_mount(:require_authenticated_user, _params, session, socket) do
     socket = assign_current_user(socket, session)
@@ -60,7 +33,7 @@ defmodule HydepwnsLiveviewWeb.UserAuth do
     if socket.assigns.current_user do
       {:halt,
        Phoenix.LiveView.redirect(socket,
-         to: ~p"/users/#{socket.assigns.current_user}"
+         to: Routes.user_show_path(socket.endpoint, :show, socket.assigns.current_user)
        )}
     else
       {:cont, socket}
@@ -81,12 +54,24 @@ defmodule HydepwnsLiveviewWeb.UserAuth do
   end
 
   defp assign_current_user(socket, session) do
-    # Ensure socket has proper assigns structure with __changed__ key
+    # Ensure socket has proper assigns structure
     socket = ensure_socket_assigns(socket)
 
-    assign_new(socket, :current_user, fn ->
-      if user_token = session["user_token"], do: Accounts.get_user_by_session_token(user_token)
-    end)
+    # Check if current_user is already assigned
+    if Map.has_key?(socket.assigns, :current_user) do
+      socket
+    else
+      # Get user from session token
+      user = if user_token = session["user_token"] do
+        try do
+          Accounts.get_user_by_session_token(user_token)
+        rescue
+          _ -> nil
+        end
+      end
+
+      Phoenix.Component.assign(socket, :current_user, user)
+    end
   end
 
   defp ensure_socket_assigns(socket) do
@@ -107,12 +92,12 @@ defmodule HydepwnsLiveviewWeb.UserAuth do
     %{socket | assigns: assigns}
   end
 
-  def log_in_user(socket, user, params \\ %{}) do
+  def log_in_user(socket, user, _params \\ %{}) do
     # Ensure socket has proper assigns structure
     socket = ensure_socket_assigns(socket)
 
     token = Accounts.generate_user_session_token(user)
-    user_return_to = socket.assigns[:user_return_to] || signed_in_path(socket)
+    user_return_to = socket.assigns[:user_return_to] || Routes.home_path(socket.endpoint, :index)
 
     socket
     |> Phoenix.Component.assign(:current_user, user)
@@ -122,7 +107,7 @@ defmodule HydepwnsLiveviewWeb.UserAuth do
 
   def log_in_user_liveview(socket, user, params \\ %{}, opts \\ []) do
     token = Accounts.generate_user_session_token(user)
-    user_return_to = opts[:redirect_to] || socket.assigns[:user_return_to] || signed_in_path_liveview(socket)
+    user_return_to = opts[:redirect_to] || socket.assigns[:user_return_to] || Routes.home_path(socket.endpoint, :index)
 
     socket
     |> Phoenix.Component.assign(:current_user, user)
@@ -159,12 +144,11 @@ defmodule HydepwnsLiveviewWeb.UserAuth do
     socket
     |> Phoenix.Component.assign(:current_user, nil)
     |> Phoenix.Component.assign(:user_token, nil)
-    |> Phoenix.LiveView.redirect(to: ~p"/")
+    |> Phoenix.LiveView.redirect(to: Routes.home_path(socket.endpoint, :index))
   end
 
-  defp signed_in_path(_socket), do: ~p"/"
-
-  defp signed_in_path_liveview(_socket), do: ~p"/"
+  defp signed_in_path(socket), do: Routes.home_path(socket.endpoint, :index)
+  defp signed_in_path_liveview(socket), do: Routes.home_path(socket.endpoint, :index)
 
   @doc """
   Updates a user's password.
@@ -177,12 +161,8 @@ defmodule HydepwnsLiveviewWeb.UserAuth do
   * `{:ok, updated_user}` or `{:error, changeset}`
   """
   def update_user_password(user, attrs) do
-    case HydepwnsLiveview.Accounts.change_password(user, attrs) do
-      {:ok, updated_user} ->
-        {:ok, updated_user}
-
-      {:error, changeset} ->
-        {:error, changeset}
-    end
+    user
+    |> Accounts.change_user_password(attrs)
+    |> HydepwnsLiveview.Repo.update()
   end
 end

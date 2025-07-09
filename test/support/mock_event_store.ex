@@ -136,15 +136,49 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
 
   def handle_call({:get_events_for_resource, resource_type, resource_id}, _from, state) do
     events = Enum.filter(state.events, fn event ->
-      event.resource_type == resource_type && event.resource_id == resource_id
+      # Handle both Event structs and maps
+      {event_resource_type, event_resource_id} = case event do
+        %HydepwnsLiveview.Events.Core.Event{} ->
+          {event.resource_type, event.resource_id}
+        %{} ->
+          # For maps, try different possible locations
+          resource_type_val = Map.get(event, :resource_type) ||
+                             get_in(event, [:data, :resource_type]) ||
+                             get_in(event, [:data, :data, :resource_type])
+          resource_id_val = Map.get(event, :resource_id) ||
+                           get_in(event, [:data, :resource_id]) ||
+                           get_in(event, [:data, :data, :resource_id])
+          {resource_type_val, resource_id_val}
+        _ ->
+          {nil, nil}
+      end
+
+      event_resource_type == resource_type && event_resource_id == resource_id
     end)
     {:reply, {:ok, Enum.reverse(events)}, state}
   end
 
   def handle_call({:get_events_for_resource_at, resource_type, resource_id, timestamp}, _from, state) do
     events = Enum.filter(state.events, fn event ->
-      event.resource_type == resource_type &&
-      event.resource_id == resource_id &&
+      # Handle both Event structs and maps
+      {event_resource_type, event_resource_id} = case event do
+        %HydepwnsLiveview.Events.Core.Event{} ->
+          {event.resource_type, event.resource_id}
+        %{} ->
+          # For maps, try different possible locations
+          resource_type_val = Map.get(event, :resource_type) ||
+                             get_in(event, [:data, :resource_type]) ||
+                             get_in(event, [:data, :data, :resource_type])
+          resource_id_val = Map.get(event, :resource_id) ||
+                           get_in(event, [:data, :resource_id]) ||
+                           get_in(event, [:data, :data, :resource_id])
+          {resource_type_val, resource_id_val}
+        _ ->
+          {nil, nil}
+      end
+
+      event_resource_type == resource_type &&
+      event_resource_id == resource_id &&
       DateTime.compare(event.timestamp, timestamp) == :lte
     end)
     {:reply, {:ok, Enum.reverse(events)}, state}

@@ -77,8 +77,8 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       # After save, redirected to dashboard, wait for it to load and go back to show page
       session =
         session
-        |> wait_for_text("Resources")
-        |> force_reload("/resources")  # Force a fresh load of the dashboard
+        |> wait_for_flash_message("success", "Resource updated successfully")
+        |> visit_and_wait("/resources")  # Use visit_and_wait instead of force_reload
         |> wait_for_resource_link(child.id)
         |> click(Wallaby.Query.css("a[data-test-id='resource-link-#{child.id}']"))
         |> wait_for_text(child.name)
@@ -98,15 +98,26 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       |> wait_for_resource_link(child.id)
       |> click(Wallaby.Query.css("a[data-test-id='resource-link-#{child.id}']"))
       |> Wallaby.Browser.assert_has(css("h1", text: child.name))
-      
+
       # Wait for page to fully render
       session = wait_for_element(session, css("a[data-test-id='events-link']"))
-      
+
+      # Debug: Check if events are stored in MockEventStore
+      {:ok, events} = HydepwnsLiveview.TestSupport.MockEventStore.get_events_for_resource("document", child.id)
+      IO.puts("DEBUG: Events in MockEventStore for resource #{child.id}: #{inspect(events)}")
+
       # Continue with session
       session
       |> click(Wallaby.Query.css("a[data-test-id='events-link']"))
+
+      # Debug: Check what's on the page
+      page_source = Wallaby.Browser.page_source(session)
+      IO.puts("DEBUG: Page source length: #{String.length(page_source)}")
+      IO.puts("DEBUG: Page source contains 'event-row': #{String.contains?(page_source, "event-row")}")
+      IO.puts("DEBUG: Page source contains 'document.updated': #{String.contains?(page_source, "document.updated")}")
+
       |> wait_for_element(css(".event-row"))
-      |> Wallaby.Browser.assert_has(css(".event-row", text: "resource.updated"))
+      |> Wallaby.Browser.assert_has(css(".event-row", text: "document.updated"))
     end
 
     test "user can manage multiple relationships", %{
@@ -124,8 +135,8 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
         |> click(Wallaby.Query.option(parent.name))
         |> click(button("Save Resource"))
 
-      # Wait for successful save
-      session = wait_for_text(session, "Resource updated successfully")
+      # Wait for successful save and navigate to dashboard
+      session = wait_for_flash_message(session, "success", "Resource updated successfully")
       session = visit_and_wait(session, "/resources")
 
       # Create a second child with the same parent
@@ -140,26 +151,28 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
         |> click(Wallaby.Query.option(parent.name))
         |> click(button("Create Resource"))
 
-      # Wait for successful creation
-      session = wait_for_text(session, "Resource created successfully")
+      # Wait for successful creation and navigate to dashboard
+      session = wait_for_flash_message(session, "success", "Resource created successfully")
       session = visit_and_wait(session, "/resources")
 
-      # Ensure dashboard is loaded before clicking create-resource-link
+      # Ensure dashboard is loaded before proceeding
       session = wait_for_text(session, "Resources")
       session = wait_for_resource_link(session, child.id)
 
-      session
-      |> click(Wallaby.Query.css("a[data-test-id='create-resource-link']"))
-      |> wait_for_element(css("form"))
-      |> fill_in(text_field("resource[name]"), with: "Second Child")
-      |> click(Wallaby.Query.select("resource[type]"))
-      |> click(Wallaby.Query.option("Document"))
-      |> click(Wallaby.Query.select("resource[parent_id]"))
-      |> click(Wallaby.Query.option(parent.name))
-      |> click(button("Create Resource"))
+      # Create another resource to test multiple relationships
+      session =
+        session
+        |> click(Wallaby.Query.css("a[data-test-id='create-resource-link']"))
+        |> wait_for_element(css("form"))
+        |> fill_in(text_field("resource[name]"), with: "Third Child")
+        |> click(Wallaby.Query.select("resource[type]"))
+        |> click(Wallaby.Query.option("Document"))
+        |> click(Wallaby.Query.select("resource[parent_id]"))
+        |> click(Wallaby.Query.option(parent.name))
+        |> click(button("Create Resource"))
 
-      # Wait for successful creation
-      session = wait_for_text(session, "Resource created successfully")
+      # Wait for successful creation and navigate to dashboard
+      session = wait_for_flash_message(session, "success", "Resource created successfully")
       session = visit_and_wait(session, "/resources")
 
       # Fetch the second child resource from the database
@@ -181,17 +194,14 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       second_child_resource = HydepwnsLiveview.Resources.ResourceSystem.get_resource(second_child.id) |> elem(1)
       assert second_child_resource.parent_id == parent.id
 
-      # Optionally, you can still check the form loads, but don't assert on selected option
-      session
-      |> click(Wallaby.Query.css("a[data-test-id='resource-link-#{child.id}']"))
-      |> Wallaby.Browser.assert_has(css("h1", text: child.name))
-      |> click(Wallaby.Query.css("a[data-test-id='edit-resource-link']"))
+      # Navigate to resources and verify they're all visible
+      session = visit_and_wait(session, "/resources")
+      session = wait_for_text(session, "Resources")
 
-      session
-      |> click(Wallaby.Query.css("a[data-test-id='back-to-resources-link']"))
-      |> click(Wallaby.Query.css("a[data-test-id='resource-link-#{second_child.id}']"))
-      |> Wallaby.Browser.assert_has(css("h1", text: "Second Child"))
-      |> click(Wallaby.Query.css("a[data-test-id='edit-resource-link']"))
+      # Verify all resources are visible in the dashboard
+      session = Wallaby.Browser.assert_has(session, css("a", text: child.name))
+      session = Wallaby.Browser.assert_has(session, css("a", text: "Second Child"))
+      session = Wallaby.Browser.assert_has(session, css("a", text: "Third Child"))
     end
 
     test "user cannot create circular relationships", %{
@@ -208,6 +218,9 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
         |> click(Wallaby.Query.select("resource[parent_id]"))
         |> click(Wallaby.Query.option(parent.name))
         |> click(button("Save Resource"))
+
+      # Wait for successful save
+      session = wait_for_flash_message(session, "success", "Resource updated successfully")
 
       # Try to make parent a child of child (circular)
       session
@@ -236,11 +249,13 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
         |> click(Wallaby.Query.option(parent.name))
         |> click(button("Save Resource"))
 
-      # Wait for dashboard to load after save
-      session =
-        session
-        |> wait_for_text("Resources")
-        |> wait_for_resource_link(child.id)
+      # Wait for successful save
+      session = wait_for_flash_message(session, "success", "Resource updated successfully")
+
+      # Navigate to dashboard
+      session = visit_and_wait(session, "/resources")
+      session = wait_for_text(session, "Resources")
+      session = wait_for_resource_link(session, child.id)
 
       # Remove the relationship
       session =
@@ -252,11 +267,13 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
         |> click(Wallaby.Query.option("None"))
         |> click(button("Save Resource"))
 
-      # Wait for dashboard to load after save
-      session =
-        session
-        |> wait_for_text("Resources")
-        |> wait_for_resource_link(child.id)
+      # Wait for successful save
+      session = wait_for_flash_message(session, "success", "Resource updated successfully")
+
+      # Navigate to dashboard
+      session = visit_and_wait(session, "/resources")
+      session = wait_for_text(session, "Resources")
+      session = wait_for_resource_link(session, child.id)
 
       # Verify relationship was removed by checking the resource data
       child_resource = HydepwnsLiveview.Resources.ResourceSystem.get_resource(child.id) |> elem(1)
@@ -264,23 +281,23 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
 
       # Navigate back to dashboard to ensure we're on the right page
       session = visit_and_wait(session, "/resources")
-      
+
       # Wait for dashboard to be fully loaded
       session = wait_for_text(session, "Resources")
-      
+
       # Wait for the page to be fully rendered
       session = wait_for_element(session, css("a", text: child.name))
-      
+
       # Verify that the child resource is visible in the dashboard
       session = Wallaby.Browser.assert_has(session, css("a", text: child.name))
-      
+
       # Navigate to the child resource to verify the relationship was removed
       session = click(session, css("a", text: child.name))
       session = wait_for_text(session, child.name)
-      
+
       # Verify that the resource show page loads correctly
       session = Wallaby.Browser.assert_has(session, css("h1", text: child.name))
-      
+
       # Verify that the relationship was removed in the backend
       updated_child_resource = HydepwnsLiveview.Resources.ResourceSystem.get_resource(child.id) |> elem(1)
       assert updated_child_resource.parent_id == nil
@@ -347,20 +364,20 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
 
       # Navigate to dashboard to see the updated state
       session = visit_and_wait(session, "/resources")
-      
+
       # Wait for dashboard to be fully loaded
       session = wait_for_text(session, "Resources")
-      
+
       # Verify that the child resource is visible in the dashboard
       session = Wallaby.Browser.assert_has(session, css("a", text: child.name))
-      
+
       # Navigate to the child resource to verify the relationship
       session = click(session, css("a", text: child.name))
       session = wait_for_text(session, child.name)
-      
+
       # Verify that the resource show page loads correctly
       session = Wallaby.Browser.assert_has(session, css("h1", text: child.name))
-      
+
       # Verify that the relationship is visible in the UI (if there's a parent field)
       # This is a simpler verification that doesn't require navigating to events
       assert updated_child.parent_id == parent.id

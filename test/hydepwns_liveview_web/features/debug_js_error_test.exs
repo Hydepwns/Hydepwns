@@ -37,8 +37,8 @@ defmodule HydepwnsLiveviewWeb.DebugJSErrorTest do
     |> set_value(select("resource[status]"), "published")
     |> click(button("Create Resource"))
 
-    # Verify successful creation
-    session = wait_for_text(session, "Resource created successfully")
+    # Wait for successful creation
+    session = wait_for_flash_message(session, "success", "Resource created successfully")
   end
 
   test "minimal navigation test", %{session: session} do

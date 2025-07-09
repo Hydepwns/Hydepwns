@@ -57,8 +57,8 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
     session = fill_in(session, Query.text_field("Description"), with: "Updated description for event workflow testing")
     session = click(session, Query.button("Save Resource"))
 
-    # Wait for the flash message to appear after form submission
-    session = wait_for_text(session, "Resource updated successfully")
+    # Wait for successful save
+    session = wait_for_flash_message(session, "success", "Resource updated successfully")
 
     # Navigate back to resources page to verify the update
     session = visit(session, "/resources")
@@ -86,7 +86,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
     session = click(session, Query.button("Save Resource"))
 
     # Wait for the flash message to appear after form submission
-    session = wait_for_text(session, "Resource updated successfully")
+    session = wait_for_flash_message(session, "success", "Resource updated successfully")
 
     # Second update
     session = visit(session, "/resources")
@@ -99,7 +99,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
     session = click(session, Query.button("Save Resource"))
 
     # Wait for the flash message to appear after form submission
-    session = wait_for_text(session, "Resource updated successfully")
+    session = wait_for_flash_message(session, "success", "Resource updated successfully")
 
     # Verify final state
     session = visit(session, "/resources")

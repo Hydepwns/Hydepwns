@@ -66,7 +66,7 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
         Snapshot
         |> where([s], s.resource_type == ^resource_type)
         |> where([s], s.resource_id == ^resource_id)
-        |> order_by([s], desc: s.inserted_at)
+        |> order_by([s], [desc: s.inserted_at, desc: s.id])
         |> limit(1)
         |> Repo.one()
 
@@ -200,7 +200,7 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
     query =
       from s in Snapshot,
         where: s.resource_type == ^resource_type and s.resource_id == ^resource_id,
-        order_by: [asc: s.inserted_at]
+        order_by: [asc: s.inserted_at, asc: s.id]
 
     try do
       {:ok, Repo.all(query)}
@@ -275,7 +275,7 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
         Snapshot
         |> where([s], s.resource_type == ^resource_type)
         |> where([s], s.resource_id == ^resource_id)
-        |> order_by([s], [{^sort, s.timestamp}])
+        |> order_by([s], [{^sort, s.inserted_at}, {^sort, s.id}])
 
       query = if limit, do: limit(query, ^limit), else: query
       query = if offset > 0, do: offset(query, ^offset), else: query
@@ -408,16 +408,16 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
   defp perform_snapshot_merge(snapshots) do
     # Sort snapshots by version
     sorted_snapshots = Enum.sort_by(snapshots, & &1.version)
-    
+
     # Get the latest snapshot's base data
     latest_snapshot = List.last(sorted_snapshots)
     base_data = Map.from_struct(latest_snapshot.resource)
-    
+
     # Merge resource data from all snapshots
     merged_resource = Enum.reduce(sorted_snapshots, base_data, fn snapshot, acc ->
       Map.merge(acc, Map.from_struct(snapshot.resource))
     end)
-    
+
     # Create new snapshot with merged resource
     build_snapshot(
       struct(latest_snapshot.resource.__struct__, merged_resource),

@@ -7,7 +7,6 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator do
   """
 
   alias HydepwnsLiveview.Events.Event
-  alias HydepwnsLiveview.Events.EventOperations
   alias HydepwnsLiveview.Events.EventStore
 
   @doc """

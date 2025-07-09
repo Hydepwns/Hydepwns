@@ -411,7 +411,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
     query =
       from s in Snapshot,
         where: s._resource_type == ^resource_type and s._resource_id == ^resource_id,
-        order_by: [desc: s.inserted_at],
+        order_by: [desc: s.inserted_at, desc: s.id],
         limit: 1
 
     case Repo.one(query) do
@@ -788,7 +788,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
     query =
       from s in Snapshot,
         where: s._resource_type == ^resource_type and s._resource_id == ^resource_id,
-        order_by: [asc: s.inserted_at]
+        order_by: [asc: s.inserted_at, asc: s.id]
 
     try do
       {:ok, Repo.all(query)}

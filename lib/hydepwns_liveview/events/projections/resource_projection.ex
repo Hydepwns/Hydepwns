@@ -36,11 +36,10 @@ defmodule HydepwnsLiveview.Events.Projections.ResourceProjection do
       last_updated: nil
     }
 
-    # Subscribe to specific event types for robustness
+    # Subscribe to all resource and document events
     EventBus.subscribe(self(), [
-      "resource.created",
-      "resource.updated", 
-      "resource.deleted"
+      "resource.created", "resource.updated", "resource.deleted",
+      "document.created", "document.updated", "document.deleted"
     ])
 
     {:ok, state}
@@ -68,8 +67,8 @@ defmodule HydepwnsLiveview.Events.Projections.ResourceProjection do
 
   defp update_state(state, event) do
     case event do
-      %{type: "resource.created", resource_id: id, data: data} ->
-        Logger.info("ResourceProjection: Processing resource.created for #{id}")
+      %{type: type, resource_id: id, data: data} when type in ["resource.created", "document.created"] ->
+        Logger.info("ResourceProjection: Processing #{type} for #{id}")
         %{
           state
           | resources: Map.put(state.resources, id, data),
@@ -77,8 +76,8 @@ defmodule HydepwnsLiveview.Events.Projections.ResourceProjection do
             last_updated: DateTime.utc_now()
         }
 
-      %{type: "resource.updated", resource_id: id, data: data} ->
-        Logger.info("ResourceProjection: Processing resource.updated for #{id}")
+      %{type: type, resource_id: id, data: data} when type in ["resource.updated", "document.updated"] ->
+        Logger.info("ResourceProjection: Processing #{type} for #{id}")
         %{
           state
           | resources: Map.update(state.resources, id, data, &Map.merge(&1, data)),
@@ -86,8 +85,8 @@ defmodule HydepwnsLiveview.Events.Projections.ResourceProjection do
             last_updated: DateTime.utc_now()
         }
 
-      %{type: "resource.deleted", resource_id: id} ->
-        Logger.info("ResourceProjection: Processing resource.deleted for #{id}")
+      %{type: type, resource_id: id} when type in ["resource.deleted", "document.deleted"] ->
+        Logger.info("ResourceProjection: Processing #{type} for #{id}")
         %{
           state
           | resources: Map.delete(state.resources, id),

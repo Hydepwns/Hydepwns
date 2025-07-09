@@ -44,16 +44,12 @@ defmodule HydepwnsLiveview.Events.SnapshotOperationsTest do
 
   describe "get_latest_snapshot/2" do
     setup do
-      # Create multiple snapshots for the same resource with small delays to ensure different timestamps
+      # Create multiple snapshots for the same resource
       {:ok, snapshot1} =
         SnapshotOperations.save_snapshot("test_resource", "123", %{value: 1}, %{version: 1})
 
-      Process.sleep(10)
-
       {:ok, snapshot2} =
         SnapshotOperations.save_snapshot("test_resource", "123", %{value: 2}, %{version: 2})
-
-      Process.sleep(10)
 
       {:ok, snapshot3} =
         SnapshotOperations.save_snapshot("test_resource", "123", %{value: 3}, %{version: 3})
@@ -201,16 +197,12 @@ defmodule HydepwnsLiveview.Events.SnapshotOperationsTest do
 
   describe "get_snapshots/2" do
     setup do
-      # Create multiple snapshots for the same resource with small delays to ensure different timestamps
+      # Create multiple snapshots for the same resource
       {:ok, snapshot1} =
         SnapshotOperations.save_snapshot("test_resource", "123", %{value: 1}, %{version: 1})
 
-      Process.sleep(10)
-
       {:ok, snapshot2} =
         SnapshotOperations.save_snapshot("test_resource", "123", %{value: 2}, %{version: 2})
-
-      Process.sleep(10)
 
       {:ok, snapshot3} =
         SnapshotOperations.save_snapshot("test_resource", "123", %{value: 3}, %{version: 3})

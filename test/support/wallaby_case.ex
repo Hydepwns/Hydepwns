@@ -55,13 +55,25 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
         end
 
       {:ok, session} = Wallaby.start_session(metadata: metadata)
+      # Visit root to set domain context
+      session = Wallaby.Browser.visit(session, "/")
+      # Set the sandbox cookie for LiveView processes (just the PID as string), with domain and path
+      session = Wallaby.Browser.set_cookie(session, "_phoenix_liveview_sandbox", inspect(self()), domain: "localhost", path: "/")
+      # Visit root again to ensure the cookie is sent
+      session = Wallaby.Browser.visit(session, "/")
+      # Allow the Wallaby session process to use the same DB connection
+      case session.server do
+        %{pid: pid} -> Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), pid)
+        _ -> :ok
+      end
 
       # Set the theme system ETS table in the session process
       if table = Process.get(:theme_system_ets_table) do
         Process.put(:theme_system_ets_table, table)
       end
 
-      session = visit_and_wait(session, "/themes")
+      # Remove the visit to /themes - let the test perform the first LiveView navigation
+      # session = visit_and_wait(session, "/themes")
       File.mkdir_p!("test/screenshots")
 
       if tags[:clean_screenshots] do

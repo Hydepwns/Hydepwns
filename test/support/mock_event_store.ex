@@ -40,28 +40,32 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
         Map.put(event, :id, Ecto.UUID.generate())
       end
 
-    # Convert Event struct to map for storage
-    event_map =
+    # Keep the original event struct or convert map to struct
+    event_struct =
       case event do
         %{__struct__: HydepwnsLiveview.Events.Core.Event} ->
-          %{
-            id: event.id,
-            type: event.type,
-            data: event.data,
-            resource_type: event.resource_type,
-            resource_id: event.resource_id,
-            correlation_id: event.correlation_id,
-            causation_id: event.causation_id,
-            metadata: event.metadata,
-            timestamp: event.timestamp
+          event
+
+        %{} ->
+          # Convert map to Event struct
+          %HydepwnsLiveview.Events.Core.Event{
+            id: Map.get(event, :id) || Map.get(event, "id") || Ecto.UUID.generate(),
+            type: Map.get(event, :type) || Map.get(event, "type"),
+            data: Map.get(event, :data) || Map.get(event, "data") || %{},
+            resource_type: Map.get(event, :resource_type) || Map.get(event, "resource_type"),
+            resource_id: Map.get(event, :resource_id) || Map.get(event, "resource_id"),
+            correlation_id: Map.get(event, :correlation_id) || Map.get(event, "correlation_id") || Ecto.UUID.generate(),
+            causation_id: Map.get(event, :causation_id) || Map.get(event, "causation_id"),
+            metadata: Map.get(event, :metadata) || Map.get(event, "metadata") || %{},
+            timestamp: Map.get(event, :timestamp) || Map.get(event, "timestamp") || DateTime.utc_now()
           }
 
         _ ->
           event
       end
 
-    new_state = %{state | events: [event_map | state.events]}
-    {:reply, {:ok, event_map}, new_state}
+    new_state = %{state | events: [event_struct | state.events]}
+    {:reply, {:ok, event_struct}, new_state}
   end
 
   def handle_call({:store_event, event}, _from, state) when is_map(event) do
@@ -73,28 +77,32 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
         Map.put(event, :id, Ecto.UUID.generate())
       end
 
-    # Convert Event struct to map for storage
-    event_map =
+    # Keep the original event struct or convert map to struct
+    event_struct =
       case event do
         %{__struct__: HydepwnsLiveview.Events.Core.Event} ->
-          %{
-            id: event.id,
-            type: event.type,
-            data: event.data,
-            resource_type: event.resource_type,
-            resource_id: event.resource_id,
-            correlation_id: event.correlation_id,
-            causation_id: event.causation_id,
-            metadata: event.metadata,
-            timestamp: event.timestamp
+          event
+
+        %{} ->
+          # Convert map to Event struct
+          %HydepwnsLiveview.Events.Core.Event{
+            id: Map.get(event, :id) || Map.get(event, "id") || Ecto.UUID.generate(),
+            type: Map.get(event, :type) || Map.get(event, "type"),
+            data: Map.get(event, :data) || Map.get(event, "data") || %{},
+            resource_type: Map.get(event, :resource_type) || Map.get(event, "resource_type"),
+            resource_id: Map.get(event, :resource_id) || Map.get(event, "resource_id"),
+            correlation_id: Map.get(event, :correlation_id) || Map.get(event, "correlation_id") || Ecto.UUID.generate(),
+            causation_id: Map.get(event, :causation_id) || Map.get(event, "causation_id"),
+            metadata: Map.get(event, :metadata) || Map.get(event, "metadata") || %{},
+            timestamp: Map.get(event, :timestamp) || Map.get(event, "timestamp") || DateTime.utc_now()
           }
 
         _ ->
           event
       end
 
-    new_state = %{state | events: [event_map | state.events]}
-    {:reply, {:ok, event_map}, new_state}
+    new_state = %{state | events: [event_struct | state.events]}
+    {:reply, {:ok, event_struct}, new_state}
   end
 
   def handle_call({:store_events, events}, _from, state) when is_list(events) do
@@ -108,28 +116,32 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
             Map.put(event, :id, Ecto.UUID.generate())
           end
 
-        # Convert Event struct to map for storage
-        event_map =
+        # Keep the original event struct or convert map to struct
+        event_struct =
           case event do
             %{__struct__: HydepwnsLiveview.Events.Core.Event} ->
-              %{
-                id: event.id,
-                type: event.type,
-                data: event.data,
-                resource_type: event.resource_type,
-                resource_id: event.resource_id,
-                correlation_id: event.correlation_id,
-                causation_id: event.causation_id,
-                metadata: event.metadata,
-                timestamp: event.timestamp
+              event
+
+            %{} ->
+              # Convert map to Event struct
+              %HydepwnsLiveview.Events.Core.Event{
+                id: Map.get(event, :id) || Map.get(event, "id") || Ecto.UUID.generate(),
+                type: Map.get(event, :type) || Map.get(event, "type"),
+                data: Map.get(event, :data) || Map.get(event, "data") || %{},
+                resource_type: Map.get(event, :resource_type) || Map.get(event, "resource_type"),
+                resource_id: Map.get(event, :resource_id) || Map.get(event, "resource_id"),
+                correlation_id: Map.get(event, :correlation_id) || Map.get(event, "correlation_id") || Ecto.UUID.generate(),
+                causation_id: Map.get(event, :causation_id) || Map.get(event, "causation_id"),
+                metadata: Map.get(event, :metadata) || Map.get(event, "metadata") || %{},
+                timestamp: Map.get(event, :timestamp) || Map.get(event, "timestamp") || DateTime.utc_now()
               }
 
             _ ->
               event
           end
 
-        new_state = %{current_state | events: [event_map | current_state.events]}
-        {[event_map | acc], new_state}
+        new_state = %{current_state | events: [event_struct | current_state.events]}
+        {[event_struct | acc], new_state}
       end)
 
     {:reply, {:ok, Enum.reverse(stored_events)}, new_state}
@@ -163,7 +175,10 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
 
   def handle_call({:get_event, id}, _from, state) do
     event = Enum.find(state.events, fn event -> event.id == id end)
-    {:reply, {:ok, event}, state}
+    case event do
+      nil -> {:reply, {:error, :not_found}, state}
+      event -> {:reply, {:ok, event}, state}
+    end
   end
 
   def handle_call({:get_events_for_resource, resource_type, resource_id}, _from, state) do

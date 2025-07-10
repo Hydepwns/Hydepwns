@@ -19,35 +19,31 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
   alias HydepwnsLiveview.TestSupport.ResourceFixtures
   alias HydepwnsLiveviewWeb.TestMockHelper
 
-  setup %{session: session} = _context do
-    # Set up mocks first, before any resource creation
-    TestMockHelper.setup_mocks()
-
-    # Set up Ecto SQL Sandbox for Wallaby tests
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(HydepwnsLiveview.Repo)
-    Ecto.Adapters.SQL.Sandbox.mode(HydepwnsLiveview.Repo, {:shared, self()})
-
-    {:ok, session: visit_and_wait(session, "/resources")}
-  end
-
   test "events are generated and processed during resource updates", %{session: session} do
-    # Create a resource first
-    {:ok, resource} =
-      ResourceFixtures.create_test_resource(%{
-        name: "Event Workflow Test Resource",
-        status: "published",
-        type: "document",
-        description: "A resource for testing event workflows",
-        content: %{text: "Initial content"}
-      })
-
-    # Navigate to resources page and wait for the resource to appear
+    # Navigate to resources page first
     session = visit(session, "/resources")
-    session = wait_for_text(session, resource.name)
 
-    # Click on the resource link to view it
-    session = click(session, Query.css("[data-test-id='resource-link-#{resource.id}']"))
-    session = wait_for_text(session, resource.name)
+    # Create the resource via the UI to ensure LiveView can see it
+    session = click(session, Query.css("[data-test-id='create-resource-link']"))
+    session = wait_for_text(session, "New Resource")
+
+    # Fill in the resource form
+    session = fill_in(session, Query.text_field("Name"), with: "Event Workflow Test Resource")
+    session = fill_in(session, Query.text_field("Description"), with: "A resource for testing event workflows")
+    session = fill_in(session, Query.text_field("Content"), with: "Initial content")
+    session = set_value(session, Query.select("Type"), "document")
+    session = set_value(session, Query.select("Status"), "published")
+
+    # Submit the form to create the resource
+    session = click(session, Query.button("Create Resource"))
+
+    # Wait for successful creation and redirect
+    session = wait_for_flash_message(session, "success", "Resource created successfully")
+    session = wait_for_text(session, "Event Workflow Test Resource")
+
+    # Click on the resource link to view it (the resource should now be visible)
+    session = click(session, Query.css("[data-test-id='resource-link']"))
+    session = wait_for_text(session, "Event Workflow Test Resource")
 
     # Click on the Edit link to go to edit page
     session = click(session, Query.css("[data-test-id='edit-resource-link']"))
@@ -73,21 +69,30 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
   end
 
   test "events are generated and processed during multiple resource updates", %{session: session} do
-    # Create a resource first
-    {:ok, resource} =
-      ResourceFixtures.create_test_resource(%{
-        name: "Multiple Updates Test Resource",
-        status: "published",
-        type: "document",
-        description: "A resource for testing multiple updates",
-        content: %{text: "Initial content"}
-      })
-
-    # First update
+    # Navigate to resources page first
     session = visit(session, "/resources")
-    session = wait_for_text(session, resource.name)
-    session = click(session, Query.css("[data-test-id='resource-link-#{resource.id}']"))
-    session = wait_for_text(session, resource.name)
+
+    # Create the resource via the UI to ensure LiveView can see it
+    session = click(session, Query.css("[data-test-id='create-resource-link']"))
+    session = wait_for_text(session, "New Resource")
+
+    # Fill in the resource form
+    session = fill_in(session, Query.text_field("Name"), with: "Multiple Updates Test Resource")
+    session = fill_in(session, Query.text_field("Description"), with: "A resource for testing multiple updates")
+    session = fill_in(session, Query.text_field("Content"), with: "Initial content")
+    session = set_value(session, Query.select("Type"), "document")
+    session = set_value(session, Query.select("Status"), "published")
+
+    # Submit the form to create the resource
+    session = click(session, Query.button("Create Resource"))
+
+    # Wait for successful creation and redirect
+    session = wait_for_flash_message(session, "success", "Resource created successfully")
+    session = wait_for_text(session, "Multiple Updates Test Resource")
+
+    # Click on the resource link to view it
+    session = click(session, Query.css("[data-test-id='resource-link']"))
+    session = wait_for_text(session, "Multiple Updates Test Resource")
     session = click(session, Query.css("[data-test-id='edit-resource-link']"))
     session = wait_for_text(session, "Edit Resource")
     session = fill_in(session, Query.text_field("Name"), with: "First Update Test Resource")
@@ -99,7 +104,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
     # Second update
     session = visit(session, "/resources")
     session = wait_for_text(session, "First Update Test Resource")
-    session = click(session, Query.css("[data-test-id='resource-link-#{resource.id}']"))
+    session = click(session, Query.css("[data-test-id='resource-link']"))
     session = wait_for_text(session, "First Update Test Resource")
     session = click(session, Query.css("[data-test-id='edit-resource-link']"))
     session = wait_for_text(session, "Edit Resource")
@@ -130,17 +135,28 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
   end
 
   test "event visualization shows processing status", %{session: session} do
-    # Create a test resource for timeline testing
-    {:ok, _resource} =
-      ResourceFixtures.create_test_resource(%{
-        name: "Event Visualization Test Resource",
-        status: "published",
-        type: "document",
-        description: "A resource for testing event visualization",
-        content: %{text: "Test content"}
-      })
+    # Navigate to timeline page first
+    session = visit(session, "/timeline")
 
-    # Navigate to timeline page
+    # Create a test resource for timeline testing via the UI
+    session = visit(session, "/resources")
+    session = click(session, Query.css("[data-test-id='create-resource-link']"))
+    session = wait_for_text(session, "New Resource")
+
+    # Fill in the resource form
+    session = fill_in(session, Query.text_field("Name"), with: "Event Visualization Test Resource")
+    session = fill_in(session, Query.text_field("Description"), with: "A resource for testing event visualization")
+    session = fill_in(session, Query.text_field("Content"), with: "Test content")
+    session = set_value(session, Query.select("Type"), "document")
+    session = set_value(session, Query.select("Status"), "published")
+
+    # Submit the form to create the resource
+    session = click(session, Query.button("Create Resource"))
+
+    # Wait for successful creation and redirect
+    session = wait_for_flash_message(session, "success", "Resource created successfully")
+
+    # Navigate to timeline page to see the new events
     session = visit(session, "/timeline")
     session = wait_for_text(session, "Event Timeline")
 
@@ -163,23 +179,30 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
   end
 
   test "event processing error handling works correctly", %{session: session} do
-    # Create a resource first
-    {:ok, resource} =
-      ResourceFixtures.create_test_resource(%{
-        name: "Error Handling Test Resource",
-        status: "published",
-        type: "document",
-        description: "A resource for testing error handling",
-        content: %{text: "Initial content"}
-      })
-
-    # Navigate to resources page and wait for the resource to appear
+    # Navigate to resources page first
     session = visit(session, "/resources")
-    session = wait_for_text(session, resource.name)
+
+    # Create the resource via the UI to ensure LiveView can see it
+    session = click(session, Query.css("[data-test-id='create-resource-link']"))
+    session = wait_for_text(session, "New Resource")
+
+    # Fill in the resource form
+    session = fill_in(session, Query.text_field("Name"), with: "Error Handling Test Resource")
+    session = fill_in(session, Query.text_field("Description"), with: "A resource for testing error handling")
+    session = fill_in(session, Query.text_field("Content"), with: "Initial content")
+    session = set_value(session, Query.select("Type"), "document")
+    session = set_value(session, Query.select("Status"), "published")
+
+    # Submit the form to create the resource
+    session = click(session, Query.button("Create Resource"))
+
+    # Wait for successful creation and redirect
+    session = wait_for_flash_message(session, "success", "Resource created successfully")
+    session = wait_for_text(session, "Error Handling Test Resource")
 
     # Click on the resource link to view it
-    session = click(session, Query.css("[data-test-id='resource-link-#{resource.id}']"))
-    session = wait_for_text(session, resource.name)
+    session = click(session, Query.css("[data-test-id='resource-link']"))
+    session = wait_for_text(session, "Error Handling Test Resource")
 
     # Click on the Edit link to go to edit page
     session = click(session, Query.css("[data-test-id='edit-resource-link']"))

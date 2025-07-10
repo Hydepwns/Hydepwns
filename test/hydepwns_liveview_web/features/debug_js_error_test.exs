@@ -72,6 +72,19 @@ defmodule HydepwnsLiveviewWeb.DebugJSErrorTest do
 
     # Try to create a resource using the link
     session = click(session, Query.css("[data-test-id='create-resource-link']"))
+
+    # Debug: Check what's actually on the page
+    page_source = Wallaby.Browser.page_source(session)
+    IO.puts("DEBUG: Page source contains 'resource-form': #{String.contains?(page_source, "resource-form")}")
+    IO.puts("DEBUG: Page source contains 'form': #{String.contains?(page_source, "form")}")
+    IO.puts("DEBUG: Page source contains 'New Resource': #{String.contains?(page_source, "New Resource")}")
+    IO.puts("DEBUG: Page source contains 'ResourceFormComponent': #{String.contains?(page_source, "ResourceFormComponent")}")
+
+    # Try to find any form on the page
+    forms = Wallaby.Browser.find(session, css("form"))
+    IO.puts("DEBUG: Found #{length(forms)} forms on the page")
+
+    # Try to find the specific form
     session = wait_for_element(session, css("form#resource-form"))
 
     # Verify we're on the resource creation form

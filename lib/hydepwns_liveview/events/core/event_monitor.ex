@@ -14,7 +14,6 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
   require Logger
   use GenServer
 
-  alias HydepwnsLiveview.Events.Core.EventStore
   alias HydepwnsLiveview.Events.Core.Event
   alias HydepwnsLiveview.Events.Core.NotificationSystem
   alias HydepwnsLiveview.Telemetry
@@ -37,6 +36,10 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
 
   @doc """
   Starts the EventMonitor process.
+
+  ## Options
+  * `:event_store` - Module to use for event storage (defaults to HydepwnsLiveview.Events.Core.EventStore)
+  * `:metric_interval` - Interval for metric collection in milliseconds
   """
   @spec start_link(Keyword.t()) :: GenServer.on_start()
   def start_link(opts \\ []) do
@@ -174,7 +177,7 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
   * `:ok` - Metric recorded successfully
   """
   @spec record_processing_metric(Event.t(), map()) :: :ok
-  def record_processing_metric(%Event{} = event, metrics) do
+  def record_processing_metric(%Event{} = event, metrics) when is_map(metrics) do
     # Extract required fields with defaults
     duration_ms = Map.get(metrics, :duration_ms, 0)
     handler = Map.get(metrics, :handler, :unknown)
@@ -196,6 +199,20 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
     )
 
     GenServer.cast(__MODULE__, {:record_metric, event, metrics})
+  end
+
+  @doc """
+  Records an event processing metric with default metrics.
+
+  ## Parameters
+  * `event` - The event that was processed
+
+  ## Returns
+  * `:ok` - Metric recorded successfully
+  """
+  @spec record_processing_metric(Event.t()) :: :ok
+  def record_processing_metric(%Event{} = event) do
+    record_processing_metric(event, %{})
   end
 
   @doc """
@@ -231,14 +248,27 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
     GenServer.cast(__MODULE__, {:record_queue_size, handler_name, queue_size})
   end
 
+  # TEST-ONLY: Reset the EventMonitor state for test isolation
+  if Mix.env() == :test do
+    @doc false
+    def reset_state do
+      GenServer.cast(__MODULE__, :reset_state)
+    end
+  end
+
   ##############################################################################
   # GenServer callbacks
   ##############################################################################
 
   @impl true
   def init(opts) do
+    # Get the event store module from options or use default
+    event_store = Keyword.get(opts, :event_store, HydepwnsLiveview.Events.Core.EventStore)
+
     # Initialize state with empty metrics
     state = %{
+      # Event store module to use
+      event_store: event_store,
       # Processing metrics by event type
       metrics_by_type: %{},
       # Error rates by event type
@@ -284,9 +314,9 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
     lookback_seconds = Keyword.get(opts, :lookback_seconds, 3600)
     start_time = DateTime.add(DateTime.utc_now(), -lookback_seconds, :second)
 
-    # Get events in the time period
+    # Get events in the time period using the configured event store
     with {:ok, events} <-
-           EventStore.get_events(%{
+           state.event_store.get_events(%{
              timestamp: %{after: start_time},
              sort: [timestamp: :asc]
            }) do
@@ -435,6 +465,36 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
   end
 
   @impl true
+  def handle_cast(:reset_state, state) do
+    # Reset all state except event_store and metric_interval
+    new_state = %{
+      state |
+      metrics_by_type: %{},
+      error_rates: %{},
+      queue_sizes: %{},
+      alert_config: %{
+        enabled: false,
+        notification_fn: nil,
+        notification_channels: [:in_app, :log],
+        recipients: :admins_only,
+        interval_ms: state.alert_config.interval_ms,
+        lookback_seconds: 300,
+        last_alert_time: nil,
+        thresholds: %{
+          queue_high: 1000,
+          processing_time: 500,
+          error_rate: 0.05
+        }
+      },
+      history: %{
+        metrics: [],
+        max_size: 1000
+      }
+    }
+    {:noreply, new_state}
+  end
+
+  @impl true
   def handle_info(:collect_metrics, state) do
     # This is triggered by the timer to collect metrics periodically
     # Collect current metrics
@@ -549,9 +609,9 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
   defp do_get_metrics(lookback_seconds, state) do
     start_time = DateTime.add(DateTime.utc_now(), -lookback_seconds, :second)
 
-    # Get events in the time period
+    # Get events in the time period using the configured event store
     with {:ok, events} <-
-           EventStore.get_events(%{
+           state.event_store.get_events(%{
              timestamp: %{after: start_time},
              sort: [timestamp: :asc]
            }) do

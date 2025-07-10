@@ -85,7 +85,7 @@ defmodule HydepwnsLiveview.MixProject do
       {:phoenix_html, "~> 3.3"},
       # {:phoenix_html_helpers, "0.3.0"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
-      {:phoenix_live_view, "~> 1.0.17"},
+      {:phoenix_live_view, "~> 1.1.0-rc.2"},
       {:floki, ">= 0.30.0", only: :test},
       {:phoenix_live_dashboard, "~> 0.8.2"},
       {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
@@ -115,6 +115,8 @@ defmodule HydepwnsLiveview.MixProject do
       # Testing tools
       {:mox, "~> 1.0", only: :test},
       {:wallaby, "~> 0.30.3", only: :test, runtime: false},
+      {:mock, "~> 0.3.0", only: :test},
+      {:lazy_html, ">= 0.1.0", only: :test},
 
       # Add UUID generation
       {:uuid, "~> 1.1"},

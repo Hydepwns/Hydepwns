@@ -202,9 +202,13 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   """
   @spec store_event(String.t(), map()) :: {:ok, Event.t()} | {:error, Ecto.Changeset.t()}
   def store_event(event_type, event_data) do
+    # This function requires resource_id and resource_type to be provided
+    # For now, we'll generate them automatically, but this should be improved
     %Event{}
     |> Event.changeset(%{
       type: event_type,
+      resource_id: "auto-generated-#{Ecto.UUID.generate()}",
+      resource_type: "auto-generated",
       data: event_data,
       timestamp: DateTime.utc_now()
     })
@@ -226,6 +230,10 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
     Repo.transaction(fn ->
       Enum.map(events, &Repo.insert!/1)
     end)
+  rescue
+    e ->
+      Logger.error("Error storing events: #{inspect(e)}")
+      {:error, e}
   end
 
   @doc """
@@ -274,14 +282,16 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   """
   @spec get_event(any()) :: {:ok, Event.t()} | {:error, any()}
   def get_event(id) do
-    case HydepwnsLiveview.RepoHelper.get(Event, id, timeout: 5000) do
-      nil -> {:error, :not_found}
-      event -> {:ok, event}
+    try do
+      case Repo.get(Event, id) do
+        nil -> {:error, :not_found}
+        event -> {:ok, event}
+      end
+    rescue
+      e ->
+        Logger.error("Error retrieving event #{id}: #{inspect(e)}")
+        {:error, e}
     end
-  rescue
-    e ->
-      Logger.error("Error retrieving event #{id}: #{inspect(e)}")
-      {:error, e}
   end
 
   @doc """
@@ -668,7 +678,8 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
 
   defp build_base_query(session) do
     from e in Event,
-      where: e._resource_type == ^session._resource_type and e._resource_id == ^session._resource_id
+      where:
+        e._resource_type == ^session._resource_type and e._resource_id == ^session._resource_id
   end
 
   defp add_start_event_constraint(query, session) do
@@ -917,9 +928,9 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   def get_events_for_resource_at(resource_type, resource_id, timestamp) do
     query =
       from e in Event,
-        where: e._resource_type == ^resource_type and e._resource_id == ^resource_id,
-        where: e.inserted_at <= ^timestamp,
-        order_by: [asc: e.inserted_at]
+        where: e.resource_type == ^resource_type and e.resource_id == ^resource_id,
+        where: e.timestamp <= ^timestamp,
+        order_by: [asc: e.timestamp]
 
     try do
       {:ok, Repo.all(query)}
@@ -1076,7 +1087,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   end
 
   defp apply_criterion({:resource_id, resource_id}, query) do
-    where(query, [e], e._resource_id == ^resource_id)
+    where(query, [e], e.resource_id == ^resource_id)
   end
 
   defp apply_criterion({:timestamp, timestamp_criteria}, query) when is_map(timestamp_criteria) do

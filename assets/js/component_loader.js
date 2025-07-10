@@ -16,20 +16,66 @@ const componentRegistry = {
 const loadedComponents = new Set();
 
 function loadComponents() {
-  Object.entries(componentRegistry).forEach(([selector, loaders]) => {
-    if (document.querySelector(selector)) {
-      const loaderArray = Array.isArray(loaders) ? loaders : [loaders];
-      loaderArray.forEach(loader => {
-        const loaderKey = loader.toString();
-        if (!loadedComponents.has(loaderKey)) {
-          loader();
-          loadedComponents.add(loaderKey);
+  try {
+    Object.entries(componentRegistry).forEach(([selector, loaders]) => {
+      try {
+        // Validate selector before using it
+        if (!selector || typeof selector !== 'string') {
+          console.warn("Invalid selector:", selector);
+          return;
         }
-      });
-    }
-  });
+
+        // Check if element exists
+        const element = document.querySelector(selector);
+        if (!element) {
+          return; // Element not found, skip loading
+        }
+
+        const loaderArray = Array.isArray(loaders) ? loaders : [loaders];
+        loaderArray.forEach(loader => {
+          try {
+            const loaderKey = loader.toString();
+            if (!loadedComponents.has(loaderKey)) {
+              // Execute the loader function
+              const result = loader();
+              
+              // Handle both Promise and non-Promise results
+              if (result && typeof result.then === 'function') {
+                result.catch(error => {
+                  console.error(`Failed to load component for selector "${selector}":`, error);
+                });
+              }
+              
+              loadedComponents.add(loaderKey);
+            }
+          } catch (error) {
+            console.error(`Error loading component for selector "${selector}":`, error);
+          }
+        });
+      } catch (error) {
+        console.error(`Error processing selector "${selector}":`, error);
+      }
+    });
+  } catch (error) {
+    console.error("Error in loadComponents:", error);
+  }
 }
 
-document.addEventListener('DOMContentLoaded', loadComponents);
+// Safe event listener registration
+try {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadComponents);
+  } else {
+    // DOM is already loaded
+    loadComponents();
+  }
+} catch (error) {
+  console.error("Error setting up DOMContentLoaded listener:", error);
+}
 
-window.addEventListener('phx:page-loading-stop', loadComponents); 
+// Safe phx:page-loading-stop listener
+try {
+  window.addEventListener('phx:page-loading-stop', loadComponents);
+} catch (error) {
+  console.error("Error setting up phx:page-loading-stop listener:", error);
+} 

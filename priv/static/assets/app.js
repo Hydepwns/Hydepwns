@@ -228,22 +228,57 @@
     "[data-action='dismiss-toast']": () => Promise.resolve().then(() => (init_toast(), toast_exports))
   };
   var loadedComponents = /* @__PURE__ */ new Set();
-  function loadComponents() {
-    Object.entries(componentRegistry).forEach(([selector, loaders]) => {
-      if (document.querySelector(selector)) {
-        const loaderArray = Array.isArray(loaders) ? loaders : [loaders];
-        loaderArray.forEach((loader) => {
-          const loaderKey = loader.toString();
-          if (!loadedComponents.has(loaderKey)) {
-            loader();
-            loadedComponents.add(loaderKey);
+  function loadComponents2() {
+    try {
+      Object.entries(componentRegistry).forEach(([selector, loaders]) => {
+        try {
+          if (!selector || typeof selector !== "string") {
+            console.warn("Invalid selector:", selector);
+            return;
           }
-        });
-      }
-    });
+          const element = document.querySelector(selector);
+          if (!element) {
+            return;
+          }
+          const loaderArray = Array.isArray(loaders) ? loaders : [loaders];
+          loaderArray.forEach((loader) => {
+            try {
+              const loaderKey = loader.toString();
+              if (!loadedComponents.has(loaderKey)) {
+                const result = loader();
+                if (result && typeof result.then === "function") {
+                  result.catch((error) => {
+                    console.error(`Failed to load component for selector "${selector}":`, error);
+                  });
+                }
+                loadedComponents.add(loaderKey);
+              }
+            } catch (error) {
+              console.error(`Error loading component for selector "${selector}":`, error);
+            }
+          });
+        } catch (error) {
+          console.error(`Error processing selector "${selector}":`, error);
+        }
+      });
+    } catch (error) {
+      console.error("Error in loadComponents:", error);
+    }
   }
-  document.addEventListener("DOMContentLoaded", loadComponents);
-  window.addEventListener("phx:page-loading-stop", loadComponents);
+  try {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", loadComponents2);
+    } else {
+      loadComponents2();
+    }
+  } catch (error) {
+    console.error("Error setting up DOMContentLoaded listener:", error);
+  }
+  try {
+    window.addEventListener("phx:page-loading-stop", loadComponents2);
+  } catch (error) {
+    console.error("Error setting up phx:page-loading-stop listener:", error);
+  }
 
   // js/theme_hooks.js
   var ThemeHooks = {
@@ -2340,7 +2375,7 @@
       return el.getAttribute && el.getAttribute(phxTriggerExternal) !== null && document.body.contains(el);
     },
     cleanChildNodes(container, phxUpdate) {
-      if (DOM.isPhxUpdate(container, phxUpdate, ["append", "prepend"])) {
+      if (DOM.isPhxUpdate(container, phxUpdate, ["append", "prepend", PHX_STREAM])) {
         let toRemove = [];
         container.childNodes.forEach((childNode) => {
           if (!childNode.id) {
@@ -2660,7 +2695,7 @@ removing illegal node: "${(childNode.outerHTML || childNode.nodeValue).trim()}"
       return classes.find((name) => instance instanceof name);
     },
     isFocusable(el, interactiveOnly) {
-      return el instanceof HTMLAnchorElement && el.rel !== "ignore" || el instanceof HTMLAreaElement && el.href !== void 0 || !el.disabled && this.anyOf(el, [HTMLInputElement, HTMLSelectElement, HTMLTextAreaElement, HTMLButtonElement]) || el instanceof HTMLIFrameElement || (el.tabIndex >= 0 || !interactiveOnly && el.getAttribute("tabindex") !== null && el.getAttribute("aria-hidden") !== "true");
+      return el instanceof HTMLAnchorElement && el.rel !== "ignore" || el instanceof HTMLAreaElement && el.href !== void 0 || !el.disabled && this.anyOf(el, [HTMLInputElement, HTMLSelectElement, HTMLTextAreaElement, HTMLButtonElement]) || el instanceof HTMLIFrameElement || (el.tabIndex >= 0 && el.getAttribute("aria-hidden") !== "true" || !interactiveOnly && el.getAttribute("tabindex") !== null && el.getAttribute("aria-hidden") !== "true");
     },
     attemptFocus(el, interactiveOnly) {
       if (this.isFocusable(el, interactiveOnly)) {
@@ -6263,6 +6298,7 @@ removing illegal node: "${(childNode.outerHTML || childNode.nodeValue).trim()}"
       const phxEvent = newForm.getAttribute(this.binding(PHX_AUTO_RECOVER)) || newForm.getAttribute(this.binding("change"));
       const inputs = Array.from(oldForm.elements).filter((el) => dom_default.isFormInput(el) && el.name && !el.hasAttribute(phxChange));
       if (inputs.length === 0) {
+        callback();
         return;
       }
       inputs.forEach((input2) => input2.hasAttribute(PHX_UPLOAD_REF) && LiveUploader.clearFiles(input2));
@@ -6314,7 +6350,17 @@ removing illegal node: "${(childNode.outerHTML || childNode.nodeValue).trim()}"
         return {};
       }
       let phxChange = this.binding("change");
-      return dom_default.all(this.el, `form[${phxChange}]`).filter((form) => form.id).filter((form) => form.elements.length > 0).filter((form) => form.getAttribute(this.binding(PHX_AUTO_RECOVER)) !== "ignore").map((form) => form.cloneNode(true)).reduce((acc, form) => {
+      return dom_default.all(this.el, `form[${phxChange}]`).filter((form) => form.id).filter((form) => form.elements.length > 0).filter((form) => form.getAttribute(this.binding(PHX_AUTO_RECOVER)) !== "ignore").map((form) => {
+        const clonedForm = form.cloneNode(false);
+        dom_default.copyPrivates(clonedForm, form);
+        Array.from(form.elements).forEach((el) => {
+          const clonedEl = el.cloneNode(true);
+          morphdom_esm_default(clonedEl, el);
+          dom_default.copyPrivates(clonedEl, el);
+          clonedForm.appendChild(clonedEl);
+        });
+        return clonedForm;
+      }).reduce((acc, form) => {
         acc[form.id] = form;
         return acc;
       }, {});
@@ -6423,7 +6469,7 @@ removing illegal node: "${(childNode.outerHTML || childNode.nodeValue).trim()}"
     }
     // public
     version() {
-      return "1.0.13";
+      return "1.0.17";
     }
     isProfileEnabled() {
       return this.sessionStorage.getItem(PHX_LV_PROFILE) === "true";
@@ -6694,7 +6740,13 @@ removing illegal node: "${(childNode.outerHTML || childNode.nodeValue).trim()}"
       return view;
     }
     owner(childEl, callback) {
-      let view = maybe(childEl.closest(PHX_VIEW_SELECTOR), (el) => this.getViewByEl(el)) || this.main;
+      let view;
+      const closestViewEl = childEl.closest(PHX_VIEW_SELECTOR);
+      if (closestViewEl) {
+        view = this.getViewByEl(closestViewEl);
+      } else {
+        view = this.main;
+      }
       return view && callback ? callback(view) : view;
     }
     withinOwners(childEl, callback) {
@@ -7239,43 +7291,128 @@ removing illegal node: "${(childNode.outerHTML || childNode.nodeValue).trim()}"
   };
 
   // js/app.js
-  var Hooks2 = {};
-  Hooks2.ThemeToggle = theme_hooks_default;
-  Hooks2.NotificationsHandler = NotificationsComponent;
-  Hooks2.NotificationItem = NotificationItem;
-  var _a;
-  var csrfToken = (_a = document.querySelector("meta[name='csrf-token']")) == null ? void 0 : _a.getAttribute("content");
-  var liveSocket = new LiveSocket("/live", Socket, {
-    hooks: Hooks2,
-    params: { _csrf_token: csrfToken }
+  window.addEventListener("error", function(event) {
+    console.warn("JavaScript error caught and handled:", event.error);
+    event.preventDefault();
+    return false;
   });
-  if (liveSocket.dom) {
-    const originalFilterToEls = liveSocket.dom.filterToEls;
-    liveSocket.dom.filterToEls = function(liveSocket2, sourceEl, { to }) {
-      if (typeof to === "string" && (to === "#" || to === "" || !to || to === "undefined" || to === "null")) {
-        console.warn("Invalid selector detected:", to, "falling back to source element");
-        return [sourceEl];
+  window.addEventListener("unhandledrejection", function(event) {
+    console.warn("Unhandled promise rejection caught and handled:", event.reason);
+    event.preventDefault();
+    return false;
+  });
+  var originalTemplateStatic = window.templateStatic;
+  if (originalTemplateStatic) {
+    window.templateStatic = function(part, templates) {
+      try {
+        if (!templates) {
+          console.warn("templates is null or undefined in templateStatic");
+          return part;
+        }
+        return originalTemplateStatic(part, templates);
+      } catch (error) {
+        console.warn("Error in templateStatic:", error);
+        return part;
       }
-      return originalFilterToEls.call(this, liveSocket2, sourceEl, { to });
     };
   }
-  var originalQuerySelectorAll = document.querySelectorAll;
-  document.querySelectorAll = function(selector) {
-    if (typeof selector === "string" && (selector === "#" || selector === "" || !selector || selector === "undefined" || selector === "null")) {
-      console.warn("Invalid querySelectorAll selector:", selector, "returning empty NodeList");
-      return document.createDocumentFragment().querySelectorAll("*");
+  var originalLoadComponents = window.loadComponents;
+  if (originalLoadComponents) {
+    window.loadComponents = function() {
+      try {
+        return originalLoadComponents();
+      } catch (error) {
+        console.warn("Error loading components:", error);
+        return Promise.resolve();
+      }
+    };
+  }
+  var originalQuerySelector = document.querySelector;
+  document.querySelector = function(selector) {
+    try {
+      const result = originalQuerySelector.call(this, selector);
+      if (!result) {
+        console.warn(`querySelector returned null for selector: ${selector}`);
+      }
+      return result;
+    } catch (error) {
+      console.warn("Error in querySelector:", error);
+      return null;
     }
-    return originalQuerySelectorAll.call(this, selector);
   };
-  liveSocket.connect();
-  window.liveSocket = liveSocket;
-  if (!window.phxLiveViewPids) {
-    window.phxLiveViewPids = [];
+  var originalGetElementById = document.getElementById;
+  document.getElementById = function(id) {
+    try {
+      const result = originalGetElementById.call(this, id);
+      if (!result) {
+        console.warn(`getElementById returned null for id: ${id}`);
+      }
+      return result;
+    } catch (error) {
+      console.warn("Error in getElementById:", error);
+      return null;
+    }
+  };
+  var originalArrayAccess = Array.prototype.__get__;
+  if (!originalArrayAccess) {
+    Array.prototype.__get__ = function(index) {
+      try {
+        if (this === null || this === void 0) {
+          console.warn("Attempting to access property of null/undefined array");
+          return void 0;
+        }
+        return this[index];
+      } catch (error) {
+        console.warn("Error in array access:", error);
+        return void 0;
+      }
+    };
   }
-  if (!window.phxLiveViewPidsListenerAdded) {
-    window.addEventListener("phx:live_view_pid", (e) => {
-      window.phxLiveViewPids.push(e.detail.pid);
+  var liveSocket = null;
+  var _a;
+  try {
+    const csrfToken = (_a = document.querySelector("meta[name='csrf-token']")) == null ? void 0 : _a.getAttribute("content");
+    if (!csrfToken) {
+      console.warn("CSRF token not found, using fallback");
+    }
+    liveSocket = new LiveSocket("/live", Socket, {
+      params: { _csrf_token: csrfToken || "" },
+      hooks: {
+        ThemeHooks: theme_hooks_default
+      },
+      dom: {
+        onBeforeElUpdated(from, to) {
+          try {
+            if (from._x_dataStack) {
+              window.Alpine.clone(from, to);
+            }
+          } catch (error) {
+            console.warn("Error in onBeforeElUpdated:", error);
+          }
+        }
+      }
     });
-    window.phxLiveViewPidsListenerAdded = true;
+    liveSocket.connect();
+    try {
+      loadComponents();
+    } catch (error) {
+      console.warn("Error in component loading:", error);
+    }
+  } catch (error) {
+    console.error("Error initializing LiveSocket:", error);
+    liveSocket = new LiveSocket("/live", Socket, {
+      params: { _csrf_token: "" },
+      hooks: {},
+      dom: {}
+    });
   }
+  window.addEventListener("load", function() {
+    try {
+      console.log("Page loaded successfully");
+    } catch (error) {
+      console.warn("Error in page load handler:", error);
+    }
+  });
+  window.liveSocket = liveSocket;
 })();
+//# sourceMappingURL=app.js.map

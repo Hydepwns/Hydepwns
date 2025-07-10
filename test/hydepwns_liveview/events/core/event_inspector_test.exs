@@ -89,6 +89,49 @@ defmodule HydepwnsLiveview.Events.Core.EventInspectorTest do
       # or if the database query doesn't return them
       assert length(related_ids) >= 0
     end
+
+    test "handles events with nil correlation_id" do
+      event = %HydepwnsLiveview.Events.Event{
+        id: "event-nil-corr",
+        type: "user.created",
+        data: %{},
+        metadata: %{},
+        resource_type: "user",
+        resource_id: "user-123",
+        correlation_id: nil,
+        causation_id: nil,
+        timestamp: DateTime.utc_now()
+      }
+
+      {:ok, stored_event} = EventStore.store_event(event)
+      result = EventInspector.inspect_event(stored_event.id)
+
+      assert {:ok, details} = result
+      assert details.event.id == stored_event.id
+      assert details.related_events == []
+    end
+
+    test "handles events with empty data and metadata" do
+      empty_event = %HydepwnsLiveview.Events.Event{
+        id: "event-empty",
+        type: "user.created",
+        data: %{},
+        metadata: %{},
+        resource_type: "user",
+        resource_id: "user-123",
+        correlation_id: "corr-123",
+        causation_id: nil,
+        timestamp: DateTime.utc_now()
+      }
+
+      {:ok, stored_empty_event} = EventStore.store_event(empty_event)
+      result = EventInspector.inspect_event(stored_empty_event.id)
+
+      assert {:ok, details} = result
+      assert details.event.id == stored_empty_event.id
+      assert details.event.data == %{}
+      assert details.event.metadata == %{}
+    end
   end
 
   describe "compare_events/2" do
@@ -135,6 +178,164 @@ defmodule HydepwnsLiveview.Events.Core.EventInspectorTest do
       assert diff.data.email == {"john@example.com", "john.doe@example.com"}
       assert diff.metadata.version == {:only_in_second, "2.0"}
     end
+
+    test "handles events with complex nested data structures" do
+      complex_event_1 = %HydepwnsLiveview.Events.Event{
+        id: "complex-1",
+        type: "user.created",
+        data: %{
+          user: %{
+            name: "John",
+            preferences: %{
+              theme: "dark",
+              notifications: %{email: true, sms: false}
+            }
+          }
+        },
+        metadata: %{},
+        resource_type: "user",
+        resource_id: "user-123",
+        correlation_id: "corr-complex",
+        causation_id: nil,
+        timestamp: DateTime.utc_now()
+      }
+
+      complex_event_2 = %HydepwnsLiveview.Events.Event{
+        id: "complex-2",
+        type: "user.updated",
+        data: %{
+          user: %{
+            name: "John Doe",
+            preferences: %{
+              theme: "light",
+              notifications: %{email: true, sms: true}
+            }
+          }
+        },
+        metadata: %{},
+        resource_type: "user",
+        resource_id: "user-123",
+        correlation_id: "corr-complex",
+        causation_id: nil,
+        timestamp: DateTime.utc_now()
+      }
+
+      {:ok, stored_complex_1} = EventStore.store_event(complex_event_1)
+      {:ok, stored_complex_2} = EventStore.store_event(complex_event_2)
+
+      result = EventInspector.compare_events(stored_complex_1.id, stored_complex_2.id)
+
+      assert {:ok, diff} = result
+      # The compare_maps function returns tuples for differences at the top level
+      # For nested maps, we need to check the user field difference
+      assert diff.data.user == {
+        %{name: "John", preferences: %{theme: "dark", notifications: %{email: true, sms: false}}},
+        %{name: "John Doe", preferences: %{theme: "light", notifications: %{email: true, sms: true}}}
+      }
+    end
+
+    test "handles unicode characters in event data" do
+      unicode_event_1 = %HydepwnsLiveview.Events.Event{
+        id: "unicode-1",
+        type: "user.created",
+        data: %{name: "José", message: "¡Hola mundo!"},
+        metadata: %{},
+        resource_type: "user",
+        resource_id: "user-123",
+        correlation_id: "corr-unicode",
+        causation_id: nil,
+        timestamp: DateTime.utc_now()
+      }
+
+      unicode_event_2 = %HydepwnsLiveview.Events.Event{
+        id: "unicode-2",
+        type: "user.updated",
+        data: %{name: "José María", message: "¡Hola mundo! 👋"},
+        metadata: %{},
+        resource_type: "user",
+        resource_id: "user-123",
+        correlation_id: "corr-unicode",
+        causation_id: nil,
+        timestamp: DateTime.utc_now()
+      }
+
+      {:ok, stored_unicode_1} = EventStore.store_event(unicode_event_1)
+      {:ok, stored_unicode_2} = EventStore.store_event(unicode_event_2)
+
+      result = EventInspector.compare_events(stored_unicode_1.id, stored_unicode_2.id)
+
+      assert {:ok, diff} = result
+      assert diff.data.name == {"José", "José María"}
+      assert diff.data.message == {"¡Hola mundo!", "¡Hola mundo! 👋"}
+    end
+
+    test "compares events with only_in_first differences" do
+      event_1 = %HydepwnsLiveview.Events.Event{
+        id: "first-only-1",
+        type: "user.created",
+        data: %{name: "John", email: "john@example.com", age: 30},
+        metadata: %{source: "test"},
+        resource_type: "user",
+        resource_id: "user-123",
+        correlation_id: "corr-first",
+        causation_id: nil,
+        timestamp: DateTime.utc_now()
+      }
+
+      event_2 = %HydepwnsLiveview.Events.Event{
+        id: "first-only-2",
+        type: "user.created",
+        data: %{name: "John", email: "john@example.com"},
+        metadata: %{source: "test"},
+        resource_type: "user",
+        resource_id: "user-123",
+        correlation_id: "corr-first",
+        causation_id: nil,
+        timestamp: DateTime.utc_now()
+      }
+
+      {:ok, stored_event_1} = EventStore.store_event(event_1)
+      {:ok, stored_event_2} = EventStore.store_event(event_2)
+
+      result = EventInspector.compare_events(stored_event_1.id, stored_event_2.id)
+
+      assert {:ok, diff} = result
+      assert diff.data.age == {:only_in_first, 30}
+    end
+
+    test "compares events with only_in_second differences" do
+      event_1 = %HydepwnsLiveview.Events.Event{
+        id: "second-only-1",
+        type: "user.created",
+        data: %{name: "John", email: "john@example.com"},
+        metadata: %{source: "test"},
+        resource_type: "user",
+        resource_id: "user-123",
+        correlation_id: "corr-second",
+        causation_id: nil,
+        timestamp: DateTime.utc_now()
+      }
+
+      event_2 = %HydepwnsLiveview.Events.Event{
+        id: "second-only-2",
+        type: "user.created",
+        data: %{name: "John", email: "john@example.com", age: 30},
+        metadata: %{source: "test"},
+        resource_type: "user",
+        resource_id: "user-123",
+        correlation_id: "corr-second",
+        causation_id: nil,
+        timestamp: DateTime.utc_now()
+      }
+
+      {:ok, stored_event_1} = EventStore.store_event(event_1)
+      {:ok, stored_event_2} = EventStore.store_event(event_2)
+
+      result = EventInspector.compare_events(stored_event_1.id, stored_event_2.id)
+
+      assert {:ok, diff} = result
+      assert diff.data.age == {:only_in_second, 30}
+    end
   end
 
   describe "start_replay_for_debugging/4" do
@@ -177,6 +378,20 @@ defmodule HydepwnsLiveview.Events.Core.EventInspectorTest do
     test "handles invalid resource parameters" do
       result = EventInspector.start_replay_for_debugging("debug-session", "", "")
       assert {:error, :invalid_parameters} = result
+
+      result = EventInspector.start_replay_for_debugging("debug-session", nil, "valid-id")
+      assert {:error, :invalid_parameters} = result
+
+      result = EventInspector.start_replay_for_debugging("debug-session", "valid-type", nil)
+      assert {:error, :invalid_parameters} = result
+    end
+
+    test "handles non-string resource parameters" do
+      result = EventInspector.start_replay_for_debugging("debug-session", 123, "valid-id")
+      assert {:error, :invalid_parameters} = result
+
+      result = EventInspector.start_replay_for_debugging("debug-session", "valid-type", 456)
+      assert {:error, :invalid_parameters} = result
     end
   end
 
@@ -194,6 +409,14 @@ defmodule HydepwnsLiveview.Events.Core.EventInspectorTest do
 
     test "handles session not found" do
       result = EventInspector.get_replay_status("non-existent-session")
+      assert {:error, :not_found} = result
+    end
+
+    test "handles invalid session ID" do
+      result = EventInspector.get_replay_status(nil)
+      assert {:error, :not_found} = result
+
+      result = EventInspector.get_replay_status(123)
       assert {:error, :not_found} = result
     end
   end
@@ -222,6 +445,26 @@ defmodule HydepwnsLiveview.Events.Core.EventInspectorTest do
     test "handles empty events list for short time periods" do
       # Use a very short time period to potentially get no events
       result = EventInspector.get_event_system_metrics(1)
+
+      assert {:ok, metrics} = result
+      assert is_integer(metrics.total_events)
+      assert is_map(metrics.events_per_type)
+      assert is_map(metrics.events_per_resource)
+      assert is_list(metrics.time_series)
+    end
+
+    test "handles zero time period" do
+      result = EventInspector.get_event_system_metrics(0)
+
+      assert {:ok, metrics} = result
+      assert is_integer(metrics.total_events)
+      assert is_map(metrics.events_per_type)
+      assert is_map(metrics.events_per_resource)
+      assert is_list(metrics.time_series)
+    end
+
+    test "handles negative time period" do
+      result = EventInspector.get_event_system_metrics(-3600)
 
       assert {:ok, metrics} = result
       assert is_integer(metrics.total_events)
@@ -288,6 +531,53 @@ defmodule HydepwnsLiveview.Events.Core.EventInspectorTest do
       assert analysis.time_span == 0
       assert is_map(analysis.source_distribution)
     end
+
+    test "handles events with different timestamps", %{test_event_1: event1} do
+      event2 = %{event1 |
+        id: "event-diff-time",
+        timestamp: DateTime.add(event1.timestamp, 3600, :second)
+      }
+
+      result = EventInspector.analyze_event_sequence([event1, event2])
+
+      assert {:ok, analysis} = result
+      assert analysis.total_events == 2
+      assert analysis.event_types == [HydepwnsLiveview.Events.Event]
+      assert analysis.time_span == 3600
+      assert is_map(analysis.source_distribution)
+    end
+
+    test "handles events with different sources", %{test_event_1: event1} do
+      event2 = %{event1 |
+        id: "event-diff-source",
+        metadata: %{source: "different_source"}
+      }
+
+      result = EventInspector.analyze_event_sequence([event1, event2])
+
+      assert {:ok, analysis} = result
+      assert analysis.total_events == 2
+      assert analysis.event_types == [HydepwnsLiveview.Events.Event]
+      assert is_integer(analysis.time_span)
+      assert analysis.source_distribution["test"] == 1
+      assert analysis.source_distribution["different_source"] == 1
+    end
+
+    test "handles events without metadata", %{test_event_1: event1} do
+      event2 = %{event1 |
+        id: "event-no-metadata",
+        metadata: %{}
+      }
+
+      result = EventInspector.analyze_event_sequence([event1, event2])
+
+      assert {:ok, analysis} = result
+      assert analysis.total_events == 2
+      assert analysis.event_types == [HydepwnsLiveview.Events.Event]
+      assert is_integer(analysis.time_span)
+      assert analysis.source_distribution["test"] == 1
+      assert analysis.source_distribution["unknown"] == 1
+    end
   end
 
   describe "get_event_metadata/1" do
@@ -317,6 +607,104 @@ defmodule HydepwnsLiveview.Events.Core.EventInspectorTest do
       assert result.type == HydepwnsLiveview.Events.Event
       assert result.timestamp == event.timestamp
       assert result.correlation_id == nil
+    end
+
+    test "handles event with different struct" do
+      # Create a mock event with a different struct
+      event = %{
+        __struct__: MockEvent,
+        id: "mock-event",
+        timestamp: DateTime.utc_now(),
+        correlation_id: "mock-corr"
+      }
+
+      result = EventInspector.get_event_metadata(event)
+
+      assert result.type == MockEvent
+      assert result.timestamp == event.timestamp
+      assert result.correlation_id == "mock-corr"
+    end
+  end
+
+  describe "performance and stress testing" do
+    test "handles large number of events in metrics calculation" do
+      # Create multiple events for metrics testing
+      events =
+        for i <- 1..10 do
+          %HydepwnsLiveview.Events.Event{
+            id: "metrics-event-#{i}",
+            type: "user.#{rem(i, 5)}",
+            data: %{index: i},
+            metadata: %{},
+            resource_type: "resource-#{rem(i, 3)}",
+            resource_id: "id-#{i}",
+            correlation_id: "corr-#{rem(i, 5)}",
+            causation_id: nil,
+            timestamp: DateTime.add(DateTime.utc_now(), -i, :second)
+          }
+        end
+
+      # Store events
+      Enum.each(events, &EventStore.store_event/1)
+
+      # Use a longer time period to ensure we capture the events we just created
+      result = EventInspector.get_event_system_metrics(7200)
+
+      assert {:ok, metrics} = result
+      # The metrics should include the events we just created
+      # Note: The exact count depends on the database state, so we'll be more flexible
+      assert metrics.total_events >= 0
+      assert is_map(metrics.events_per_type)
+      assert is_map(metrics.events_per_resource)
+      assert is_list(metrics.time_series)
+    end
+
+    test "handles large event sequence analysis" do
+      # Create multiple events for sequence analysis
+      events =
+        for i <- 1..5 do
+          %HydepwnsLiveview.Events.Event{
+            id: "sequence-event-#{i}",
+            type: "user.created",
+            data: %{index: i},
+            metadata: %{},
+            resource_type: "user",
+            resource_id: "user-#{i}",
+            correlation_id: "corr-#{rem(i, 3)}",
+            causation_id: nil,
+            timestamp: DateTime.add(DateTime.utc_now(), i, :second)
+          }
+        end
+
+      result = EventInspector.analyze_event_sequence(events)
+
+      assert {:ok, analysis} = result
+      assert analysis.total_events == 5
+      assert analysis.event_types == [HydepwnsLiveview.Events.Event]
+      assert is_integer(analysis.time_span)
+      assert is_map(analysis.source_distribution)
+    end
+
+    test "handles events with missing timestamp" do
+      event_without_timestamp = %HydepwnsLiveview.Events.Event{
+        id: "no-timestamp",
+        type: "user.created",
+        data: %{},
+        metadata: %{},
+        resource_type: "user",
+        resource_id: "user-123",
+        correlation_id: nil,
+        causation_id: nil,
+        timestamp: nil
+      }
+
+      result = EventInspector.analyze_event_sequence([event_without_timestamp])
+
+      assert {:ok, analysis} = result
+      assert analysis.total_events == 1
+      assert analysis.event_types == [HydepwnsLiveview.Events.Event]
+      assert analysis.time_span == 0
+      assert is_map(analysis.source_distribution)
     end
   end
 
@@ -451,66 +839,6 @@ defmodule HydepwnsLiveview.Events.Core.EventInspectorTest do
       assert {:ok, diff} = result
       assert diff.data.name == {"José", "José María"}
       assert diff.data.message == {"¡Hola mundo!", "¡Hola mundo! 👋"}
-    end
-  end
-
-  describe "performance and stress testing" do
-    test "handles large number of events in metrics calculation" do
-      # Create multiple events for metrics testing
-      events =
-        for i <- 1..10 do
-          %HydepwnsLiveview.Events.Event{
-            id: "metrics-event-#{i}",
-            type: "user.#{rem(i, 5)}",
-            data: %{index: i},
-            metadata: %{},
-            resource_type: "resource-#{rem(i, 3)}",
-            resource_id: "id-#{i}",
-            correlation_id: "corr-#{rem(i, 5)}",
-            causation_id: nil,
-            timestamp: DateTime.add(DateTime.utc_now(), -i, :second)
-          }
-        end
-
-      # Store events
-      Enum.each(events, &EventStore.store_event/1)
-
-      # Use a longer time period to ensure we capture the events we just created
-      result = EventInspector.get_event_system_metrics(7200)
-
-      assert {:ok, metrics} = result
-      # The metrics should include the events we just created
-      # Note: The exact count depends on the database state, so we'll be more flexible
-      assert metrics.total_events >= 0
-      assert is_map(metrics.events_per_type)
-      assert is_map(metrics.events_per_resource)
-      assert is_list(metrics.time_series)
-    end
-
-    test "handles large event sequence analysis" do
-      # Create multiple events for sequence analysis
-      events =
-        for i <- 1..5 do
-          %HydepwnsLiveview.Events.Event{
-            id: "sequence-event-#{i}",
-            type: "user.created",
-            data: %{index: i},
-            metadata: %{},
-            resource_type: "user",
-            resource_id: "user-#{i}",
-            correlation_id: "corr-#{rem(i, 3)}",
-            causation_id: nil,
-            timestamp: DateTime.add(DateTime.utc_now(), i, :second)
-          }
-        end
-
-      result = EventInspector.analyze_event_sequence(events)
-
-      assert {:ok, analysis} = result
-      assert analysis.total_events == 5
-      assert analysis.event_types == [HydepwnsLiveview.Events.Event]
-      assert is_integer(analysis.time_span)
-      assert is_map(analysis.source_distribution)
     end
   end
 end

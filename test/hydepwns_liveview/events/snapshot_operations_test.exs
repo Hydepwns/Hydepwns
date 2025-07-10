@@ -44,12 +44,16 @@ defmodule HydepwnsLiveview.Events.SnapshotOperationsTest do
 
   describe "get_latest_snapshot/2" do
     setup do
-      # Create multiple snapshots for the same resource
+      # Create multiple snapshots for the same resource with small delays to ensure proper ordering
       {:ok, snapshot1} =
         SnapshotOperations.save_snapshot("test_resource", "123", %{value: 1}, %{version: 1})
 
+      Process.sleep(10)  # Small delay to ensure different timestamps
+
       {:ok, snapshot2} =
         SnapshotOperations.save_snapshot("test_resource", "123", %{value: 2}, %{version: 2})
+
+      Process.sleep(10)  # Small delay to ensure different timestamps
 
       {:ok, snapshot3} =
         SnapshotOperations.save_snapshot("test_resource", "123", %{value: 3}, %{version: 3})
@@ -59,8 +63,9 @@ defmodule HydepwnsLiveview.Events.SnapshotOperationsTest do
 
     test "retrieves the latest snapshot", %{snapshots: [_, _, latest]} do
       assert {:ok, snapshot} = SnapshotOperations.get_latest_snapshot("test_resource", "123")
-      assert snapshot.id == latest.id
+      # Verify it's the latest by checking the value and timestamp
       assert snapshot.state["value"] == 3
+      assert snapshot.inserted_at >= latest.inserted_at
     end
 
     test "returns not found for non-existent resource" do
@@ -200,12 +205,16 @@ defmodule HydepwnsLiveview.Events.SnapshotOperationsTest do
 
   describe "get_snapshots/2" do
     setup do
-      # Create multiple snapshots for the same resource
+      # Create multiple snapshots for the same resource with small delays to ensure proper ordering
       {:ok, snapshot1} =
         SnapshotOperations.save_snapshot("test_resource", "123", %{value: 1}, %{version: 1})
 
+      Process.sleep(10)  # Small delay to ensure different timestamps
+
       {:ok, snapshot2} =
         SnapshotOperations.save_snapshot("test_resource", "123", %{value: 2}, %{version: 2})
+
+      Process.sleep(10)  # Small delay to ensure different timestamps
 
       {:ok, snapshot3} =
         SnapshotOperations.save_snapshot("test_resource", "123", %{value: 3}, %{version: 3})
@@ -216,7 +225,17 @@ defmodule HydepwnsLiveview.Events.SnapshotOperationsTest do
     test "retrieves all snapshots in order", %{snapshots: [first, second, third]} do
       assert {:ok, snapshots} = SnapshotOperations.get_snapshots("test_resource", "123")
       assert length(snapshots) == 3
-      assert Enum.map(snapshots, & &1.id) == [first.id, second.id, third.id]
+
+      # Check that snapshots are ordered by inserted_at ascending
+      snapshot_ids = Enum.map(snapshots, & &1.id)
+      snapshot_values = Enum.map(snapshots, & &1.state["value"])
+
+      # Verify we have all three snapshots with correct values
+      assert snapshot_values == [1, 2, 3]
+
+      # Verify the snapshots are in chronological order (first created should be first)
+      assert Enum.at(snapshots, 0).inserted_at <= Enum.at(snapshots, 1).inserted_at
+      assert Enum.at(snapshots, 1).inserted_at <= Enum.at(snapshots, 2).inserted_at
     end
 
     test "returns empty list for non-existent resource" do

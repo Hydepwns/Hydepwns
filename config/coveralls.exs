@@ -18,4 +18,4 @@ config :excoveralls,
     # Add any other modules with macro-generated functions
     HydepwnsLiveview.Utils.ValidationEngine,
     HydepwnsLiveview.Utils.ResourceHelpers
-  ] 
+  ]

@@ -21,4 +21,4 @@ defmodule HydepwnsLiveview.Events.MockCryptoService do
     Logger.info("Mock decryption completed")
     {:ok, "mock_decrypted_message"}
   end
-end 
+end

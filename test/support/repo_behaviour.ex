@@ -23,7 +23,7 @@ defmodule HydepwnsLiveview.TestRepoBehaviour do
   @callback aggregate(module, atom, atom, Keyword.t()) :: integer
   @callback exists?(module) :: boolean
   @callback exists?(module, Keyword.t()) :: boolean
-  @callback transaction((() -> any)) :: {:ok, any} | {:error, any}
-  @callback transaction((() -> any), Keyword.t()) :: {:ok, any} | {:error, any}
+  @callback transaction((-> any)) :: {:ok, any} | {:error, any}
+  @callback transaction((-> any), Keyword.t()) :: {:ok, any} | {:error, any}
   @callback rollback(any) :: no_return
-end 
+end

@@ -21,10 +21,13 @@ defmodule HydepwnsLiveview.TestSupport.EventStoreTestHelper do
       {:ok, _pid} ->
         MockEventStore.reset()
         :ok
+
       {:error, {:already_started, _pid}} ->
         MockEventStore.reset()
         :ok
-      error -> error
+
+      error ->
+        error
     end
   end
 
@@ -72,12 +75,15 @@ defmodule HydepwnsLiveview.TestSupport.EventStoreTestHelper do
   def assert_event_exists(event_type, resource_type, resource_id) do
     {:ok, events} = get_events_for_resource(resource_type, resource_id)
 
-    event_exists? = Enum.any?(events, fn event ->
-      event.type == event_type
-    end)
+    event_exists? =
+      Enum.any?(events, fn event ->
+        event.type == event_type
+      end)
 
     unless event_exists? do
-      flunk("Expected event of type '#{event_type}' for resource #{resource_type}:#{resource_id}, but it was not found")
+      flunk(
+        "Expected event of type '#{event_type}' for resource #{resource_type}:#{resource_id}, but it was not found"
+      )
     end
 
     true
@@ -97,7 +103,9 @@ defmodule HydepwnsLiveview.TestSupport.EventStoreTestHelper do
     {:ok, events} = get_events_for_resource(resource_type, resource_id)
 
     unless Enum.empty?(events) do
-      flunk("Expected no events for resource #{resource_type}:#{resource_id}, but found #{length(events)} events")
+      flunk(
+        "Expected no events for resource #{resource_type}:#{resource_id}, but found #{length(events)} events"
+      )
     end
 
     true
@@ -119,7 +127,9 @@ defmodule HydepwnsLiveview.TestSupport.EventStoreTestHelper do
     actual_count = length(events)
 
     unless actual_count == expected_count do
-      flunk("Expected #{expected_count} events for resource #{resource_type}:#{resource_id}, but found #{actual_count}")
+      flunk(
+        "Expected #{expected_count} events for resource #{resource_type}:#{resource_id}, but found #{actual_count}"
+      )
     end
 
     true
@@ -142,7 +152,9 @@ defmodule HydepwnsLiveview.TestSupport.EventStoreTestHelper do
     actual_count = length(events)
 
     unless actual_count >= minimum_count do
-      flunk("Expected at least #{minimum_count} events for resource #{resource_type}:#{resource_id}, but found #{actual_count}")
+      flunk(
+        "Expected at least #{minimum_count} events for resource #{resource_type}:#{resource_id}, but found #{actual_count}"
+      )
     end
 
     true
@@ -163,19 +175,24 @@ defmodule HydepwnsLiveview.TestSupport.EventStoreTestHelper do
   def assert_events_of_type(event_type, resource_type, resource_id, expected_count \\ 1) do
     {:ok, events} = get_events_for_resource(resource_type, resource_id)
 
-    matching_events = Enum.filter(events, fn event ->
-      event.type == event_type
-    end)
+    matching_events =
+      Enum.filter(events, fn event ->
+        event.type == event_type
+      end)
 
     actual_count = length(matching_events)
 
     if is_integer(expected_count) do
       unless actual_count == expected_count do
-        flunk("Expected #{expected_count} events of type '#{event_type}' for resource #{resource_type}:#{resource_id}, but found #{actual_count}")
+        flunk(
+          "Expected #{expected_count} events of type '#{event_type}' for resource #{resource_type}:#{resource_id}, but found #{actual_count}"
+        )
       end
     else
       unless actual_count >= 1 do
-        flunk("Expected at least 1 event of type '#{event_type}' for resource #{resource_type}:#{resource_id}, but found #{actual_count}")
+        flunk(
+          "Expected at least 1 event of type '#{event_type}' for resource #{resource_type}:#{resource_id}, but found #{actual_count}"
+        )
       end
     end
 
@@ -198,15 +215,18 @@ defmodule HydepwnsLiveview.TestSupport.EventStoreTestHelper do
     actual_types = Enum.map(events, & &1.type)
 
     # Check if expected types are a subsequence of actual types
-    has_order = Enum.reduce_while(expected_types, actual_types, fn expected_type, remaining_types ->
-      case Enum.find_index(remaining_types, & &1 == expected_type) do
-        nil -> {:halt, false}
-        index -> {:cont, Enum.drop(remaining_types, index + 1)}
-      end
-    end)
+    has_order =
+      Enum.reduce_while(expected_types, actual_types, fn expected_type, remaining_types ->
+        case Enum.find_index(remaining_types, &(&1 == expected_type)) do
+          nil -> {:halt, false}
+          index -> {:cont, Enum.drop(remaining_types, index + 1)}
+        end
+      end)
 
     unless has_order do
-      flunk("Expected events in order #{inspect(expected_types)} for resource #{resource_type}:#{resource_id}, but got #{inspect(actual_types)}")
+      flunk(
+        "Expected events in order #{inspect(expected_types)} for resource #{resource_type}:#{resource_id}, but got #{inspect(actual_types)}"
+      )
     end
 
     true

@@ -12,10 +12,10 @@ defmodule HydepwnsLiveview.TestSupport.ThemeSystemHelper do
   def setup_theme_system_isolation do
     # Create a unique table name for this test process
     table = :"theme_system_themes_test_#{System.unique_integer([:positive])}"
-    
+
     # Store the table name in the process dictionary
     Process.put(:theme_system_ets_table, table)
-    
+
     # Clean up the table when the test process exits
     on_exit(fn ->
       try do
@@ -24,13 +24,13 @@ defmodule HydepwnsLiveview.TestSupport.ThemeSystemHelper do
         _ -> :ok
       end
     end)
-    
+
     # Initialize the table with the theme system
     HydepwnsLiveview.ThemeSystem.reset_themes()
-    
+
     # Ensure the table is created and accessible
     ensure_ets_table_exists(table)
-    
+
     {:ok, table}
   end
 
@@ -39,6 +39,7 @@ defmodule HydepwnsLiveview.TestSupport.ThemeSystemHelper do
       :undefined ->
         :ets.new(table, [:named_table, :public, :set])
         :ets.insert(table, {:next_id, 1})
+
       _ ->
         :ok
     end
@@ -49,11 +50,13 @@ defmodule HydepwnsLiveview.TestSupport.ThemeSystemHelper do
   """
   def cleanup_theme_system do
     table = Process.get(:theme_system_ets_table)
+
     try do
       if table && :ets.info(table), do: :ets.delete(table)
     rescue
       _ -> :ok
     end
+
     Process.delete(:theme_system_ets_table)
   end
-end 
+end

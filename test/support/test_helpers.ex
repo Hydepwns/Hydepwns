@@ -4,4 +4,4 @@ defmodule HydepwnsLiveviewWeb.TestHelpers do
   """
 
   # Private helper functions
-end 
+end

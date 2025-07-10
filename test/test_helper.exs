@@ -35,6 +35,12 @@ case HydepwnsLiveview.TestSupport.MockEventStore.start_link([]) do
   {:error, {:already_started, _pid}} -> :ok
 end
 
+# Start EventMonitor globally for all tests with TestEventStore
+case HydepwnsLiveview.Events.Core.EventMonitor.start_link(event_store: HydepwnsLiveview.Events.TestEventStore) do
+  {:ok, _pid} -> :ok
+  {:error, {:already_started, _pid}} -> :ok
+end
+
 # Define setup callback for all tests
 defmodule HydepwnsLiveview.TestSetup do
   use ExUnit.CaseTemplate

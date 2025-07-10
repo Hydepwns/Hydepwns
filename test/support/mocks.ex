@@ -47,7 +47,8 @@ defmodule HydepwnsLiveview.Mocks do
     Behavior for Security Detector implementations.
     """
 
-    @callback detect_suspicious_activity(map()) :: {:warning, String.t()} | {:ok, String.t()} | {:error, term()}
+    @callback detect_suspicious_activity(map()) ::
+                {:warning, String.t()} | {:ok, String.t()} | {:error, term()}
   end
 
   # Define behavior for Security Alerting
@@ -80,8 +81,6 @@ defmodule HydepwnsLiveview.Mocks do
     @callback put(String.t(), term(), integer()) :: {:ok, String.t()} | {:error, term()}
     @callback delete(String.t()) :: {:ok, String.t()} | {:error, term()}
   end
-
-
 
   # Define implementation modules
   defmodule DefaultHTTPClient do
@@ -238,20 +237,62 @@ end
 # Define mocks
 Mox.defmock(HydepwnsLiveview.MockHTTPClient, for: HydepwnsLiveview.Mocks.HTTPClientBehaviour)
 Mox.defmock(HydepwnsLiveview.MockExternalAPI, for: HydepwnsLiveview.Mocks.ExternalAPIBehaviour)
-Mox.defmock(HydepwnsLiveview.Notifications.EmailAdapter, for: HydepwnsLiveview.Notifications.EmailAdapterBehaviour)
-Mox.defmock(HydepwnsLiveview.Notifications.Twilio, for: HydepwnsLiveview.Notifications.TwilioBehaviour)
-Mox.defmock(HydepwnsLiveview.Integration.WebhookAdapter, for: HydepwnsLiveview.Integration.WebhookAdapterBehaviour)
-Mox.defmock(HydepwnsLiveview.Integration.ExternalSyncAdapter, for: HydepwnsLiveview.Integration.ExternalSyncAdapterBehaviour)
-Mox.defmock(HydepwnsLiveview.Integration.ExternalServiceMonitor, for: HydepwnsLiveview.Integration.ExternalServiceMonitorBehaviour)
-Mox.defmock(HydepwnsLiveview.Integration.ExternalServiceAuth, for: HydepwnsLiveview.Integration.ExternalServiceAuthBehaviour)
-Mox.defmock(HydepwnsLiveview.Integration.CircuitBreaker, for: HydepwnsLiveview.Integration.CircuitBreakerBehaviour)
-Mox.defmock(HydepwnsLiveview.Integration.AnalyticsAdapter, for: HydepwnsLiveview.Integration.AnalyticsAdapterBehaviour)
-Mox.defmock(HydepwnsLiveview.Events.Adapters.PushAdapter, for: HydepwnsLiveview.Events.Adapters.PushAdapterBehaviour)
-Mox.defmock(HydepwnsLiveview.MockSecurityLogger, for: HydepwnsLiveview.Mocks.SecurityLoggerBehaviour)
-Mox.defmock(HydepwnsLiveview.MockSecurityDetector, for: HydepwnsLiveview.Mocks.SecurityDetectorBehaviour)
-Mox.defmock(HydepwnsLiveview.MockSecurityAlerting, for: HydepwnsLiveview.Mocks.SecurityAlertingBehaviour)
-Mox.defmock(HydepwnsLiveview.MockPerformanceMonitor, for: HydepwnsLiveview.Mocks.PerformanceMonitorBehaviour)
-Mox.defmock(HydepwnsLiveview.MockPerformanceCache, for: HydepwnsLiveview.Mocks.PerformanceCacheBehaviour)
+
+Mox.defmock(HydepwnsLiveview.Notifications.EmailAdapter,
+  for: HydepwnsLiveview.Notifications.EmailAdapterBehaviour
+)
+
+Mox.defmock(HydepwnsLiveview.Notifications.Twilio,
+  for: HydepwnsLiveview.Notifications.TwilioBehaviour
+)
+
+Mox.defmock(HydepwnsLiveview.Integration.WebhookAdapter,
+  for: HydepwnsLiveview.Integration.WebhookAdapterBehaviour
+)
+
+Mox.defmock(HydepwnsLiveview.Integration.ExternalSyncAdapter,
+  for: HydepwnsLiveview.Integration.ExternalSyncAdapterBehaviour
+)
+
+Mox.defmock(HydepwnsLiveview.Integration.ExternalServiceMonitor,
+  for: HydepwnsLiveview.Integration.ExternalServiceMonitorBehaviour
+)
+
+Mox.defmock(HydepwnsLiveview.Integration.ExternalServiceAuth,
+  for: HydepwnsLiveview.Integration.ExternalServiceAuthBehaviour
+)
+
+Mox.defmock(HydepwnsLiveview.Integration.CircuitBreaker,
+  for: HydepwnsLiveview.Integration.CircuitBreakerBehaviour
+)
+
+Mox.defmock(HydepwnsLiveview.Integration.AnalyticsAdapter,
+  for: HydepwnsLiveview.Integration.AnalyticsAdapterBehaviour
+)
+
+Mox.defmock(HydepwnsLiveview.Events.Adapters.PushAdapter,
+  for: HydepwnsLiveview.Events.Adapters.PushAdapterBehaviour
+)
+
+Mox.defmock(HydepwnsLiveview.MockSecurityLogger,
+  for: HydepwnsLiveview.Mocks.SecurityLoggerBehaviour
+)
+
+Mox.defmock(HydepwnsLiveview.MockSecurityDetector,
+  for: HydepwnsLiveview.Mocks.SecurityDetectorBehaviour
+)
+
+Mox.defmock(HydepwnsLiveview.MockSecurityAlerting,
+  for: HydepwnsLiveview.Mocks.SecurityAlertingBehaviour
+)
+
+Mox.defmock(HydepwnsLiveview.MockPerformanceMonitor,
+  for: HydepwnsLiveview.Mocks.PerformanceMonitorBehaviour
+)
+
+Mox.defmock(HydepwnsLiveview.MockPerformanceCache,
+  for: HydepwnsLiveview.Mocks.PerformanceCacheBehaviour
+)
 
 defmodule HydepwnsLiveview.DefaultHTTPClient do
   @moduledoc false
@@ -276,14 +317,16 @@ defmodule HydepwnsLiveview.DefaultSecurityLogger do
   @moduledoc false
   @behaviour HydepwnsLiveview.Mocks.SecurityLoggerBehaviour
 
-  defdelegate log_security_event(event_type, details), to: HydepwnsLiveview.Mocks.DefaultSecurityLogger
+  defdelegate log_security_event(event_type, details),
+    to: HydepwnsLiveview.Mocks.DefaultSecurityLogger
 end
 
 defmodule HydepwnsLiveview.DefaultSecurityDetector do
   @moduledoc false
   @behaviour HydepwnsLiveview.Mocks.SecurityDetectorBehaviour
 
-  defdelegate detect_suspicious_activity(activity), to: HydepwnsLiveview.Mocks.DefaultSecurityDetector
+  defdelegate detect_suspicious_activity(activity),
+    to: HydepwnsLiveview.Mocks.DefaultSecurityDetector
 end
 
 defmodule HydepwnsLiveview.DefaultSecurityAlerting do
@@ -297,7 +340,9 @@ defmodule HydepwnsLiveview.DefaultPerformanceMonitor do
   @moduledoc false
   @behaviour HydepwnsLiveview.Mocks.PerformanceMonitorBehaviour
 
-  defdelegate track_response_time(endpoint, response_time), to: HydepwnsLiveview.Mocks.DefaultPerformanceMonitor
+  defdelegate track_response_time(endpoint, response_time),
+    to: HydepwnsLiveview.Mocks.DefaultPerformanceMonitor
+
   defdelegate check_performance(), to: HydepwnsLiveview.Mocks.DefaultPerformanceMonitor
   defdelegate generate_report(time_range), to: HydepwnsLiveview.Mocks.DefaultPerformanceMonitor
 end

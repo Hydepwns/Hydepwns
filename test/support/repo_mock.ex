@@ -1,1 +1,1 @@
-Mox.defmock(HydepwnsLiveview.RepoMock, for: HydepwnsLiveview.TestRepoBehaviour) 
+Mox.defmock(HydepwnsLiveview.RepoMock, for: HydepwnsLiveview.TestRepoBehaviour)

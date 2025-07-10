@@ -19,11 +19,12 @@ defmodule HydepwnsLiveviewWeb.ComponentTestHelper do
   """
   def render_component_isolated(conn, component_module, assigns \\ []) do
     # Ensure id is provided
-    assigns = if Keyword.has_key?(assigns, :id) do
-      assigns
-    else
-      Keyword.put(assigns, :id, "test-component-#{Enum.random(1000..9999)}")
-    end
+    assigns =
+      if Keyword.has_key?(assigns, :id) do
+        assigns
+      else
+        Keyword.put(assigns, :id, "test-component-#{Enum.random(1000..9999)}")
+      end
 
     # Render the component
     live_isolated(conn, component_module, assigns)

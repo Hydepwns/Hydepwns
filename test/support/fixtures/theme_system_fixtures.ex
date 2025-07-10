@@ -26,15 +26,16 @@ defmodule HydepwnsLiveview.TestThemeSystemFixtures do
       })
 
     # Handle color overrides from attrs
-    attrs = if attrs[:colors] do
-      attrs
-      |> Map.put(:primary_color, attrs[:colors][:primary] || attrs.primary_color)
-      |> Map.put(:secondary_color, attrs[:colors][:secondary] || attrs.secondary_color)
-      |> Map.put(:background_color, attrs[:colors][:background] || attrs.background_color)
-      |> Map.put(:text_color, attrs[:colors][:text] || attrs.text_color)
-    else
-      attrs
-    end
+    attrs =
+      if attrs[:colors] do
+        attrs
+        |> Map.put(:primary_color, attrs[:colors][:primary] || attrs.primary_color)
+        |> Map.put(:secondary_color, attrs[:colors][:secondary] || attrs.secondary_color)
+        |> Map.put(:background_color, attrs[:colors][:background] || attrs.background_color)
+        |> Map.put(:text_color, attrs[:colors][:text] || attrs.text_color)
+      else
+        attrs
+      end
 
     HydepwnsLiveview.ThemeSystem.create_theme(attrs)
   end
@@ -181,15 +182,16 @@ defmodule HydepwnsLiveview.TestThemeSystemFixtures do
       })
 
     # Handle color overrides from attrs
-    attrs = if attrs[:colors] do
-      attrs
-      |> Map.put(:primary_color, attrs[:colors][:primary] || attrs.primary_color)
-      |> Map.put(:secondary_color, attrs[:colors][:secondary] || attrs.secondary_color)
-      |> Map.put(:background_color, attrs[:colors][:background] || attrs.background_color)
-      |> Map.put(:text_color, attrs[:colors][:text] || attrs.text_color)
-    else
-      attrs
-    end
+    attrs =
+      if attrs[:colors] do
+        attrs
+        |> Map.put(:primary_color, attrs[:colors][:primary] || attrs.primary_color)
+        |> Map.put(:secondary_color, attrs[:colors][:secondary] || attrs.secondary_color)
+        |> Map.put(:background_color, attrs[:colors][:background] || attrs.background_color)
+        |> Map.put(:text_color, attrs[:colors][:text] || attrs.text_color)
+      else
+        attrs
+      end
 
     HydepwnsLiveview.ThemeSystem.create_theme(attrs)
   end

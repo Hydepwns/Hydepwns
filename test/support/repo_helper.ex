@@ -30,4 +30,4 @@ defmodule HydepwnsLiveview.TestRepoHelper do
   def get_by(schema, clauses, opts \\ []) do
     repo().get_by(schema, clauses, opts)
   end
-end 
+end

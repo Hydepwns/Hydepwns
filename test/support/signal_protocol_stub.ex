@@ -1,7 +1,7 @@
 defmodule HydepwnsLiveview.SignalProtocolStub do
   @moduledoc """
   Stub implementation of SignalProtocol for testing.
-  
+
   This module provides stub implementations that redirect signal_nif calls
   to the SignalNifStub module to eliminate undefined function warnings.
   """
@@ -78,4 +78,4 @@ defmodule HydepwnsLiveview.SignalProtocolStub do
       error -> error
     end
   end
-end 
+end

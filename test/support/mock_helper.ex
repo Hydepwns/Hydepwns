@@ -41,7 +41,12 @@ defmodule HydepwnsLiveviewWeb.TestMockHelper do
     Mox.stub_with(HydepwnsLiveview.MockSecurityLogger, HydepwnsLiveview.DefaultSecurityLogger)
     Mox.stub_with(HydepwnsLiveview.MockSecurityDetector, HydepwnsLiveview.DefaultSecurityDetector)
     Mox.stub_with(HydepwnsLiveview.MockSecurityAlerting, HydepwnsLiveview.DefaultSecurityAlerting)
-    Mox.stub_with(HydepwnsLiveview.MockPerformanceMonitor, HydepwnsLiveview.DefaultPerformanceMonitor)
+
+    Mox.stub_with(
+      HydepwnsLiveview.MockPerformanceMonitor,
+      HydepwnsLiveview.DefaultPerformanceMonitor
+    )
+
     Mox.stub_with(HydepwnsLiveview.MockPerformanceCache, HydepwnsLiveview.DefaultPerformanceCache)
 
     # Set up RepoMock with flexible stub for any resource ID
@@ -108,6 +113,7 @@ defmodule HydepwnsLiveviewWeb.TestMockHelper do
           resource = build_resource_from_changeset(changeset)
           :ets.insert(:mock_resources, {resource.id, resource})
           {:ok, resource}
+
         _ ->
           # For any other struct, just return the changeset data
           {:ok, changeset.data}
@@ -126,6 +132,7 @@ defmodule HydepwnsLiveviewWeb.TestMockHelper do
           resource = update_resource_from_changeset(changeset)
           :ets.insert(:mock_resources, {resource.id, resource})
           {:ok, resource}
+
         _ ->
           # For any other struct, just return the changeset data
           {:ok, changeset.data}
@@ -142,6 +149,7 @@ defmodule HydepwnsLiveviewWeb.TestMockHelper do
       HydepwnsLiveview.Resources.Resource ->
         :ets.delete(:mock_resources, resource.id)
         {:ok, resource}
+
       _ ->
         # For any other struct, just return success
         {:ok, resource}
@@ -150,11 +158,12 @@ defmodule HydepwnsLiveviewWeb.TestMockHelper do
 
   defp handle_delete_with_opts(resource, _opts), do: handle_delete(resource)
 
-    defp handle_delete_all(module, _opts_or_list) do
+  defp handle_delete_all(module, _opts_or_list) do
     case module do
       HydepwnsLiveview.Resources.Resource ->
         :ets.delete_all_objects(:mock_resources)
         {0, nil}
+
       _ ->
         # For any other module, return {0, nil}
         {0, nil}
@@ -166,6 +175,7 @@ defmodule HydepwnsLiveviewWeb.TestMockHelper do
       HydepwnsLiveview.Resources.Resource ->
         :ets.tab2list(:mock_resources)
         |> Enum.map(fn {_id, resource} -> resource end)
+
       _ ->
         # For any other module, return an empty list
         []
@@ -174,13 +184,14 @@ defmodule HydepwnsLiveviewWeb.TestMockHelper do
 
   defp handle_all_with_opts(module, _opts_or_list), do: handle_all(module)
 
-    defp handle_get(module, id, _opts_or_list) do
+  defp handle_get(module, id, _opts_or_list) do
     case module do
       HydepwnsLiveview.Resources.Resource ->
         case :ets.lookup(:mock_resources, id) do
           [{^id, resource}] -> resource
           [] -> nil
         end
+
       _ ->
         # For any other module, return nil
         nil
@@ -194,6 +205,7 @@ defmodule HydepwnsLiveviewWeb.TestMockHelper do
           [{^id, resource}] -> resource
           [] -> raise Ecto.QueryError, message: "Record not found"
         end
+
       _ ->
         # For any other module, raise not found error
         raise Ecto.QueryError, message: "Record not found"
@@ -202,7 +214,9 @@ defmodule HydepwnsLiveviewWeb.TestMockHelper do
 
   defp handle_get_by(module, _clauses, _opts_or_list) do
     case module do
-      HydepwnsLiveview.Resources.Resource -> nil
+      HydepwnsLiveview.Resources.Resource ->
+        nil
+
       _ ->
         # For any other module, return nil
         nil
@@ -211,7 +225,9 @@ defmodule HydepwnsLiveviewWeb.TestMockHelper do
 
   defp handle_one(module, _opts_or_list) do
     case module do
-      HydepwnsLiveview.Resources.Resource -> nil
+      HydepwnsLiveview.Resources.Resource ->
+        nil
+
       _ ->
         # For any other module, return nil
         nil
@@ -220,7 +236,9 @@ defmodule HydepwnsLiveviewWeb.TestMockHelper do
 
   defp handle_aggregate(module, _aggregate, _field, _opts_or_list) do
     case module do
-      HydepwnsLiveview.Resources.Resource -> 0
+      HydepwnsLiveview.Resources.Resource ->
+        0
+
       _ ->
         # For any other module, return 0
         0
@@ -229,7 +247,9 @@ defmodule HydepwnsLiveviewWeb.TestMockHelper do
 
   defp handle_exists?(module, _opts_or_list) do
     case module do
-      HydepwnsLiveview.Resources.Resource -> false
+      HydepwnsLiveview.Resources.Resource ->
+        false
+
       _ ->
         # For any other module, return false
         false
@@ -262,22 +282,23 @@ defmodule HydepwnsLiveviewWeb.TestMockHelper do
   end
 
   defp update_resource_from_changeset(changeset) do
-    %{changeset.data |
-      name: changeset.changes[:name] || changeset.data.name,
-      description: changeset.changes[:description] || changeset.data.description,
-      type: changeset.changes[:type] || changeset.data.type,
-      status: changeset.changes[:status] || changeset.data.status,
-      content: changeset.changes[:content] || changeset.data.content,
-      metadata: changeset.changes[:metadata] || changeset.data.metadata,
-      settings: changeset.changes[:settings] || changeset.data.settings,
-      version: changeset.changes[:version] || changeset.data.version,
-      parent_id: Map.get(changeset.changes, :parent_id, changeset.data.parent_id),
-      child_ids: changeset.changes[:child_ids] || changeset.data.child_ids,
-      tags: changeset.changes[:tags] || changeset.data.tags,
-      categories: changeset.changes[:categories] || changeset.data.categories,
-      created_by: changeset.changes[:created_by] || changeset.data.created_by,
-      updated_by: changeset.changes[:updated_by] || changeset.data.updated_by,
-      updated_at: DateTime.utc_now()
+    %{
+      changeset.data
+      | name: changeset.changes[:name] || changeset.data.name,
+        description: changeset.changes[:description] || changeset.data.description,
+        type: changeset.changes[:type] || changeset.data.type,
+        status: changeset.changes[:status] || changeset.data.status,
+        content: changeset.changes[:content] || changeset.data.content,
+        metadata: changeset.changes[:metadata] || changeset.data.metadata,
+        settings: changeset.changes[:settings] || changeset.data.settings,
+        version: changeset.changes[:version] || changeset.data.version,
+        parent_id: Map.get(changeset.changes, :parent_id, changeset.data.parent_id),
+        child_ids: changeset.changes[:child_ids] || changeset.data.child_ids,
+        tags: changeset.changes[:tags] || changeset.data.tags,
+        categories: changeset.changes[:categories] || changeset.data.categories,
+        created_by: changeset.changes[:created_by] || changeset.data.created_by,
+        updated_by: changeset.changes[:updated_by] || changeset.data.updated_by,
+        updated_at: DateTime.utc_now()
     }
   end
 

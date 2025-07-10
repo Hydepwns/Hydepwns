@@ -13,21 +13,25 @@ defmodule HydepwnsLiveview.Events.TestEventStore do
   Stores a single event in the mock event store.
   """
   def store_event(%Event{} = event), do: store_event(event, %{})
+
   def store_event(event, metadata) when is_map(event) do
     MockEventStore.store_event(event, metadata)
   end
+
   def store_event(type, data) when is_binary(type) and is_map(data) do
     event = %{
       id: Ecto.UUID.generate(),
       type: type,
       data: data,
-      resource_id: data[:resource_id] || data["resource_id"] || data[:id] || data["id"] || "unknown",
+      resource_id:
+        data[:resource_id] || data["resource_id"] || data[:id] || data["id"] || "unknown",
       resource_type: data[:resource_type] || data["resource_type"] || "unknown",
       correlation_id: Ecto.UUID.generate(),
       causation_id: nil,
       timestamp: DateTime.utc_now(),
       metadata: data[:metadata] || data["metadata"] || %{}
     }
+
     MockEventStore.store_event(event, %{})
   end
 
@@ -36,6 +40,7 @@ defmodule HydepwnsLiveview.Events.TestEventStore do
   """
   def store_events(events) do
     results = Enum.map(events, &store_event/1)
+
     case Enum.find(results, fn {status, _} -> status == :error end) do
       nil -> {:ok, Enum.map(results, fn {:ok, event} -> event end)}
       error -> error
@@ -95,7 +100,13 @@ defmodule HydepwnsLiveview.Events.TestEventStore do
   Creates a new replay session (stub implementation for tests).
   """
   def create_replay_session(name, resource_type, resource_id, _opts \\ []) do
-    {:ok, %{id: "test-session-#{System.unique_integer()}", name: name, resource_type: resource_type, resource_id: resource_id}}
+    {:ok,
+     %{
+       id: "test-session-#{System.unique_integer()}",
+       name: name,
+       resource_type: resource_type,
+       resource_id: resource_id
+     }}
   end
 
   @doc """
@@ -151,7 +162,12 @@ defmodule HydepwnsLiveview.Events.TestEventStore do
   Saves a snapshot (stub implementation for tests).
   """
   def save_snapshot(resource_type, resource_id, _state, _metadata) do
-    {:ok, %{id: "snapshot-#{System.unique_integer()}", resource_type: resource_type, resource_id: resource_id}}
+    {:ok,
+     %{
+       id: "snapshot-#{System.unique_integer()}",
+       resource_type: resource_type,
+       resource_id: resource_id
+     }}
   end
 
   @doc """
@@ -179,7 +195,12 @@ defmodule HydepwnsLiveview.Events.TestEventStore do
   Saves versioned state (stub implementation for tests).
   """
   def save_versioned_state(resource_type, resource_id, _state, _metadata \\ %{}) do
-    {:ok, %{id: "versioned-state-#{System.unique_integer()}", resource_type: resource_type, resource_id: resource_id}}
+    {:ok,
+     %{
+       id: "versioned-state-#{System.unique_integer()}",
+       resource_type: resource_type,
+       resource_id: resource_id
+     }}
   end
 
   @doc """

@@ -51,4 +51,4 @@ defmodule :signal_nif do
   def decrypt_message(_session, _ciphertext) do
     {:ok, "stub_decrypted_message"}
   end
-end 
+end

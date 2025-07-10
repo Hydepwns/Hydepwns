@@ -30,7 +30,8 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
     # Start a sandbox owner for this test
     {pid, started_owner?} =
       try do
-        {Ecto.Adapters.SQL.Sandbox.start_owner!(HydepwnsLiveview.Repo, shared: not tags[:async]), true}
+        {Ecto.Adapters.SQL.Sandbox.start_owner!(HydepwnsLiveview.Repo, shared: not tags[:async]),
+         true}
       rescue
         e in RuntimeError ->
           if String.contains?(e.message, "already_shared") do
@@ -46,35 +47,42 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
 
       metadata = Phoenix.Ecto.SQL.Sandbox.metadata_for(HydepwnsLiveview.Repo, pid)
       # Add theme system ETS table to metadata if available
-      metadata = if table = Process.get(:theme_system_ets_table) do
-        Map.put(metadata, :theme_system_ets_table, table)
-      else
-        metadata
-      end
+      metadata =
+        if table = Process.get(:theme_system_ets_table) do
+          Map.put(metadata, :theme_system_ets_table, table)
+        else
+          metadata
+        end
+
       {:ok, session} = Wallaby.start_session(metadata: metadata)
 
       # Set the theme system ETS table in the session process
       if table = Process.get(:theme_system_ets_table) do
         Process.put(:theme_system_ets_table, table)
       end
+
       session = visit_and_wait(session, "/themes")
       File.mkdir_p!("test/screenshots")
+
       if tags[:clean_screenshots] do
         "test/screenshots/*.png"
         |> Path.wildcard()
         |> Enum.each(&File.rm!/1)
       end
+
       {:ok, %{session: session}}
     else
       # If already shared, start session without metadata
       {:ok, session} = Wallaby.start_session()
       session = visit_and_wait(session, "/themes")
       File.mkdir_p!("test/screenshots")
+
       if tags[:clean_screenshots] do
         "test/screenshots/*.png"
         |> Path.wildcard()
         |> Enum.each(&File.rm!/1)
       end
+
       {:ok, %{session: session}}
     end
   end
@@ -167,7 +175,8 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
   Usage:
       refute_has(session, css(".my-selector"), timeout: 2000)
   """
-  def refute_has(session, query), do: do_refute_has(session, query, 1000, 100, System.monotonic_time(:millisecond))
+  def refute_has(session, query),
+    do: do_refute_has(session, query, 1000, 100, System.monotonic_time(:millisecond))
 
   def refute_has(session, query, opts) when is_list(opts) do
     timeout = Keyword.get(opts, :timeout, 1000)
@@ -179,6 +188,7 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
   defp do_refute_has(session, query, timeout, interval, start_time) do
     if Wallaby.Browser.has?(session, query) do
       now = System.monotonic_time(:millisecond)
+
       if now - start_time < timeout do
         Process.sleep(interval)
         do_refute_has(session, query, timeout, interval, start_time)

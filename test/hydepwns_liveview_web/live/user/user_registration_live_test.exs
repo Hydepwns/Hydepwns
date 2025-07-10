@@ -34,12 +34,14 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
 
       # Submit form with invalid email
       view
-      |> form("#registration-form", user: %{
-        name: "Test User",
-        email: "invalid-email",
-        password: "password123",
-        password_confirmation: "password123"
-      })
+      |> form("#registration-form",
+        user: %{
+          name: "Test User",
+          email: "invalid-email",
+          password: "password123",
+          password_confirmation: "password123"
+        }
+      )
       |> render_submit()
 
       # Check for validation error
@@ -51,12 +53,14 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
 
       # Submit form with empty fields
       view
-      |> form("#registration-form", user: %{
-        name: "",
-        email: "",
-        password: "",
-        password_confirmation: ""
-      })
+      |> form("#registration-form",
+        user: %{
+          name: "",
+          email: "",
+          password: "",
+          password_confirmation: ""
+        }
+      )
       |> render_submit()
 
       # Check for validation errors
@@ -68,12 +72,14 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
 
       # Submit form with short password
       view
-      |> form("#registration-form", user: %{
-        name: "Test User",
-        email: "test@example.com",
-        password: "123",
-        password_confirmation: "123"
-      })
+      |> form("#registration-form",
+        user: %{
+          name: "Test User",
+          email: "test@example.com",
+          password: "123",
+          password_confirmation: "123"
+        }
+      )
       |> render_submit()
 
       # Check for validation error
@@ -85,12 +91,14 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
 
       # Submit form with mismatched passwords
       view
-      |> form("#registration-form", user: %{
-        name: "Test User",
-        email: "test@example.com",
-        password: "password123",
-        password_confirmation: "different_password"
-      })
+      |> form("#registration-form",
+        user: %{
+          name: "Test User",
+          email: "test@example.com",
+          password: "password123",
+          password_confirmation: "different_password"
+        }
+      )
       |> render_submit()
 
       # Check for validation error
@@ -116,12 +124,14 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
 
       # Submit valid registration data
       view
-      |> form("#registration-form", user: %{
-        name: "New User",
-        email: "newuser@example.com",
-        password: "password123",
-        password_confirmation: "password123"
-      })
+      |> form("#registration-form",
+        user: %{
+          name: "New User",
+          email: "newuser@example.com",
+          password: "password123",
+          password_confirmation: "password123"
+        }
+      )
       |> render_submit()
 
       # Should redirect to login page
@@ -133,12 +143,14 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
 
       # Submit valid registration data
       view
-      |> form("#registration-form", user: %{
-        name: "New User",
-        email: "newuser@example.com",
-        password: "password123",
-        password_confirmation: "password123"
-      })
+      |> form("#registration-form",
+        user: %{
+          name: "New User",
+          email: "newuser@example.com",
+          password: "password123",
+          password_confirmation: "password123"
+        }
+      )
       |> render_submit()
 
       # Should navigate to login page
@@ -147,22 +159,25 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
 
     test "registration with existing email shows error", %{conn: conn} do
       # First create a user
-      {:ok, _user} = Accounts.create_user(%{
-        name: "Existing User",
-        email: "existing@example.com",
-        password: "password123"
-      })
+      {:ok, _user} =
+        Accounts.create_user(%{
+          name: "Existing User",
+          email: "existing@example.com",
+          password: "password123"
+        })
 
       {:ok, view, _html} = live(conn, ~p"/users/register")
 
       # Try to register with same email
       view
-      |> form("#registration-form", user: %{
-        name: "New User",
-        email: "existing@example.com",
-        password: "password123",
-        password_confirmation: "password123"
-      })
+      |> form("#registration-form",
+        user: %{
+          name: "New User",
+          email: "existing@example.com",
+          password: "password123",
+          password_confirmation: "password123"
+        }
+      )
       |> render_submit()
 
       # Should show error message
@@ -176,12 +191,14 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
 
       # Submit valid registration data
       view
-      |> form("#registration-form", user: %{
-        name: "Test User",
-        email: "testuser@example.com",
-        password: "password123",
-        password_confirmation: "password123"
-      })
+      |> form("#registration-form",
+        user: %{
+          name: "Test User",
+          email: "testuser@example.com",
+          password: "password123",
+          password_confirmation: "password123"
+        }
+      )
       |> render_submit()
 
       # Should navigate to login page
@@ -192,8 +209,10 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
       assert user != nil
       assert user.name == "Test User"
       assert user.email == "testuser@example.com"
-      assert user.role == "user" # default role
-      assert user.active == true # default active status
+      # default role
+      assert user.role == "user"
+      # default active status
+      assert user.active == true
     end
 
     test "password is properly hashed", %{conn: conn} do
@@ -201,12 +220,14 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
 
       # Submit valid registration data
       view
-      |> form("#registration-form", user: %{
-        name: "Test User",
-        email: "testuser@example.com",
-        password: "password123",
-        password_confirmation: "password123"
-      })
+      |> form("#registration-form",
+        user: %{
+          name: "Test User",
+          email: "testuser@example.com",
+          password: "password123",
+          password_confirmation: "password123"
+        }
+      )
       |> render_submit()
 
       # Should navigate to login page

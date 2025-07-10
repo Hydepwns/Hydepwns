@@ -59,17 +59,17 @@ defmodule HydepwnsLiveviewWeb.Admin.EventLive do
             <%= for event <- @events do %>
               <tr>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm font-medium text-gray-900"><%= event.name %></div>
+                  <div class="text-sm font-medium text-gray-900">{event.name}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-500"><%= Calendar.strftime(event.date, "%B %d, %Y") %></div>
+                  <div class="text-sm text-gray-500">{Calendar.strftime(event.date, "%B %d, %Y")}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-500"><%= event.location %></div>
+                  <div class="text-sm text-gray-500">{event.location}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span class={"px-2 inline-flex text-xs leading-5 font-semibold rounded-full #{event_status_class(event.status)}"}>
-                    <%= event.status %>
+                    {event.status}
                   </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

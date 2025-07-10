@@ -7,7 +7,9 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
 
   alias HydepwnsLiveview.Resources
   alias HydepwnsLiveview.Resources.Resource
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label_tag: 1, error: 1]
+
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents,
+    only: [input: 1, label_tag: 1, error: 1]
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
@@ -80,7 +82,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
   def render(assigns) do
     ~H"""
     <div class="container mx-auto px-4 py-8">
-      <h1 class="text-2xl font-bold mb-6"><%= @page_title %></h1>
+      <h1 class="text-2xl font-bold mb-6">{@page_title}</h1>
 
       <.form :let={f} for={@changeset} id="resource-form" phx-change="validate" phx-submit="save" data-test-id="resource-form">
         <div class="bg-white shadow rounded-lg p-6">
@@ -89,7 +91,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
               <.label_tag for={f[:name].id}>Name</.label_tag>
               <.input field={f[:name]} type="text" id="name" data-test-id="name-input" required />
               <.error :for={msg <- Keyword.get_values(f[:name].errors, :name)} data-test-id="error-message">
-                <%= msg %>
+                {msg}
               </.error>
             </div>
 
@@ -97,7 +99,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
               <.label_tag for={f[:type].id}>Type</.label_tag>
               <.input field={f[:type]} type="select" id="type" data-test-id="type-input" options={[Folder: "folder", Document: "document"]} required />
               <.error :for={msg <- Keyword.get_values(f[:type].errors, :type)} data-test-id="error-message">
-                <%= msg %>
+                {msg}
               </.error>
             </div>
 
@@ -105,7 +107,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
               <.label_tag for={f[:parent_id].id}>Parent Resource</.label_tag>
               <.input field={f[:parent_id]} type="select" id="parent_id" data-test-id="parent-id-select" options={Resources.list_resources() |> Enum.map(&{&1.name, &1.id})} />
               <.error :for={msg <- Keyword.get_values(f[:parent_id].errors, :parent_id)} data-test-id="error-message">
-                <%= msg %>
+                {msg}
               </.error>
             </div>
 
@@ -113,7 +115,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
               <.label_tag for={f[:description].id}>Description</.label_tag>
               <.input field={f[:description]} type="textarea" id="description" data-test-id="description-input" />
               <.error :for={msg <- Keyword.get_values(f[:description].errors, :description)} data-test-id="error-message">
-                <%= msg %>
+                {msg}
               </.error>
             </div>
 
@@ -121,7 +123,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
               <.label_tag for={f[:status].id}>Status</.label_tag>
               <.input field={f[:status]} type="select" id="status" data-test-id="status-input" options={[Active: "active", Inactive: "inactive"]} required />
               <.error :for={msg <- Keyword.get_values(f[:status].errors, :status)} data-test-id="error-message">
-                <%= msg %>
+                {msg}
               </.error>
             </div>
 

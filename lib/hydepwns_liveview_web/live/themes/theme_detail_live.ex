@@ -43,7 +43,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeDetailLive do
   def render(assigns) do
     ~H"""
     <div class="container mx-auto px-4 py-8">
-      <%= HydepwnsLiveviewWeb.Components.Common.HeaderComponent.header(assigns) %>
+      {HydepwnsLiveviewWeb.Components.Common.HeaderComponent.header(assigns)}
 
       <div class="bg-white shadow rounded-lg p-6">
         <div class="space-y-6">
@@ -52,15 +52,15 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeDetailLive do
             <dl class="mt-4 space-y-4">
               <div>
                 <dt class="text-sm font-medium text-gray-500">Name</dt>
-                <dd class="mt-1 text-sm text-gray-900"><%= @theme.name %></dd>
+                <dd class="mt-1 text-sm text-gray-900">{@theme.name}</dd>
               </div>
               <div>
                 <dt class="text-sm font-medium text-gray-500">Mode</dt>
-                <dd class="mt-1 text-sm text-gray-900"><%= @theme.mode %></dd>
+                <dd class="mt-1 text-sm text-gray-900">{@theme.mode}</dd>
               </div>
               <div>
                 <dt class="text-sm font-medium text-gray-500">Created At</dt>
-                <dd class="mt-1 text-sm text-gray-900"><%= @theme.inserted_at %></dd>
+                <dd class="mt-1 text-sm text-gray-900">{@theme.inserted_at}</dd>
               </div>
             </dl>
           </div>

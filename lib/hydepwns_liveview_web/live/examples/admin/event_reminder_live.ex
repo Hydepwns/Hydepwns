@@ -81,7 +81,7 @@ defmodule HydepwnsLiveviewWeb.Admin.EventReminderLive do
                 <label class="block text-sm font-medium text-gray-700">Event</label>
                 <select name="reminder[event_id]" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
                   <%= for event <- Events.list_events() do %>
-                    <option value={event.id}><%= event.name %></option>
+                    <option value={event.id}>{event.name}</option>
                   <% end %>
                 </select>
               </div>
@@ -129,13 +129,13 @@ defmodule HydepwnsLiveviewWeb.Admin.EventReminderLive do
                 <div class="flex justify-between items-start">
                   <div>
                     <h3 class="text-lg font-medium text-gray-900">
-                      <%= Events.get_event!(reminder.event_id).name %>
+                      {Events.get_event!(reminder.event_id).name}
                     </h3>
                     <p class="mt-1 text-sm text-gray-500">
-                      Reminder Time: <%= Calendar.strftime(reminder.reminder_time, "%Y-%m-%d %H:%M") %>
+                      Reminder Time: {Calendar.strftime(reminder.reminder_time, "%Y-%m-%d %H:%M")}
                     </p>
                     <p class="mt-1 text-sm text-gray-500">
-                      Recipients: <%= Enum.join(reminder.recipients, ", ") %>
+                      Recipients: {Enum.join(reminder.recipients, ", ")}
                     </p>
                   </div>
                   <div class="flex space-x-2">
@@ -146,7 +146,7 @@ defmodule HydepwnsLiveviewWeb.Admin.EventReminderLive do
                 </div>
                 <div class="mt-4">
                   <h4 class="text-sm font-medium text-gray-900">Message</h4>
-                  <p class="mt-1 text-sm text-gray-500"><%= reminder.message %></p>
+                  <p class="mt-1 text-sm text-gray-500">{reminder.message}</p>
                 </div>
               </div>
             <% end %>

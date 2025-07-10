@@ -31,16 +31,16 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeNewLive do
 
   @impl true
   def handle_event("save", %{"theme" => theme_params}, socket) do
-          case ThemeSystem.create_theme(theme_params) do
-        {:ok, _theme} ->
-          {:noreply,
-           socket
-           |> put_flash(:info, "Theme created successfully")
-           |> push_navigate(to: ~p"/themes")}
+    case ThemeSystem.create_theme(theme_params) do
+      {:ok, _theme} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Theme created successfully")
+         |> push_navigate(to: ~p"/themes")}
 
-        {:error, %Ecto.Changeset{} = changeset} ->
-          {:noreply, assign(socket, :changeset, changeset)}
-      end
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign(socket, :changeset, changeset)}
+    end
   end
 
   @impl Phoenix.LiveView

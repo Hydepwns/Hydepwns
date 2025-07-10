@@ -25,17 +25,25 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
   """
   @spec inspect_event(any()) :: {:ok, map()} | {:error, any()}
   def inspect_event(event_id) do
-    with {:ok, event} <- EventStore.get_event(event_id),
-         {:ok, related_events} <- get_related_events(event),
-         {:ok, handlers} <- get_handlers_for_event(event),
-         {:ok, projections} <- get_projections_for_event(event) do
-      {:ok,
-       %{
-         event: event,
-         related_events: related_events,
-         handlers: handlers,
-         projections: projections
-       }}
+    case EventStore.get_event(event_id) do
+      {:ok, event} when not is_nil(event) ->
+        with {:ok, related_events} <- get_related_events(event),
+             {:ok, handlers} <- get_handlers_for_event(event),
+             {:ok, projections} <- get_projections_for_event(event) do
+          {:ok,
+           %{
+             event: event,
+             related_events: related_events,
+             handlers: handlers,
+             projections: projections
+           }}
+        end
+      {:ok, nil} ->
+        {:error, :not_found}
+      {:error, :not_found} ->
+        {:error, :not_found}
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
@@ -52,30 +60,42 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
   """
   @spec compare_events(any(), any()) :: {:ok, map()} | {:error, any()}
   def compare_events(event_id_1, event_id_2) do
-    with {:ok, event1} <- EventStore.get_event(event_id_1),
-         {:ok, event2} <- EventStore.get_event(event_id_2) do
-      diff = %{
-        type: if(event1.type == event2.type, do: nil, else: {event1.type, event2.type}),
-        resource_id:
-          if(event1.resource_id == event2.resource_id,
-            do: nil,
-            else: {event1.resource_id, event2.resource_id}
-          ),
-        resource_type:
-          if(event1.resource_type == event2.resource_type,
-            do: nil,
-            else: {event1.resource_type, event2.resource_type}
-          ),
-        data: compare_maps(event1.data, event2.data),
-        metadata: compare_maps(event1.metadata, event2.metadata),
-        timestamp:
-          if(event1.timestamp == event2.timestamp,
-            do: nil,
-            else: {event1.timestamp, event2.timestamp}
-          )
-      }
+    case {EventStore.get_event(event_id_1), EventStore.get_event(event_id_2)} do
+      {{:ok, event1}, {:ok, event2}} when not is_nil(event1) and not is_nil(event2) ->
+        diff = %{
+          type: if(event1.type == event2.type, do: nil, else: {event1.type, event2.type}),
+          resource_id:
+            if(event1.resource_id == event2.resource_id,
+              do: nil,
+              else: {event1.resource_id, event2.resource_id}
+            ),
+          resource_type:
+            if(event1.resource_type == event2.resource_type,
+              do: nil,
+              else: {event1.resource_type, event2.resource_type}
+            ),
+          data: compare_maps(event1.data, event2.data),
+          metadata: compare_maps(event1.metadata, event2.metadata),
+          timestamp:
+            if(event1.timestamp == event2.timestamp,
+              do: nil,
+              else: {event1.timestamp, event2.timestamp}
+            )
+        }
 
-      {:ok, diff}
+        {:ok, diff}
+      {{:ok, nil}, _} ->
+        {:error, :not_found}
+      {_, {:ok, nil}} ->
+        {:error, :not_found}
+      {{:error, :not_found}, _} ->
+        {:error, :not_found}
+      {_, {:error, :not_found}} ->
+        {:error, :not_found}
+      {{:error, reason}, _} ->
+        {:error, reason}
+      {_, {:error, reason}} ->
+        {:error, reason}
     end
   end
 
@@ -98,32 +118,39 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
   @spec start_replay_for_debugging(String.t(), String.t(), String.t(), Keyword.t()) ::
           {:ok, any()} | {:error, any()}
   def start_replay_for_debugging(name, resource_type, resource_id, opts \\ []) do
-    # Add debugging metadata
-    metadata =
-      Map.merge(
-        %{purpose: "debugging", created_by: "event_inspector"},
-        Keyword.get(opts, :metadata, %{})
-      )
+    # Validate required parameters
+    cond do
+      is_binary(resource_type) and resource_type != "" and is_binary(resource_id) and resource_id != "" ->
+        # Add debugging metadata
+        metadata =
+          Map.merge(
+            %{purpose: "debugging", created_by: "event_inspector"},
+            Keyword.get(opts, :metadata, %{})
+          )
 
-    with {:ok, session} <-
-           EventStore.create_replay_session(
-             name,
-             resource_type,
-             resource_id,
-             Keyword.put(opts, :metadata, metadata)
-           ),
-         {:ok, updated_session} <- EventStore.update_replay_session_status(session.id, "running"),
-         # Get the events for the session
-         {:ok, events} <- EventStore.get_replay_session_events(updated_session.id) do
-      # Record the start of replay
-      record_replay_start(updated_session, events)
+        with {:ok, session} <-
+               EventStore.create_replay_session(
+                 name,
+                 resource_type,
+                 resource_id,
+                 Keyword.put(opts, :metadata, metadata)
+               ),
+             {:ok, updated_session} <- EventStore.update_replay_session_status(session.id, "running"),
+             # Get the events for the session
+             {:ok, events} <- EventStore.get_replay_session_events(updated_session.id) do
+          # Record the start of replay
+          record_replay_start(updated_session, events)
 
-      # Start the actual replay process
-      spawn_link(fn ->
-        replay_events(events, updated_session.id)
-      end)
+          # Start the actual replay process
+          spawn_link(fn ->
+            replay_events(events, updated_session.id)
+          end)
 
-      {:ok, updated_session.id}
+          {:ok, updated_session.id}
+        end
+
+      true ->
+        {:error, :invalid_parameters}
     end
   end
 
@@ -139,9 +166,13 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
   """
   @spec get_replay_status(any()) :: {:ok, any()} | {:error, any()}
   def get_replay_status(session_id) do
-    case HydepwnsLiveview.RepoHelper.get(EventStore.ReplaySession, session_id, timeout: 5000) do
-      nil -> {:error, :not_found}
-      session -> {:ok, session}
+    try do
+      case HydepwnsLiveview.Repo.get(HydepwnsLiveview.Events.Schemas.ReplaySession, session_id) do
+        nil -> {:error, :not_found}
+        session -> {:ok, session}
+      end
+    rescue
+      _ -> {:error, :not_found}
     end
   end
 
@@ -210,19 +241,31 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
   # Private functions
 
   # Gets events related to the given event (by correlation and causation)
+  defp get_related_events(event) when is_nil(event) do
+    {:ok, []}
+  end
+
   defp get_related_events(event) do
     # Get events in the same correlation chain
-    with {:ok, correlation_events} <-
-           EventStore.get_events(%{
-             correlation_id: event.correlation_id,
-             sort: [timestamp: :asc]
-           }),
-         # Get events caused by this event
-         {:ok, caused_events} <-
-           EventStore.get_events(%{
-             causation_id: event.id,
-             sort: [timestamp: :asc]
-           }) do
+    correlation_events_result =
+      if event.correlation_id do
+        EventStore.get_events(%{
+          correlation_id: event.correlation_id,
+          sort: [timestamp: :asc]
+        })
+      else
+        {:ok, []}
+      end
+
+    # Get events caused by this event
+    caused_events_result =
+      EventStore.get_events(%{
+        causation_id: event.id,
+        sort: [timestamp: :asc]
+      })
+
+    with {:ok, correlation_events} <- correlation_events_result,
+         {:ok, caused_events} <- caused_events_result do
       # Remove duplicates
       related =
         (correlation_events ++ caused_events)
@@ -235,36 +278,44 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
 
   # Gets handlers that would process this event
   defp get_handlers_for_event(event) do
-    handlers =
-      Registry.select(HydepwnsLiveview.Events.HandlerRegistry, [
-        {
-          {:"$1", :_, :"$2"},
-          [
-            {:orelse, {:==, {:map_get, :event_types, :"$2"}, :all},
-             {:is_member, event.type, {:map_get, :event_types, :"$2"}}}
-          ],
-          [:"$1"]
-        }
-      ])
+    try do
+      handlers =
+        Registry.select(HydepwnsLiveview.Events.HandlerRegistry, [
+          {
+            {:"$1", :_, :"$2"},
+            [
+              {:orelse, {:==, {:map_get, :event_types, :"$2"}, :all},
+               {:is_member, event.type, {:map_get, :event_types, :"$2"}}}
+            ],
+            [:"$1"]
+          }
+        ])
 
-    {:ok, handlers}
+      {:ok, handlers}
+    rescue
+      _ -> {:ok, []}
+    end
   end
 
   # Gets projections that would process this event
   defp get_projections_for_event(event) do
-    projections =
-      Registry.select(HydepwnsLiveview.Events.ProjectionRegistry, [
-        {
-          {:"$1", :_, :"$2"},
-          [
-            {:orelse, {:==, {:map_get, :interested_in, :"$2"}, :all},
-             {:is_member, event.type, {:map_get, :interested_in, :"$2"}}}
-          ],
-          [:"$1"]
-        }
-      ])
+    try do
+      projections =
+        Registry.select(HydepwnsLiveview.Events.ProjectionRegistry, [
+          {
+            {:"$1", :_, :"$2"},
+            [
+              {:orelse, {:==, {:map_get, :interested_in, :"$2"}, :all},
+               {:is_member, event.type, {:map_get, :interested_in, :"$2"}}}
+            ],
+            [:"$1"]
+          }
+        ])
 
-    {:ok, projections}
+      {:ok, projections}
+    rescue
+      _ -> {:ok, []}
+    end
   end
 
   # Compares two maps and returns the differences
@@ -397,11 +448,13 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
   end
 
   def analyze_event_sequence(events) when is_list(events) do
-    with :ok <- validate_event_sequence(events),
-         analysis <- perform_sequence_analysis(events) do
-      {:ok, analysis}
-    else
-      {:error, reason} -> {:error, reason}
+    # Validate all events first
+    case validate_event_sequence(events) do
+      :ok ->
+        analysis = perform_sequence_analysis(events)
+        {:ok, analysis}
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
@@ -409,7 +462,6 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
     %{
       type: event.__struct__,
       timestamp: event.timestamp,
-      source: event.source,
       correlation_id: event.correlation_id
     }
   end
@@ -418,36 +470,64 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
 
   defp validate_event(event) do
     case event do
-      %{__struct__: _} -> :ok
+      %{__struct__: struct} when is_atom(struct) -> :ok
       _ -> {:error, "Invalid event structure"}
     end
   end
 
   defp validate_event_sequence(events) do
-    case Enum.all?(events, &validate_event/1) do
-      true -> :ok
-      false -> {:error, "Invalid event in sequence"}
+    case Enum.find_value(events, :ok, fn event ->
+      case validate_event(event) do
+        :ok -> nil
+        {:error, reason} -> {:error, reason}
+      end
+    end) do
+      :ok -> :ok
+      {:error, reason} -> {:error, reason}
     end
   end
 
   defp perform_sequence_analysis(events) do
     %{
       total_events: length(events),
-      event_types: Enum.uniq(Enum.map(events, & &1.__struct__)),
+      event_types: Enum.uniq(Enum.map(events, &get_event_type/1)),
       time_span: calculate_time_span(events),
       source_distribution: analyze_source_distribution(events)
     }
   end
 
+  defp get_event_type(event) do
+    case event do
+      %{__struct__: struct} -> struct
+      _ -> :unknown
+    end
+  end
+
   defp calculate_time_span(events) do
-    timestamps = Enum.map(events, & &1.timestamp)
-    {min, max} = Enum.min_max(timestamps)
-    DateTime.diff(max, min)
+    case events do
+      [] -> 0
+      _ ->
+        # Filter out events without timestamp
+        valid_events = Enum.filter(events, &Map.has_key?(&1, :timestamp))
+        case valid_events do
+          [] -> 0
+          _ ->
+            timestamps = Enum.map(valid_events, & &1.timestamp)
+            {min, max} = Enum.min_max(timestamps)
+            DateTime.diff(max, min)
+        end
+    end
   end
 
   defp analyze_source_distribution(events) do
+    # Since events don't have a :source field, we'll use metadata.source or default to "unknown"
     events
-    |> Enum.group_by(& &1.source)
+    |> Enum.group_by(fn event ->
+      case event do
+        %{metadata: metadata} when is_map(metadata) -> Map.get(metadata, :source, "unknown")
+        _ -> "unknown"
+      end
+    end)
     |> Enum.map(fn {source, events} -> {source, length(events)} end)
     |> Enum.into(%{})
   end

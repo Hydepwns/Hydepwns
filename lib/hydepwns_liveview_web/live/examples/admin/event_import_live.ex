@@ -112,7 +112,7 @@ defmodule HydepwnsLiveviewWeb.Admin.EventImportLive do
                 <div class="bg-green-50 p-4 rounded-md">
                   <h3 class="text-sm font-medium text-green-800">Success</h3>
                   <p class="mt-1 text-sm text-green-700">
-                    Successfully imported <%= @import_result.imported_count %> events
+                    Successfully imported {@import_result.imported_count} events
                   </p>
                 </div>
 
@@ -121,7 +121,7 @@ defmodule HydepwnsLiveviewWeb.Admin.EventImportLive do
                     <h3 class="text-sm font-medium text-red-800">Errors</h3>
                     <ul class="mt-2 list-disc list-inside text-sm text-red-700">
                       <%= for error <- @import_result.errors do %>
-                        <li><%= error %></li>
+                        <li>{error}</li>
                       <% end %>
                     </ul>
                   </div>

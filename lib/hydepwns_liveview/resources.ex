@@ -196,6 +196,7 @@ defmodule HydepwnsLiveview.Resources do
   end
 
   defp build_relationship_for_resource(%{parent_id: nil}), do: []
+
   defp build_relationship_for_resource(resource) do
     case get_resource(resource.parent_id) do
       nil -> []

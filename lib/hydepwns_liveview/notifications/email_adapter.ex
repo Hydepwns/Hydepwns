@@ -10,7 +10,7 @@ defmodule HydepwnsLiveview.Notifications.EmailAdapter do
 
   require Logger
 
-    @doc """
+  @doc """
   Sends an email to the specified recipient.
 
   ## Parameters
@@ -38,7 +38,7 @@ defmodule HydepwnsLiveview.Notifications.EmailAdapter do
     end
   end
 
-    @doc """
+  @doc """
   Sends an email with HTML content.
 
   ## Parameters
@@ -58,7 +58,7 @@ defmodule HydepwnsLiveview.Notifications.EmailAdapter do
     send_email(to, subject, html_body)
   end
 
-    @doc """
+  @doc """
   Sends a templated email using a predefined template.
 
   ## Parameters

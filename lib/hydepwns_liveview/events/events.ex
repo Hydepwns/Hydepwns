@@ -12,4 +12,4 @@ defmodule HydepwnsLiveview.Events.Events do
   def create_event_settings(_params), do: {:ok, %{}}
   def get_events(_params), do: {:ok, []}
   def create_event(_type, _params), do: {:ok, %{}}
-end 
+end

@@ -98,44 +98,52 @@ defmodule HydepwnsLiveview.AccountsTest do
 
   describe "user authentication" do
     setup do
-      {:ok, user} = Accounts.create_user(%{
-        name: "Test User",
-        email: "test@example.com",
-        password: "password123"
-      })
+      {:ok, user} =
+        Accounts.create_user(%{
+          name: "Test User",
+          email: "test@example.com",
+          password: "password123"
+        })
+
       %{user: user}
     end
 
     test "authenticates user with correct credentials", %{user: user} do
-      assert {:ok, authenticated_user} = Accounts.authenticate_user(%{
-        "email" => "test@example.com",
-        "password" => "password123"
-      })
+      assert {:ok, authenticated_user} =
+               Accounts.authenticate_user(%{
+                 "email" => "test@example.com",
+                 "password" => "password123"
+               })
+
       assert authenticated_user.id == user.id
     end
 
     test "fails authentication with wrong password", %{user: _user} do
-      assert {:error, :unauthorized} = Accounts.authenticate_user(%{
-        "email" => "test@example.com",
-        "password" => "wrong_password"
-      })
+      assert {:error, :unauthorized} =
+               Accounts.authenticate_user(%{
+                 "email" => "test@example.com",
+                 "password" => "wrong_password"
+               })
     end
 
     test "fails authentication with non-existent email" do
-      assert {:error, :not_found} = Accounts.authenticate_user(%{
-        "email" => "nonexistent@example.com",
-        "password" => "password123"
-      })
+      assert {:error, :not_found} =
+               Accounts.authenticate_user(%{
+                 "email" => "nonexistent@example.com",
+                 "password" => "password123"
+               })
     end
   end
 
   describe "session management" do
     setup do
-      {:ok, user} = Accounts.create_user(%{
-        name: "Test User",
-        email: "test@example.com",
-        password: "password123"
-      })
+      {:ok, user} =
+        Accounts.create_user(%{
+          name: "Test User",
+          email: "test@example.com",
+          password: "password123"
+        })
+
       %{user: user}
     end
 
@@ -158,7 +166,7 @@ defmodule HydepwnsLiveview.AccountsTest do
     test "deletes session token", %{user: user} do
       token = Accounts.generate_user_session_token(user)
       assert Accounts.get_user_by_session_token(token)
-      
+
       Accounts.delete_session_token(token)
       assert nil == Accounts.get_user_by_session_token(token)
     end
@@ -166,11 +174,13 @@ defmodule HydepwnsLiveview.AccountsTest do
 
   describe "user updates" do
     setup do
-      {:ok, user} = Accounts.create_user(%{
-        name: "Test User",
-        email: "test@example.com",
-        password: "password123"
-      })
+      {:ok, user} =
+        Accounts.create_user(%{
+          name: "Test User",
+          email: "test@example.com",
+          password: "password123"
+        })
+
       %{user: user}
     end
 
@@ -198,6 +208,7 @@ defmodule HydepwnsLiveview.AccountsTest do
         password: "newpassword123",
         password_confirmation: "newpassword123"
       }
+
       assert {:ok, _updated_user} = Accounts.change_password(user, attrs)
     end
 
@@ -207,6 +218,7 @@ defmodule HydepwnsLiveview.AccountsTest do
         password: "newpassword123",
         password_confirmation: "newpassword123"
       }
+
       assert {:error, changeset} = Accounts.change_password(user, attrs)
       assert %{current_password: ["is not valid"]} = errors_on(changeset)
     end
@@ -214,16 +226,20 @@ defmodule HydepwnsLiveview.AccountsTest do
 
   describe "user queries" do
     setup do
-      {:ok, user1} = Accounts.create_user(%{
-        name: "User 1",
-        email: "user1@example.com",
-        password: "password123"
-      })
-      {:ok, user2} = Accounts.create_user(%{
-        name: "User 2",
-        email: "user2@example.com",
-        password: "password123"
-      })
+      {:ok, user1} =
+        Accounts.create_user(%{
+          name: "User 1",
+          email: "user1@example.com",
+          password: "password123"
+        })
+
+      {:ok, user2} =
+        Accounts.create_user(%{
+          name: "User 2",
+          email: "user2@example.com",
+          password: "password123"
+        })
+
       %{user1: user1, user2: user2}
     end
 
@@ -232,7 +248,7 @@ defmodule HydepwnsLiveview.AccountsTest do
     end
 
     test "gets user by id returns nil for non-existent user" do
-      assert nil == Accounts.get_user(999999)
+      assert nil == Accounts.get_user(999_999)
     end
 
     test "gets user by email", %{user1: user1} do
@@ -249,18 +265,22 @@ defmodule HydepwnsLiveview.AccountsTest do
 
   describe "authorization" do
     setup do
-      {:ok, admin_user} = Accounts.create_user(%{
-        name: "Admin User",
-        email: "admin@example.com",
-        password: "password123",
-        role: "admin"
-      })
-      {:ok, regular_user} = Accounts.create_user(%{
-        name: "Regular User",
-        email: "user@example.com",
-        password: "password123",
-        role: "user"
-      })
+      {:ok, admin_user} =
+        Accounts.create_user(%{
+          name: "Admin User",
+          email: "admin@example.com",
+          password: "password123",
+          role: "admin"
+        })
+
+      {:ok, regular_user} =
+        Accounts.create_user(%{
+          name: "Regular User",
+          email: "user@example.com",
+          password: "password123",
+          role: "user"
+        })
+
       %{admin_user: admin_user, regular_user: regular_user}
     end
 
@@ -277,4 +297,4 @@ defmodule HydepwnsLiveview.AccountsTest do
       assert regular_user.role == "user"
     end
   end
-end 
+end

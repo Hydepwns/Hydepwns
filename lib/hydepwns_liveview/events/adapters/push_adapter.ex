@@ -21,11 +21,13 @@ defmodule HydepwnsLiveview.Events.Adapters.PushAdapter do
   - {:ok, notification_id} on success
   - {:error, reason} on failure
   """
-  def send_notification(device_token, notification) when is_binary(device_token) and is_map(notification) do
+  def send_notification(device_token, notification)
+      when is_binary(device_token) and is_map(notification) do
     case validate_notification_params(device_token, notification) do
       :ok ->
         # In production, this would send to FCM, APNS, or similar service
         notification_id = generate_notification_id()
+
         _push_data = %{
           id: notification_id,
           device_token: device_token,
@@ -54,22 +56,28 @@ defmodule HydepwnsLiveview.Events.Adapters.PushAdapter do
   - {:ok, results} on success
   - {:error, reason} on failure
   """
-  def send_bulk_notification(device_tokens, notification) when is_list(device_tokens) and is_map(notification) do
+  def send_bulk_notification(device_tokens, notification)
+      when is_list(device_tokens) and is_map(notification) do
     case validate_bulk_notification_params(device_tokens, notification) do
       :ok ->
         # In production, this would batch send to push service
-        results = Enum.map(device_tokens, fn token ->
-          case send_notification(token, notification) do
-            {:ok, notification_id} ->
-              {token, {:ok, notification_id}}
+        results =
+          Enum.map(device_tokens, fn token ->
+            case send_notification(token, notification) do
+              {:ok, notification_id} ->
+                {token, {:ok, notification_id}}
 
-            {:error, reason} ->
-              {token, {:error, reason}}
-          end
-        end)
+              {:error, reason} ->
+                {token, {:error, reason}}
+            end
+          end)
 
         success_count = Enum.count(results, fn {_token, {status, _}} -> status == :ok end)
-        Logger.info("Bulk notification sent: #{success_count}/#{length(device_tokens)} successful")
+
+        Logger.info(
+          "Bulk notification sent: #{success_count}/#{length(device_tokens)} successful"
+        )
+
         {:ok, results}
 
       {:error, reason} ->
@@ -89,11 +97,13 @@ defmodule HydepwnsLiveview.Events.Adapters.PushAdapter do
   - {:ok, notification_id} on success
   - {:error, reason} on failure
   """
-  def send_topic_notification(topic, notification) when is_binary(topic) and is_map(notification) do
+  def send_topic_notification(topic, notification)
+      when is_binary(topic) and is_map(notification) do
     case validate_topic_notification_params(topic, notification) do
       :ok ->
         # In production, this would send to topic subscribers
         notification_id = generate_notification_id()
+
         _topic_data = %{
           id: notification_id,
           topic: topic,
@@ -123,11 +133,13 @@ defmodule HydepwnsLiveview.Events.Adapters.PushAdapter do
   - {:ok, scheduled_id} on success
   - {:error, reason} on failure
   """
-  def schedule_notification(device_token, notification, scheduled_time) when is_struct(scheduled_time, DateTime) do
+  def schedule_notification(device_token, notification, scheduled_time)
+      when is_struct(scheduled_time, DateTime) do
     case validate_scheduled_notification_params(device_token, notification, scheduled_time) do
       :ok ->
         # In production, this would schedule with a job queue
         scheduled_id = generate_scheduled_id()
+
         _scheduled_data = %{
           id: scheduled_id,
           device_token: device_token,
@@ -136,7 +148,10 @@ defmodule HydepwnsLiveview.Events.Adapters.PushAdapter do
           status: "scheduled"
         }
 
-        Logger.info("Notification scheduled for #{device_token} at #{scheduled_time}: #{scheduled_id}")
+        Logger.info(
+          "Notification scheduled for #{device_token} at #{scheduled_time}: #{scheduled_id}"
+        )
+
         {:ok, scheduled_id}
 
       {:error, reason} ->
@@ -253,10 +268,10 @@ defmodule HydepwnsLiveview.Events.Adapters.PushAdapter do
   end
 
   defp generate_notification_id do
-    "push_" <> :crypto.strong_rand_bytes(16) |> Base.encode16(case: :lower)
+    ("push_" <> :crypto.strong_rand_bytes(16)) |> Base.encode16(case: :lower)
   end
 
   defp generate_scheduled_id do
-    "sched_" <> :crypto.strong_rand_bytes(16) |> Base.encode16(case: :lower)
+    ("sched_" <> :crypto.strong_rand_bytes(16)) |> Base.encode16(case: :lower)
   end
 end

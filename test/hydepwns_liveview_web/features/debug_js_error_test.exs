@@ -31,11 +31,13 @@ defmodule HydepwnsLiveviewWeb.DebugJSErrorTest do
 
     # Create a test resource for the parent selector in the form
     import HydepwnsLiveview.TestSupport.ResourceFixtures
-    {:ok, _resource} = create_test_resource(%{
-      name: "Test Parent Resource",
-      type: "folder",
-      status: "published"
-    })
+
+    {:ok, _resource} =
+      create_test_resource(%{
+        name: "Test Parent Resource",
+        type: "folder",
+        status: "published"
+      })
 
     {:ok, session: visit_and_wait(session, "/resources")}
   end
@@ -46,13 +48,14 @@ defmodule HydepwnsLiveviewWeb.DebugJSErrorTest do
     |> wait_for_text("Resources")
 
     # Use the link instead of button for creating resources
-    session = session
-    |> click(Query.css("[data-test-id='create-resource-link']"))
-    |> wait_for_element(css("form#resource-form"))
-    |> fill_in(text_field("resource[name]"), with: "Test Resource")
-    |> fill_in(text_field("resource[description]"), with: "Test Description")
-    |> set_value(select("resource[status]"), "published")
-    |> click(button("Create Resource"))
+    session =
+      session
+      |> click(Query.css("[data-test-id='create-resource-link']"))
+      |> wait_for_element(css("form#resource-form"))
+      |> fill_in(text_field("resource[name]"), with: "Test Resource")
+      |> fill_in(text_field("resource[description]"), with: "Test Description")
+      |> set_value(select("resource[status]"), "published")
+      |> click(button("Create Resource"))
 
     # Wait for successful creation
     session = wait_for_flash_message(session, "success", "Resource created successfully")

@@ -9,9 +9,26 @@ defmodule HydepwnsLiveview.Resources.Resource do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @derive {Jason.Encoder, only: [
-    :id, :name, :type, :status, :description, :content, :metadata, :settings, :version, :parent_id, :child_ids, :tags, :categories, :created_by, :updated_by, :inserted_at, :updated_at
-  ]}
+  @derive {Jason.Encoder,
+           only: [
+             :id,
+             :name,
+             :type,
+             :status,
+             :description,
+             :content,
+             :metadata,
+             :settings,
+             :version,
+             :parent_id,
+             :child_ids,
+             :tags,
+             :categories,
+             :created_by,
+             :updated_by,
+             :inserted_at,
+             :updated_at
+           ]}
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "resources" do
@@ -81,10 +98,11 @@ defmodule HydepwnsLiveview.Resources.Resource do
 
   defp process_content_field(attrs) do
     # Convert all keys to atoms to ensure consistency
-    attrs = for {key, value} <- attrs, into: %{} do
-      new_key = if is_binary(key), do: String.to_atom(key), else: key
-      {new_key, value}
-    end
+    attrs =
+      for {key, value} <- attrs, into: %{} do
+        new_key = if is_binary(key), do: String.to_atom(key), else: key
+        {new_key, value}
+      end
 
     case Map.get(attrs, :content) do
       content when is_binary(content) ->
@@ -92,8 +110,10 @@ defmodule HydepwnsLiveview.Resources.Resource do
           {:ok, decoded} -> Map.put(attrs, :content, decoded)
           _ -> Map.put(attrs, :content, %{text: content})
         end
+
       content when is_map(content) ->
         attrs
+
       _ ->
         Map.put(attrs, :content, %{})
     end
@@ -106,10 +126,13 @@ defmodule HydepwnsLiveview.Resources.Resource do
     cond do
       !parent_id || !id ->
         changeset
+
       parent_id == id ->
         add_error(changeset, :parent_id, "Circular relationship detected")
+
       would_create_circular_relationship?(id, parent_id) ->
         add_error(changeset, :parent_id, "Circular relationship detected")
+
       true ->
         changeset
     end
@@ -125,14 +148,17 @@ defmodule HydepwnsLiveview.Resources.Resource do
     cond do
       MapSet.member?(visited, current_id) ->
         false
+
       current_id == target_id ->
         true
+
       true ->
         visited = MapSet.put(visited, current_id)
 
         case HydepwnsLiveview.Resources.ResourceSystem.get_resource(current_id) do
           {:ok, %{parent_id: parent_id}} when not is_nil(parent_id) ->
             check_parent_chain(parent_id, target_id, visited)
+
           _ ->
             false
         end
@@ -146,6 +172,7 @@ defmodule HydepwnsLiveview.Resources.Resource do
     cond do
       !parent_id ->
         changeset
+
       true ->
         case HydepwnsLiveview.Resources.ResourceSystem.get_resource(parent_id) do
           {:ok, parent_resource} ->
@@ -156,6 +183,7 @@ defmodule HydepwnsLiveview.Resources.Resource do
             else
               changeset
             end
+
           _ ->
             changeset
         end

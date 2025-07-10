@@ -106,20 +106,20 @@ defmodule HydepwnsLiveviewWeb.Admin.EventReportLive do
                     <div>
                       <dt class="text-sm font-medium text-gray-500">Total Events</dt>
                       <dd class="mt-1 text-2xl font-semibold text-gray-900">
-                        <%= @report_data.total_events %>
+                        {@report_data.total_events}
                       </dd>
                     </div>
                     <div>
                       <dt class="text-sm font-medium text-gray-500">Total Attendees</dt>
                       <dd class="mt-1 text-2xl font-semibold text-gray-900">
-                        <%= @report_data.total_attendees %>
+                        {@report_data.total_attendees}
                       </dd>
                     </div>
                     <%= if @report_data.total_revenue do %>
                       <div>
                         <dt class="text-sm font-medium text-gray-500">Total Revenue</dt>
                         <dd class="mt-1 text-2xl font-semibold text-gray-900">
-                          $<%= @report_data.total_revenue %>
+                          ${@report_data.total_revenue}
                         </dd>
                       </div>
                     <% end %>
@@ -127,7 +127,7 @@ defmodule HydepwnsLiveviewWeb.Admin.EventReportLive do
                       <div>
                         <dt class="text-sm font-medium text-gray-500">Average Rating</dt>
                         <dd class="mt-1 text-2xl font-semibold text-gray-900">
-                          <%= @report_data.average_rating %>/5
+                          {@report_data.average_rating}/5
                         </dd>
                       </div>
                     <% end %>
@@ -166,22 +166,22 @@ defmodule HydepwnsLiveviewWeb.Admin.EventReportLive do
                           <%= for event <- @report_data.events do %>
                             <tr>
                               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                <%= event.name %>
+                                {event.name}
                               </td>
                               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                <%= Calendar.strftime(event.date, "%Y-%m-%d") %>
+                                {Calendar.strftime(event.date, "%Y-%m-%d")}
                               </td>
                               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                <%= event.attendees %>
+                                {event.attendees}
                               </td>
                               <%= if @report_data.type == "revenue" do %>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                  $<%= event.revenue %>
+                                  ${event.revenue}
                                 </td>
                               <% end %>
                               <%= if @report_data.type == "feedback" do %>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                  <%= event.rating %>/5
+                                  {event.rating}/5
                                 </td>
                               <% end %>
                             </tr>

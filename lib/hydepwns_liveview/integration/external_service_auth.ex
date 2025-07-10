@@ -22,7 +22,8 @@ defmodule HydepwnsLiveview.Integration.ExternalServiceAuth do
   - {:ok, true} if credentials are valid
   - {:error, reason} if credentials are invalid
   """
-  def validate_credentials(service_name, credentials) when is_binary(service_name) and is_map(credentials) do
+  def validate_credentials(service_name, credentials)
+      when is_binary(service_name) and is_map(credentials) do
     case validate_credential_params(service_name, credentials) do
       :ok ->
         # In production, this would validate against the actual service
@@ -35,7 +36,8 @@ defmodule HydepwnsLiveview.Integration.ExternalServiceAuth do
             Logger.warning("Invalid credentials for #{service_name}")
             {:error, "Invalid API key"}
 
-          %{username: username, password: password} when is_binary(username) and is_binary(password) ->
+          %{username: username, password: password}
+          when is_binary(username) and is_binary(password) ->
             if String.length(username) > 0 and String.length(password) > 0 do
               Logger.info("Credentials validated for #{service_name}")
               {:ok, true}
@@ -126,7 +128,8 @@ defmodule HydepwnsLiveview.Integration.ExternalServiceAuth do
   - {:ok, token} on success
   - {:error, reason} on failure
   """
-  def generate_auth_token(service_name, user_id) when is_binary(service_name) and is_binary(user_id) do
+  def generate_auth_token(service_name, user_id)
+      when is_binary(service_name) and is_binary(user_id) do
     case validate_token_params(service_name, user_id) do
       :ok ->
         # In production, this would generate a proper JWT or similar token
@@ -158,7 +161,8 @@ defmodule HydepwnsLiveview.Integration.ExternalServiceAuth do
   - {:ok, token_data} on success
   - {:error, reason} on failure
   """
-  def validate_auth_token(token, service_name) when is_binary(token) and is_binary(service_name) do
+  def validate_auth_token(token, service_name)
+      when is_binary(token) and is_binary(service_name) do
     case Base.decode64(token) do
       {:ok, decoded} ->
         case Jason.decode(decoded) do

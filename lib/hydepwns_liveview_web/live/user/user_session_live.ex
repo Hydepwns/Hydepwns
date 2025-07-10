@@ -25,6 +25,7 @@ defmodule HydepwnsLiveviewWeb.UserSessionLive do
 
   defp apply_action(socket, :new, _params) do
     user = %User{}
+
     socket
     |> assign(:page_title, "Log in")
     |> assign(:user, user)

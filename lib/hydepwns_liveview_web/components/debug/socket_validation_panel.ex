@@ -601,7 +601,9 @@ defmodule HydepwnsLiveviewWeb.Components.Debug.SocketValidationPanel do
 
   # --- Additional private functions to fix compilation errors ---
   defp calculate_bar_width(_count, 0), do: 0
-  defp calculate_bar_width(count, max_count) when is_integer(count) and is_integer(max_count) and max_count > 0 do
+
+  defp calculate_bar_width(count, max_count)
+       when is_integer(count) and is_integer(max_count) and max_count > 0 do
     percent = count / max_count * 100
     Float.round(percent, 2)
   end

@@ -141,9 +141,9 @@ defmodule HydepwnsLiveviewWeb.Admin.EventNotificationLive do
               <div class="p-6">
                 <div class="flex justify-between items-start">
                   <div>
-                    <h3 class="text-lg font-medium text-gray-900"><%= notification.name %></h3>
-                    <p class="mt-1 text-sm text-gray-500">Trigger: <%= notification.trigger %></p>
-                    <p class="mt-1 text-sm text-gray-500">Recipients: <%= Enum.join(notification.recipients, ", ") %></p>
+                    <h3 class="text-lg font-medium text-gray-900">{notification.name}</h3>
+                    <p class="mt-1 text-sm text-gray-500">Trigger: {notification.trigger}</p>
+                    <p class="mt-1 text-sm text-gray-500">Recipients: {Enum.join(notification.recipients, ", ")}</p>
                   </div>
                   <div class="flex space-x-2">
                     <button phx-click="delete" phx-value-id={notification.id} data-confirm="Are you sure?" class="text-red-600 hover:text-red-900">
@@ -153,11 +153,11 @@ defmodule HydepwnsLiveviewWeb.Admin.EventNotificationLive do
                 </div>
                 <div class="mt-4">
                   <h4 class="text-sm font-medium text-gray-900">Subject</h4>
-                  <p class="mt-1 text-sm text-gray-500"><%= notification.subject %></p>
+                  <p class="mt-1 text-sm text-gray-500">{notification.subject}</p>
                 </div>
                 <div class="mt-4">
                   <h4 class="text-sm font-medium text-gray-900">Body</h4>
-                  <p class="mt-1 text-sm text-gray-500"><%= notification.body %></p>
+                  <p class="mt-1 text-sm text-gray-500">{notification.body}</p>
                 </div>
               </div>
             <% end %>

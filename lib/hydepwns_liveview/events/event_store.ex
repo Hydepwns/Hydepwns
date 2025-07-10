@@ -85,7 +85,8 @@ defmodule HydepwnsLiveview.Events.EventStore do
   * `{:error, reason}` - Error retrieving events
   """
   @spec get_events_for_resource(String.t(), String.t()) :: {:ok, [Event.t()]} | {:error, any()}
-  def get_events_for_resource(resource_type, resource_id), do: event_store_module().get_events_for_resource(resource_type, resource_id)
+  def get_events_for_resource(resource_type, resource_id),
+    do: event_store_module().get_events_for_resource(resource_type, resource_id)
 
   @doc """
   Retrieves events for a resource up to a specific point in time.
@@ -219,7 +220,8 @@ defmodule HydepwnsLiveview.Events.EventStore do
   * `{:error, reason}` - The session could not be completed
   """
   @spec complete_replay_session(String.t(), map()) :: {:ok, ReplaySession.t()} | {:error, any()}
-  def complete_replay_session(session_id, final_state) when is_binary(session_id) and is_map(final_state) do
+  def complete_replay_session(session_id, final_state)
+      when is_binary(session_id) and is_map(final_state) do
     ReplayOperations.complete_session(session_id, final_state)
   end
 
@@ -366,7 +368,10 @@ defmodule HydepwnsLiveview.Events.EventStore do
   @spec save_versioned_state(String.t(), String.t(), map(), map()) ::
           {:ok, VersionedState.t()} | {:error, any()}
   def save_versioned_state(resource_type, resource_id, state, metadata \\ %{}) do
-    SnapshotOperations.save_versioned_state(resource_type, resource_id, state, [label: "auto", metadata: metadata])
+    SnapshotOperations.save_versioned_state(resource_type, resource_id, state,
+      label: "auto",
+      metadata: metadata
+    )
   end
 
   @doc """

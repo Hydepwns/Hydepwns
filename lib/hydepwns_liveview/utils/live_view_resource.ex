@@ -209,6 +209,7 @@ defmodule HydepwnsLiveview.Utils.LiveViewResource do
           module: module,
           opts: opts
         }
+
         Module.put_attribute(__MODULE__, :transformations, transformation_def)
       end
 
@@ -301,7 +302,7 @@ defmodule HydepwnsLiveview.Utils.LiveViewResource do
   defp __relationship_functions_impl__ do
     quote do
       alias HydepwnsLiveview.Utils.RelationshipDSL
-      
+
       belongs_to = &RelationshipDSL._relationship_belongs_to__/2
       belongs_to_with_opts = &RelationshipDSL._relationship_belongs_to_with_opts__/3
       has_many = &RelationshipDSL._relationship_has_many__/2
@@ -561,6 +562,4 @@ defmodule HydepwnsLiveview.Utils.LiveViewResource do
       attr.type
     end
   end
-
 end
-

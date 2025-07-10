@@ -336,7 +336,8 @@ defmodule HydepwnsLiveviewWeb.Examples.ContextValidationTrackingExampleLive do
     end
   end
 
-  def do_handle_event("set_view_mode", %{"mode" => mode}, socket) when mode in ["timeline", "list", "audit"] do
+  def do_handle_event("set_view_mode", %{"mode" => mode}, socket)
+      when mode in ["timeline", "list", "audit"] do
     assign(socket, :view_mode, mode)
   end
 
@@ -349,6 +350,7 @@ defmodule HydepwnsLiveviewWeb.Examples.ContextValidationTrackingExampleLive do
         |> assign(:versioned_user, versioned_user)
         |> assign(:selected_version, version)
         |> assign(:diff, nil)
+
       {:error, reason} ->
         assign(socket, :error_message, "Failed to load version: #{reason}")
     end
@@ -361,6 +363,7 @@ defmodule HydepwnsLiveviewWeb.Examples.ContextValidationTrackingExampleLive do
     case LiveViewAPI.diff_versions(socket, :user, version1: v1, version2: v2) do
       {:ok, diff} ->
         assign(socket, :diff, diff)
+
       {:error, reason} ->
         assign(socket, :error_message, "Failed to create diff: #{reason}")
     end

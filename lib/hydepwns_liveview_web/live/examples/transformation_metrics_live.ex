@@ -89,7 +89,12 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationMetricsLive do
   end
 
   @impl Phoenix.LiveView
-  def handle_event(event, params, socket) when event not in ["generate_successful_transformations", "generate_failed_transformations", "generate_mixed_transformations"] do
+  def handle_event(event, params, socket)
+      when event not in [
+             "generate_successful_transformations",
+             "generate_failed_transformations",
+             "generate_mixed_transformations"
+           ] do
     require Logger
 
     Logger.warning(

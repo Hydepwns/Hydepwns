@@ -2,7 +2,9 @@ defmodule HydepwnsLiveview.Resources.PostResourceTest do
   use HydepwnsLiveview.DataCase
   alias HydepwnsLiveview.TestSupport.EventStoreTestHelper
   alias HydepwnsLiveview.Resources.TestPostResource
-  import HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource, only: [rebuild_from_events: 3]
+
+  import HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource,
+    only: [rebuild_from_events: 3]
 
   setup do
     EventStoreTestHelper.setup_mock_event_store()
@@ -91,14 +93,25 @@ defmodule HydepwnsLiveview.Resources.PostResourceTest do
       }
 
       {:ok, _post} = TestPostResource.create(post_params)
-      {:ok, _updated_post} = TestPostResource.update("test-post-4", %{title: "Updated Title", published: true})
+
+      {:ok, _updated_post} =
+        TestPostResource.update("test-post-4", %{title: "Updated Title", published: true})
+
       {:ok, _events} = TestPostResource.delete("test-post-4", %{})
 
       # Get events from the store and rebuild state
       {:ok, events} = TestPostResource.get_history("test-post-4")
-      rebuilt = rebuild_from_events(events, TestPostResource.initial_state(), &TestPostResource.apply_event/2)
+
+      rebuilt =
+        rebuild_from_events(
+          events,
+          TestPostResource.initial_state(),
+          &TestPostResource.apply_event/2
+        )
+
       assert rebuilt.title == "Updated Title"
-      assert rebuilt.published == false # deleted sets published to false
+      # deleted sets published to false
+      assert rebuilt.published == false
     end
   end
-end 
+end

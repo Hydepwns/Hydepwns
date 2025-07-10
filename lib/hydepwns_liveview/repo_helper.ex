@@ -356,4 +356,4 @@ defmodule HydepwnsLiveview.RepoHelper do
   def delete_all(queryable, opts \\ []) do
     repo().delete_all(queryable, opts)
   end
-end 
+end

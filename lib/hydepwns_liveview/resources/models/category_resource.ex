@@ -17,10 +17,10 @@ defmodule HydepwnsLiveview.Resources.CategoryResource do
 
   # Demonstrate has_many relationship
   has_many(:posts, HydepwnsLiveview.Resources.PostResource, foreign_key: :category_id)
-  
+
   # Demonstrate belongs_to relationship (self-referential for hierarchical categories)
   belongs_to(:parent, HydepwnsLiveview.Resources.CategoryResource, foreign_key: :parent_id)
-  
+
   # Demonstrate has_many relationship (self-referential for child categories)
   has_many(:children, HydepwnsLiveview.Resources.CategoryResource, foreign_key: :parent_id)
 
@@ -94,4 +94,4 @@ defmodule HydepwnsLiveview.Resources.CategoryResource do
   def create_events(_params, _metadata), do: {:ok, []}
   def create_update_events(_params, _metadata), do: {:ok, []}
   def create_delete_events(_params, _metadata), do: {:ok, []}
-end 
+end

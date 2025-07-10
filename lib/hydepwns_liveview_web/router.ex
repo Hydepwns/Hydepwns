@@ -92,6 +92,7 @@ defmodule HydepwnsLiveviewWeb.Router do
     get "/users/profile", Api.UserController, :profile
     put "/users/:id", Api.UserController, :update
     post "/upload", Api.UploadController, :create
+
     scope "/admin" do
       pipe_through :api_admin
       get "/users", Api.AdminController, :users

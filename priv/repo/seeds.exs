@@ -18,13 +18,18 @@ HydepwnsLiveview.Repo.delete_all(Theme)
 
 # Detect system preferences for theme creation
 # This simulates the JavaScript logic from root.html.heex
-system_prefers_dark = case System.get_env("PREFERS_COLOR_SCHEME") do
-  "dark" -> true
-  "light" -> false
-  _ -> 
-    # Default to light theme for seeding, but system theme will adapt
-    false
-end
+system_prefers_dark =
+  case System.get_env("PREFERS_COLOR_SCHEME") do
+    "dark" ->
+      true
+
+    "light" ->
+      false
+
+    _ ->
+      # Default to light theme for seeding, but system theme will adapt
+      false
+  end
 
 # Create default themes with proper structure matching ThemeSystem expectations
 light_theme = %{

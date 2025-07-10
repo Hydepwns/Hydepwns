@@ -19,12 +19,15 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormatHelpers do
       _ -> datetime
     end
   end
+
   def format_datetime(%DateTime{} = datetime) do
     Calendar.strftime(datetime, "%Y-%m-%d %H:%M:%S")
   end
+
   def format_datetime(%NaiveDateTime{} = datetime) do
     Calendar.strftime(datetime, "%Y-%m-%d %H:%M:%S")
   end
+
   def format_datetime(_), do: "N/A"
 
   @doc """
@@ -98,6 +101,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormatHelpers do
   def format_percentage(value) when is_number(value) do
     "#{round(value * 100)}%"
   end
+
   @doc false
   def format_percentage(_), do: "N/A"
 
@@ -105,6 +109,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormatHelpers do
   def format_rate(value) when is_number(value) do
     "#{Float.round(value, 2)}/s"
   end
+
   @doc false
   def format_rate(_), do: "N/A"
 
@@ -135,6 +140,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormatHelpers do
       true -> "0 B"
     end
   end
+
   @doc false
   def format_size_change(_), do: "N/A"
 
@@ -150,14 +156,17 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormatHelpers do
   def format_time(time) when is_integer(time) do
     "#{time}ms"
   end
+
   @doc false
   def format_time(%DateTime{} = datetime) do
     Calendar.strftime(datetime, "%H:%M")
   end
+
   @doc false
   def format_time(%NaiveDateTime{} = datetime) do
     Calendar.strftime(datetime, "%H:%M")
   end
+
   @doc false
   def format_time(_), do: "N/A"
 
@@ -195,8 +204,13 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormatHelpers do
 
   @doc false
   def format_bytes(bytes) when is_number(bytes) and bytes < 1024, do: "#{bytes} B"
-  def format_bytes(bytes) when is_number(bytes) and bytes < 1024 * 1024, do: "#{round(bytes / 1024)} KB"
-  def format_bytes(bytes) when is_number(bytes) and bytes < 1024 * 1024 * 1024, do: "#{round(bytes / 1024 / 1024)} MB"
+
+  def format_bytes(bytes) when is_number(bytes) and bytes < 1024 * 1024,
+    do: "#{round(bytes / 1024)} KB"
+
+  def format_bytes(bytes) when is_number(bytes) and bytes < 1024 * 1024 * 1024,
+    do: "#{round(bytes / 1024 / 1024)} MB"
+
   def format_bytes(bytes) when is_number(bytes), do: "#{round(bytes / 1024 / 1024 / 1024)} GB"
   def format_bytes(_), do: "N/A"
-end 
+end

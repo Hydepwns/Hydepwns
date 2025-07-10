@@ -21,12 +21,11 @@ defmodule HydepwnsLiveview.Transformations.TransformationRegistry do
   # Transformation record structure
   @type transformation :: %{
           name: String.t(),
-          transformer:
-            (map(), TransformationContext.t() ->
-               {:ok, map()}
-               | {:ok, map(), TransformationContext.t()}
-               | {:error, String.t()}
-               | {:error, String.t(), map()}),
+          transformer: (map(), TransformationContext.t() ->
+                          {:ok, map()}
+                          | {:ok, map(), TransformationContext.t()}
+                          | {:error, String.t()}
+                          | {:error, String.t(), map()}),
           resource_type: module() | :any,
           operation: TransformationContext.operation() | :any,
           phase: TransformationContext.phase() | :any,

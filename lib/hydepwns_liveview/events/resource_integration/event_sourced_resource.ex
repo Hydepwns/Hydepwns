@@ -19,10 +19,11 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
     quote do
       @behaviour HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource
 
-      import HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource, only: [
-        rebuild_from_events: 3,
-        __publish_events__: 3
-      ]
+      import HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource,
+        only: [
+          rebuild_from_events: 3,
+          __publish_events__: 3
+        ]
 
       def resource_type, do: __MODULE__
 
@@ -53,7 +54,8 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
       def get_at(id, timestamp)
           when is_binary(id) and byte_size(id) > 0 and
                  is_struct(timestamp, DateTime) do
-        with {:ok, events} <- EventStore.get_events_for_resource_at(resource_type(), id, timestamp) do
+        with {:ok, events} <-
+               EventStore.get_events_for_resource_at(resource_type(), id, timestamp) do
           initial_state = initial_state()
           state = rebuild_from_events(events, initial_state, &apply_event/2)
           {:ok, state}
@@ -158,7 +160,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
   end
 
   def rebuild_from_events(_events, _state, _apply_event_fn),
-      do: {:error, :invalid_parameters}
+    do: {:error, :invalid_parameters}
 
   def __get_resource__(module, id) when is_atom(module) and is_binary(id) and byte_size(id) > 0 do
     with {:ok, events} <- EventStore.get_events_for_resource(module.resource_type(), id) do
@@ -173,7 +175,8 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
   def __get_resource_at__(module, id, timestamp)
       when is_atom(module) and is_binary(id) and byte_size(id) > 0 and
              is_struct(timestamp, DateTime) do
-    with {:ok, events} <- EventStore.get_events_for_resource_at(module.resource_type(), id, timestamp) do
+    with {:ok, events} <-
+           EventStore.get_events_for_resource_at(module.resource_type(), id, timestamp) do
       initial_state = module.initial_state()
       state = rebuild_from_events(events, initial_state, &module.apply_event/2)
       {:ok, state}
@@ -182,7 +185,8 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
 
   def __get_resource_at__(_module, _id, _timestamp), do: {:error, :invalid_parameters}
 
-  def __create_resource__(invalid_module, invalid_params) when is_atom(invalid_module) and is_map(invalid_params) do
+  def __create_resource__(invalid_module, invalid_params)
+      when is_atom(invalid_module) and is_map(invalid_params) do
     with {:ok, events} <- invalid_module.create_events(invalid_params) do
       initial_state = invalid_module.initial_state()
       state = rebuild_from_events(events, initial_state, &invalid_module.apply_event/2)
@@ -209,7 +213,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
   end
 
   def __execute_resource__(_module, _id, _command, _params, _metadata),
-      do: {:error, :invalid_parameters}
+    do: {:error, :invalid_parameters}
 
   def __get_history__(module, id, opts)
       when is_atom(module) and
@@ -235,8 +239,8 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
     do: {:error, :invalid_parameters}
 
   def __publish_events__(events, metadata, _module)
-       when is_list(events) and
-              is_map(metadata) do
+      when is_list(events) and
+             is_map(metadata) do
     Enum.each(events, fn event ->
       EventStore.store_event(event, metadata)
     end)
@@ -464,7 +468,9 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
       %{resource: resource, version: version, timestamp: timestamp}
       when is_integer(version) and is_binary(timestamp) ->
         validate_resource(resource)
-      _ -> {:error, "Invalid snapshot structure"}
+
+      _ ->
+        {:error, "Invalid snapshot structure"}
     end
   end
 
@@ -472,10 +478,13 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource do
     case event.__struct__ do
       HydepwnsLiveview.Events.ResourceCreated ->
         %{resource | id: event.resource_id, created_at: event.timestamp}
+
       HydepwnsLiveview.Events.ResourceUpdated ->
         Map.merge(resource, event.changes)
+
       HydepwnsLiveview.Events.ResourceDeleted ->
         %{resource | deleted_at: event.timestamp}
+
       _ ->
         resource
     end

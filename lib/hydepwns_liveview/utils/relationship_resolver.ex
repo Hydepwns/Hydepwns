@@ -94,7 +94,8 @@ defmodule HydepwnsLiveview.Utils.RelationshipResolver do
   end
 
   defp validate_resource_module(nil) do
-    {:error, "Cannot resolve relationship: Resource does not have a __resource_module__ attribute"}
+    {:error,
+     "Cannot resolve relationship: Resource does not have a __resource_module__ attribute"}
   end
 
   defp validate_resource_module(resource_module) do
@@ -117,7 +118,10 @@ defmodule HydepwnsLiveview.Utils.RelationshipResolver do
         {:ok, related_data, updated_resource} ->
           # For testing purposes, store the updated resource in the process dictionary
           if Application.get_env(:hydepwns_liveview, :testing) do
-            Process.put({:resource_cache, resource.__resource_module__, resource.id}, updated_resource)
+            Process.put(
+              {:resource_cache, resource.__resource_module__, resource.id},
+              updated_resource
+            )
           end
 
           # Return the related data
@@ -218,10 +222,13 @@ defmodule HydepwnsLiveview.Utils.RelationshipResolver do
 
     # Find the specific relationship
     case Enum.find(relationships, fn relationship ->
-      relationship.name == relationship_name
-    end) do
-      nil -> {:error, "Relationship #{relationship_name} not found in #{inspect(resource_module)}"}
-      relationship -> {:ok, relationship}
+           relationship.name == relationship_name
+         end) do
+      nil ->
+        {:error, "Relationship #{relationship_name} not found in #{inspect(resource_module)}"}
+
+      relationship ->
+        {:ok, relationship}
     end
   end
 
@@ -430,14 +437,15 @@ defmodule HydepwnsLiveview.Utils.RelationshipResolver do
 
     # First, get the intermediate relationship definition
     resource_module = Map.get(resource, :__resource_module__)
-    
+
     case get_relationship_definition(resource_module, through) do
       {:ok, through_relationship} ->
         # First load the intermediate relationship
         case do_resolve_relationship(resource, through_relationship, cache: false) do
           {:ok, intermediates, updated_resource} ->
             # Handle collection or single intermediate
-            intermediates_list = if is_list(intermediates), do: intermediates, else: [intermediates]
+            intermediates_list =
+              if is_list(intermediates), do: intermediates, else: [intermediates]
 
             # Then load the target relationships from each intermediate
             related =
@@ -446,14 +454,16 @@ defmodule HydepwnsLiveview.Utils.RelationshipResolver do
               |> Enum.flat_map(fn intermediate ->
                 # Get the target relationship definition
                 intermediate_module = Map.get(intermediate, :__resource_module__)
-                
+
                 case get_relationship_definition(intermediate_module, target) do
                   {:ok, target_relationship} ->
                     case do_resolve_relationship(intermediate, target_relationship, cache: false) do
                       {:ok, targets, _} -> if is_list(targets), do: targets, else: [targets]
                       {:error, _, _} -> []
                     end
-                  {:error, _} -> []
+
+                  {:error, _} ->
+                    []
                 end
               end)
               |> Enum.reject(&is_nil/1)
@@ -473,7 +483,9 @@ defmodule HydepwnsLiveview.Utils.RelationshipResolver do
         end
 
       {:error, reason} ->
-        {:error, "Through relationship #{through} not found in #{inspect(resource_module)}: #{reason}", resource}
+        {:error,
+         "Through relationship #{through} not found in #{inspect(resource_module)}: #{reason}",
+         resource}
     end
   end
 

@@ -23,23 +23,37 @@ defmodule HydepwnsLiveview.Resources.TestPostResource do
   # Required by the macro - note: create_events/2 (id, params)
   def create_events(id, params) do
     resource_id = id || params[:id] || "test-post-#{System.unique_integer()}"
-    {:ok, [
-      %{type: "post.created", data: params, resource_id: resource_id, resource_type: resource_type()}
-    ]}
+
+    {:ok,
+     [
+       %{
+         type: "post.created",
+         data: params,
+         resource_id: resource_id,
+         resource_type: resource_type()
+       }
+     ]}
   end
 
   def create_update_events(resource, params) do
     # The resource parameter is the event data, extract the ID from it
     resource_id = resource[:id] || resource[:resource_id] || "unknown"
+
     [
-      %{type: "post.updated", data: params, resource_id: resource_id, resource_type: resource_type()}
+      %{
+        type: "post.updated",
+        data: params,
+        resource_id: resource_id,
+        resource_type: resource_type()
+      }
     ]
   end
 
   def create_delete_events(id, _params) do
-    {:ok, [
-      %{type: "post.deleted", data: %{}, resource_id: id, resource_type: resource_type()}
-    ]}
+    {:ok,
+     [
+       %{type: "post.deleted", data: %{}, resource_id: id, resource_type: resource_type()}
+     ]}
   end
 
   def apply_event(%{type: "post.created", data: data}, state), do: Map.merge(state, data)

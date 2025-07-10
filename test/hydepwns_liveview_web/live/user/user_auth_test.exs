@@ -5,38 +5,43 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
   import Phoenix.LiveViewTest
   import HydepwnsLiveviewWeb.TestHelpers.WallabyUIHelper
 
-
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveviewWeb.UserAuth
 
   setup do
     # Create test users with different roles
-    {:ok, admin_user} = Accounts.create_user(%{
-      name: "Admin User",
-      email: "admin@example.com",
-      password: "password123",
-      role: "admin"
-    })
+    {:ok, admin_user} =
+      Accounts.create_user(%{
+        name: "Admin User",
+        email: "admin@example.com",
+        password: "password123",
+        role: "admin"
+      })
 
-    {:ok, regular_user} = Accounts.create_user(%{
-      name: "Regular User",
-      email: "user@example.com",
-      password: "password123",
-      role: "user"
-    })
+    {:ok, regular_user} =
+      Accounts.create_user(%{
+        name: "Regular User",
+        email: "user@example.com",
+        password: "password123",
+        role: "user"
+      })
 
-    {:ok, editor_user} = Accounts.create_user(%{
-      name: "Editor User",
-      email: "editor@example.com",
-      password: "password123",
-      role: "editor"
-    })
+    {:ok, editor_user} =
+      Accounts.create_user(%{
+        name: "Editor User",
+        email: "editor@example.com",
+        password: "password123",
+        role: "editor"
+      })
 
     %{admin_user: admin_user, regular_user: regular_user, editor_user: editor_user}
   end
 
   describe "authentication guards" do
-    test "require_authenticated_user allows authenticated users", %{_conn: _conn, regular_user: user} do
+    test "require_authenticated_user allows authenticated users", %{
+      _conn: _conn,
+      regular_user: user
+    } do
       # Create a session with user token
       token = Accounts.generate_user_session_token(user)
       session = %{"user_token" => token}
@@ -101,7 +106,10 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
       assert updated_socket.assigns.current_user == nil
     end
 
-    test "redirect_if_user_is_authenticated redirects authenticated users", %{_conn: _conn, regular_user: user} do
+    test "redirect_if_user_is_authenticated redirects authenticated users", %{
+      _conn: _conn,
+      regular_user: user
+    } do
       # Create a session with user token
       token = Accounts.generate_user_session_token(user)
       session = %{"user_token" => token}
@@ -276,7 +284,9 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
       conn = Plug.Test.init_test_session(conn, session)
       resp = get(conn, ~p"/admin/event-dashboard")
       assert resp.status == 302
-      assert Phoenix.Flash.get(resp.assigns.flash, :error) == "You must be an admin to access this page."
+
+      assert Phoenix.Flash.get(resp.assigns.flash, :error) ==
+               "You must be an admin to access this page."
     end
 
     test "authenticated user can access protected routes", %{conn: conn, regular_user: user} do

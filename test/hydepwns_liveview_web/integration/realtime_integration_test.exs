@@ -14,10 +14,12 @@ defmodule HydepwnsLiveviewWeb.Integration.RealtimeIntegrationTest do
   setup do
     # Temporarily set repo to use real database for integration tests
     Application.put_env(:hydepwns_liveview, :repo, HydepwnsLiveview.Repo)
+
     on_exit(fn ->
       # Restore mock repo after test
       Application.put_env(:hydepwns_liveview, :repo, HydepwnsLiveview.RepoMock)
     end)
+
     :ok
   end
 
@@ -29,31 +31,34 @@ defmodule HydepwnsLiveviewWeb.Integration.RealtimeIntegrationTest do
     # Set up mocks for external services
     HydepwnsLiveview.MockExternalAPI
     |> stub(:fetch_data, fn id ->
-      {:ok, %{
-        "id" => id,
-        "name" => "Test Resource",
-        "description" => "A test resource",
-        "type" => "test-type",
-        "status" => "active"
-      }}
+      {:ok,
+       %{
+         "id" => id,
+         "name" => "Test Resource",
+         "description" => "A test resource",
+         "type" => "test-type",
+         "status" => "active"
+       }}
     end)
 
     # Create test user
-    {:ok, user} = Accounts.register_user(%{
-      email: "realtime_test@example.com",
-      password: "password123",
-      password_confirmation: "password123",
-      name: "Realtime Test User"
-    })
+    {:ok, user} =
+      Accounts.register_user(%{
+        email: "realtime_test@example.com",
+        password: "password123",
+        password_confirmation: "password123",
+        name: "Realtime Test User"
+      })
 
     # Create test resource
-    {:ok, resource} = ResourceSystem.create_resource(%{
-      name: "Realtime Test Resource",
-      description: "Resource for realtime testing",
-      type: "document",
-      status: "published",
-      content: %{text: "Test content"}
-    })
+    {:ok, resource} =
+      ResourceSystem.create_resource(%{
+        name: "Realtime Test Resource",
+        description: "Resource for realtime testing",
+        type: "document",
+        status: "published",
+        content: %{text: "Test content"}
+      })
 
     {:ok, user: user, resource: resource}
   end
@@ -79,7 +84,10 @@ defmodule HydepwnsLiveviewWeb.Integration.RealtimeIntegrationTest do
           refute Process.alive?(view_pid)
       after
         1000 ->
-          IO.inspect(Process.info(self(), :messages), label: "[TEST] Mailbox after waiting for :DOWN")
+          IO.inspect(Process.info(self(), :messages),
+            label: "[TEST] Mailbox after waiting for :DOWN"
+          )
+
           flunk("Did not receive :DOWN message for LiveView process")
       end
     end
@@ -103,12 +111,13 @@ defmodule HydepwnsLiveviewWeb.Integration.RealtimeIntegrationTest do
       Phoenix.PubSub.subscribe(HydepwnsLiveview.PubSub, "resources")
 
       # Create a resource to trigger event
-      {:ok, new_resource} = ResourceSystem.create_resource(%{
-        name: "PubSub Test Resource",
-        type: "document",
-        status: "published",
-        content: %{text: "PubSub test"}
-      })
+      {:ok, new_resource} =
+        ResourceSystem.create_resource(%{
+          name: "PubSub Test Resource",
+          type: "document",
+          status: "published",
+          content: %{text: "PubSub test"}
+        })
 
       # Wait for and verify the broadcast
       assert_receive {:resource_created, ^new_resource}
@@ -119,9 +128,10 @@ defmodule HydepwnsLiveviewWeb.Integration.RealtimeIntegrationTest do
       Phoenix.PubSub.subscribe(HydepwnsLiveview.PubSub, "resources")
 
       # Update the resource to trigger event
-      {:ok, updated_resource} = ResourceSystem.update_resource(resource.id, %{
-        name: "Updated Resource Name"
-      })
+      {:ok, updated_resource} =
+        ResourceSystem.update_resource(resource.id, %{
+          name: "Updated Resource Name"
+        })
 
       # Wait for and verify the broadcast
       assert_receive {:resource_updated, ^updated_resource}
@@ -159,12 +169,13 @@ defmodule HydepwnsLiveviewWeb.Integration.RealtimeIntegrationTest do
       assert view |> has_element?("h1", "Resources")
 
       # Create a new resource via API
-      {:ok, _new_resource} = ResourceSystem.create_resource(%{
-        name: "Real-time Test Resource",
-        type: "document",
-        status: "published",
-        content: %{text: "Real-time test"}
-      })
+      {:ok, _new_resource} =
+        ResourceSystem.create_resource(%{
+          name: "Real-time Test Resource",
+          type: "document",
+          status: "published",
+          content: %{text: "Real-time test"}
+        })
 
       # Wait for LiveView to receive the update
       Process.sleep(100)
@@ -180,9 +191,10 @@ defmodule HydepwnsLiveviewWeb.Integration.RealtimeIntegrationTest do
       assert view |> has_element?("a", resource.name)
 
       # Update the resource via API
-      {:ok, _updated_resource} = ResourceSystem.update_resource(resource.id, %{
-        name: "Updated Real-time Resource"
-      })
+      {:ok, _updated_resource} =
+        ResourceSystem.update_resource(resource.id, %{
+          name: "Updated Real-time Resource"
+        })
 
       # Wait for LiveView to receive the update
       Process.sleep(100)
@@ -211,16 +223,17 @@ defmodule HydepwnsLiveviewWeb.Integration.RealtimeIntegrationTest do
       {:ok, view, _html} = live(conn, "/resources")
 
       # Create multiple resources concurrently
-      tasks = for i <- 1..5 do
-        Task.async(fn ->
-          ResourceSystem.create_resource(%{
-            name: "Concurrent Resource #{i}",
-            type: "document",
-            status: "published",
-            content: %{text: "Concurrent test #{i}"}
-          })
-        end)
-      end
+      tasks =
+        for i <- 1..5 do
+          Task.async(fn ->
+            ResourceSystem.create_resource(%{
+              name: "Concurrent Resource #{i}",
+              type: "document",
+              status: "published",
+              content: %{text: "Concurrent test #{i}"}
+            })
+          end)
+        end
 
       # Wait for all tasks to complete
       results = Task.await_many(tasks)
@@ -241,12 +254,13 @@ defmodule HydepwnsLiveviewWeb.Integration.RealtimeIntegrationTest do
       {:ok, view, _html} = live(conn, "/resources")
 
       # Create a resource to trigger notification
-      {:ok, _new_resource} = ResourceSystem.create_resource(%{
-        name: "Notification Test Resource",
-        type: "document",
-        status: "published",
-        content: %{text: "Notification test"}
-      })
+      {:ok, _new_resource} =
+        ResourceSystem.create_resource(%{
+          name: "Notification Test Resource",
+          type: "document",
+          status: "published",
+          content: %{text: "Notification test"}
+        })
 
       # Wait for notification to appear
       Process.sleep(100)
@@ -259,12 +273,13 @@ defmodule HydepwnsLiveviewWeb.Integration.RealtimeIntegrationTest do
       {:ok, view, _html} = live(conn, "/resources")
 
       # Create a resource to trigger notification
-      {:ok, _resource} = ResourceSystem.create_resource(%{
-        name: "Dismiss Test Resource",
-        type: "document",
-        status: "published",
-        content: %{text: "Dismiss test"}
-      })
+      {:ok, _resource} =
+        ResourceSystem.create_resource(%{
+          name: "Dismiss Test Resource",
+          type: "document",
+          status: "published",
+          content: %{text: "Dismiss test"}
+        })
 
       # Wait for notification to appear
       assert view |> has_element?(".notification__action--dismiss")
@@ -280,12 +295,13 @@ defmodule HydepwnsLiveviewWeb.Integration.RealtimeIntegrationTest do
       {:ok, view, _html} = live(conn, "/resources")
 
       # Create a resource to trigger notification
-      {:ok, _resource} = ResourceSystem.create_resource(%{
-        name: "Notification Test Resource",
-        type: "document",
-        status: "published",
-        content: %{text: "Notification test"}
-      })
+      {:ok, _resource} =
+        ResourceSystem.create_resource(%{
+          name: "Notification Test Resource",
+          type: "document",
+          status: "published",
+          content: %{text: "Notification test"}
+        })
 
       # Wait for notification to appear
       assert view |> has_element?(".notification__action--dismiss")
@@ -325,9 +341,10 @@ defmodule HydepwnsLiveviewWeb.Integration.RealtimeIntegrationTest do
       session = %{"user_token" => token}
 
       # Create a connection with the user session
-      conn = conn
-             |> Plug.Test.init_test_session(session)
-             |> HydepwnsLiveviewWeb.Plugs.AuthPlug.call(%{})
+      conn =
+        conn
+        |> Plug.Test.init_test_session(session)
+        |> HydepwnsLiveviewWeb.Plugs.AuthPlug.call(%{})
 
       {:ok, _view, _html} = live(conn, "/resources")
 
@@ -363,12 +380,13 @@ defmodule HydepwnsLiveviewWeb.Integration.RealtimeIntegrationTest do
     test "subscribes to event bus and receives events", %{_conn: _conn} do
       HydepwnsLiveview.Events.Core.EventBus.subscribe(["resource.created"])
 
-      {:ok, new_resource} = ResourceSystem.create_resource(%{
-        name: "Event Bus Test Resource",
-        type: "document",
-        status: "published",
-        content: %{text: "Event bus test"}
-      })
+      {:ok, new_resource} =
+        ResourceSystem.create_resource(%{
+          name: "Event Bus Test Resource",
+          type: "document",
+          status: "published",
+          content: %{text: "Event bus test"}
+        })
 
       assert_receive {:event, event}, 500
       assert event.resource_id == new_resource.id
@@ -386,26 +404,33 @@ defmodule HydepwnsLiveviewWeb.Integration.RealtimeIntegrationTest do
       IO.puts("[TEST] Test process PID: #{inspect(self())}")
 
       # Check subscribers for each event type
-      {:ok, created_subscribers} = HydepwnsLiveview.Events.Core.EventBus.get_subscribers("resource.created")
-      {:ok, updated_subscribers} = HydepwnsLiveview.Events.Core.EventBus.get_subscribers("resource.updated")
-      {:ok, deleted_subscribers} = HydepwnsLiveview.Events.Core.EventBus.get_subscribers("resource.deleted")
+      {:ok, created_subscribers} =
+        HydepwnsLiveview.Events.Core.EventBus.get_subscribers("resource.created")
+
+      {:ok, updated_subscribers} =
+        HydepwnsLiveview.Events.Core.EventBus.get_subscribers("resource.updated")
+
+      {:ok, deleted_subscribers} =
+        HydepwnsLiveview.Events.Core.EventBus.get_subscribers("resource.deleted")
 
       IO.puts("[TEST] Subscribers for 'resource.created': #{inspect(created_subscribers)}")
       IO.puts("[TEST] Subscribers for 'resource.updated': #{inspect(updated_subscribers)}")
       IO.puts("[TEST] Subscribers for 'resource.deleted': #{inspect(deleted_subscribers)}")
 
       # Create resource
-      {:ok, resource} = ResourceSystem.create_resource(%{
-        name: "Multi Event Test Resource",
-        type: "document",
-        status: "published",
-        content: %{text: "Multi event test"}
-      })
+      {:ok, resource} =
+        ResourceSystem.create_resource(%{
+          name: "Multi Event Test Resource",
+          type: "document",
+          status: "published",
+          content: %{text: "Multi event test"}
+        })
 
       # Update resource
-      {:ok, _updated_resource} = ResourceSystem.update_resource(resource.id, %{
-        name: "Updated Multi Event Resource"
-      })
+      {:ok, _updated_resource} =
+        ResourceSystem.update_resource(resource.id, %{
+          name: "Updated Multi Event Resource"
+        })
 
       # Delete resource
       {:ok, _deleted_resource} = ResourceSystem.delete_resource(resource.id)
@@ -432,12 +457,13 @@ defmodule HydepwnsLiveviewWeb.Integration.RealtimeIntegrationTest do
       HydepwnsLiveview.Events.Core.EventBus.unsubscribe(["resource.created"])
 
       # Create a resource
-      {:ok, _new_resource} = ResourceSystem.create_resource(%{
-        name: "Unsubscribe Test Resource",
-        type: "document",
-        status: "published",
-        content: %{text: "Unsubscribe test"}
-      })
+      {:ok, _new_resource} =
+        ResourceSystem.create_resource(%{
+          name: "Unsubscribe Test Resource",
+          type: "document",
+          status: "published",
+          content: %{text: "Unsubscribe test"}
+        })
 
       # Should not receive event
       refute_receive {:event, _event, _opts}
@@ -479,25 +505,27 @@ defmodule HydepwnsLiveviewWeb.Integration.RealtimeIntegrationTest do
       {:ok, view, _html} = live(conn, "/resources")
 
       # Simulate high load with concurrent operations
-      tasks = for i <- 1..20 do
-        Task.async(fn ->
-          # Create resource
-          {:ok, resource} = ResourceSystem.create_resource(%{
-            name: "Load Test Resource #{i}",
-            type: "document",
-            status: "published",
-            content: %{text: "Load test #{i}"}
-          })
+      tasks =
+        for i <- 1..20 do
+          Task.async(fn ->
+            # Create resource
+            {:ok, resource} =
+              ResourceSystem.create_resource(%{
+                name: "Load Test Resource #{i}",
+                type: "document",
+                status: "published",
+                content: %{text: "Load test #{i}"}
+              })
 
-          # Update resource
-          ResourceSystem.update_resource(resource.id, %{
-            name: "Updated Load Test Resource #{i}"
-          })
+            # Update resource
+            ResourceSystem.update_resource(resource.id, %{
+              name: "Updated Load Test Resource #{i}"
+            })
 
-          # Delete resource
-          ResourceSystem.delete_resource(resource.id)
-        end)
-      end
+            # Delete resource
+            ResourceSystem.delete_resource(resource.id)
+          end)
+        end
 
       # Wait for all tasks to complete
       Task.await_many(tasks)
@@ -516,12 +544,13 @@ defmodule HydepwnsLiveviewWeb.Integration.RealtimeIntegrationTest do
       {:ok, view, _html} = live(conn, "/resources")
 
       # Create resource (should work even if event generation has issues)
-      {:ok, _new_resource} = ResourceSystem.create_resource(%{
-        name: "Error Test Resource",
-        type: "document",
-        status: "published",
-        content: %{text: "Error test"}
-      })
+      {:ok, _new_resource} =
+        ResourceSystem.create_resource(%{
+          name: "Error Test Resource",
+          type: "document",
+          status: "published",
+          content: %{text: "Error test"}
+        })
 
       # Verify resource is still created and displayed
       Process.sleep(100)
@@ -547,12 +576,13 @@ defmodule HydepwnsLiveviewWeb.Integration.RealtimeIntegrationTest do
       |> stub(:fetch_data, fn _id -> {:error, "Temporary failure"} end)
 
       # Try to create resource
-      {:ok, _new_resource} = ResourceSystem.create_resource(%{
-        name: "Recovery Test Resource",
-        type: "document",
-        status: "published",
-        content: %{text: "Recovery test"}
-      })
+      {:ok, _new_resource} =
+        ResourceSystem.create_resource(%{
+          name: "Recovery Test Resource",
+          type: "document",
+          status: "published",
+          content: %{text: "Recovery test"}
+        })
 
       # Verify system recovers and resource is created
       Process.sleep(100)
@@ -587,7 +617,11 @@ defmodule HydepwnsLiveviewWeb.Integration.RealtimeIntegrationTest do
 
       # Try to send invalid event
       # This should be handled gracefully
-      Phoenix.PubSub.broadcast(HydepwnsLiveview.PubSub, "resources", {:invalid_event, "malicious"})
+      Phoenix.PubSub.broadcast(
+        HydepwnsLiveview.PubSub,
+        "resources",
+        {:invalid_event, "malicious"}
+      )
 
       # Verify LiveView remains stable
       assert view |> has_element?("h1", "Resources")

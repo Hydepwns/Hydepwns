@@ -202,9 +202,12 @@ defmodule HydepwnsLiveview.Resources.UserResource do
   """
   def resolve_relationship(resource, :team), do: resolve_team_relationship(resource)
   def resolve_relationship(resource, :posts), do: {:ok, Map.put(resource, :posts, [])}
-  def resolve_relationship(_resource, relationship), do: {:error, "Unknown relationship: #{relationship}"}
+
+  def resolve_relationship(_resource, relationship),
+    do: {:error, "Unknown relationship: #{relationship}"}
 
   defp resolve_team_relationship(%{team_id: nil} = resource), do: {:ok, resource}
+
   defp resolve_team_relationship(resource) do
     case HydepwnsLiveview.Resources.TeamResource.load(resource.team_id) do
       {:ok, team} -> {:ok, Map.put(resource, :team, team)}

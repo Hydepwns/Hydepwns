@@ -25,6 +25,7 @@ defmodule HydepwnsLiveview.Integration.ExternalSyncAdapter do
       :ok ->
         # In production, this would sync with the external system
         external_id = generate_external_id(resource.id)
+
         sync_result = %{
           external_id: external_id,
           synced_at: DateTime.utc_now(),
@@ -56,14 +57,17 @@ defmodule HydepwnsLiveview.Integration.ExternalSyncAdapter do
   def handle_sync_conflict(local_data, external_data, conflict_strategy \\ "merge") do
     case conflict_strategy do
       "merge" ->
-        merged_data = Map.merge(local_data, external_data, fn _k, v1, v2 ->
-          # Prefer the more recent data
-          if is_map(v1) and is_map(v2) and Map.has_key?(v1, :updated_at) and Map.has_key?(v2, :updated_at) do
-            if DateTime.compare(v1.updated_at, v2.updated_at) == :gt, do: v1, else: v2
-          else
-            v2
-          end
-        end)
+        merged_data =
+          Map.merge(local_data, external_data, fn _k, v1, v2 ->
+            # Prefer the more recent data
+            if is_map(v1) and is_map(v2) and Map.has_key?(v1, :updated_at) and
+                 Map.has_key?(v2, :updated_at) do
+              if DateTime.compare(v1.updated_at, v2.updated_at) == :gt, do: v1, else: v2
+            else
+              v2
+            end
+          end)
+
         {:ok, merged_data}
 
       "local" ->
@@ -94,13 +98,14 @@ defmodule HydepwnsLiveview.Integration.ExternalSyncAdapter do
       %{id: "change_2", type: "create", resource_id: "resource_2", timestamp: DateTime.utc_now()}
     ]
 
-    sync_results = Enum.map(changes, fn change ->
-      %{
-        change_id: change.id,
-        synced_at: DateTime.utc_now(),
-        status: "synced"
-      }
-    end)
+    sync_results =
+      Enum.map(changes, fn change ->
+        %{
+          change_id: change.id,
+          synced_at: DateTime.utc_now(),
+          status: "synced"
+        }
+      end)
 
     Logger.info("Incremental sync completed: #{length(sync_results)} changes synced")
     {:ok, sync_results}
@@ -122,7 +127,7 @@ defmodule HydepwnsLiveview.Integration.ExternalSyncAdapter do
 
     if retry_count < max_retries do
       # Implement exponential backoff
-      delay = :math.pow(2, retry_count) * 1000 |> round()
+      delay = (:math.pow(2, retry_count) * 1000) |> round()
       Process.sleep(delay)
 
       Logger.info("Retrying sync operation (attempt #{retry_count + 1})")
@@ -161,6 +166,7 @@ defmodule HydepwnsLiveview.Integration.ExternalSyncAdapter do
   end
 
   defp generate_external_id(local_id) do
-    "ext_" <> to_string(local_id) <> "_" <> :crypto.strong_rand_bytes(8) |> Base.encode16(case: :lower)
+    ("ext_" <> to_string(local_id) <> "_" <> :crypto.strong_rand_bytes(8))
+    |> Base.encode16(case: :lower)
   end
 end

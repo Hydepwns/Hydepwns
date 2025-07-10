@@ -484,9 +484,10 @@ defmodule HydepwnsLiveview.Resources.OrderResource do
          type: "order_created",
          resource_id: id,
          resource_type: resource_type(),
-         data: Map.merge(params, %{
-           created_at: DateTime.utc_now()
-         })
+         data:
+           Map.merge(params, %{
+             created_at: DateTime.utc_now()
+           })
        }
      ]}
   end
@@ -502,9 +503,10 @@ defmodule HydepwnsLiveview.Resources.OrderResource do
          type: "order_updated",
          resource_id: resource.id,
          resource_type: resource_type(),
-         data: Map.merge(params, %{
-           updated_at: DateTime.utc_now()
-         })
+         data:
+           Map.merge(params, %{
+             updated_at: DateTime.utc_now()
+           })
        }
      ]}
   end
@@ -520,9 +522,10 @@ defmodule HydepwnsLiveview.Resources.OrderResource do
          type: "order_deleted",
          resource_id: id,
          resource_type: resource_type(),
-         data: Map.merge(metadata, %{
-           deleted_at: DateTime.utc_now()
-         })
+         data:
+           Map.merge(metadata, %{
+             deleted_at: DateTime.utc_now()
+           })
        }
      ]}
   end

@@ -40,5 +40,4 @@ defmodule HydepwnsLiveview.Notifications.MessageBird do
   end
 
   def message_create(_invalid_client, _invalid_params), do: {:error, :invalid_parameters}
-
-end 
+end

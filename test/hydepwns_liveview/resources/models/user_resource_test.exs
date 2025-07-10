@@ -2,7 +2,9 @@ defmodule HydepwnsLiveview.Resources.UserResourceTest do
   use HydepwnsLiveview.DataCase
   alias HydepwnsLiveview.TestSupport.EventStoreTestHelper
   alias HydepwnsLiveview.Resources.TestUserResource
-  import HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource, only: [rebuild_from_events: 3]
+
+  import HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource,
+    only: [rebuild_from_events: 3]
 
   setup do
     EventStoreTestHelper.setup_mock_event_store()
@@ -97,7 +99,14 @@ defmodule HydepwnsLiveview.Resources.UserResourceTest do
 
       # Get events from the store and rebuild state
       {:ok, events} = TestUserResource.get_history("test-user-4")
-      rebuilt = rebuild_from_events(events, TestUserResource.initial_state(), &TestUserResource.apply_event/2)
+
+      rebuilt =
+        rebuild_from_events(
+          events,
+          TestUserResource.initial_state(),
+          &TestUserResource.apply_event/2
+        )
+
       assert rebuilt.name == "Updated Name"
       assert rebuilt.active == false
     end

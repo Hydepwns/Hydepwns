@@ -7,19 +7,21 @@ defmodule HydepwnsLiveviewWeb.ErrorBoundaryTest do
 
   setup do
     # Create test users
-    {:ok, regular_user} = Accounts.create_user(%{
-      name: "Test User",
-      email: "user@example.com",
-      password: "password123",
-      role: "user"
-    })
+    {:ok, regular_user} =
+      Accounts.create_user(%{
+        name: "Test User",
+        email: "user@example.com",
+        password: "password123",
+        role: "user"
+      })
 
-    {:ok, admin_user} = Accounts.create_user(%{
-      name: "Admin User",
-      email: "admin@example.com",
-      password: "password123",
-      role: "admin"
-    })
+    {:ok, admin_user} =
+      Accounts.create_user(%{
+        name: "Admin User",
+        email: "admin@example.com",
+        password: "password123",
+        role: "admin"
+      })
 
     {:ok, %{regular_user: regular_user, admin_user: admin_user}}
   end
@@ -33,6 +35,7 @@ defmodule HydepwnsLiveviewWeb.ErrorBoundaryTest do
       rescue
         Phoenix.Router.NoRouteError ->
           assert true
+
         FunctionClauseError ->
           assert true
       end
@@ -131,12 +134,17 @@ defmodule HydepwnsLiveviewWeb.ErrorBoundaryTest do
     test "handles parameter validation errors", %{conn: conn} do
       # Test parameter validation error handling
       conn = get(conn, "/users/invalid-id")
-      assert conn.status == 302  # Should redirect with flash message
+      # Should redirect with flash message
+      assert conn.status == 302
     end
 
     test "handles CSRF token errors", %{conn: conn} do
       # Test CSRF token error handling
-      conn = post(conn, "/users/log_in", %{"user" => %{"email" => "test@example.com", "password" => "password"}})
+      conn =
+        post(conn, "/users/log_in", %{
+          "user" => %{"email" => "test@example.com", "password" => "password"}
+        })
+
       assert conn.status == 302
     end
 
@@ -174,7 +182,8 @@ defmodule HydepwnsLiveviewWeb.ErrorBoundaryTest do
 
       # Test loading a non-existent resource
       conn = get(conn, "/resources/non-existent-id")
-      assert conn.status == 302  # Should redirect with flash message
+      # Should redirect with flash message
+      assert conn.status == 302
     end
 
     test "handles concurrent access errors", %{conn: conn, regular_user: user} do

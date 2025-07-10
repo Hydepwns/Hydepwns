@@ -209,11 +209,31 @@ defmodule HydepwnsLiveview.Utils.ContextValidation do
       initial_result = {:ok, validation_state}
 
       # Validate each relationship and accumulate results
-      Enum.reduce(relationships, initial_result, &process_relationship_validation(&1, &2, resource, max_depth, exclude_relationships, include_only, rules))
+      Enum.reduce(
+        relationships,
+        initial_result,
+        &process_relationship_validation(
+          &1,
+          &2,
+          resource,
+          max_depth,
+          exclude_relationships,
+          include_only,
+          rules
+        )
+      )
     end
   end
 
-  defp process_relationship_validation(relationship, acc, resource, max_depth, exclude_relationships, include_only, rules) do
+  defp process_relationship_validation(
+         relationship,
+         acc,
+         resource,
+         max_depth,
+         exclude_relationships,
+         include_only,
+         rules
+       ) do
     case acc do
       {:ok, current_state} ->
         validate_related_resource(

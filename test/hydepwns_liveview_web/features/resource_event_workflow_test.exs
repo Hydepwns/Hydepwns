@@ -32,13 +32,14 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
 
   test "events are generated and processed during resource updates", %{session: session} do
     # Create a resource first
-    {:ok, resource} = ResourceFixtures.create_test_resource(%{
-      name: "Event Workflow Test Resource",
-      status: "published",
-      type: "document",
-      description: "A resource for testing event workflows",
-      content: %{text: "Initial content"}
-    })
+    {:ok, resource} =
+      ResourceFixtures.create_test_resource(%{
+        name: "Event Workflow Test Resource",
+        status: "published",
+        type: "document",
+        description: "A resource for testing event workflows",
+        content: %{text: "Initial content"}
+      })
 
     # Navigate to resources page and wait for the resource to appear
     session = visit(session, "/resources")
@@ -53,8 +54,14 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
     session = wait_for_text(session, "Edit Resource")
 
     # Update the resource
-    session = fill_in(session, Query.text_field("Name"), with: "Updated Event Workflow Test Resource")
-    session = fill_in(session, Query.text_field("Description"), with: "Updated description for event workflow testing")
+    session =
+      fill_in(session, Query.text_field("Name"), with: "Updated Event Workflow Test Resource")
+
+    session =
+      fill_in(session, Query.text_field("Description"),
+        with: "Updated description for event workflow testing"
+      )
+
     session = click(session, Query.button("Save Resource"))
 
     # Wait for successful save
@@ -67,13 +74,14 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
 
   test "events are generated and processed during multiple resource updates", %{session: session} do
     # Create a resource first
-    {:ok, resource} = ResourceFixtures.create_test_resource(%{
-      name: "Multiple Updates Test Resource",
-      status: "published",
-      type: "document",
-      description: "A resource for testing multiple updates",
-      content: %{text: "Initial content"}
-    })
+    {:ok, resource} =
+      ResourceFixtures.create_test_resource(%{
+        name: "Multiple Updates Test Resource",
+        status: "published",
+        type: "document",
+        description: "A resource for testing multiple updates",
+        content: %{text: "Initial content"}
+      })
 
     # First update
     session = visit(session, "/resources")
@@ -112,7 +120,8 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
     session = wait_for_text(session, "Events")
 
     # Verify that events are displayed (look for the actual event types from the system)
-    assert has_text?(session, "transformed") || has_text?(session, "created") || has_text?(session, "updated")
+    assert has_text?(session, "transformed") || has_text?(session, "created") ||
+             has_text?(session, "updated")
 
     # Verify event structure (there may be multiple events)
     assert Wallaby.Browser.has?(session, css(".event-row"))
@@ -122,13 +131,14 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
 
   test "event visualization shows processing status", %{session: session} do
     # Create a test resource for timeline testing
-    {:ok, _resource} = ResourceFixtures.create_test_resource(%{
-      name: "Event Visualization Test Resource",
-      status: "published",
-      type: "document",
-      description: "A resource for testing event visualization",
-      content: %{text: "Test content"}
-    })
+    {:ok, _resource} =
+      ResourceFixtures.create_test_resource(%{
+        name: "Event Visualization Test Resource",
+        status: "published",
+        type: "document",
+        description: "A resource for testing event visualization",
+        content: %{text: "Test content"}
+      })
 
     # Navigate to timeline page
     session = visit(session, "/timeline")
@@ -136,10 +146,12 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
 
     # Verify timeline shows events (there may be multiple events from previous tests)
     # If no events are found, the page should show "No events found."
-    assert has_text?(session, "created") || has_text?(session, "updated") || has_text?(session, "transformed") || has_text?(session, "No events found")
+    assert has_text?(session, "created") || has_text?(session, "updated") ||
+             has_text?(session, "transformed") || has_text?(session, "No events found")
 
     # Verify timeline structure (if events exist)
-    if has_text?(session, "created") || has_text?(session, "updated") || has_text?(session, "transformed") do
+    if has_text?(session, "created") || has_text?(session, "updated") ||
+         has_text?(session, "transformed") do
       # If events exist, verify the timeline structure
       assert Wallaby.Browser.has?(session, css("[data-test-id='timeline-event']"))
       assert Wallaby.Browser.has?(session, css("[data-test-id='event-type']"))
@@ -152,13 +164,14 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
 
   test "event processing error handling works correctly", %{session: session} do
     # Create a resource first
-    {:ok, resource} = ResourceFixtures.create_test_resource(%{
-      name: "Error Handling Test Resource",
-      status: "published",
-      type: "document",
-      description: "A resource for testing error handling",
-      content: %{text: "Initial content"}
-    })
+    {:ok, resource} =
+      ResourceFixtures.create_test_resource(%{
+        name: "Error Handling Test Resource",
+        status: "published",
+        type: "document",
+        description: "A resource for testing error handling",
+        content: %{text: "Initial content"}
+      })
 
     # Navigate to resources page and wait for the resource to appear
     session = visit(session, "/resources")

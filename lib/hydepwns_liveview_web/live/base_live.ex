@@ -9,7 +9,7 @@ defmodule HydepwnsLiveviewWeb.BaseLive do
   def render(assigns) do
     ~H"""
     <div class={@theme_class}>
-      <%= @inner_content %>
+      {@inner_content}
     </div>
     """
   end

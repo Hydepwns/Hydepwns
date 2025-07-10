@@ -209,6 +209,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator do
     |> List.last()
     |> then(fn name ->
       name = String.replace(name, "Resource", "")
+
       if String.trim(name) == "" do
         "resource"
       else

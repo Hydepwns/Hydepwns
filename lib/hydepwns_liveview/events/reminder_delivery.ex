@@ -54,10 +54,12 @@ defmodule HydepwnsLiveview.Events.ReminderDelivery do
 
   defp update_and_rollback(reminder, status, reason) do
     case update_reminder_status(reminder, status, reason) do
-      {:ok, updated_reminder} -> 
+      {:ok, updated_reminder} ->
         Repo.rollback(reason)
         updated_reminder
-      {:error, update_error} -> Repo.rollback(update_error)
+
+      {:error, update_error} ->
+        Repo.rollback(update_error)
     end
   end
 
@@ -70,7 +72,7 @@ defmodule HydepwnsLiveview.Events.ReminderDelivery do
 
   defp deliver_reminder(reminder, settings) do
     # Determine delivery type from recipient (email vs sms)
-    delivery_type = 
+    delivery_type =
       if String.contains?(reminder.recipient, "@") do
         :email
       else

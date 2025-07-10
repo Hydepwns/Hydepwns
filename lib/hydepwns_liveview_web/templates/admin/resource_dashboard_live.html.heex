@@ -21,7 +21,7 @@
     <%= for resource <- @resources do %>
       <div class="resource-row">
         <a href={"/resources/#{resource.id}"} data-test-id={"resource-link-#{resource.id}"}>
-          <%= resource.name %>
+          {resource.name}
         </a>
       </div>
     <% end %>
@@ -30,9 +30,9 @@
   <div class="relationship-list">
     <%= for relationship <- @relationships do %>
       <div class="relationship-row">
-        <span><%= relationship.parent.name %></span>
+        <span>{relationship.parent.name}</span>
         <span>→</span>
-        <span><%= relationship.child.name %></span>
+        <span>{relationship.child.name}</span>
       </div>
     <% end %>
   </div>

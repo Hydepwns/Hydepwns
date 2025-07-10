@@ -27,7 +27,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.LayoutComponents do
       <div class="flex items-center justify-between gap-6">
         <div>
           <h1 class="text-lg font-semibold leading-8 text-zinc-800">
-            <%= @title || render_slot(@inner_block) %>
+            {@title || render_slot(@inner_block)}
           </h1>
           <p :if={@subtitle != []} class="mt-2 text-sm leading-6 text-zinc-600" data-test="header-with-subtitle">
             {render_slot(@subtitle)}

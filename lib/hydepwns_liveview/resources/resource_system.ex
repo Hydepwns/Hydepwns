@@ -30,39 +30,69 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
   def create_resource(attrs) do
     IO.puts("🔍 ResourceSystem.create_resource: Starting with attrs: #{inspect(attrs)}")
 
-    changeset = %Resource{}
-    |> Resource.changeset(attrs)
+    changeset =
+      %Resource{}
+      |> Resource.changeset(attrs)
 
     IO.puts("🔍 ResourceSystem.create_resource: Changeset valid? #{changeset.valid?}")
     IO.puts("🔍 ResourceSystem.create_resource: Changeset errors: #{inspect(changeset.errors)}")
 
-            case RepoHelper.insert(changeset) do
-          {:ok, resource} ->
-            IO.puts("✅ ResourceSystem.create_resource: Resource created successfully with ID: #{resource.id}")
-            # Invalidate cache
-            invalidate_resource_cache()
-            # Generate event for resource creation
-            IO.puts("🔵 ResourceSystem.create_resource: Resource created, generating event for #{resource.id}")
-            case ResourceEventGenerator.resource_created(resource, %{action: "create"}) do
-              {:ok, event} ->
-                IO.puts("✅ ResourceSystem.create_resource: Event generated successfully: #{event.type}")
-                Phoenix.PubSub.broadcast(HydepwnsLiveview.PubSub, "resources", {:resource_created, resource})
-                {:ok, resource}
-              {:error, reason} ->
-                IO.puts("❌ ResourceSystem.create_resource: Event generation failed: #{inspect(reason)}")
-                Phoenix.PubSub.broadcast(HydepwnsLiveview.PubSub, "resources", {:resource_created, resource})
-                {:ok, resource}  # Still return the resource even if event generation fails
-            end
+    case RepoHelper.insert(changeset) do
+      {:ok, resource} ->
+        IO.puts(
+          "✅ ResourceSystem.create_resource: Resource created successfully with ID: #{resource.id}"
+        )
+
+        # Invalidate cache
+        invalidate_resource_cache()
+        # Generate event for resource creation
+        IO.puts(
+          "🔵 ResourceSystem.create_resource: Resource created, generating event for #{resource.id}"
+        )
+
+        case ResourceEventGenerator.resource_created(resource, %{action: "create"}) do
+          {:ok, event} ->
+            IO.puts(
+              "✅ ResourceSystem.create_resource: Event generated successfully: #{event.type}"
+            )
+
+            Phoenix.PubSub.broadcast(
+              HydepwnsLiveview.PubSub,
+              "resources",
+              {:resource_created, resource}
+            )
+
+            {:ok, resource}
+
+          {:error, reason} ->
+            IO.puts(
+              "❌ ResourceSystem.create_resource: Event generation failed: #{inspect(reason)}"
+            )
+
+            Phoenix.PubSub.broadcast(
+              HydepwnsLiveview.PubSub,
+              "resources",
+              {:resource_created, resource}
+            )
+
+            # Still return the resource even if event generation fails
+            {:ok, resource}
+        end
+
       {:error, changeset} ->
-        IO.puts("❌ ResourceSystem.create_resource: Insert failed with errors: #{inspect(changeset.errors)}")
+        IO.puts(
+          "❌ ResourceSystem.create_resource: Insert failed with errors: #{inspect(changeset.errors)}"
+        )
+
         {:error, changeset}
+
       error ->
         IO.puts("❌ ResourceSystem.create_resource: Unexpected error: #{inspect(error)}")
         error
     end
   end
 
-    @doc """
+  @doc """
   Lists all resources with optional pagination and caching.
   """
   def list_resources(opts \\ []) do
@@ -98,23 +128,32 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
   def count_resources(filters \\ %{}) do
     query = from(r in Resource)
 
-    query = case filters do
-      %{type: type} when not is_nil(type) ->
-        from(r in query, where: r.type == ^type)
-      _ -> query
-    end
+    query =
+      case filters do
+        %{type: type} when not is_nil(type) ->
+          from(r in query, where: r.type == ^type)
 
-    query = case filters do
-      %{status: status} when not is_nil(status) ->
-        from(r in query, where: r.status == ^status)
-      _ -> query
-    end
+        _ ->
+          query
+      end
 
-    query = case filters do
-      %{parent_id: parent_id} when not is_nil(parent_id) ->
-        from(r in query, where: r.parent_id == ^parent_id)
-      _ -> query
-    end
+    query =
+      case filters do
+        %{status: status} when not is_nil(status) ->
+          from(r in query, where: r.status == ^status)
+
+        _ ->
+          query
+      end
+
+    query =
+      case filters do
+        %{parent_id: parent_id} when not is_nil(parent_id) ->
+          from(r in query, where: r.parent_id == ^parent_id)
+
+        _ ->
+          query
+      end
 
     RepoHelper.aggregate(query, :count, :id)
   end
@@ -129,31 +168,43 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
       |> RepoHelper.all()
 
     if Mix.env() == :test do
-      IO.puts("[DEBUG] direct_list_resources/2 returned #{length(resources)} resources: #{inspect(Enum.map(resources, & &1.name))}")
+      IO.puts(
+        "[DEBUG] direct_list_resources/2 returned #{length(resources)} resources: #{inspect(Enum.map(resources, & &1.name))}"
+      )
     end
+
     resources
   end
 
   defp direct_list_resources_with_filters(filters, limit, offset) do
     query = from(r in Resource)
 
-    query = case filters do
-      %{type: type} when not is_nil(type) ->
-        from(r in query, where: r.type == ^type)
-      _ -> query
-    end
+    query =
+      case filters do
+        %{type: type} when not is_nil(type) ->
+          from(r in query, where: r.type == ^type)
 
-    query = case filters do
-      %{status: status} when not is_nil(status) ->
-        from(r in query, where: r.status == ^status)
-      _ -> query
-    end
+        _ ->
+          query
+      end
 
-    query = case filters do
-      %{parent_id: parent_id} when not is_nil(parent_id) ->
-        from(r in query, where: r.parent_id == ^parent_id)
-      _ -> query
-    end
+    query =
+      case filters do
+        %{status: status} when not is_nil(status) ->
+          from(r in query, where: r.status == ^status)
+
+        _ ->
+          query
+      end
+
+    query =
+      case filters do
+        %{parent_id: parent_id} when not is_nil(parent_id) ->
+          from(r in query, where: r.parent_id == ^parent_id)
+
+        _ ->
+          query
+      end
 
     query
     |> order_by([r], desc: r.inserted_at)
@@ -169,9 +220,11 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
     case get_cache(cache_key) do
       {:ok, resources} ->
         resources
+
       {:error, :not_found} ->
         resources = direct_list_resources(limit, offset)
-        set_cache(cache_key, resources, 300) # Cache for 5 minutes
+        # Cache for 5 minutes
+        set_cache(cache_key, resources, 300)
         resources
     end
   end
@@ -182,9 +235,11 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
     case get_cache(cache_key) do
       {:ok, resources} ->
         resources
+
       {:error, :not_found} ->
         resources = direct_list_resources_with_filters(filters, limit, offset)
-        set_cache(cache_key, resources, 300) # Cache for 5 minutes
+        # Cache for 5 minutes
+        set_cache(cache_key, resources, 300)
         resources
     end
   end
@@ -199,6 +254,7 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
           :ets.delete(:resource_cache, key)
           {:error, :not_found}
         end
+
       [] ->
         {:error, :not_found}
     end
@@ -219,6 +275,7 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
     case :ets.info(:resource_cache) do
       :undefined ->
         :ets.new(:resource_cache, [:set, :public, :named_table])
+
       _ ->
         :ok
     end
@@ -253,13 +310,17 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
   """
   def update_resource(id, attrs) do
     IO.puts("🔍 ResourceSystem.update_resource: Starting update for resource #{id}")
+
     case RepoHelper.get(Resource, id) do
       nil ->
         IO.puts("❌ ResourceSystem.update_resource: Resource not found")
         {:error, :not_found}
 
       resource ->
-        IO.puts("🔍 ResourceSystem.update_resource: Found resource #{resource.id}, creating changeset")
+        IO.puts(
+          "🔍 ResourceSystem.update_resource: Found resource #{resource.id}, creating changeset"
+        )
+
         case resource
              |> Resource.changeset(attrs)
              |> RepoHelper.update() do
@@ -269,43 +330,80 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
             invalidate_resource_cache()
             # Generate event for resource update
             IO.puts("🔍 ResourceSystem.update_resource: Generating resource_updated event")
-            case ResourceEventGenerator.resource_updated(updated_resource, attrs, %{action: "update"}) do
+
+            case ResourceEventGenerator.resource_updated(updated_resource, attrs, %{
+                   action: "update"
+                 }) do
               {:ok, _event} ->
-                IO.puts("✅ ResourceSystem.update_resource: resource_updated event generated successfully")
+                IO.puts(
+                  "✅ ResourceSystem.update_resource: resource_updated event generated successfully"
+                )
+
               {:error, reason} ->
-                IO.puts("❌ ResourceSystem.update_resource: resource_updated event generation failed: #{inspect(reason)}")
+                IO.puts(
+                  "❌ ResourceSystem.update_resource: resource_updated event generation failed: #{inspect(reason)}"
+                )
             end
-            Phoenix.PubSub.broadcast(HydepwnsLiveview.PubSub, "resources", {:resource_updated, updated_resource})
+
+            Phoenix.PubSub.broadcast(
+              HydepwnsLiveview.PubSub,
+              "resources",
+              {:resource_updated, updated_resource}
+            )
 
             # Apply transformations and generate transformed event
             IO.puts("🔍 ResourceSystem.update_resource: Applying transformations")
+
             case TransformationPipeline.apply_transformations(
-              updated_resource,
-              :resource,
-              :update,
-              phase: :after_validation,
-              original_resource: resource
-            ) do
+                   updated_resource,
+                   :resource,
+                   :update,
+                   phase: :after_validation,
+                   original_resource: resource
+                 ) do
               {:ok, transformed_resource, _context} ->
                 IO.puts("✅ ResourceSystem.update_resource: Transformations applied successfully")
                 # Generate event for resource transformation
-                case ResourceEventGenerator.resource_event(transformed_resource, "transformed", %{}, %{action: "transform"}) do
+                case ResourceEventGenerator.resource_event(
+                       transformed_resource,
+                       "transformed",
+                       %{},
+                       %{action: "transform"}
+                     ) do
                   {:ok, _event} ->
-                    IO.puts("✅ ResourceSystem.update_resource: transformed event generated successfully")
+                    IO.puts(
+                      "✅ ResourceSystem.update_resource: transformed event generated successfully"
+                    )
+
                   {:error, reason} ->
-                    IO.puts("❌ ResourceSystem.update_resource: transformed event generation failed: #{inspect(reason)}")
+                    IO.puts(
+                      "❌ ResourceSystem.update_resource: transformed event generation failed: #{inspect(reason)}"
+                    )
                 end
-                Phoenix.PubSub.broadcast(HydepwnsLiveview.PubSub, "resources", {:resource_transformed, transformed_resource})
+
+                Phoenix.PubSub.broadcast(
+                  HydepwnsLiveview.PubSub,
+                  "resources",
+                  {:resource_transformed, transformed_resource}
+                )
+
                 IO.puts("✅ ResourceSystem.update_resource: Returning transformed resource")
                 {:ok, transformed_resource}
 
               {:error, _resource, _context} ->
-                IO.puts("❌ ResourceSystem.update_resource: Transformations failed, returning updated resource")
+                IO.puts(
+                  "❌ ResourceSystem.update_resource: Transformations failed, returning updated resource"
+                )
+
                 # Transformation failed, but still return the updated resource
                 {:ok, updated_resource}
             end
+
           error ->
-            IO.puts("❌ ResourceSystem.update_resource: RepoHelper.update failed: #{inspect(error)}")
+            IO.puts(
+              "❌ ResourceSystem.update_resource: RepoHelper.update failed: #{inspect(error)}"
+            )
+
             error
         end
     end
@@ -327,14 +425,27 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
             # Generate event for resource deletion
             case ResourceEventGenerator.resource_deleted(deleted_resource, %{action: "delete"}) do
               {:ok, _event} ->
-                IO.puts("✅ ResourceSystem.delete_resource: resource_deleted event generated successfully")
+                IO.puts(
+                  "✅ ResourceSystem.delete_resource: resource_deleted event generated successfully"
+                )
+
               {:error, reason} ->
-                IO.puts("❌ ResourceSystem.delete_resource: resource_deleted event generation failed: #{inspect(reason)}")
+                IO.puts(
+                  "❌ ResourceSystem.delete_resource: resource_deleted event generation failed: #{inspect(reason)}"
+                )
             end
+
             # Broadcast PubSub message for real-time updates
-            Phoenix.PubSub.broadcast(HydepwnsLiveview.PubSub, "resources", {:resource_deleted, deleted_resource})
+            Phoenix.PubSub.broadcast(
+              HydepwnsLiveview.PubSub,
+              "resources",
+              {:resource_deleted, deleted_resource}
+            )
+
             {:ok, deleted_resource}
-          error -> error
+
+          error ->
+            error
         end
     end
   end

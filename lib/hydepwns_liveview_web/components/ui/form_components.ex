@@ -51,7 +51,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
   def simple_form(assigns) do
     ~H"""
     <.form :let={f} for={@for} as={@as} id={@id} class={@class}>
-      <%= render_slot(@inner_block, f) %>
+      {render_slot(@inner_block, f)}
     </.form>
     """
   end
@@ -61,26 +61,30 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
 
     # Filter out non-attribute values from rest
     rest = assigns[:rest] || %{}
-    rest = if is_map(rest) do
-      # Only keep valid HTML attribute keys, including LiveView attributes
-      rest
-      |> Map.drop([:value, :field, :form, :content, :metadata, :settings])
-      |> Map.filter(fn {k, v} ->
-        is_atom(k) or is_binary(k) and
-        (is_binary(v) or is_number(v) or is_boolean(v) or is_nil(v) or
-         (is_atom(k) and Atom.to_string(k) |> String.starts_with?("phx-")))
-      end)
-    else
-      %{}
-    end
+
+    rest =
+      if is_map(rest) do
+        # Only keep valid HTML attribute keys, including LiveView attributes
+        rest
+        |> Map.drop([:value, :field, :form, :content, :metadata, :settings])
+        |> Map.filter(fn {k, v} ->
+          is_atom(k) or
+            (is_binary(k) and
+               (is_binary(v) or is_number(v) or is_boolean(v) or is_nil(v) or
+                  (is_atom(k) and Atom.to_string(k) |> String.starts_with?("phx-"))))
+        end)
+      else
+        %{}
+      end
 
     # Add all phx-* attributes from assigns to rest
-    rest = assigns
-    |> Enum.filter(fn {k, _v} ->
-      k = if is_atom(k), do: Atom.to_string(k), else: k
-      String.starts_with?(k, "phx-")
-    end)
-    |> Enum.reduce(rest, fn {k, v}, acc -> Map.put(acc, k, v) end)
+    rest =
+      assigns
+      |> Enum.filter(fn {k, _v} ->
+        k = if is_atom(k), do: Atom.to_string(k), else: k
+        String.starts_with?(k, "phx-")
+      end)
+      |> Enum.reduce(rest, fn {k, v}, acc -> Map.put(acc, k, v) end)
 
     # Ensure required attribute is included if specified
     rest = if assigns[:required], do: Map.put(rest, :required, true), else: rest
@@ -126,10 +130,10 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
     <div data-test-id={"#{@id}-container"}>
       <.label_tag for={@id}>{@label}</.label_tag>
       <select id={@id} name={@name} class="mt-2 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm" multiple={@multiple} data-test-id={@id}>
-        <option :if={@prompt} value=""><%= @prompt %></option>
+        <option :if={@prompt} value="">{@prompt}</option>
         {options_for_select(@options, @value)}
       </select>
-      <.error :for={msg <- @errors} data-test-id={"#{@id}-error"}><%= msg %></.error>
+      <.error :for={msg <- @errors} data-test-id={"#{@id}-error"}>{msg}</.error>
     </div>
     """
   end
@@ -139,10 +143,13 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
       cond do
         assigns[:form] && is_map(input_value(assigns[:form], assigns[:name])) ->
           Jason.encode!(input_value(assigns[:form], assigns[:name]))
+
         assigns[:form] ->
           input_value(assigns[:form], assigns[:name])
+
         is_map(assigns[:value]) ->
           Jason.encode!(assigns[:value])
+
         true ->
           assigns[:value] || ""
       end
@@ -162,25 +169,18 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
           @errors != [] && "border-rose-400 focus:border-rose-400"
         ]}
       ><%= @textarea_value %></textarea>
-      <.error :for={msg <- @errors} data-test-id={"#{@id}-error"}><%= msg %></.error>
+      <.error :for={msg <- @errors} data-test-id={"#{@id}-error"}>{msg}</.error>
     </div>
     """
   end
 
   def input(assigns) do
     assigns = assign_new(assigns, :required, fn -> false end)
+
     ~H"""
     <div class="form-group">
       <.label_tag for={@id}>{@label}</.label_tag>
-      <input
-        type={@type_input}
-        id={@id}
-        name={@name}
-        value={@value}
-        class={["form-control", @errors != [] && "is-invalid", @errors != [] && "error"]}
-        required={@rest[:required] || @required}
-        {@rest}
-      />
+      <input type={@type_input} id={@id} name={@name} value={@value} class={["form-control", @errors != [] && "is-invalid", @errors != [] && "error"]} required={@rest[:required] || @required} {@rest} />
       <.error :for={msg <- @errors} class="error">{msg}</.error>
     </div>
     """
@@ -196,7 +196,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
 
   def label(assigns) do
     ~H"""
-    <label><%= assigns[:for] || "Label" %></label>
+    <label>{assigns[:for] || "Label"}</label>
     """
   end
 
@@ -238,7 +238,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.FormComponents do
         @class
       ]}
     >
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </button>
     """
   end

@@ -2,7 +2,9 @@ defmodule HydepwnsLiveview.Resources.TeamResourceTest do
   use HydepwnsLiveview.DataCase
   alias HydepwnsLiveview.TestSupport.EventStoreTestHelper
   alias HydepwnsLiveview.Resources.TestTeamResource
-  import HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource, only: [rebuild_from_events: 3]
+
+  import HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource,
+    only: [rebuild_from_events: 3]
 
   setup do
     EventStoreTestHelper.setup_mock_event_store()
@@ -81,9 +83,16 @@ defmodule HydepwnsLiveview.Resources.TeamResourceTest do
 
       # Get events from the store and rebuild state
       {:ok, events} = TestTeamResource.get_history("test-team-4")
-      rebuilt = rebuild_from_events(events, TestTeamResource.initial_state(), &TestTeamResource.apply_event/2)
+
+      rebuilt =
+        rebuild_from_events(
+          events,
+          TestTeamResource.initial_state(),
+          &TestTeamResource.apply_event/2
+        )
+
       assert rebuilt.name == "Updated Team"
       assert rebuilt.active == false
     end
   end
-end 
+end

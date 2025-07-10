@@ -16,7 +16,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
     default_theme = ThemeSystem.ensure_default_theme()
     theme_class = "#{default_theme.mode}-theme"
     themes = ThemeSystem.list_themes()
-    
+
     IO.puts("DEBUG: Themes in mount: #{inspect(themes, pretty: true)}")
 
     {:ok,
@@ -35,10 +35,10 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
     table_atom = String.to_existing_atom(table)
     Process.put(:theme_system_ets_table, table_atom)
     IO.puts("DEBUG: Set theme_system_ets_table from URL to #{table_atom}")
-    
+
     themes = ThemeSystem.list_themes()
     IO.puts("DEBUG: Themes after setting table: #{inspect(themes, pretty: true)}")
-    
+
     {:noreply, assign(socket, :themes, themes)}
   end
 
@@ -111,11 +111,12 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
   @impl Phoenix.LiveView
   def render(assigns) do
     assigns = assign(assigns, :title, "Theme Manager")
+
     ~H"""
     <div class="container mx-auto px-4 py-8" data-mode={@theme_class}>
       <%= if Phoenix.Flash.get(@flash, :info) do %>
         <div class="alert alert-success bg-green-100 border border-green-400 text-green-800 px-4 py-3 rounded relative mb-6" role="alert">
-          <%= Phoenix.Flash.get(@flash, :info) %>
+          {Phoenix.Flash.get(@flash, :info)}
         </div>
       <% end %>
       <header class="flex items-center justify-between mb-6">
@@ -133,7 +134,11 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
             <div class="relative bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-6 flex flex-col justify-between transition-transform hover:scale-105 focus-within:scale-105" data-test-id={"theme-card-#{theme.id}"} tabindex="0" aria-label={"Theme card for #{theme.name}"}>
               <!-- Mini Theme Preview Area -->
               <div class="mb-4">
-                <div class="rounded-lg border border-gray-100 dark:border-gray-700 overflow-hidden" style={"background: #{theme.background_color}; color: #{theme.text_color}; min-height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 1rem;"} aria-label="Mini preview of theme colors">
+                <div
+                  class="rounded-lg border border-gray-100 dark:border-gray-700 overflow-hidden"
+                  style={"background: #{theme.background_color}; color: #{theme.text_color}; min-height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 1rem;"}
+                  aria-label="Mini preview of theme colors"
+                >
                   <span style={"color: #{theme.primary_color}; font-weight: bold;"}>Aa</span>
                   <span style={"color: #{theme.secondary_color}; font-weight: bold;"}>Bb</span>
                   <button style={"background: #{theme.primary_color}; color: #{theme.text_color}; border-radius: 0.25rem; padding: 0.25rem 0.75rem; font-size: 0.85rem; border: none;"} tabindex="-1">Button</button>
@@ -144,7 +149,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
                 <div class="flex items-center space-x-2">
                   <h3 class="text-xl font-bold text-gray-900 dark:text-white" data-test-id={"theme-name-#{theme.id}"}>
                     <.link navigate={~p"/themes/#{theme}"} data-test-id={"theme-link-#{theme.name |> String.downcase() |> String.replace(" ", "-")}"}>
-                      <%= theme.name %>
+                      {theme.name}
                     </.link>
                   </h3>
                   <%= if theme.is_default do %>
@@ -161,26 +166,26 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeManagerLive do
                 </div>
               </div>
               <div class="space-y-3">
-                <div class="flex items-center space-x-2"><strong>Mode:</strong> <span class="ml-1"><%= theme.mode %></span></div>
+                <div class="flex items-center space-x-2"><strong>Mode:</strong> <span class="ml-1">{theme.mode}</span></div>
                 <div class="flex items-center space-x-2">
                   <strong>Primary:</strong>
                   <span class="inline-block w-4 h-4 rounded-full border border-gray-300 align-middle" style={"background-color: #{theme.primary_color}"} aria-label={"Primary color swatch #{theme.primary_color}"}></span>
-                  <span class="ml-1"><%= theme.primary_color %></span>
+                  <span class="ml-1">{theme.primary_color}</span>
                 </div>
                 <div class="flex items-center space-x-2">
                   <strong>Secondary:</strong>
                   <span class="inline-block w-4 h-4 rounded-full border border-gray-300 align-middle" style={"background-color: #{theme.secondary_color}"} aria-label={"Secondary color swatch #{theme.secondary_color}"}></span>
-                  <span class="ml-1"><%= theme.secondary_color %></span>
+                  <span class="ml-1">{theme.secondary_color}</span>
                 </div>
                 <div class="flex items-center space-x-2">
                   <strong>Background:</strong>
                   <span class="inline-block w-4 h-4 rounded-full border border-gray-300 align-middle" style={"background-color: #{theme.background_color}"} aria-label={"Background color swatch #{theme.background_color}"}></span>
-                  <span class="ml-1"><%= theme.background_color %></span>
+                  <span class="ml-1">{theme.background_color}</span>
                 </div>
                 <div class="flex items-center space-x-2">
                   <strong>Text:</strong>
                   <span class="inline-block w-4 h-4 rounded-full border border-gray-300 align-middle" style={"background-color: #{theme.text_color}"} aria-label={"Text color swatch #{theme.text_color}"}></span>
-                  <span class="ml-1"><%= theme.text_color %></span>
+                  <span class="ml-1">{theme.text_color}</span>
                 </div>
               </div>
               <div class="mt-6 flex justify-end space-x-2">

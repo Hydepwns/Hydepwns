@@ -4,12 +4,14 @@ defmodule HydepwnsLiveviewWeb.UserSessionControllerTest do
   alias HydepwnsLiveview.Accounts
 
   setup do
-    {:ok, user} = Accounts.create_user(%{
-      name: "Test User",
-      email: "testuser@example.com",
-      password: "password123",
-      password_confirmation: "password123"
-    })
+    {:ok, user} =
+      Accounts.create_user(%{
+        name: "Test User",
+        email: "testuser@example.com",
+        password: "password123",
+        password_confirmation: "password123"
+      })
+
     %{user: user}
   end
 

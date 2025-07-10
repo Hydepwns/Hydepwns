@@ -10,26 +10,29 @@ defmodule HydepwnsLiveviewWeb.Event.EventIndexLive do
     IO.puts("🔍 EventIndexLive: First event: #{inspect(List.first(events))}")
 
     # Convert plain maps to Event structs for template rendering
-    event_structs = Enum.map(events, fn event ->
-      case event do
-        %HydepwnsLiveview.Events.Core.Event{} -> event
-        plain_map when is_map(plain_map) ->
-          # Convert plain map to Event struct
-          %HydepwnsLiveview.Events.Core.Event{
-            id: plain_map[:id] || plain_map["id"],
-            type: plain_map[:type] || plain_map["type"],
-            resource_id: plain_map[:resource_id] || plain_map["resource_id"],
-            resource_type: plain_map[:resource_type] || plain_map["resource_type"],
-            data: plain_map[:data] || plain_map["data"] || %{},
-            metadata: plain_map[:metadata] || plain_map["metadata"] || %{},
-            correlation_id: plain_map[:correlation_id] || plain_map["correlation_id"],
-            causation_id: plain_map[:causation_id] || plain_map["causation_id"],
-            timestamp: plain_map[:timestamp] || plain_map["timestamp"],
-            inserted_at: plain_map[:inserted_at] || plain_map["inserted_at"],
-            updated_at: plain_map[:updated_at] || plain_map["updated_at"]
-          }
-      end
-    end)
+    event_structs =
+      Enum.map(events, fn event ->
+        case event do
+          %HydepwnsLiveview.Events.Core.Event{} ->
+            event
+
+          plain_map when is_map(plain_map) ->
+            # Convert plain map to Event struct
+            %HydepwnsLiveview.Events.Core.Event{
+              id: plain_map[:id] || plain_map["id"],
+              type: plain_map[:type] || plain_map["type"],
+              resource_id: plain_map[:resource_id] || plain_map["resource_id"],
+              resource_type: plain_map[:resource_type] || plain_map["resource_type"],
+              data: plain_map[:data] || plain_map["data"] || %{},
+              metadata: plain_map[:metadata] || plain_map["metadata"] || %{},
+              correlation_id: plain_map[:correlation_id] || plain_map["correlation_id"],
+              causation_id: plain_map[:causation_id] || plain_map["causation_id"],
+              timestamp: plain_map[:timestamp] || plain_map["timestamp"],
+              inserted_at: plain_map[:inserted_at] || plain_map["inserted_at"],
+              updated_at: plain_map[:updated_at] || plain_map["updated_at"]
+            }
+        end
+      end)
 
     IO.puts("🔍 EventIndexLive: Event structs after conversion: #{length(event_structs)}")
     IO.puts("🔍 EventIndexLive: First event struct: #{inspect(List.first(event_structs))}")
@@ -45,6 +48,7 @@ defmodule HydepwnsLiveviewWeb.Event.EventIndexLive do
   @impl true
   def handle_event("filter_events", %{"event_filter" => filter_params}, socket) do
     type_filter = Map.get(filter_params, "type", "")
+
     filtered_events =
       if type_filter == "" do
         socket.assigns.all_events
@@ -53,6 +57,7 @@ defmodule HydepwnsLiveviewWeb.Event.EventIndexLive do
           String.contains?(event.type, type_filter)
         end)
       end
+
     {:noreply, assign(socket, events: filtered_events, event_filter: filter_params)}
   end
 
@@ -85,7 +90,8 @@ defmodule HydepwnsLiveviewWeb.Event.EventIndexLive do
 
       <div class="bg-white shadow-lg rounded-lg p-6">
         <!-- DEBUG: Events count: <%= length(@events) %> -->
-        <!-- DEBUG: Events: <%= inspect(@events, pretty: true) %> -->
+        <!-- DEBUG: Events:
+        {inspect(@events, pretty: true)} -->
         <%= if Enum.empty?(@events) do %>
           <div class="text-center text-gray-500 py-8">
             <p class="text-lg">No events found</p>
@@ -97,19 +103,19 @@ defmodule HydepwnsLiveviewWeb.Event.EventIndexLive do
               <!-- DEBUG: Rendering event: <%= event.type %> -->
               <div class="event-row flex items-center gap-4 py-2 border-b" data-event-type={event.type} data-test-id="event-row">
                 <span class="event-type font-mono text-xs bg-gray-200 px-2 py-1 rounded">
-                  <%= String.split(event.type, ".") |> List.last() %>
+                  {String.split(event.type, ".") |> List.last()}
                 </span>
                 <span class="event-resource-id text-sm text-gray-700">
-                  <%= event.data["name"] || event.data[:name] || "" %>
+                  {event.data["name"] || event.data[:name] || ""}
                 </span>
                 <span class="event-resource-id text-xs text-gray-500">
-                  <%= event.resource_id %>
+                  {event.resource_id}
                 </span>
                 <span class="event-data text-sm text-gray-600">
-                  <%= event.data["description"] || event.data[:description] || "No description" %>
+                  {event.data["description"] || event.data[:description] || "No description"}
                 </span>
                 <span class="event-timestamp text-xs text-gray-400 ml-2">
-                  <%= event.inserted_at || event.timestamp %>
+                  {event.inserted_at || event.timestamp}
                 </span>
               </div>
             <% end %>

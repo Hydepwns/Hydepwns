@@ -51,7 +51,7 @@ defmodule HydepwnsLiveview.Utils.ValidationEngine do
   def validate(resource_module, resource, context \\ %{}) do
     # Get the resource schema
     schema = resource_module.__resource_schema__()
-    
+
     # Validate attributes
     case validate_attributes(resource_module, resource, schema.attributes, context) do
       {:ok, _validated_resource} ->
@@ -59,13 +59,22 @@ defmodule HydepwnsLiveview.Utils.ValidationEngine do
         case validate_relationships(resource_module, resource, schema.relationships, context) do
           {:ok, final_resource} ->
             # Run custom validations
-            case run_custom_validations(resource_module, final_resource, schema.validations, context) do
+            case run_custom_validations(
+                   resource_module,
+                   final_resource,
+                   schema.validations,
+                   context
+                 ) do
               {:ok, result} -> {:ok, result}
               {:error, errors} -> {:error, errors}
             end
-          {:error, errors} -> {:error, errors}
+
+          {:error, errors} ->
+            {:error, errors}
         end
-      {:error, errors} -> {:error, errors}
+
+      {:error, errors} ->
+        {:error, errors}
     end
   end
 
@@ -95,14 +104,15 @@ defmodule HydepwnsLiveview.Utils.ValidationEngine do
   {:ok, validated_role} = ValidationEngine.validate_attribute(UserResource, user, :role, "admin", %{allowed_roles: ["admin", "editor"]})
   ```
   """
-  @spec validate_attribute(module(), map(), atom(), any(), map()) :: {:ok, any()} | {:error, String.t()}
+  @spec validate_attribute(module(), map(), atom(), any(), map()) ::
+          {:ok, any()} | {:error, String.t()}
   def validate_attribute(resource_module, _resource, attribute_name, value, context \\ %{}) do
     # Get the resource schema
     schema = resource_module.__resource_schema__()
-    
+
     # Find the attribute definition
     attribute_def = Enum.find(schema.attributes, fn attr -> attr.name == attribute_name end)
-    
+
     if is_nil(attribute_def) do
       {:error, "Attribute #{attribute_name} not found in resource schema"}
     else
@@ -114,14 +124,15 @@ defmodule HydepwnsLiveview.Utils.ValidationEngine do
   # Private function to validate all attributes
   defp validate_attributes(_resource_module, resource, attributes, context) do
     _validated_resource = resource
-    
+
     Enum.reduce_while(attributes, {:ok, resource}, fn attribute, {:ok, acc_resource} ->
       attribute_name = attribute.name
       value = Map.get(resource, attribute_name)
-      
+
       case validate_attribute_value(attribute, value, context) do
         {:ok, validated_value} ->
           {:cont, {:ok, Map.put(acc_resource, attribute_name, validated_value)}}
+
         {:error, error} ->
           {:halt, {:error, ["#{attribute_name}: #{error}"]}}
       end
@@ -178,50 +189,97 @@ defmodule HydepwnsLiveview.Utils.ValidationEngine do
   # Private function to validate types
   defp validate_type(type, value) do
     case type do
-      :string when is_binary(value) -> {:ok, value}
-      :string when is_nil(value) -> {:ok, value}
-      :string -> {:error, "Expected string, got #{inspect(value)}"}
-      
-      :integer when is_integer(value) -> {:ok, value}
-      :integer when is_nil(value) -> {:ok, value}
-      :integer -> {:error, "Expected integer, got #{inspect(value)}"}
-      
-      :float when is_float(value) -> {:ok, value}
-      :float when is_integer(value) -> {:ok, value * 1.0}
-      :float when is_nil(value) -> {:ok, value}
-      :float -> {:error, "Expected float, got #{inspect(value)}"}
-      
-      :boolean when is_boolean(value) -> {:ok, value}
-      :boolean when is_nil(value) -> {:ok, value}
-      :boolean -> {:error, "Expected boolean, got #{inspect(value)}"}
-      
-      :map when is_map(value) -> {:ok, value}
-      :map when is_nil(value) -> {:ok, value}
-      :map -> {:error, "Expected map, got #{inspect(value)}"}
-      
-      :list when is_list(value) -> {:ok, value}
-      :list when is_nil(value) -> {:ok, value}
-      :list -> {:error, "Expected list, got #{inspect(value)}"}
-      
-      :atom when is_atom(value) -> {:ok, value}
-      :atom when is_nil(value) -> {:ok, value}
-      :atom -> {:error, "Expected atom, got #{inspect(value)}"}
-      
+      :string when is_binary(value) ->
+        {:ok, value}
+
+      :string when is_nil(value) ->
+        {:ok, value}
+
+      :string ->
+        {:error, "Expected string, got #{inspect(value)}"}
+
+      :integer when is_integer(value) ->
+        {:ok, value}
+
+      :integer when is_nil(value) ->
+        {:ok, value}
+
+      :integer ->
+        {:error, "Expected integer, got #{inspect(value)}"}
+
+      :float when is_float(value) ->
+        {:ok, value}
+
+      :float when is_integer(value) ->
+        {:ok, value * 1.0}
+
+      :float when is_nil(value) ->
+        {:ok, value}
+
+      :float ->
+        {:error, "Expected float, got #{inspect(value)}"}
+
+      :boolean when is_boolean(value) ->
+        {:ok, value}
+
+      :boolean when is_nil(value) ->
+        {:ok, value}
+
+      :boolean ->
+        {:error, "Expected boolean, got #{inspect(value)}"}
+
+      :map when is_map(value) ->
+        {:ok, value}
+
+      :map when is_nil(value) ->
+        {:ok, value}
+
+      :map ->
+        {:error, "Expected map, got #{inspect(value)}"}
+
+      :list when is_list(value) ->
+        {:ok, value}
+
+      :list when is_nil(value) ->
+        {:ok, value}
+
+      :list ->
+        {:error, "Expected list, got #{inspect(value)}"}
+
+      :atom when is_atom(value) ->
+        {:ok, value}
+
+      :atom when is_nil(value) ->
+        {:ok, value}
+
+      :atom ->
+        {:error, "Expected atom, got #{inspect(value)}"}
+
       {:one_of, allowed_values} when is_list(allowed_values) ->
-        if value in allowed_values do
+        if is_nil(value) do
           {:ok, value}
         else
-          {:error, "Value must be one of: #{Enum.join(allowed_values, ", ")}"}
+          if value in allowed_values do
+            {:ok, value}
+          else
+            {:error, "Value must be one of: #{Enum.join(allowed_values, ", ")}"}
+          end
         end
-      
+
       {:format, regex} when is_struct(regex, Regex) ->
-        if is_binary(value) && Regex.match?(regex, value) do
+        if is_nil(value) do
           {:ok, value}
         else
-          {:error, "Value does not match required format"}
+          if is_binary(value) && Regex.match?(regex, value) do
+            {:ok, value}
+          else
+            {:error, "Value does not match required format"}
+          end
         end
-      
-      _ -> {:ok, value} # Default to accepting any value
+
+      # Default to accepting any value
+      _ ->
+        {:ok, value}
     end
   end
-end 
+end

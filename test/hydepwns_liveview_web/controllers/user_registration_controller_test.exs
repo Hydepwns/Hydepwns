@@ -10,9 +10,13 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationControllerTest do
       password: "password123",
       password_confirmation: "password123"
     }
+
     conn = post(conn, "/users/register", user: params)
     assert get_session(conn, :user_token)
-    assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "Account created and logged in successfully"
+
+    assert Phoenix.Flash.get(conn.assigns.flash, :info) =~
+             "Account created and logged in successfully"
+
     assert redirected_to(conn) == "/"
     assert Accounts.get_user_by_email("newuser@example.com")
   end
@@ -24,6 +28,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationControllerTest do
       password: "123",
       password_confirmation: "456"
     }
+
     conn = post(conn, "/users/register", user: params)
     refute get_session(conn, :user_token)
     assert Phoenix.Flash.get(conn.assigns.flash, :error) =~ "Registration failed"

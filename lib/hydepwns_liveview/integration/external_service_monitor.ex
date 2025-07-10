@@ -92,11 +92,13 @@ defmodule HydepwnsLiveview.Integration.ExternalServiceMonitor do
   - {:ok, metric_id} on success
   - {:error, reason} on failure
   """
-  def track_metric(service_name, metric_name, value) when is_binary(service_name) and is_binary(metric_name) do
+  def track_metric(service_name, metric_name, value)
+      when is_binary(service_name) and is_binary(metric_name) do
     case validate_metric_params(service_name, metric_name, value) do
       :ok ->
         # In production, this would send metrics to a monitoring system
         metric_id = generate_metric_id()
+
         _metric_data = %{
           id: metric_id,
           service_name: service_name,
@@ -125,15 +127,16 @@ defmodule HydepwnsLiveview.Integration.ExternalServiceMonitor do
   - {:error, reason} on failure
   """
   def get_service_status_summary(service_names) when is_list(service_names) do
-    results = Enum.map(service_names, fn service_name ->
-      case check_health(service_name) do
-        {:ok, health_info} ->
-          {service_name, health_info}
+    results =
+      Enum.map(service_names, fn service_name ->
+        case check_health(service_name) do
+          {:ok, health_info} ->
+            {service_name, health_info}
 
-        {:error, reason} ->
-          {service_name, %{status: "error", error: reason}}
-      end
-    end)
+          {:error, reason} ->
+            {service_name, %{status: "error", error: reason}}
+        end
+      end)
 
     summary = %{
       total_services: length(service_names),
@@ -157,10 +160,12 @@ defmodule HydepwnsLiveview.Integration.ExternalServiceMonitor do
   - {:ok, alert_id} on success
   - {:error, reason} on failure
   """
-  def setup_service_alert(service_name, alert_config) when is_binary(service_name) and is_map(alert_config) do
+  def setup_service_alert(service_name, alert_config)
+      when is_binary(service_name) and is_map(alert_config) do
     case validate_alert_config(alert_config) do
       :ok ->
         alert_id = generate_alert_id()
+
         _alert = %{
           id: alert_id,
           service_name: service_name,
@@ -222,10 +227,10 @@ defmodule HydepwnsLiveview.Integration.ExternalServiceMonitor do
   end
 
   defp generate_metric_id do
-    "metric_" <> :crypto.strong_rand_bytes(16) |> Base.encode16(case: :lower)
+    ("metric_" <> :crypto.strong_rand_bytes(16)) |> Base.encode16(case: :lower)
   end
 
   defp generate_alert_id do
-    "alert_" <> :crypto.strong_rand_bytes(16) |> Base.encode16(case: :lower)
+    ("alert_" <> :crypto.strong_rand_bytes(16)) |> Base.encode16(case: :lower)
   end
 end

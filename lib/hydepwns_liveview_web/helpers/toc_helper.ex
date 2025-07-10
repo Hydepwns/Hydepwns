@@ -146,6 +146,7 @@ defmodule HydepwnsLiveviewWeb.Helpers.TocHelper do
 
   defp do_build_hierarchy([heading | rest], parent_level) do
     current_level = heading.level
+
     if current_level == parent_level + 1 do
       # Collect all children for this heading
       {children, remaining} = collect_children(rest, current_level)
@@ -157,6 +158,7 @@ defmodule HydepwnsLiveviewWeb.Helpers.TocHelper do
   end
 
   defp collect_children([], _parent_level), do: {[], []}
+
   defp collect_children([heading | rest], parent_level) do
     if heading.level > parent_level do
       {children, remaining} = do_build_hierarchy([heading | rest], parent_level)

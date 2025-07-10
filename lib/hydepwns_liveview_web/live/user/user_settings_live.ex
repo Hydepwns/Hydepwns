@@ -6,7 +6,9 @@ defmodule HydepwnsLiveviewWeb.UserSettingsLive do
   use HydepwnsLiveviewWeb, :live_view
 
   alias HydepwnsLiveview.Accounts
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label_tag: 1, error: 1]
+
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents,
+    only: [input: 1, label_tag: 1, error: 1]
 
   on_mount {HydepwnsLiveviewWeb.UserAuth, :require_authenticated_user}
 
@@ -79,7 +81,7 @@ defmodule HydepwnsLiveviewWeb.UserSettingsLive do
               <.label_tag for={f[:name].id}>Name</.label_tag>
               <.input field={f[:name]} type="text" />
               <.error :for={msg <- Keyword.get_values(f[:name].errors, :name)}>
-                <%= msg %>
+                {msg}
               </.error>
             </div>
 
@@ -87,7 +89,7 @@ defmodule HydepwnsLiveviewWeb.UserSettingsLive do
               <.label_tag for={f[:email].id}>Email</.label_tag>
               <.input field={f[:email]} type="email" />
               <.error :for={msg <- Keyword.get_values(f[:email].errors, :email)}>
-                <%= msg %>
+                {msg}
               </.error>
             </div>
 
@@ -95,7 +97,7 @@ defmodule HydepwnsLiveviewWeb.UserSettingsLive do
               <.label_tag for={f[:bio].id}>Bio</.label_tag>
               <.input field={f[:bio]} type="textarea" />
               <.error :for={msg <- Keyword.get_values(f[:bio].errors, :bio)}>
-                <%= msg %>
+                {msg}
               </.error>
             </div>
 
@@ -103,7 +105,7 @@ defmodule HydepwnsLiveviewWeb.UserSettingsLive do
               <.label_tag for={f[:theme].id}>Theme</.label_tag>
               <.input field={f[:theme]} type="select" options={[Light: "light", Dark: "dark", System: "system"]} />
               <.error :for={msg <- Keyword.get_values(f[:theme].errors, :theme)}>
-                <%= msg %>
+                {msg}
               </.error>
             </div>
 

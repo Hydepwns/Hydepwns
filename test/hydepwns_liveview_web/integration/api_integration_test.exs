@@ -13,10 +13,12 @@ defmodule HydepwnsLiveviewWeb.Integration.APIIntegrationTest do
   setup do
     # Temporarily set repo to use real database for integration tests
     Application.put_env(:hydepwns_liveview, :repo, HydepwnsLiveview.Repo)
+
     on_exit(fn ->
       # Restore mock repo after test
       Application.put_env(:hydepwns_liveview, :repo, HydepwnsLiveview.RepoMock)
     end)
+
     :ok
   end
 
@@ -28,39 +30,43 @@ defmodule HydepwnsLiveviewWeb.Integration.APIIntegrationTest do
     # Set up mocks for external services
     HydepwnsLiveview.MockExternalAPI
     |> stub(:fetch_data, fn id ->
-      {:ok, %{
-        "id" => id,
-        "name" => "Test Resource",
-        "description" => "A test resource",
-        "type" => "test-type",
-        "status" => "active"
-      }}
+      {:ok,
+       %{
+         "id" => id,
+         "name" => "Test Resource",
+         "description" => "A test resource",
+         "type" => "test-type",
+         "status" => "active"
+       }}
     end)
 
     # Create test user
-    {:ok, user} = Accounts.register_user(%{
-      email: "api_test@example.com",
-      password: "password123",
-      password_confirmation: "password123",
-      name: "API Test User"
-    })
+    {:ok, user} =
+      Accounts.register_user(%{
+        email: "api_test@example.com",
+        password: "password123",
+        password_confirmation: "password123",
+        name: "API Test User"
+      })
 
     # Create test resource
-    {:ok, resource} = ResourceSystem.create_resource(%{
-      name: "API Test Resource",
-      description: "Resource for API testing",
-      type: "document",
-      status: "published",
-      content: %{text: "Test content"}
-    })
+    {:ok, resource} =
+      ResourceSystem.create_resource(%{
+        name: "API Test Resource",
+        description: "Resource for API testing",
+        type: "document",
+        status: "published",
+        content: %{text: "Test content"}
+      })
 
     # Create test theme
-    {:ok, theme} = ThemeSystem.create_theme(%{
-      name: "API Test Theme",
-      mode: "light",
-      primary_color: "#3b82f6",
-      secondary_color: "#6b7280"
-    })
+    {:ok, theme} =
+      ThemeSystem.create_theme(%{
+        name: "API Test Theme",
+        mode: "light",
+        primary_color: "#3b82f6",
+        secondary_color: "#6b7280"
+      })
 
     {:ok, user: user, resource: resource, theme: theme}
   end
@@ -234,7 +240,9 @@ defmodule HydepwnsLiveviewWeb.Integration.APIIntegrationTest do
 
       # Add authentication and proper Content-Type
       token = Accounts.generate_user_session_token(user)
-      conn = conn
+
+      conn =
+        conn
         |> put_req_header("authorization", "Bearer #{token}")
         |> put_req_header("content-type", "application/json")
 
@@ -249,7 +257,11 @@ defmodule HydepwnsLiveviewWeb.Integration.APIIntegrationTest do
       assert resource_data["type"] == "document"
     end
 
-    test "PUT /api/resources/:id updates existing resource", %{conn: conn, resource: resource, user: user} do
+    test "PUT /api/resources/:id updates existing resource", %{
+      conn: conn,
+      resource: resource,
+      user: user
+    } do
       update_params = %{
         "resource" => %{
           "name" => "Updated Resource Name",
@@ -259,7 +271,9 @@ defmodule HydepwnsLiveviewWeb.Integration.APIIntegrationTest do
 
       # Add authentication and proper Content-Type
       token = Accounts.generate_user_session_token(user)
-      conn = conn
+
+      conn =
+        conn
         |> put_req_header("authorization", "Bearer #{token}")
         |> put_req_header("content-type", "application/json")
 
@@ -274,7 +288,11 @@ defmodule HydepwnsLiveviewWeb.Integration.APIIntegrationTest do
       assert resource_data["status"] == "published"
     end
 
-    test "DELETE /api/resources/:id deletes resource", %{conn: conn, resource: resource, user: user} do
+    test "DELETE /api/resources/:id deletes resource", %{
+      conn: conn,
+      resource: resource,
+      user: user
+    } do
       # Add authentication
       token = Accounts.generate_user_session_token(user)
       conn = conn |> put_req_header("authorization", "Bearer #{token}")
@@ -350,14 +368,18 @@ defmodule HydepwnsLiveviewWeb.Integration.APIIntegrationTest do
     test "returns 422 for validation errors", %{conn: conn, user: user} do
       invalid_params = %{
         "resource" => %{
-          "name" => "",  # Invalid: empty name
-          "type" => "invalid_type"  # Invalid: unknown type
+          # Invalid: empty name
+          "name" => "",
+          # Invalid: unknown type
+          "type" => "invalid_type"
         }
       }
 
       # Add authentication and proper Content-Type
       token = Accounts.generate_user_session_token(user)
-      conn = conn
+
+      conn =
+        conn
         |> put_req_header("authorization", "Bearer #{token}")
         |> put_req_header("content-type", "application/json")
 

@@ -99,13 +99,13 @@ defmodule HydepwnsLiveviewWeb.ResourceEventLive do
             <%= for event <- @events do %>
               <tr>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  <%= event.type %>
+                  {event.type}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  <%= event.resource_id %>
+                  {event.resource_id}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  <%= Calendar.strftime(event.timestamp, "%Y-%m-%d %H:%M:%S") %>
+                  {Calendar.strftime(event.timestamp, "%Y-%m-%d %H:%M:%S")}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   <button phx-click="delete" phx-value-id={event.id} class="text-red-600 hover:text-red-900">

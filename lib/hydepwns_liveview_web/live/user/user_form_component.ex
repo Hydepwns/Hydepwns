@@ -58,7 +58,7 @@ defmodule HydepwnsLiveviewWeb.User.UserFormComponent do
   def render(assigns) do
     ~H"""
     <div>
-      <%= HydepwnsLiveviewWeb.Components.Common.HeaderComponent.header(assigns) %>
+      {HydepwnsLiveviewWeb.Components.Common.HeaderComponent.header(assigns)}
 
       <.simple_form for={@changeset} id="user-form" phx-target={@myself} phx-change="validate" phx-submit="save">
         <.input field={@changeset[:name]} type="text" label="Name" />

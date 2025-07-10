@@ -41,6 +41,7 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
   """
   @spec publish(Event.t(), Keyword.t()) :: :ok | {:error, any()}
   def publish(event, opts \\ %{})
+
   def publish(%Event{} = event, opts) do
     GenServer.cast(__MODULE__, {:publish, event, opts})
   end
@@ -143,9 +144,10 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
     event_types_list = if is_list(event_types), do: event_types, else: [event_types]
 
     # Add subscriber to each event type
-    subscribers = Enum.reduce(event_types_list, state.subscribers, fn event_type, acc ->
-      Map.update(acc, event_type, [subscriber], &[subscriber | &1])
-    end)
+    subscribers =
+      Enum.reduce(event_types_list, state.subscribers, fn event_type, acc ->
+        Map.update(acc, event_type, [subscriber], &[subscriber | &1])
+      end)
 
     {:reply, :ok, %{state | subscribers: subscribers}}
   end
@@ -162,9 +164,10 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
     event_types_list = if is_list(event_types), do: event_types, else: [event_types]
 
     # Remove subscriber from each event type
-    subscribers = Enum.reduce(event_types_list, state.subscribers, fn event_type, acc ->
-      Map.update(acc, event_type, [], &List.delete(&1, subscriber))
-    end)
+    subscribers =
+      Enum.reduce(event_types_list, state.subscribers, fn event_type, acc ->
+        Map.update(acc, event_type, [], &List.delete(&1, subscriber))
+      end)
 
     {:reply, :ok, %{state | subscribers: subscribers}}
   end
@@ -206,6 +209,12 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
     {:noreply, %{state | subscribers: subscribers}}
   end
 
+  @impl true
+  def handle_info(_message, state) do
+    # Ignore any other messages
+    {:noreply, state}
+  end
+
   # Private functions
 
   defp get_subscribers_for_type(state, event_type) do
@@ -226,7 +235,11 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
     Enum.each(subscribers, fn subscriber ->
       if is_pid(subscriber) and Process.alive?(subscriber) do
         require Logger
-        Logger.debug("[EventBus] Sending event '#{event.type}' from #{inspect(self())} to subscriber #{inspect(subscriber)}")
+
+        Logger.debug(
+          "[EventBus] Sending event '#{event.type}' from #{inspect(self())} to subscriber #{inspect(subscriber)}"
+        )
+
         send(subscriber, {:event, event})
       end
     end)

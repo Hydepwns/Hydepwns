@@ -38,4 +38,4 @@ defmodule HydepwnsLiveview.Events.SMSNotifications do
       _ -> {:ok, %{message_id: Ecto.UUID.generate()}}
     end
   end
-end 
+end

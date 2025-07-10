@@ -89,7 +89,10 @@ defmodule HydepwnsLiveviewWeb.NotificationComponent do
   end
 
   def add_notification(notifications, notification) do
-    notification = Map.put_new_lazy(notification, :id, fn -> :crypto.strong_rand_bytes(10) |> Base.encode16(case: :lower) end)
+    notification =
+      Map.put_new_lazy(notification, :id, fn ->
+        :crypto.strong_rand_bytes(10) |> Base.encode16(case: :lower)
+      end)
 
     [notification | notifications]
   end
@@ -134,11 +137,11 @@ defmodule HydepwnsLiveviewWeb.NotificationComponent do
         <%= for action <- Map.get(@notification, :actions, []) do %>
           <%= if action[:href] do %>
             <a href={action[:href]} class={"notification__action-button notification__action-button--#{action.style || "default"}"} data-test-id={"#{action.id}-resource-link"}>
-              <%= action.label %>
+              {action.label}
             </a>
           <% else %>
             <button :if={@myself} phx-click="notification_action" phx-value-id={@notification.id} phx-value-action={action.id} phx-target={@myself} class={"notification__action-button notification__action-button--#{action.style || "default"}"} data-test-id={"#{action.id}-resource-link"}>
-              <%= action.label %>
+              {action.label}
             </button>
           <% end %>
         <% end %>
@@ -164,5 +167,4 @@ defmodule HydepwnsLiveviewWeb.NotificationComponent do
   defp get_severity_icon(:error), do: "❌"
   defp get_severity_icon(:critical), do: "🚨"
   defp get_severity_icon(_), do: "ℹ️"
-
 end

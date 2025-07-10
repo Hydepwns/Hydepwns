@@ -81,7 +81,7 @@ defmodule HydepwnsLiveviewWeb.Admin.EventFormLive do
     ~H"""
     <div class="container mx-auto px-4 py-8">
       <div class="max-w-2xl mx-auto">
-        <h1 class="text-2xl font-bold mb-6"><%= @page_title %></h1>
+        <h1 class="text-2xl font-bold mb-6">{@page_title}</h1>
 
         <.form :let={f} for={@changeset} id="event-form" phx-change="validate" phx-submit="save" class="space-y-6">
           <div>

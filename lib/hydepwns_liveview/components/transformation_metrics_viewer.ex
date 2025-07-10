@@ -155,7 +155,7 @@ defmodule HydepwnsLiveview.Components.TransformationMetricsViewer do
   defp render_metrics_charts(_assigns), do: "Metrics charts go here"
   defp render_metrics_comparison(_assigns), do: "Metrics comparison goes here"
   defp parse_integer(nil), do: nil
-  defp parse_integer("") , do: nil
+  defp parse_integer(""), do: nil
   defp parse_integer(value) when is_binary(value), do: String.to_integer(value)
   defp parse_integer(value) when is_integer(value), do: value
 end

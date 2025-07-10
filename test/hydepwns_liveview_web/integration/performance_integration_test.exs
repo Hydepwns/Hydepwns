@@ -20,10 +20,12 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
   setup do
     # Temporarily set repo to use real database for integration tests
     Application.put_env(:hydepwns_liveview, :repo, HydepwnsLiveview.Repo)
+
     on_exit(fn ->
       # Restore mock repo after test
       Application.put_env(:hydepwns_liveview, :repo, HydepwnsLiveview.RepoMock)
     end)
+
     :ok
   end
 
@@ -35,30 +37,33 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
     # Set up mocks for external services
     HydepwnsLiveview.MockExternalAPI
     |> stub(:fetch_data, fn id ->
-      {:ok, %{
-        "id" => id,
-        "name" => "Performance Test Resource",
-        "type" => "test",
-        "status" => "active"
-      }}
+      {:ok,
+       %{
+         "id" => id,
+         "name" => "Performance Test Resource",
+         "type" => "test",
+         "status" => "active"
+       }}
     end)
 
     # Create test user
-    {:ok, user} = Accounts.register_user(%{
-      email: "performance_test@example.com",
-      password: "password123",
-      password_confirmation: "password123",
-      name: "Performance Test User"
-    })
+    {:ok, user} =
+      Accounts.register_user(%{
+        email: "performance_test@example.com",
+        password: "password123",
+        password_confirmation: "password123",
+        name: "Performance Test User"
+      })
 
     # Create test resource
-    {:ok, resource} = ResourceSystem.create_resource(%{
-      name: "Performance Test Resource",
-      description: "Resource for performance testing",
-      type: "document",
-      status: "published",
-      content: %{text: "Test content"}
-    })
+    {:ok, resource} =
+      ResourceSystem.create_resource(%{
+        name: "Performance Test Resource",
+        description: "Resource for performance testing",
+        type: "document",
+        status: "published",
+        content: %{text: "Test content"}
+      })
 
     {:ok, user: user, resource: resource}
   end
@@ -72,7 +77,8 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
       response_time = end_time - start_time
 
       assert conn.status == 200
-      assert response_time < 100  # Should respond within 100ms
+      # Should respond within 100ms
+      assert response_time < 100
 
       # Test resources endpoint response time
       start_time = System.monotonic_time(:millisecond)
@@ -81,7 +87,8 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
       response_time = end_time - start_time
 
       assert conn.status == 200
-      assert response_time < 500  # Should respond within 500ms
+      # Should respond within 500ms
+      assert response_time < 500
     end
 
     test "LiveView pages load within acceptable time limits", %{conn: conn} do
@@ -91,20 +98,24 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
       end_time = System.monotonic_time(:millisecond)
       load_time = end_time - start_time
 
-      assert load_time < 1000  # Should load within 1 second
+      # Should load within 1 second
+      assert load_time < 1000
     end
 
     test "database queries perform efficiently", %{_conn: _conn} do
       # Create multiple resources for testing
-      _resources = for i <- 1..100 do
-        {:ok, resource} = ResourceSystem.create_resource(%{
-          name: "Query Test Resource #{i}",
-          type: "document",
-          status: "published",
-          content: %{text: "Query test #{i}"}
-        })
-        resource
-      end
+      _resources =
+        for i <- 1..100 do
+          {:ok, resource} =
+            ResourceSystem.create_resource(%{
+              name: "Query Test Resource #{i}",
+              type: "document",
+              status: "published",
+              content: %{text: "Query test #{i}"}
+            })
+
+          resource
+        end
 
       # Test query performance
       start_time = System.monotonic_time(:millisecond)
@@ -113,7 +124,8 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
       query_time = end_time - start_time
 
       assert length(all_resources) >= 100
-      assert query_time < 1000  # Should query within 1 second
+      # Should query within 1 second
+      assert query_time < 1000
     end
 
     test "event processing maintains performance under load", %{_conn: _conn} do
@@ -123,15 +135,16 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
       # Create many resources rapidly
       start_time = System.monotonic_time(:millisecond)
 
-      tasks = for i <- 1..50 do
-        Task.async(fn ->
-          ResourceSystem.create_resource(%{
-            name: "Event Performance Resource #{i}",
-            type: "document",
-            status: "published"
-          })
-        end)
-      end
+      tasks =
+        for i <- 1..50 do
+          Task.async(fn ->
+            ResourceSystem.create_resource(%{
+              name: "Event Performance Resource #{i}",
+              type: "document",
+              status: "published"
+            })
+          end)
+        end
 
       results = Task.await_many(tasks)
       end_time = System.monotonic_time(:millisecond)
@@ -139,24 +152,25 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
 
       # Verify all resources were created
       assert length(results) == 50
+
       Enum.each(results, fn {:ok, resource} ->
         assert resource.name =~ "Event Performance Resource"
       end)
 
       # Verify performance is acceptable
-      assert processing_time < 5000  # Should process within 5 seconds
+      # Should process within 5 seconds
+      assert processing_time < 5000
 
       # Verify events were processed by checking the event store
       # Wait longer for events to be processed (concurrent operations need more time)
       Process.sleep(500)
 
       # Check that events were created in the event store
-      {:ok, events} = HydepwnsLiveview.Events.EventStore.get_events(%{
-        :event_type => "document.created",
-        :limit => 50
-      })
-
-
+      {:ok, events} =
+        HydepwnsLiveview.Events.EventStore.get_events(%{
+          :event_type => "document.created",
+          :limit => 50
+        })
 
       # Verify we have the expected number of events
       assert length(events) >= 50
@@ -173,12 +187,13 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
       # Test concurrent API requests
       start_time = System.monotonic_time(:millisecond)
 
-      tasks = for i <- 1..100 do
-        Task.async(fn ->
-          conn = get(conn, "/health")
-          conn.status
-        end)
-      end
+      tasks =
+        for i <- 1..100 do
+          Task.async(fn ->
+            conn = get(conn, "/health")
+            conn.status
+          end)
+        end
 
       results = Task.await_many(tasks)
       end_time = System.monotonic_time(:millisecond)
@@ -186,29 +201,32 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
 
       # Verify all requests succeeded
       assert length(results) == 100
+
       Enum.each(results, fn status ->
         assert status == 200
       end)
 
       # Calculate throughput (requests per second)
       throughput = 100 / (total_time / 1000)
-      assert throughput > 10  # Should handle at least 10 requests per second
+      # Should handle at least 10 requests per second
+      assert throughput > 10
     end
 
     test "handles concurrent resource creation", %{_conn: _conn} do
       # Test concurrent resource creation
       start_time = System.monotonic_time(:millisecond)
 
-      tasks = for i <- 1..50 do
-        Task.async(fn ->
-          ResourceSystem.create_resource(%{
-            name: "Concurrent Resource #{i}",
-            type: "document",
-            status: "published",
-            content: %{text: "Concurrent test #{i}"}
-          })
-        end)
-      end
+      tasks =
+        for i <- 1..50 do
+          Task.async(fn ->
+            ResourceSystem.create_resource(%{
+              name: "Concurrent Resource #{i}",
+              type: "document",
+              status: "published",
+              content: %{text: "Concurrent test #{i}"}
+            })
+          end)
+        end
 
       results = Task.await_many(tasks)
       end_time = System.monotonic_time(:millisecond)
@@ -216,28 +234,31 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
 
       # Verify all resources were created
       assert length(results) == 50
+
       Enum.each(results, fn {:ok, resource} ->
         assert resource.name =~ "Concurrent Resource"
       end)
 
       # Calculate throughput (resources per second)
       throughput = 50 / (total_time / 1000)
-      assert throughput > 5  # Should handle at least 5 resources per second
+      # Should handle at least 5 resources per second
+      assert throughput > 5
     end
 
     test "handles concurrent LiveView connections", %{conn: conn} do
       # Test concurrent HTTP connections to LiveView routes
       start_time = System.monotonic_time(:millisecond)
 
-      tasks = for i <- 1..20 do
-        Task.async(fn ->
-          # Use regular HTTP requests instead of LiveView helpers
-          response = get(conn, "/resources")
-          assert response.status == 200
-          assert response.resp_body =~ "Resources"
-          true
-        end)
-      end
+      tasks =
+        for i <- 1..20 do
+          Task.async(fn ->
+            # Use regular HTTP requests instead of LiveView helpers
+            response = get(conn, "/resources")
+            assert response.status == 200
+            assert response.resp_body =~ "Resources"
+            true
+          end)
+        end
 
       results = Task.await_many(tasks)
       end_time = System.monotonic_time(:millisecond)
@@ -245,13 +266,15 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
 
       # Verify all connections succeeded
       assert length(results) == 20
+
       Enum.each(results, fn result ->
         assert result == true
       end)
 
       # Calculate throughput (connections per second)
       throughput = 20 / (total_time / 1000)
-      assert throughput > 2  # Should handle at least 2 connections per second
+      # Should handle at least 2 connections per second
+      assert throughput > 2
     end
   end
 
@@ -285,11 +308,12 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
 
       # Create and destroy many resources
       for i <- 1..500 do
-        {:ok, resource} = ResourceSystem.create_resource(%{
-          name: "GC Test Resource #{i}",
-          type: "document",
-          status: "published"
-        })
+        {:ok, resource} =
+          ResourceSystem.create_resource(%{
+            name: "GC Test Resource #{i}",
+            type: "document",
+            status: "published"
+          })
 
         ResourceSystem.delete_resource(resource.id)
       end
@@ -300,7 +324,8 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
 
       # Memory should be similar after GC
       memory_diff = abs(final_memory - initial_memory)
-      assert memory_diff < 50 * 1024 * 1024  # Less than 50MB difference
+      # Less than 50MB difference
+      assert memory_diff < 50 * 1024 * 1024
     end
 
     test "handles large data sets efficiently", %{_conn: _conn} do
@@ -328,7 +353,8 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
       processing_time = end_time - start_time
 
       # Should handle large data within reasonable time
-      assert processing_time < 10000  # Less than 10 seconds
+      # Less than 10 seconds
+      assert processing_time < 10000
     end
   end
 
@@ -339,25 +365,27 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
 
       start_time = System.monotonic_time(:millisecond)
 
-      tasks = for i <- 1..process_count do
-        Task.async(fn ->
-          # Each process creates resources
-          for j <- 1..10 do
-            ResourceSystem.create_resource(%{
-              name: "Process #{i} Resource #{j}",
-              type: "document",
-              status: "published"
-            })
-          end
-        end)
-      end
+      tasks =
+        for i <- 1..process_count do
+          Task.async(fn ->
+            # Each process creates resources
+            for j <- 1..10 do
+              ResourceSystem.create_resource(%{
+                name: "Process #{i} Resource #{j}",
+                type: "document",
+                status: "published"
+              })
+            end
+          end)
+        end
 
       Task.await_many(tasks)
       end_time = System.monotonic_time(:millisecond)
       total_time = end_time - start_time
 
       # Should scale well with multiple processes
-      assert total_time < 10000  # Less than 10 seconds for 100 total resources
+      # Less than 10 seconds for 100 total resources
+      assert total_time < 10000
     end
 
     test "maintains performance with increasing data size", %{_conn: _conn} do
@@ -386,7 +414,8 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
         processing_time = end_time - start_time
 
         # Performance should scale reasonably with data size
-        max_time = size * 10  # 10ms per resource
+        # 10ms per resource
+        max_time = size * 10
         assert processing_time < max_time
       end
     end
@@ -397,25 +426,27 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
 
       start_time = System.monotonic_time(:millisecond)
 
-      tasks = for i <- 1..pool_size do
-        Task.async(fn ->
-          # Each task performs database operations
-          for j <- 1..5 do
-            ResourceSystem.create_resource(%{
-              name: "Pool Test Resource #{i}-#{j}",
-              type: "document",
-              status: "published"
-            })
-          end
-        end)
-      end
+      tasks =
+        for i <- 1..pool_size do
+          Task.async(fn ->
+            # Each task performs database operations
+            for j <- 1..5 do
+              ResourceSystem.create_resource(%{
+                name: "Pool Test Resource #{i}-#{j}",
+                type: "document",
+                status: "published"
+              })
+            end
+          end)
+        end
 
       Task.await_many(tasks)
       end_time = System.monotonic_time(:millisecond)
       total_time = end_time - start_time
 
       # Should handle connection pool load efficiently
-      assert total_time < 15000  # Less than 15 seconds for 100 total resources
+      # Less than 15 seconds for 100 total resources
+      assert total_time < 15000
     end
   end
 
@@ -437,7 +468,9 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
       response_time = end_time - start_time
 
       # Track the metric
-      result = HydepwnsLiveview.MockPerformanceMonitor.track_response_time("/health", response_time)
+      result =
+        HydepwnsLiveview.MockPerformanceMonitor.track_response_time("/health", response_time)
+
       assert {:ok, "metric-tracked"} = result
     end
 
@@ -445,11 +478,12 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
       # Mock performance monitoring with degradation detection
       HydepwnsLiveview.MockPerformanceMonitor
       |> expect(:check_performance, fn ->
-        {:warning, %{
-          avg_response_time: 500,
-          threshold: 200,
-          recommendation: "Consider optimization"
-        }}
+        {:warning,
+         %{
+           avg_response_time: 500,
+           threshold: 200,
+           recommendation: "Consider optimization"
+         }}
       end)
 
       # Test degradation detection
@@ -465,12 +499,14 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
       HydepwnsLiveview.MockPerformanceMonitor
       |> expect(:generate_report, fn time_range ->
         assert time_range == "24h"
-        {:ok, %{
-          total_requests: 1000,
-          avg_response_time: 150,
-          error_rate: 0.01,
-          throughput: 10.5
-        }}
+
+        {:ok,
+         %{
+           total_requests: 1000,
+           avg_response_time: 150,
+           error_rate: 0.01,
+           throughput: 10.5
+         }}
       end)
 
       # Test report generation
@@ -506,17 +542,19 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
       start_time = System.monotonic_time(:millisecond)
 
       # Use optimized query (e.g., with proper indexing)
-      resources = ResourceSystem.list_resources(%{
-        limit: 10,
-        offset: 0,
-        order_by: [name: :asc]
-      })
+      resources =
+        ResourceSystem.list_resources(%{
+          limit: 10,
+          offset: 0,
+          order_by: [name: :asc]
+        })
 
       end_time = System.monotonic_time(:millisecond)
       query_time = end_time - start_time
 
       # Optimized query should be fast
-      assert query_time < 100  # Less than 100ms
+      # Less than 100ms
+      assert query_time < 100
       assert is_list(resources)
     end
 
@@ -525,27 +563,30 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
       pool_size = 10
 
       # Create a test resource first to get a valid UUID
-      {:ok, test_resource} = ResourceSystem.create_resource(%{
-        name: "Connection Pool Test Resource",
-        type: "document",
-        status: "published"
-      })
+      {:ok, test_resource} =
+        ResourceSystem.create_resource(%{
+          name: "Connection Pool Test Resource",
+          type: "document",
+          status: "published"
+        })
 
       start_time = System.monotonic_time(:millisecond)
 
-      tasks = for i <- 1..pool_size do
-        Task.async(fn ->
-          # Each task uses a connection from the pool
-          ResourceSystem.get_resource(test_resource.id)
-        end)
-      end
+      tasks =
+        for i <- 1..pool_size do
+          Task.async(fn ->
+            # Each task uses a connection from the pool
+            ResourceSystem.get_resource(test_resource.id)
+          end)
+        end
 
       Task.await_many(tasks)
       end_time = System.monotonic_time(:millisecond)
       total_time = end_time - start_time
 
       # Connection pooling should be efficient
-      assert total_time < 1000  # Less than 1 second for 10 concurrent queries
+      # Less than 1 second for 10 concurrent queries
+      assert total_time < 1000
     end
   end
 
@@ -556,29 +597,31 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
 
       start_time = System.monotonic_time(:millisecond)
 
-      tasks = for i <- 1..user_count do
-        Task.async(fn ->
-          # Simulate user session with HTTP requests instead of LiveView
-          # Browse resources
-          get(conn, "/resources")
+      tasks =
+        for i <- 1..user_count do
+          Task.async(fn ->
+            # Simulate user session with HTTP requests instead of LiveView
+            # Browse resources
+            get(conn, "/resources")
 
-          # Create a resource via API
-          post(conn, "/api/resources", %{
-            "resource" => %{
-              "name" => "User #{i} Resource",
-              "type" => "document",
-              "status" => "draft"
-            }
-          })
-        end)
-      end
+            # Create a resource via API
+            post(conn, "/api/resources", %{
+              "resource" => %{
+                "name" => "User #{i} Resource",
+                "type" => "document",
+                "status" => "draft"
+              }
+            })
+          end)
+        end
 
       Task.await_many(tasks)
       end_time = System.monotonic_time(:millisecond)
       total_time = end_time - start_time
 
       # Should handle realistic user load
-      assert total_time < 30000  # Less than 30 seconds for 50 users
+      # Less than 30 seconds for 50 users
+      assert total_time < 30000
     end
 
     test "handles peak load scenarios", %{conn: conn} do
@@ -587,53 +630,67 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
 
       start_time = System.monotonic_time(:millisecond)
 
-      tasks = for i <- 1..peak_requests do
-        Task.async(fn ->
-          # Mix of different request types
-          case rem(i, 4) do
-            0 -> get(conn, "/health")
-            1 -> get(conn, "/resources")
-            2 -> post(conn, "/api/resources", %{"resource" => %{"name" => "Peak Resource #{i}"}})
-            3 -> get(conn, "/resources")  # Use regular HTTP request instead of LiveView
-          end
-        end)
-      end
+      tasks =
+        for i <- 1..peak_requests do
+          Task.async(fn ->
+            # Mix of different request types
+            case rem(i, 4) do
+              0 ->
+                get(conn, "/health")
+
+              1 ->
+                get(conn, "/resources")
+
+              2 ->
+                post(conn, "/api/resources", %{"resource" => %{"name" => "Peak Resource #{i}"}})
+
+              # Use regular HTTP request instead of LiveView
+              3 ->
+                get(conn, "/resources")
+            end
+          end)
+        end
 
       Task.await_many(tasks)
       end_time = System.monotonic_time(:millisecond)
       total_time = end_time - start_time
 
       # Should handle peak load gracefully
-      assert total_time < 60000  # Less than 1 minute for 200 requests
+      # Less than 1 minute for 200 requests
+      assert total_time < 60000
     end
 
     test "maintains performance during background tasks", %{conn: conn} do
       # Test performance while background tasks are running
 
       # Start background tasks
-      background_tasks = for i <- 1..5 do
-        Task.async(fn ->
-          # Simulate background processing
-          for j <- 1..20 do
-            ResourceSystem.create_resource(%{
-              name: "Background Resource #{i}-#{j}",
-              type: "document",
-              status: "published"
-            })
-            Process.sleep(10)  # Simulate work
-          end
-        end)
-      end
+      background_tasks =
+        for i <- 1..5 do
+          Task.async(fn ->
+            # Simulate background processing
+            for j <- 1..20 do
+              ResourceSystem.create_resource(%{
+                name: "Background Resource #{i}-#{j}",
+                type: "document",
+                status: "published"
+              })
+
+              # Simulate work
+              Process.sleep(10)
+            end
+          end)
+        end
 
       # Perform foreground tasks
       start_time = System.monotonic_time(:millisecond)
 
-      foreground_tasks = for i <- 1..20 do
-        Task.async(fn ->
-          conn = get(conn, "/health")
-          conn.status
-        end)
-      end
+      foreground_tasks =
+        for i <- 1..20 do
+          Task.async(fn ->
+            conn = get(conn, "/health")
+            conn.status
+          end)
+        end
 
       foreground_results = Task.await_many(foreground_tasks)
       end_time = System.monotonic_time(:millisecond)
@@ -643,7 +700,9 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
       Task.await_many(background_tasks)
 
       # Foreground performance should not be significantly impacted
-      assert foreground_time < 5000  # Less than 5 seconds
+      # Less than 5 seconds
+      assert foreground_time < 5000
+
       Enum.each(foreground_results, fn status ->
         assert status == 200
       end)

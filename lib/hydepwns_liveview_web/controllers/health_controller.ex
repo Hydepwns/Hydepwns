@@ -67,7 +67,7 @@ defmodule HydepwnsLiveviewWeb.HealthController do
       memory when is_list(memory) ->
         total = :erlang.memory(:total)
         process = :erlang.memory(:processes)
-        usage_percent = (process / total) * 100
+        usage_percent = process / total * 100
 
         if usage_percent < 90 do
           %{status: "ok", usage: "#{Float.round(usage_percent, 2)}%"}

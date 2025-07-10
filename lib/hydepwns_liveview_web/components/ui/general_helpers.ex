@@ -37,6 +37,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.GeneralHelpers do
   def error_count(errors) when is_list(errors) do
     Enum.count(errors)
   end
+
   def error_count(_), do: 0
 
   @doc """
@@ -135,10 +136,10 @@ defmodule HydepwnsLiveviewWeb.Components.UI.GeneralHelpers do
   def render_errors(assigns) do
     ~H"""
     <div class={"error-container #{@level}"}>
-      <h3 class="error-title"><%= @title %></h3>
+      <h3 class="error-title">{@title}</h3>
       <ul class="error-list">
         <%= for error <- @errors do %>
-          <li class="error-item"><%= error %></li>
+          <li class="error-item">{error}</li>
         <% end %>
       </ul>
     </div>
@@ -167,12 +168,12 @@ defmodule HydepwnsLiveviewWeb.Components.UI.GeneralHelpers do
     ~H"""
     <div class="filter-container">
       <div class="filter-header">
-        <h4 class="filter-title"><%= @title %></h4>
+        <h4 class="filter-title">{@title}</h4>
       </div>
       <div class="filter-content">
         <%= for filter <- @filters do %>
           <div class="filter-item">
-            <label class="filter-label"><%= filter.label %></label>
+            <label class="filter-label">{filter.label}</label>
             <input type="text" class="filter-input" placeholder={filter.placeholder} />
           </div>
         <% end %>
@@ -196,9 +197,9 @@ defmodule HydepwnsLiveviewWeb.Components.UI.GeneralHelpers do
     <div class="validation-status">
       <%= for status <- @validation.statuses do %>
         <div class="status-item">
-          <h4 class="status-title"><%= status.title %></h4>
+          <h4 class="status-title">{status.title}</h4>
           <div class="status-content">
-            <%= status.content %>
+            {status.content}
           </div>
         </div>
       <% end %>
@@ -212,7 +213,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.GeneralHelpers do
   def render_validation_status(valid, message, type) do
     bg_class = if valid, do: "bg-green-50", else: "bg-red-50"
     text_class = if valid, do: "text-green-800", else: "text-red-800"
-    
+
     """
     <div class="#{bg_class} border border-gray-200 rounded-md p-4">
       <div class="flex">
@@ -260,6 +261,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.GeneralHelpers do
       message
     end
   end
+
   def truncate_message(message, _), do: message
 
   @doc """
@@ -293,4 +295,4 @@ defmodule HydepwnsLiveviewWeb.Components.UI.GeneralHelpers do
       _ -> :unknown
     end
   end
-end 
+end

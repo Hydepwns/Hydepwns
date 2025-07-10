@@ -507,7 +507,7 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
 
   defp register_field_remover(selected_transformers, form_data) do
     unless "remove_fields" in selected_transformers, do: :ok
-    
+
     field_to_remove = Map.get(form_data, "field_to_remove")
     if field_to_remove == "", do: :ok
 

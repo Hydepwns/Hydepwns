@@ -41,6 +41,7 @@ defmodule HydepwnsLiveviewWeb.Helpers.TelemetryDashboardHelper do
   def format_percentage(value) when is_float(value) do
     "#{Float.round(value * 100, 1)}%"
   end
+
   def format_percentage(_), do: "0%"
 
   def format_duration(milliseconds) when is_integer(milliseconds) do
@@ -49,14 +50,16 @@ defmodule HydepwnsLiveviewWeb.Helpers.TelemetryDashboardHelper do
       true -> "#{milliseconds}ms"
     end
   end
+
   def format_duration(_), do: "0ms"
 
   def format_number(value) when is_float(value) do
     Float.round(value, 1)
   end
+
   def format_number(value), do: value
 
   def format_time(datetime) do
     Calendar.strftime(datetime, "%H:%M:%S")
   end
-end 
+end

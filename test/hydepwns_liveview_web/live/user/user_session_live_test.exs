@@ -9,11 +9,13 @@ defmodule HydepwnsLiveviewWeb.UserSessionLiveTest do
 
   setup do
     # Create a test user for authentication tests
-    {:ok, user} = Accounts.create_user(%{
-      name: "Test User",
-      email: "test@example.com",
-      password: "password123"
-    })
+    {:ok, user} =
+      Accounts.create_user(%{
+        name: "Test User",
+        email: "test@example.com",
+        password: "password123"
+      })
+
     %{user: user}
   end
 
@@ -42,10 +44,12 @@ defmodule HydepwnsLiveviewWeb.UserSessionLiveTest do
 
       # Submit form with invalid email
       view
-      |> form("#login-form", user: %{
-        email: "invalid-email",
-        password: "password123"
-      })
+      |> form("#login-form",
+        user: %{
+          email: "invalid-email",
+          password: "password123"
+        }
+      )
       |> render_submit()
 
       # Check for validation error
@@ -57,10 +61,12 @@ defmodule HydepwnsLiveviewWeb.UserSessionLiveTest do
 
       # Submit form with empty fields
       view
-      |> form("#login-form", user: %{
-        email: "",
-        password: ""
-      })
+      |> form("#login-form",
+        user: %{
+          email: "",
+          password: ""
+        }
+      )
       |> render_submit()
 
       # Check for validation errors
@@ -86,10 +92,12 @@ defmodule HydepwnsLiveviewWeb.UserSessionLiveTest do
 
       # Submit valid credentials
       view
-      |> form("#login-form", user: %{
-        email: "test@example.com",
-        password: "password123"
-      })
+      |> form("#login-form",
+        user: %{
+          email: "test@example.com",
+          password: "password123"
+        }
+      )
       |> render_submit()
 
       # Start a new LiveView session for the user show page
@@ -103,10 +111,12 @@ defmodule HydepwnsLiveviewWeb.UserSessionLiveTest do
 
       # Submit invalid credentials
       view
-      |> form("#login-form", user: %{
-        email: "test@example.com",
-        password: "wrong_password"
-      })
+      |> form("#login-form",
+        user: %{
+          email: "test@example.com",
+          password: "wrong_password"
+        }
+      )
       |> render_submit()
 
       # Check for error message
@@ -118,10 +128,12 @@ defmodule HydepwnsLiveviewWeb.UserSessionLiveTest do
 
       # Submit non-existent email
       view
-      |> form("#login-form", user: %{
-        email: "nonexistent@example.com",
-        password: "password123"
-      })
+      |> form("#login-form",
+        user: %{
+          email: "nonexistent@example.com",
+          password: "password123"
+        }
+      )
       |> render_submit()
 
       # Check for error message
@@ -135,10 +147,12 @@ defmodule HydepwnsLiveviewWeb.UserSessionLiveTest do
 
       # Submit valid credentials
       view
-      |> form("#login-form", user: %{
-        email: "test@example.com",
-        password: "password123"
-      })
+      |> form("#login-form",
+        user: %{
+          email: "test@example.com",
+          password: "password123"
+        }
+      )
       |> render_submit()
 
       # Start a new LiveView session for the user show page
@@ -152,10 +166,12 @@ defmodule HydepwnsLiveviewWeb.UserSessionLiveTest do
 
       # Submit valid credentials
       view
-      |> form("#login-form", user: %{
-        email: "test@example.com",
-        password: "password123"
-      })
+      |> form("#login-form",
+        user: %{
+          email: "test@example.com",
+          password: "password123"
+        }
+      )
       |> render_submit()
 
       # Start a new LiveView session for the user show page

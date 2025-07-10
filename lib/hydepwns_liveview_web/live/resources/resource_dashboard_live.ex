@@ -16,6 +16,7 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
 
       # Track user presence
       user_id = get_user_id_from_session(socket)
+
       if user_id do
         HydepwnsLiveviewWeb.Presence.track(
           self(),
@@ -40,7 +41,7 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
      |> assign(:notifications, [])}
   end
 
-    defp list_resources_dashboard(opts \\ []) do
+  defp list_resources_dashboard(opts \\ []) do
     if Mix.env() == :test do
       # In tests, use the real database directly to avoid mock repository issues
       # This ensures that resources created in tests are visible in the dashboard
@@ -51,13 +52,12 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
 
       # In test mode, ensure we're using the same database connection
       # and allow for transaction isolation issues
-      resources = HydepwnsLiveview.Resources.Resource
-      |> order_by([r], desc: r.inserted_at)
-      |> limit(^limit)
-      |> offset(^offset)
-      |> HydepwnsLiveview.Repo.all()
-
-
+      resources =
+        HydepwnsLiveview.Resources.Resource
+        |> order_by([r], desc: r.inserted_at)
+        |> limit(^limit)
+        |> offset(^offset)
+        |> HydepwnsLiveview.Repo.all()
 
       resources
     else
@@ -108,8 +108,13 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
   def handle_event("filter", %{"type" => type}, socket) do
     resources =
       case type do
-        "" -> list_resources_dashboard([])
-        type -> HydepwnsLiveview.Resources.ResourceSystem.list_resources_with_filters(%{type: type}, [use_cache: Mix.env() != :test])
+        "" ->
+          list_resources_dashboard([])
+
+        type ->
+          HydepwnsLiveview.Resources.ResourceSystem.list_resources_with_filters(%{type: type},
+            use_cache: Mix.env() != :test
+          )
       end
 
     {:noreply, assign(socket, :resources, resources)}
@@ -129,10 +134,10 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
   def handle_event("delete", %{"id" => id}, socket) do
     case ResourceSystem.delete_resource(id) do
       {:ok, _resource} ->
-              {:noreply,
-       socket
-       |> put_flash(:info, "Resource deleted successfully")
-       |> assign(:resources, list_resources_dashboard([]))}
+        {:noreply,
+         socket
+         |> put_flash(:info, "Resource deleted successfully")
+         |> assign(:resources, list_resources_dashboard([]))}
 
       {:error, _reason} ->
         {:noreply,
@@ -159,13 +164,18 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
         }
       ]
     }
-    notifications = HydepwnsLiveviewWeb.NotificationComponent.add_notification(socket.assigns.notifications, notification)
+
+    notifications =
+      HydepwnsLiveviewWeb.NotificationComponent.add_notification(
+        socket.assigns.notifications,
+        notification
+      )
+
     {:noreply,
-      socket
-      |> put_flash(:info, "Resource created successfully")
-      |> assign(:resources, list_resources_dashboard([]))
-      |> assign(:notifications, notifications)
-    }
+     socket
+     |> put_flash(:info, "Resource created successfully")
+     |> assign(:resources, list_resources_dashboard([]))
+     |> assign(:notifications, notifications)}
   end
 
   @impl true
@@ -177,13 +187,18 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
       severity: :success,
       persistent: false
     }
-    notifications = HydepwnsLiveviewWeb.NotificationComponent.add_notification(socket.assigns.notifications, notification)
+
+    notifications =
+      HydepwnsLiveviewWeb.NotificationComponent.add_notification(
+        socket.assigns.notifications,
+        notification
+      )
+
     {:noreply,
-      socket
-      |> put_flash(:info, "Resource updated successfully")
-      |> assign(:resources, list_resources_dashboard([]))
-      |> assign(:notifications, notifications)
-    }
+     socket
+     |> put_flash(:info, "Resource updated successfully")
+     |> assign(:resources, list_resources_dashboard([]))
+     |> assign(:notifications, notifications)}
   end
 
   @impl true

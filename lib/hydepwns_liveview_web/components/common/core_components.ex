@@ -17,7 +17,7 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
   attr :required, :boolean, default: false
   attr :disabled, :boolean, default: false
   attr :class, :string, default: nil
-  
+
   # Common slots
   slot :inner_block, required: false
   slot :subtitle
@@ -40,10 +40,10 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
               <div class="sm:flex sm:items-start">
                 <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
                   <h3 class="text-lg font-semibold leading-6 text-zinc-800" id={"#{@id}-title"}>
-                    <%= @title %>
+                    {@title}
                   </h3>
                   <div class="mt-2" id={"#{@id}-description"}>
-                    <%= render_slot(@inner_block) %>
+                    {render_slot(@inner_block)}
                   </div>
                 </div>
               </div>
@@ -62,7 +62,7 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
   def label(assigns) do
     ~H"""
     <label for={@for} class="block text-sm font-medium text-gray-700">
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </label>
     """
   end
@@ -72,7 +72,7 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
     ~H"""
     <p class="mt-2 text-sm text-red-600">
       <.icon name="hero-exclamation-circle-mini" class="h-4 w-4" />
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </p>
     """
   end
@@ -85,7 +85,7 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
     <header class="flex items-center justify-between gap-6">
       <div>
         <h1 class="text-lg font-semibold leading-8 text-zinc-800">
-          <%= @title || render_slot(@inner_block) %>
+          {@title || render_slot(@inner_block)}
         </h1>
         <p :if={@subtitle != []} class="mt-2 text-sm leading-6 text-zinc-600">
           {render_slot(@subtitle)}
@@ -110,33 +110,39 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
 
   # Harmonize slot keys to use :inner_block for consistency
   defp harmonize_slots(assigns) do
-    harmonized = 
+    harmonized =
       assigns
       |> Map.keys()
       |> Enum.filter(&slot_key?/1)
       |> Enum.reduce(assigns, fn key, acc ->
         harmonize_slot_key(key, acc)
       end)
+
     harmonized
   end
 
   defp harmonize_slot_key(key, acc) do
     case key do
-      :inner_block -> 
+      :inner_block ->
         acc
-      :inner_block_button -> 
+
+      :inner_block_button ->
         Map.put(acc, :inner_block, Map.get(acc, key))
-      :inner_block_simple_form -> 
+
+      :inner_block_simple_form ->
         Map.put(acc, :inner_block, Map.get(acc, key))
-      key when is_atom(key) -> 
+
+      key when is_atom(key) ->
         harmonize_atom_key(key, acc)
-      _ -> 
+
+      _ ->
         Map.put(acc, :inner_block, Map.get(acc, key))
     end
   end
 
   defp harmonize_atom_key(key, acc) do
     key_str = Atom.to_string(key)
+
     if String.ends_with?(key_str, "_item") do
       acc
     else
@@ -148,11 +154,14 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
   defp slot_key?(:inner_block), do: true
   defp slot_key?(:inner_block_button), do: true
   defp slot_key?(:inner_block_simple_form), do: true
+
   defp slot_key?(key) when is_atom(key) do
     key_str = Atom.to_string(key)
-    String.ends_with?(key_str, "_item") or 
-    String.starts_with?(key_str, "inner_block_")
+
+    String.ends_with?(key_str, "_item") or
+      String.starts_with?(key_str, "inner_block_")
   end
+
   defp slot_key?(_), do: false
 
   defp call_slot_function(slot_fun, assigns) do
@@ -168,31 +177,43 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
       %{inner_block: block, title: title} when is_function(block) ->
         content = render_slot_content(block, assigns)
         "#{title}: #{content}"
+
       %{inner_block: block} when is_function(block) ->
         render_slot_content(block, assigns)
-      _other -> 
+
+      _other ->
         inspect(item)
     end
   end
 
   defp render_slot_content(slot_value, assigns \\ %{}, _slot_key) do
     case slot_value do
-      nil -> ""
-      slot_value when is_function(slot_value) -> call_slot_function(slot_value, assigns)
+      nil ->
+        ""
+
+      slot_value when is_function(slot_value) ->
+        call_slot_function(slot_value, assigns)
+
       slot_value when is_list(slot_value) ->
         Enum.map_join(slot_value, "", &render_list_item(&1, assigns))
-      slot_value when is_binary(slot_value) -> slot_value
-      _ -> inspect(slot_value)
+
+      slot_value when is_binary(slot_value) ->
+        slot_value
+
+      _ ->
+        inspect(slot_value)
     end
   end
 
   defp get_list_slot_content(assigns) do
     case assigns[:item] do
-      nil -> 
+      nil ->
         render_slot_content(assigns[:inner_block], assigns, :inner_block)
+
       items when is_list(items) ->
         Enum.map_join(items, "", fn item -> render_list_item(item, assigns) end)
-      val -> 
+
+      val ->
         render_slot_content(val, assigns, :inner_block)
     end
   end
@@ -202,9 +223,10 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
     assigns = if Map.has_key?(assigns, :class), do: assigns, else: Map.put(assigns, :class, "")
     slot_content = get_list_slot_content(assigns)
     assigns = assign(assigns, :inner_block, slot_content)
+
     ~H"""
     <ul class={["list", @class]}>
-      <%= @inner_block %>
+      {@inner_block}
     </ul>
     """
   end
@@ -220,9 +242,10 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
     assigns = harmonize_slots(assigns)
     slot_content = render_slot_content(assigns[:inner_block], assigns)
     assigns = assign(assigns, :inner_block, slot_content)
+
     ~H"""
     <a href={@navigate} class={["back", @class]}>
-      <%= @inner_block %>
+      {@inner_block}
     </a>
     """
   end
@@ -234,9 +257,10 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
 
   def icon_component(assigns) do
     assigns = harmonize_slots(assigns)
+
     ~H"""
     <span class={["icon", @class]}>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </span>
     """
   end
@@ -247,9 +271,10 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
 
   def show_div(assigns) do
     assigns = harmonize_slots(assigns)
+
     ~H"""
     <div class={["show", @class]}>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </div>
     """
   end
@@ -260,9 +285,10 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
 
   def hide_div(assigns) do
     assigns = harmonize_slots(assigns)
+
     ~H"""
     <div class={["hide", @class]}>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </div>
     """
   end
@@ -272,10 +298,11 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
     assigns = if Map.has_key?(assigns, :class), do: assigns, else: Map.put(assigns, :class, "")
     slot_content = get_table_slot_content(assigns)
     assigns = assign(assigns, :inner_block, slot_content)
+
     ~H"""
     <div class="table-responsive">
       <table id={@id} class={["table", @class]}>
-        <%= @inner_block %>
+        {@inner_block}
       </table>
     </div>
     """
@@ -285,9 +312,11 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
     case {assigns[:row_item], assigns[:rows]} do
       {row_item_fn, rows} when is_function(row_item_fn) and is_list(rows) ->
         render_table_rows(rows, row_item_fn, assigns)
-      {nil, _} -> 
+
+      {nil, _} ->
         render_slot_content(assigns[:inner_block], assigns, :inner_block)
-      {val, _} -> 
+
+      {val, _} ->
         render_table_fallback(val, assigns)
     end
   end
@@ -298,12 +327,15 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
 
   defp render_table_row(row, row_item_fn, assigns) do
     arity = Function.info(row_item_fn, :arity)
+
     try do
-      result = case arity do
-        {:arity, 2} -> row_item_fn.(row, assigns)
-        {:arity, 1} -> row_item_fn.(row)
-        _ -> inspect(row)
-      end
+      result =
+        case arity do
+          {:arity, 2} -> row_item_fn.(row, assigns)
+          {:arity, 1} -> row_item_fn.(row)
+          _ -> inspect(row)
+        end
+
       format_table_result(result)
     rescue
       _ -> inspect(row)
@@ -320,6 +352,7 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
 
   defp render_table_fallback(val, assigns) do
     content = render_slot_content(val, assigns, :inner_block)
+
     if is_map(content) and not is_binary(content) do
       inspect(content)
     else
@@ -340,25 +373,19 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
 
   def link_component(assigns) do
     assigns = harmonize_slots(assigns)
-    
+
     # Handle both underscore and hyphenated attribute names
     phx_click = assigns[:"phx-click"] || assigns[:phx_click]
     phx_value = assigns[:"phx-value"] || assigns[:phx_value]
-    
-    assigns = assigns
-    |> assign(:phx_click, phx_click)
-    |> assign(:phx_value, phx_value)
-    
+
+    assigns =
+      assigns
+      |> assign(:phx_click, phx_click)
+      |> assign(:phx_value, phx_value)
+
     ~H"""
-    <.link 
-      class={["link", @class]} 
-      href={@href} 
-      patch={@patch} 
-      navigate={@navigate}
-      phx-click={@phx_click}
-      phx-value={@phx_value}
-    >
-      <%= render_slot(@inner_block) %>
+    <.link class={["link", @class]} href={@href} patch={@patch} navigate={@navigate} phx-click={@phx_click} phx-value={@phx_value}>
+      {render_slot(@inner_block)}
     </.link>
     """
   end
@@ -387,21 +414,10 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
   def button(assigns) do
     assigns = harmonize_slots(assigns)
     assigns = prepare_button_assigns(assigns)
-    
+
     ~H"""
-    <button 
-      type={@type} 
-      class={@class}
-      phx-click={@phx_click}
-      phx-submit={@phx_submit}
-      phx-value={@phx_value}
-      phx-value-role={@phx_value_role}
-      phx-value-theme={@phx_value_theme}
-      phx-disable-with={@phx_disable_with}
-      data-test-id={@data_test_id}
-      disabled={@disabled}
-    >
-      <%= @inner_block %>
+    <button type={@type} class={@class} phx-click={@phx_click} phx-submit={@phx_submit} phx-value={@phx_value} phx-value-role={@phx_value_role} phx-value-theme={@phx_value_theme} phx-disable-with={@phx_disable_with} data-test-id={@data_test_id} disabled={@disabled}>
+      {@inner_block}
     </button>
     """
   end
@@ -409,13 +425,13 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
   defp prepare_button_assigns(assigns) do
     # Handle both type and type_input attributes
     type = assigns[:type] || assigns[:type_input] || "button"
-    
+
     # Get slot content
     slot_content = render_slot_content(assigns[:inner_block], assigns)
-    
+
     # Map attributes
     attrs = map_button_attributes(assigns)
-    
+
     assigns
     |> assign(:type, type)
     |> assign(:inner_block, slot_content)
@@ -456,15 +472,16 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
 
   def flash(assigns) do
     assigns = harmonize_slots(assigns)
-    
+
     # Handle both underscore and hyphenated attribute names
     phx_connected = assigns[:"phx-connected"] || assigns[:phx_connected]
     phx_disconnected = assigns[:"phx-disconnected"] || assigns[:phx_disconnected]
-    
-    assigns = assigns
-    |> assign(:phx_connected, phx_connected)
-    |> assign(:phx_disconnected, phx_disconnected)
-    
+
+    assigns =
+      assigns
+      |> assign(:phx_connected, phx_connected)
+      |> assign(:phx_disconnected, phx_disconnected)
+
     ~H"""
     <div
       :if={msg = Phoenix.Flash.get(@flash, @kind)}
@@ -483,12 +500,12 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
         @kind == :error && "bg-rose-50 text-rose-900 shadow-md ring-rose-500 fill-rose-900"
       ]}
     >
-      <p :if={@title} class="font-semibold leading-tight"><%= @title %></p>
-      <p class="mt-2 leading-tight"><%= msg %></p>
+      <p :if={@title} class="font-semibold leading-tight">{@title}</p>
+      <p class="mt-2 leading-tight">{msg}</p>
       <button type="button" class="group absolute top-2 right-1 p-2" aria-label="close">
         <.icon_component name="hero-x-mark-solid" class="h-5 w-5 opacity-40 group-hover:opacity-70" />
       </button>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </div>
     """
   end
@@ -554,23 +571,28 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
     slot_content = get_nav_slot_content(assigns)
     IO.puts("DEBUG: nav slot content: #{inspect(slot_content)}")
     assigns = assign(assigns, :inner_block, slot_content)
+
     ~H"""
     <nav class={["nav", @class]}>
-      <%= @inner_block %>
+      {@inner_block}
     </nav>
     """
   end
 
   defp get_nav_slot_content(assigns) do
     cond do
-      is_list(assigns[:item]) -> 
+      is_list(assigns[:item]) ->
         render_list_items(assigns[:item], assigns)
-      is_function(assigns[:item]) -> 
+
+      is_function(assigns[:item]) ->
         render_slot_content(assigns[:item], assigns, :inner_block)
+
       is_list(assigns[:inner_block]) ->
         render_list_items(assigns[:inner_block], assigns)
-      is_function(assigns[:inner_block]) -> 
+
+      is_function(assigns[:inner_block]) ->
         render_slot_content(assigns[:inner_block], assigns, :inner_block)
+
       true ->
         render_inner_block_fallback(assigns[:inner_block], assigns)
     end
@@ -593,8 +615,10 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
     cond do
       is_list(assigns[:inner_block]) ->
         render_list_items(assigns[:inner_block], assigns)
-      is_function(assigns[:inner_block]) -> 
+
+      is_function(assigns[:inner_block]) ->
         render_slot_content(assigns[:inner_block], assigns, :inner_block)
+
       true ->
         render_inner_block_fallback(assigns[:inner_block], assigns)
     end
@@ -605,13 +629,13 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
     assigns = if Map.has_key?(assigns, :class), do: assigns, else: Map.put(assigns, :class, "")
     slot_content = render_theme_toggle_slot(assigns)
     assigns = assign(assigns, :inner_block, slot_content)
-    
+
     ~H"""
     <div class={["theme-toggle", @class]}>
       <button type="button" class="theme-toggle-btn">
         <span class="theme-toggle-icon">🌙</span>
       </button>
-      <%= @inner_block %>
+      {@inner_block}
     </div>
     """
   end
@@ -627,27 +651,27 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
   def header_table(assigns) do
     ~H"""
     <header class="site-header">
-      <h1><%= @title %></h1>
+      <h1>{@title}</h1>
       <table class="metadata">
         <tr>
           <td>Version:</td>
-          <td><%= @version %></td>
+          <td>{@version}</td>
         </tr>
         <tr>
           <td>Updated:</td>
-          <td><%= @updated %></td>
+          <td>{@updated}</td>
         </tr>
         <tr>
           <td>Author:</td>
-          <td><%= @author %></td>
+          <td>{@author}</td>
         </tr>
         <tr>
           <td>License:</td>
-          <td><%= @license %></td>
+          <td>{@license}</td>
         </tr>
         <tr>
           <td>Line height:</td>
-          <td><%= @line_height %></td>
+          <td>{@line_height}</td>
         </tr>
       </table>
     </header>
@@ -664,11 +688,12 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
     actions_content = render_slot_content(assigns[:actions], assigns)
     assigns = assign(assigns, :inner_block, slot_content)
     assigns = assign(assigns, :actions, actions_content)
+
     ~H"""
     <.form :let={_f} for={@for} as={@as} {@rest}>
-      <%= @inner_block %>
+      {@inner_block}
       <div class="flex justify-end gap-3">
-        <%= @actions %>
+        {@actions}
       </div>
     </.form>
     """
@@ -693,11 +718,12 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
         assigns[:type] in ["select", "textarea", "checkbox"] -> assigns[:type]
         true -> assigns[:type_input] || assigns[:type] || "text"
       end
+
     assigns = Map.put(assigns, :input_type, input_type)
-    
+
     ~H"""
     <div class="form-group">
-      <.label :if={@label} for={@id}><%= @label %></.label>
+      <.label :if={@label} for={@id}>{@label}</.label>
       <div class="mt-1">
         <%= case @input_type do %>
           <% "textarea" -> %>
@@ -721,7 +747,7 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
               {@rest}
             >
               <%= for {value, label} <- @options do %>
-                <option value={value} selected={@value == value}><%= label %></option>
+                <option value={value} selected={@value == value}>{label}</option>
               <% end %>
             </select>
           <% "checkbox" -> %>
@@ -751,9 +777,9 @@ defmodule HydepwnsLiveviewWeb.Components.Common.CoreComponents do
         <% end %>
       </div>
       <.error :for={msg <- @errors}>
-        <%= msg %>
+        {msg}
       </.error>
     </div>
     """
   end
-end 
+end

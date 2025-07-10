@@ -25,6 +25,7 @@ defmodule HydepwnsLiveviewWeb.UserShowLive do
         socket
         |> assign(:page_title, "User Details")
         |> assign(:user, Accounts.get_user!(id))
+
       _ ->
         socket
         |> put_flash(:error, "Invalid user ID")
@@ -101,27 +102,27 @@ defmodule HydepwnsLiveviewWeb.UserShowLive do
         <div class="space-y-6">
           <div>
             <h3 class="text-lg font-medium text-gray-900">Name</h3>
-            <p class="mt-1 text-sm text-gray-500"><%= @user.name %></p>
+            <p class="mt-1 text-sm text-gray-500">{@user.name}</p>
           </div>
 
           <div>
             <h3 class="text-lg font-medium text-gray-900">Email</h3>
-            <p class="mt-1 text-sm text-gray-500"><%= @user.email %></p>
+            <p class="mt-1 text-sm text-gray-500">{@user.email}</p>
           </div>
 
           <div>
             <h3 class="text-lg font-medium text-gray-900">Role</h3>
-            <p class="mt-1 text-sm text-gray-500"><%= @user.role %></p>
+            <p class="mt-1 text-sm text-gray-500">{@user.role}</p>
           </div>
 
           <div>
             <h3 class="text-lg font-medium text-gray-900">Created</h3>
-            <p class="mt-1 text-sm text-gray-500"><%= Calendar.strftime(@user.inserted_at, "%B %d, %Y") %></p>
+            <p class="mt-1 text-sm text-gray-500">{Calendar.strftime(@user.inserted_at, "%B %d, %Y")}</p>
           </div>
 
           <div>
             <h3 class="text-lg font-medium text-gray-900">Last Updated</h3>
-            <p class="mt-1 text-sm text-gray-500"><%= Calendar.strftime(@user.updated_at, "%B %d, %Y") %></p>
+            <p class="mt-1 text-sm text-gray-500">{Calendar.strftime(@user.updated_at, "%B %d, %Y")}</p>
           </div>
         </div>
       </div>

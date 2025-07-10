@@ -113,20 +113,23 @@ defmodule HydepwnsLiveview.Events.SnapshotOperationsTest do
 
     test "counts all events when no snapshot exists" do
       # Insert events for the nonexistent resource
-      {:ok, _} = Repo.insert(%Event{
-        resource_type: "test_resource",
-        resource_id: "nonexistent",
-        type: "test_event",
-        data: %{},
-        timestamp: DateTime.utc_now()
-      })
-      {:ok, _} = Repo.insert(%Event{
-        resource_type: "test_resource",
-        resource_id: "nonexistent",
-        type: "test_event",
-        data: %{},
-        timestamp: DateTime.utc_now()
-      })
+      {:ok, _} =
+        Repo.insert(%Event{
+          resource_type: "test_resource",
+          resource_id: "nonexistent",
+          type: "test_event",
+          data: %{},
+          timestamp: DateTime.utc_now()
+        })
+
+      {:ok, _} =
+        Repo.insert(%Event{
+          resource_type: "test_resource",
+          resource_id: "nonexistent",
+          type: "test_event",
+          data: %{},
+          timestamp: DateTime.utc_now()
+        })
 
       assert {:ok, count} =
                SnapshotOperations.count_events_since_last_snapshot("test_resource", "nonexistent")

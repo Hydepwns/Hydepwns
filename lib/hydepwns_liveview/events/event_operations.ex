@@ -49,17 +49,23 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   def store_event(event_type, event_data)
       when is_binary(event_type) and byte_size(event_type) > 0 and is_map(event_data) do
     # Create event with default resource fields for backward compatibility
-    event_attrs = Map.merge(event_data, %{
-      resource_id: "123",  # Default resource ID for backward compatibility
-      resource_type: "test_resource",  # Default resource type for backward compatibility
-      data: event_data  # Pass the event_data as the data field
-    })
+    event_attrs =
+      Map.merge(event_data, %{
+        # Default resource ID for backward compatibility
+        resource_id: "123",
+        # Default resource type for backward compatibility
+        resource_type: "test_resource",
+        # Pass the event_data as the data field
+        data: event_data
+      })
 
-        case Event.create(event_type, event_attrs) do
+    case Event.create(event_type, event_attrs) do
       {:ok, event} ->
         # Use real Repo in all environments except test
         Repo.insert(event)
-      {:error, reason} -> {:error, reason}
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 

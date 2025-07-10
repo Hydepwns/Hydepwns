@@ -11,13 +11,16 @@ defmodule HydepwnsLiveviewWeb.Admin.EventDashboardLive do
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
     user = socket.assigns[:current_user]
+
     cond do
       is_nil(user) or user.role != "admin" ->
         socket =
           socket
           |> Phoenix.LiveView.put_flash(:error, "You must be an admin to access this page.")
           |> Phoenix.LiveView.push_navigate(to: "/")
+
         {:ok, socket}
+
       true ->
         default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()
         theme_class = "#{default_theme.mode}-theme"
@@ -75,10 +78,10 @@ defmodule HydepwnsLiveviewWeb.Admin.EventDashboardLive do
                   <div class="flex items-center justify-between">
                     <div class="flex items-center">
                       <p class="text-sm font-medium text-blue-600 truncate">
-                        <%= event.name %>
+                        {event.name}
                       </p>
                       <p class="ml-2 flex-shrink-0 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                        <%= event.status %>
+                        {event.status}
                       </p>
                     </div>
                     <div class="ml-2 flex-shrink-0 flex">
@@ -96,12 +99,12 @@ defmodule HydepwnsLiveviewWeb.Admin.EventDashboardLive do
                   <div class="mt-2 sm:flex sm:justify-between">
                     <div class="sm:flex">
                       <p class="flex items-center text-sm text-gray-500">
-                        <%= event.description %>
+                        {event.description}
                       </p>
                     </div>
                     <div class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
                       <p>
-                        <%= event.date %>
+                        {event.date}
                       </p>
                     </div>
                   </div>

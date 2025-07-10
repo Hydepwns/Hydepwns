@@ -385,6 +385,7 @@ defmodule HydepwnsLiveview.Utils.TransformationPipeline do
           current_state
           | errors: [%{step: step.name, reason: reason} | current_state.errors]
         }
+
         {:halt, {:error, error_state}}
     end
   end
@@ -398,11 +399,13 @@ defmodule HydepwnsLiveview.Utils.TransformationPipeline do
 
   defp process_transformation_result({:error, reason}, current_state, step, metrics) do
     pipeline_metrics = Map.put(current_state.metrics, step.name, metrics.execution_time_ms / 1000)
+
     error_state = %{
       current_state
       | errors: [%{step: step.name, reason: reason} | current_state.errors],
         metrics: pipeline_metrics
     }
+
     {:halt, {:error, error_state}}
   end
 

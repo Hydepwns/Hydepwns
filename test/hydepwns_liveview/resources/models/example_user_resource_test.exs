@@ -2,7 +2,9 @@ defmodule HydepwnsLiveview.Resources.ExampleUserResourceTest do
   use HydepwnsLiveview.DataCase
   alias HydepwnsLiveview.TestSupport.EventStoreTestHelper
   alias HydepwnsLiveview.Resources.TestExampleUserResource
-  import HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource, only: [rebuild_from_events: 3]
+
+  import HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource,
+    only: [rebuild_from_events: 3]
 
   setup do
     EventStoreTestHelper.setup_mock_event_store()
@@ -29,7 +31,11 @@ defmodule HydepwnsLiveview.Resources.ExampleUserResourceTest do
       assert user.status == "active"
       assert user.metadata == %{role: "viewer"}
 
-      EventStoreTestHelper.assert_event_exists("user.created", TestExampleUserResource, "test-example-user-1")
+      EventStoreTestHelper.assert_event_exists(
+        "user.created",
+        TestExampleUserResource,
+        "test-example-user-1"
+      )
     end
 
     test "updates example user and generates updated event" do
@@ -50,7 +56,11 @@ defmodule HydepwnsLiveview.Resources.ExampleUserResourceTest do
       assert updated_user.email == "updated@example.com"
       assert updated_user.name == "Updated Name"
 
-      EventStoreTestHelper.assert_event_exists("user.updated", TestExampleUserResource, "test-example-user-2")
+      EventStoreTestHelper.assert_event_exists(
+        "user.updated",
+        TestExampleUserResource,
+        "test-example-user-2"
+      )
     end
 
     test "deletes example user and generates deleted event" do
@@ -70,7 +80,11 @@ defmodule HydepwnsLiveview.Resources.ExampleUserResourceTest do
       assert length(events) == 1
       assert hd(events).type == "user.deleted"
 
-      EventStoreTestHelper.assert_event_exists("user.deleted", TestExampleUserResource, "test-example-user-3")
+      EventStoreTestHelper.assert_event_exists(
+        "user.deleted",
+        TestExampleUserResource,
+        "test-example-user-3"
+      )
     end
 
     test "rebuilds example user state from events" do
@@ -85,14 +99,24 @@ defmodule HydepwnsLiveview.Resources.ExampleUserResourceTest do
       }
 
       {:ok, _user} = TestExampleUserResource.create(user_params)
-      {:ok, _updated_user} = TestExampleUserResource.update("test-example-user-4", %{name: "Updated Name"})
+
+      {:ok, _updated_user} =
+        TestExampleUserResource.update("test-example-user-4", %{name: "Updated Name"})
+
       {:ok, _events} = TestExampleUserResource.delete("test-example-user-4", %{})
 
       # Get events from the store and rebuild state
       {:ok, events} = TestExampleUserResource.get_history("test-example-user-4")
-      rebuilt = rebuild_from_events(events, TestExampleUserResource.initial_state(), &TestExampleUserResource.apply_event/2)
+
+      rebuilt =
+        rebuild_from_events(
+          events,
+          TestExampleUserResource.initial_state(),
+          &TestExampleUserResource.apply_event/2
+        )
+
       assert rebuilt.name == "Updated Name"
       assert rebuilt.status == "deleted"
     end
   end
-end 
+end

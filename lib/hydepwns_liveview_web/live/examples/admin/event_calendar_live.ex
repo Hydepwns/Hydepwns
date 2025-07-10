@@ -59,7 +59,7 @@ defmodule HydepwnsLiveviewWeb.Admin.EventCalendarLive do
               </svg>
             </button>
             <h2 class="text-lg font-semibold text-gray-900">
-              <%= Calendar.strftime(@current_month, "%B %Y") %>
+              {Calendar.strftime(@current_month, "%B %Y")}
             </h2>
             <button phx-click="next_month" class="text-gray-600 hover:text-gray-900">
               <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -72,17 +72,17 @@ defmodule HydepwnsLiveviewWeb.Admin.EventCalendarLive do
         <div class="grid grid-cols-7 gap-px bg-gray-200">
           <%= for day <- ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] do %>
             <div class="bg-gray-50 py-2 text-center text-sm font-medium text-gray-500">
-              <%= day %>
+              {day}
             </div>
           <% end %>
 
           <%= for day <- calendar_days(@current_month) do %>
             <div class={"bg-white p-2 min-h-[100px] #{if day.month != @current_month.month, do: "bg-gray-50"}"}>
-              <div class="text-sm text-gray-500 mb-1"><%= day.day %></div>
+              <div class="text-sm text-gray-500 mb-1">{day.day}</div>
               <%= for event <- events_for_day(@events, day) do %>
                 <div class="text-xs p-1 mb-1 rounded">
                   <.link navigate={~p"/admin/events/#{event}"} class="block truncate">
-                    <%= event.name %>
+                    {event.name}
                   </.link>
                 </div>
               <% end %>

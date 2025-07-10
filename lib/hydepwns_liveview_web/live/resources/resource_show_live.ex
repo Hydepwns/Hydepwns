@@ -56,7 +56,7 @@ defmodule HydepwnsLiveviewWeb.ResourceShowLive do
 
         <div class="bg-white shadow rounded-lg p-6">
           <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold" data-test-id="resource-name"><%= @resource.name %></h1>
+            <h1 class="text-2xl font-bold" data-test-id="resource-name">{@resource.name}</h1>
             <div class="space-x-4">
               <.link navigate={~p"/resources/#{@resource.id}/edit"} class="text-blue-600 hover:text-blue-800" data-test-id="edit-resource-link">
                 Edit
@@ -72,11 +72,11 @@ defmodule HydepwnsLiveviewWeb.ResourceShowLive do
               <h3 class="text-lg font-medium mb-2">Details</h3>
               <div class="grid grid-cols-2 gap-4">
                 <div>
-                  <p class="text-gray-600" data-test-id="resource-description"><%= @resource.description %></p>
+                  <p class="text-gray-600" data-test-id="resource-description">{@resource.description}</p>
                 </div>
                 <div>
-                  <p class="text-gray-600" data-test-id="resource-type">Type: <%= @resource.type %></p>
-                  <p class="text-gray-600" data-test-id="resource-status">Status: <%= @resource.status %></p>
+                  <p class="text-gray-600" data-test-id="resource-type">Type: {@resource.type}</p>
+                  <p class="text-gray-600" data-test-id="resource-status">Status: {@resource.status}</p>
                 </div>
               </div>
             </div>
@@ -88,7 +88,7 @@ defmodule HydepwnsLiveviewWeb.ResourceShowLive do
                   <h4 class="font-medium">Parent Resource</h4>
                   <%= if @resource.parent_id do %>
                     <.link navigate={~p"/resources/#{@resource.parent_id}"} class="text-blue-600 hover:text-blue-800" data-test-id="parent-resource-link">
-                      Parent Resource (ID: <%= @resource.parent_id %>)
+                      Parent Resource (ID: {@resource.parent_id})
                     </.link>
                   <% else %>
                     <p class="text-gray-500">No parent resource</p>
@@ -101,7 +101,7 @@ defmodule HydepwnsLiveviewWeb.ResourceShowLive do
                     <div class="space-y-2">
                       <%= for child_id <- @resource.child_ids do %>
                         <.link navigate={~p"/resources/#{child_id}"} class="text-blue-600 hover:text-blue-800 block" data-test-id="child-resource-link">
-                          Child Resource (ID: <%= child_id %>)
+                          Child Resource (ID: {child_id})
                         </.link>
                       <% end %>
                     </div>

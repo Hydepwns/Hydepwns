@@ -94,7 +94,8 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
                SocketValidator.type_validation(socket, :invalid_data, {:map_with_lists, schema})
 
       # The error message might mention either friends or tags first, so check for both
-      assert message =~ "expected integer, got: \"thirty\"" or message =~ "expected string, got: 123"
+      assert message =~ "expected integer, got: \"thirty\"" or
+               message =~ "expected string, got: 123"
     end
 
     test "validates deeply nested structures" do
@@ -182,7 +183,8 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
                  organization_schema
                )
 
-      assert message =~ "departments: item at index 0: teams: item at index 1: members: item at index 0: role: expected one of [\"lead\", \"developer\", \"manager\"], got: \"invalid_role\""
+      assert message =~
+               "departments: item at index 0: teams: item at index 1: members: item at index 0: role: expected one of [\"lead\", \"developer\", \"manager\"], got: \"invalid_role\""
     end
   end
 
@@ -261,14 +263,20 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
                SocketValidator.type_validation(socket, :invalid_user, user_union_type)
 
       # The map field order might vary, so check for both possible orderings
-      assert message =~ "Value matched none of the union types: [:string, %{email: :string, name: :string}]" or message =~ "Value matched none of the union types: [:string, %{name: :string, email: :string}]"
+      assert message =~
+               "Value matched none of the union types: [:string, %{email: :string, name: :string}]" or
+               message =~
+                 "Value matched none of the union types: [:string, %{name: :string, email: :string}]"
 
       # Integer (wrong type) should fail
       assert {:error, message} =
                SocketValidator.type_validation(socket, :another_invalid, user_union_type)
 
       # The map field order might vary, so check for both possible orderings
-      assert message =~ "Value matched none of the union types: [:string, %{email: :string, name: :string}]" or message =~ "Value matched none of the union types: [:string, %{name: :string, email: :string}]"
+      assert message =~
+               "Value matched none of the union types: [:string, %{email: :string, name: :string}]" or
+               message =~
+                 "Value matched none of the union types: [:string, %{name: :string, email: :string}]"
     end
 
     test "handles unions with optional types" do
@@ -438,7 +446,8 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
                )
 
       # The actual error message format is more specific
-      assert error_message =~ "profile: user: settings: preferences: display: font_size: expected integer, got: \"14\""
+      assert error_message =~
+               "profile: user: settings: preferences: display: font_size: expected integer, got: \"14\""
     end
 
     test "validates deeply nested maps with detailed error message format" do
@@ -492,7 +501,8 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
                  complex_schema
                )
 
-      assert error_message =~ "profile: user: settings: preferences: display: font_size: expected integer, got: \"14\""
+      assert error_message =~
+               "profile: user: settings: preferences: display: font_size: expected integer, got: \"14\""
     end
 
     test "validates nested lists with complex schemas" do
@@ -611,7 +621,8 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
       assert {:error, message} =
                SocketValidator.type_validation(socket, :invalid_id, id_schema)
 
-      assert message =~ "Value matched none of the union types: [:integer, :string, %{id: :string}]"
+      assert message =~
+               "Value matched none of the union types: [:integer, :string, %{id: :string}]"
     end
 
     test "validates complex union types with nested schemas" do
@@ -645,7 +656,10 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
       assert {:error, error_message} =
                SocketValidator.type_validation(socket, :invalid_user, user_schema)
 
-      assert error_message =~ "Value matched none of the union types: [%{age: :integer, name: :string}, :string, :integer]" or error_message =~ "Value matched none of the union types: [%{name: :string, age: :integer}, :string, :integer]"
+      assert error_message =~
+               "Value matched none of the union types: [%{age: :integer, name: :string}, :string, :integer]" or
+               error_message =~
+                 "Value matched none of the union types: [%{name: :string, age: :integer}, :string, :integer]"
     end
 
     test "validates optional fields correctly" do
@@ -714,7 +728,9 @@ defmodule HydepwnsLiveview.EnhancedTypeValidationTest do
                SocketValidator.type_validation(invalid_user_socket, :invalid_user, user_schema)
 
       # The error message might mention any of the invalid fields first, so check for any of them
-      assert error_message =~ "expected integer, got: \"thirty\"" or error_message =~ "expected string, got: 123" or error_message =~ "expected boolean, got: \"yes\""
+      assert error_message =~ "expected integer, got: \"thirty\"" or
+               error_message =~ "expected string, got: 123" or
+               error_message =~ "expected boolean, got: \"yes\""
     end
   end
 end

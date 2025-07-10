@@ -173,6 +173,7 @@ defmodule HydepwnsLiveview.Utils.SocketValidationDebugGrid do
   end
 
   defp filter_errors_by_selector(errors, nil), do: errors
+
   defp filter_errors_by_selector(errors, selector) do
     Enum.filter(errors, fn %{selector: s} -> s == selector end)
   end

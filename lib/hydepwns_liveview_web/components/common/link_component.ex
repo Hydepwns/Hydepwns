@@ -13,11 +13,11 @@ defmodule HydepwnsLiveviewWeb.Components.Common.LinkComponent do
     ~H"""
     <%= if @phx_click || @phx_value do %>
       <button class={["link", @class]} phx-click={@phx_click} phx-value={@phx_value}>
-        <%= render_slot(@inner_block) %>
+        {render_slot(@inner_block)}
       </button>
     <% else %>
       <.link class={["link", @class]} href={@href} patch={@patch} navigate={@navigate}>
-        <%= render_slot(@inner_block) %>
+        {render_slot(@inner_block)}
       </.link>
     <% end %>
     """

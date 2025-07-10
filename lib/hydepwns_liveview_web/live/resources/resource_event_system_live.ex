@@ -33,19 +33,20 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
         IO.puts("DEBUG: EventStore.get_events_for_resource returned: #{inspect(events)}")
 
         # Convert Event structs to maps for template rendering
-        event_maps = Enum.map(events, fn event ->
-          %{
-            id: event.id,
-            type: event.type,
-            resource_id: event.resource_id,
-            resource_type: event.resource_type,
-            data: event.data,
-            metadata: event.metadata,
-            correlation_id: event.correlation_id,
-            causation_id: event.causation_id,
-            timestamp: event.timestamp
-          }
-        end)
+        event_maps =
+          Enum.map(events, fn event ->
+            %{
+              id: event.id,
+              type: event.type,
+              resource_id: event.resource_id,
+              resource_type: event.resource_type,
+              data: event.data,
+              metadata: event.metadata,
+              correlation_id: event.correlation_id,
+              causation_id: event.causation_id,
+              timestamp: event.timestamp
+            }
+          end)
 
         # Debug: Log what we're assigning to the template
         IO.puts("DEBUG: Assigning events to template: #{inspect(event_maps)}")
@@ -105,17 +106,17 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
     ~H"""
     <div class="container mx-auto px-4 py-8">
       <!-- DEBUG: Events count: <%= length(@events) %> -->
-      <!-- DEBUG: Events: <%= inspect(@events, pretty: true) %> -->
-      <!-- DEBUG: Resource ID: <%= @resource_id %> -->
-      <!-- DEBUG: Resource Type: <%= @resource_type %> -->
+      <!-- DEBUG: Events:
+      {inspect(@events, pretty: true)} -->
+      <!-- DEBUG: Resource ID: {@resource_id} -->
+      <!-- DEBUG: Resource Type: {@resource_type} -->
       <!-- DEBUG: Template rendering started -->
-      <!-- DEBUG: Events assign type: <%= inspect(@events, limit: :infinity) %> -->
-
+      <!-- DEBUG: Events assign type: {inspect(@events, limit: :infinity)} -->
       <div class="flex justify-between items-center mb-8">
         <h1 class="text-3xl font-bold">Resource Event System</h1>
         <div class="flex gap-4">
           <button phx-click="toggle_filters" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" data-test-id="toggle-filters">
-            <%= if @show_filters, do: "Hide Filters", else: "Show Filters" %>
+            {if @show_filters, do: "Hide Filters", else: "Show Filters"}
           </button>
         </div>
       </div>
@@ -176,22 +177,23 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
           <tbody class="bg-white divide-y divide-gray-200">
             <!-- Debug: Events count: <%= length(@events) %> -->
             <!-- Debug: Events loop start -->
-            <!-- DEBUG: About to loop through <%= length(@events) %> events -->
-            <!-- DEBUG: Events data: <%= inspect(@events, pretty: true) %> -->
+            <!-- DEBUG: About to loop through
+            {length(@events)} events -->
+            <!-- DEBUG: Events data: {inspect(@events, pretty: true)} -->
             <%= for event <- @events do %>
               <!-- DEBUG: Rendering event: <%= event.type %> -->
               <tr class="event-row" data-test-id="event-row">
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-test-id="event-type">
-                  <%= event.type %>
+                  {event.type}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-test-id="event-resource-id">
-                  <%= event.resource_id %>
+                  {event.resource_id}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-test-id="event-status">
                   <span class="event-status">processed</span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-test-id="event-timestamp">
-                  <%= format_datetime(event.timestamp) %>
+                  {format_datetime(event.timestamp)}
                 </td>
                 <td class="px-6 py-4 text-sm text-gray-500" data-test-id="event-data">
                   <pre class="event-data"><%= inspect(event.data, pretty: true) %></pre>

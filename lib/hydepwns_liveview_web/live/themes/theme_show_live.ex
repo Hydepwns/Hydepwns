@@ -12,7 +12,14 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeShowLive do
 
     default_theme = ThemeSystem.ensure_default_theme()
     theme_class = "#{default_theme.mode}-theme"
-    {:ok, assign(socket, theme_class: theme_class, page_title: "Theme Details", show_delete_confirm: false, applied_theme: nil)}
+
+    {:ok,
+     assign(socket,
+       theme_class: theme_class,
+       page_title: "Theme Details",
+       show_delete_confirm: false,
+       applied_theme: nil
+     )}
   end
 
   @impl Phoenix.LiveView
@@ -22,17 +29,22 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeShowLive do
     table_atom = String.to_existing_atom(table)
     Process.put(:theme_system_ets_table, table_atom)
     IO.puts("DEBUG: Set theme_system_ets_table from URL to #{table_atom}")
-    
+
     case id do
       "new" ->
-        {:noreply, 
+        {:noreply,
          socket
          |> put_flash(:error, "Invalid theme ID")
          |> push_navigate(to: ~p"/themes")
          |> assign(:applied_theme, nil)}
+
       _ ->
         theme = ThemeSystem.get_theme!(id)
-        {:noreply, assign(socket, :theme, theme) |> assign(:show_delete_confirm, false) |> assign(:applied_theme, nil)}
+
+        {:noreply,
+         assign(socket, :theme, theme)
+         |> assign(:show_delete_confirm, false)
+         |> assign(:applied_theme, nil)}
     end
   end
 
@@ -40,14 +52,19 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeShowLive do
   def handle_params(%{"id" => id}, _url, socket) do
     case id do
       "new" ->
-        {:noreply, 
+        {:noreply,
          socket
          |> put_flash(:error, "Invalid theme ID")
          |> push_navigate(to: ~p"/themes")
          |> assign(:applied_theme, nil)}
+
       _ ->
         theme = ThemeSystem.get_theme!(id)
-        {:noreply, assign(socket, :theme, theme) |> assign(:show_delete_confirm, false) |> assign(:applied_theme, nil)}
+
+        {:noreply,
+         assign(socket, :theme, theme)
+         |> assign(:show_delete_confirm, false)
+         |> assign(:applied_theme, nil)}
     end
   end
 
@@ -60,7 +77,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeShowLive do
   @impl true
   def handle_event("confirm_delete", _params, socket) do
     {:ok, _} = ThemeSystem.delete_theme(socket.assigns.theme)
-    
+
     theme_table = Process.get(:theme_system_ets_table)
     navigate_to = if theme_table, do: "/themes?theme_table=#{theme_table}", else: ~p"/themes"
 
@@ -89,14 +106,15 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeShowLive do
   @impl Phoenix.LiveView
   def render(assigns) do
     IO.inspect(assigns, label: "[DEBUG] ThemeShowLive assigns in render")
+
     ~H"""
     <div class="container mx-auto px-4 py-8">
       <%= if Phoenix.Flash.get(@flash, :info) do %>
         <div class="alert alert-success bg-green-100 border border-green-400 text-green-800 px-4 py-3 rounded relative mb-6" role="alert">
-          <%= Phoenix.Flash.get(@flash, :info) %>
+          {Phoenix.Flash.get(@flash, :info)}
         </div>
       <% end %>
-      
+
       <header class="flex items-center justify-between mb-6">
         <div>
           <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Theme Details</h1>
@@ -110,22 +128,22 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeShowLive do
             <dl class="mt-4 space-y-4">
               <div>
                 <dt class="text-sm font-medium text-gray-500">Name</dt>
-                <dd class="mt-1 text-sm text-gray-900"><%= @theme.name %></dd>
+                <dd class="mt-1 text-sm text-gray-900">{@theme.name}</dd>
               </div>
               <div>
                 <dt class="text-sm font-medium text-gray-500">Mode</dt>
-                <dd class="mt-1 text-sm text-gray-900"><%= @theme.mode %></dd>
+                <dd class="mt-1 text-sm text-gray-900">{@theme.mode}</dd>
               </div>
               <div>
                 <dt class="text-sm font-medium text-gray-500">Created</dt>
-                <dd class="mt-1 text-sm text-gray-900"><%= @theme.inserted_at %></dd>
+                <dd class="mt-1 text-sm text-gray-900">{@theme.inserted_at}</dd>
               </div>
             </dl>
           </div>
 
           <%= if @applied_theme do %>
             <div class="theme-applied">
-              <%= @applied_theme.name %>
+              {@applied_theme.name}
             </div>
           <% end %>
 
@@ -136,13 +154,16 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeShowLive do
             <button phx-click="apply" data-test-id="apply-theme-btn" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" type="button">
               Apply Theme
             </button>
-            <.link navigate={
-              if table = Process.get(:theme_system_ets_table) do
-                "/themes/#{@theme.id}/edit?theme_table=#{table}"
-              else
-                "/themes/#{@theme.id}/edit"
-              end
-            } class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            <.link
+              navigate={
+                if table = Process.get(:theme_system_ets_table) do
+                  "/themes/#{@theme.id}/edit?theme_table=#{table}"
+                else
+                  "/themes/#{@theme.id}/edit"
+                end
+              }
+              class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            >
               Edit Theme
             </.link>
             <button phx-click="delete" data-test-id="delete-theme-btn" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" type="button">
@@ -157,7 +178,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeShowLive do
                   <h3 class="text-lg font-medium text-gray-900">Confirm Delete</h3>
                   <div class="mt-2 px-7 py-3">
                     <p class="text-sm text-gray-500">
-                      Are you sure you want to delete the theme "<%= @theme.name %>"? This action cannot be undone.
+                      Are you sure you want to delete the theme "{@theme.name}"? This action cannot be undone.
                     </p>
                   </div>
                   <div class="flex justify-center space-x-4">

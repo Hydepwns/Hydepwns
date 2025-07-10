@@ -104,6 +104,6 @@ defmodule HydepwnsLiveview.Notifications.Twilio do
 
   defp generate_message_sid do
     # Generate a mock Twilio message SID
-    "SM" <> :crypto.strong_rand_bytes(32) |> Base.encode16(case: :lower)
+    ("SM" <> :crypto.strong_rand_bytes(32)) |> Base.encode16(case: :lower)
   end
 end

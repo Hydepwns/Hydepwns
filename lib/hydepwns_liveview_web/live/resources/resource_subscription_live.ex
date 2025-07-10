@@ -21,7 +21,9 @@ defmodule HydepwnsLiveviewWeb.ResourceSubscriptionLive do
   def handle_event("save_subscriptions", params, socket) do
     # Handle case where "events" key is missing
     events = Map.get(params, "events", [])
-    {:noreply, assign(socket, :selected_events, events) |> assign(:status, "Subscriptions updated!")}
+
+    {:noreply,
+     assign(socket, :selected_events, events) |> assign(:status, "Subscriptions updated!")}
   end
 
   @impl true
@@ -29,16 +31,16 @@ defmodule HydepwnsLiveviewWeb.ResourceSubscriptionLive do
     ~H"""
     <div class="container mx-auto p-8">
       <h1 class="text-2xl font-bold mb-4">Manage Subscriptions for Resource {@resource_id}</h1>
-      
+
       <%= if length(@selected_events) > 0 do %>
         <div class="mb-6 p-4 bg-green-100 border border-green-400 rounded">
           <div class="subscription-status text-green-800 font-semibold">Active</div>
           <div class="subscription-events text-sm text-green-700">
-            Subscribed to: <%= Enum.join(@selected_events, ", ") %>
+            Subscribed to: {Enum.join(@selected_events, ", ")}
           </div>
         </div>
       <% end %>
-      
+
       <form phx-submit="save_subscriptions">
         <div class="mb-4">
           <%= for event_type <- ["resource.updated", "resource.transformed"] do %>

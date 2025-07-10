@@ -20,9 +20,9 @@ defmodule HydepwnsLiveviewWeb.Plugs.ContentTypePlug do
 
         [] ->
           conn
-            |> put_status(:unsupported_media_type)
-            |> json(%{error: "Content-Type header required"})
-            |> halt()
+          |> put_status(:unsupported_media_type)
+          |> json(%{error: "Content-Type header required"})
+          |> halt()
       end
     else
       conn

@@ -27,6 +27,7 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
   @spec save_snapshot(String.t(), String.t(), map(), map()) ::
           {:ok, Snapshot.t()} | {:error, Ecto.Changeset.t()}
   def save_snapshot(resource_type, resource_id, state, metadata \\ %{})
+
   def save_snapshot(resource_type, resource_id, state, metadata)
       when is_binary(resource_type) and byte_size(resource_type) > 0 and
              is_binary(resource_id) and byte_size(resource_id) > 0 and
@@ -42,7 +43,10 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
     |> Repo.insert()
   end
 
-  def save_snapshot(resource_type, resource_id, state, metadata) when not (is_binary(resource_type) and byte_size(resource_type) > 0 and is_binary(resource_id) and byte_size(resource_id) > 0 and is_map(state) and is_map(metadata)) do
+  def save_snapshot(resource_type, resource_id, state, metadata)
+      when not (is_binary(resource_type) and byte_size(resource_type) > 0 and
+                  is_binary(resource_id) and byte_size(resource_id) > 0 and is_map(state) and
+                  is_map(metadata)) do
     {:error, :invalid_parameters}
   end
 
@@ -66,7 +70,7 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
         Snapshot
         |> where([s], s.resource_type == ^resource_type)
         |> where([s], s.resource_id == ^resource_id)
-        |> order_by([s], [desc: s.inserted_at, desc: s.id])
+        |> order_by([s], desc: s.inserted_at, desc: s.id)
         |> limit(1)
         |> Repo.one()
 
@@ -82,7 +86,9 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
     end
   end
 
-  def get_latest_snapshot(resource_type, resource_id) when not (is_binary(resource_type) and byte_size(resource_type) > 0 and is_binary(resource_id) and byte_size(resource_id) > 0) do
+  def get_latest_snapshot(resource_type, resource_id)
+      when not (is_binary(resource_type) and byte_size(resource_type) > 0 and
+                  is_binary(resource_id) and byte_size(resource_id) > 0) do
     {:error, :invalid_parameters}
   end
 
@@ -137,7 +143,9 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
     end
   end
 
-  def count_events_since_last_snapshot(resource_type, resource_id) when not (is_binary(resource_type) and byte_size(resource_type) > 0 and is_binary(resource_id) and byte_size(resource_id) > 0) do
+  def count_events_since_last_snapshot(resource_type, resource_id)
+      when not (is_binary(resource_type) and byte_size(resource_type) > 0 and
+                  is_binary(resource_id) and byte_size(resource_id) > 0) do
     {:error, :invalid_parameters}
   end
 
@@ -157,6 +165,7 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
   @spec save_versioned_state(String.t(), String.t(), map(), Keyword.t()) ::
           {:ok, VersionedState.t()} | {:error, Ecto.Changeset.t()}
   def save_versioned_state(resource_type, resource_id, state, opts \\ [])
+
   def save_versioned_state(resource_type, resource_id, state, opts)
       when is_binary(resource_type) and byte_size(resource_type) > 0 and
              is_binary(resource_id) and byte_size(resource_id) > 0 and
@@ -178,7 +187,10 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
     |> Repo.insert()
   end
 
-  def save_versioned_state(resource_type, resource_id, state, opts) when not (is_binary(resource_type) and byte_size(resource_type) > 0 and is_binary(resource_id) and byte_size(resource_id) > 0 and is_map(state) and is_list(opts)) do
+  def save_versioned_state(resource_type, resource_id, state, opts)
+      when not (is_binary(resource_type) and byte_size(resource_type) > 0 and
+                  is_binary(resource_id) and byte_size(resource_id) > 0 and is_map(state) and
+                  is_list(opts)) do
     {:error, :invalid_parameters}
   end
 
@@ -211,7 +223,9 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
     end
   end
 
-  def get_snapshots(resource_type, resource_id) when not (is_binary(resource_type) and byte_size(resource_type) > 0 and is_binary(resource_id) and byte_size(resource_id) > 0) do
+  def get_snapshots(resource_type, resource_id)
+      when not (is_binary(resource_type) and byte_size(resource_type) > 0 and
+                  is_binary(resource_id) and byte_size(resource_id) > 0) do
     {:error, :invalid_parameters}
   end
 
@@ -228,10 +242,13 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
   * `{:ok, snapshot}` - The snapshot was created successfully
   * `{:error, reason}` - The snapshot could not be created
   """
-  @spec create_snapshot(String.t(), String.t(), map(), map()) :: {:ok, Snapshot.t()} | {:error, any()}
+  @spec create_snapshot(String.t(), String.t(), map(), map()) ::
+          {:ok, Snapshot.t()} | {:error, any()}
   def create_snapshot(resource_type, resource_id, state, metadata \\ %{})
+
   def create_snapshot(resource_type, resource_id, state, metadata)
-      when is_binary(resource_type) and is_binary(resource_id) and is_map(state) and is_map(metadata) do
+      when is_binary(resource_type) and is_binary(resource_id) and is_map(state) and
+             is_map(metadata) do
     %Snapshot{}
     |> Snapshot.changeset(%{
       resource_type: resource_type,
@@ -243,7 +260,9 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
     |> Repo.insert()
   end
 
-  def create_snapshot(resource_type, resource_id, state, metadata) when not (is_binary(resource_type) and is_binary(resource_id) and is_map(state) and is_map(metadata)) do
+  def create_snapshot(resource_type, resource_id, state, metadata)
+      when not (is_binary(resource_type) and is_binary(resource_id) and is_map(state) and
+                  is_map(metadata)) do
     {:error, :invalid_parameters}
   end
 
@@ -262,8 +281,10 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
   * `{:ok, snapshots}` - List of snapshots for the resource
   * `{:error, reason}` - Error retrieving snapshots
   """
-  @spec list_snapshots(String.t(), String.t(), Keyword.t()) :: {:ok, [Snapshot.t()]} | {:error, any()}
+  @spec list_snapshots(String.t(), String.t(), Keyword.t()) ::
+          {:ok, [Snapshot.t()]} | {:error, any()}
   def list_snapshots(resource_type, resource_id, opts \\ [])
+
   def list_snapshots(resource_type, resource_id, opts)
       when is_binary(resource_type) and is_binary(resource_id) do
     try do
@@ -288,7 +309,8 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
     end
   end
 
-  def list_snapshots(resource_type, resource_id, _opts) when not (is_binary(resource_type) and is_binary(resource_id)) do
+  def list_snapshots(resource_type, resource_id, _opts)
+      when not (is_binary(resource_type) and is_binary(resource_id)) do
     {:error, :invalid_parameters}
   end
 
@@ -351,7 +373,9 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
       %{resource: resource, version: version, timestamp: timestamp}
       when is_integer(version) and is_binary(timestamp) ->
         validate_resource(resource)
-      _ -> {:error, "Invalid snapshot structure"}
+
+      _ ->
+        {:error, "Invalid snapshot structure"}
     end
   end
 
@@ -400,7 +424,9 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
       case {Map.get(resource1, key), Map.get(resource2, key)} do
         {value1, value2} when value1 != value2 ->
           Map.put(acc, key, %{from: value1, to: value2})
-        _ -> acc
+
+        _ ->
+          acc
       end
     end)
   end
@@ -414,9 +440,10 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
     base_data = Map.from_struct(latest_snapshot.resource)
 
     # Merge resource data from all snapshots
-    merged_resource = Enum.reduce(sorted_snapshots, base_data, fn snapshot, acc ->
-      Map.merge(acc, Map.from_struct(snapshot.resource))
-    end)
+    merged_resource =
+      Enum.reduce(sorted_snapshots, base_data, fn snapshot, acc ->
+        Map.merge(acc, Map.from_struct(snapshot.resource))
+      end)
 
     # Create new snapshot with merged resource
     build_snapshot(

@@ -26,7 +26,7 @@ defmodule HydepwnsLiveviewWeb.Event.EventFormLive do
     ~H"""
     <div class="container mx-auto px-4 py-8">
       <div class="flex justify-between items-center mb-8">
-        <h1 class="text-3xl font-bold"><%= if @event_id, do: "Edit Event", else: "Create Event" %></h1>
+        <h1 class="text-3xl font-bold">{if @event_id, do: "Edit Event", else: "Create Event"}</h1>
         <.link navigate={~p"/events"} class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
           Back to Events
         </.link>
@@ -38,7 +38,7 @@ defmodule HydepwnsLiveviewWeb.Event.EventFormLive do
             <label class="block text-gray-700 text-sm font-bold mb-2">Event Name</label>
             <input type="text" name="name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter event name" />
           </div>
-          
+
           <div>
             <label class="block text-gray-700 text-sm font-bold mb-2">Description</label>
             <textarea name="description" rows="4" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter event description"></textarea>
@@ -49,7 +49,7 @@ defmodule HydepwnsLiveviewWeb.Event.EventFormLive do
               Cancel
             </.link>
             <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-              <%= if @event_id, do: "Update Event", else: "Create Event" %>
+              {if @event_id, do: "Update Event", else: "Create Event"}
             </button>
           </div>
         </form>
@@ -63,4 +63,4 @@ defmodule HydepwnsLiveviewWeb.Event.EventFormLive do
     # For now, just redirect back to events list
     {:noreply, push_navigate(socket, to: ~p"/events")}
   end
-end 
+end

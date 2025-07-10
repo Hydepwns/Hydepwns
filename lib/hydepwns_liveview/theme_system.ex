@@ -30,12 +30,14 @@ defmodule HydepwnsLiveview.ThemeSystem do
 
   defp ensure_ets_table do
     table = ets_table()
+
     case :ets.info(table) do
       :undefined ->
         # Use a more robust approach to handle concurrent table creation
         try do
           :ets.new(table, [:named_table, :public, :set])
           :ets.insert(table, {:next_id, 2})
+
           default_theme = %MockTheme{
             id: 1,
             name: "Default Theme",
@@ -50,15 +52,18 @@ defmodule HydepwnsLiveview.ThemeSystem do
             inserted_at: DateTime.utc_now(),
             updated_at: DateTime.utc_now()
           }
+
           :ets.insert(table, {1, default_theme})
         catch
           :error, {:badarg, _} ->
             # Table already exists, just continue
             :ok
+
           :error, :badarg ->
             # Table already exists, just continue
             :ok
         end
+
       _ ->
         :ok
     end
@@ -67,6 +72,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
   defp get_themes do
     ensure_ets_table()
     table = ets_table()
+
     :ets.tab2list(table)
     |> Enum.filter(fn {k, _v} -> is_integer(k) end)
     |> Enum.map(fn {_k, v} -> v end)
@@ -75,6 +81,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
   defp get_next_id do
     ensure_ets_table()
     table = ets_table()
+
     case :ets.lookup(table, :next_id) do
       [{:next_id, id}] -> id
       _ -> 2
@@ -116,6 +123,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
 
   def ensure_default_theme do
     ensure_ets_table()
+
     get_themes()
     |> Enum.find(fn theme -> theme.is_default end)
     |> case do
@@ -134,8 +142,10 @@ defmodule HydepwnsLiveview.ThemeSystem do
           inserted_at: DateTime.utc_now(),
           updated_at: DateTime.utc_now()
         }
+
         set_theme(default_theme)
         default_theme
+
       theme ->
         theme
     end
@@ -149,13 +159,18 @@ defmodule HydepwnsLiveview.ThemeSystem do
     case id do
       "new" ->
         raise ArgumentError, "Cannot get theme with ID 'new' - use create_theme/1 instead"
+
       id when is_binary(id) ->
         case Integer.parse(id) do
           {int_id, ""} -> int_id
           _ -> raise ArgumentError, "Invalid theme ID: #{inspect(id)}"
         end
-      id when is_integer(id) -> id
-      _ -> raise ArgumentError, "Invalid theme ID: #{inspect(id)}"
+
+      id when is_integer(id) ->
+        id
+
+      _ ->
+        raise ArgumentError, "Invalid theme ID: #{inspect(id)}"
     end
     |> then(fn int_id ->
       case :ets.lookup(table, int_id) do
@@ -175,6 +190,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
 
   def get_theme_by_name(name) do
     ensure_ets_table()
+
     get_themes()
     |> Enum.find(fn theme -> theme.name == name end)
     |> case do
@@ -185,6 +201,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
 
   def get_default_theme do
     ensure_ets_table()
+
     get_themes()
     |> Enum.find(fn theme -> theme.is_default end)
     |> case do
@@ -196,24 +213,27 @@ defmodule HydepwnsLiveview.ThemeSystem do
   def set_default_theme(theme) do
     ensure_ets_table()
     # Convert Theme to MockTheme if needed
-    mock_theme = case theme do
-      %HydepwnsLiveview.ThemeSystem.Models.Theme{} ->
-        %MockTheme{
-          id: theme.id,
-          name: theme.name,
-          mode: theme.mode,
-          primary_color: theme.primary_color,
-          secondary_color: theme.secondary_color,
-          background_color: theme.background_color,
-          text_color: theme.text_color,
-          is_default: theme.is_default,
-          settings: theme.settings,
-          colors: theme.colors,
-          inserted_at: theme.inserted_at,
-          updated_at: theme.updated_at
-        }
-      %MockTheme{} -> theme
-    end
+    mock_theme =
+      case theme do
+        %HydepwnsLiveview.ThemeSystem.Models.Theme{} ->
+          %MockTheme{
+            id: theme.id,
+            name: theme.name,
+            mode: theme.mode,
+            primary_color: theme.primary_color,
+            secondary_color: theme.secondary_color,
+            background_color: theme.background_color,
+            text_color: theme.text_color,
+            is_default: theme.is_default,
+            settings: theme.settings,
+            colors: theme.colors,
+            inserted_at: theme.inserted_at,
+            updated_at: theme.updated_at
+          }
+
+        %MockTheme{} ->
+          theme
+      end
 
     # First, unset all existing defaults
     get_themes()
@@ -233,24 +253,27 @@ defmodule HydepwnsLiveview.ThemeSystem do
     ensure_ets_table()
 
     # Convert Theme to MockTheme if needed
-    mock_theme = case theme do
-      %HydepwnsLiveview.ThemeSystem.Models.Theme{} ->
-        %MockTheme{
-          id: theme.id,
-          name: theme.name,
-          mode: theme.mode,
-          primary_color: theme.primary_color,
-          secondary_color: theme.secondary_color,
-          background_color: theme.background_color,
-          text_color: theme.text_color,
-          is_default: theme.is_default,
-          settings: theme.settings,
-          colors: theme.colors,
-          inserted_at: theme.inserted_at,
-          updated_at: theme.updated_at
-        }
-      %MockTheme{} -> theme
-    end
+    mock_theme =
+      case theme do
+        %HydepwnsLiveview.ThemeSystem.Models.Theme{} ->
+          %MockTheme{
+            id: theme.id,
+            name: theme.name,
+            mode: theme.mode,
+            primary_color: theme.primary_color,
+            secondary_color: theme.secondary_color,
+            background_color: theme.background_color,
+            text_color: theme.text_color,
+            is_default: theme.is_default,
+            settings: theme.settings,
+            colors: theme.colors,
+            inserted_at: theme.inserted_at,
+            updated_at: theme.updated_at
+          }
+
+        %MockTheme{} ->
+          theme
+      end
 
     # Validate the params
     case validate_theme_params(params) do
@@ -259,6 +282,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
         updated_theme = %{updated_theme | updated_at: DateTime.utc_now()}
         set_theme(updated_theme)
         {:ok, mock_to_theme(updated_theme)}
+
       {:error, changeset} ->
         {:error, changeset}
     end
@@ -275,6 +299,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
   def list_themes do
     ensure_ets_table()
     themes = get_themes()
+
     if themes == [] do
       [ensure_default_theme() |> mock_to_theme()]
     else
@@ -288,6 +313,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
     case validate_theme_params(params) do
       {:ok, validated_params} ->
         handle_theme_creation(validated_params)
+
       {:error, changeset} ->
         {:error, changeset}
     end
@@ -364,7 +390,10 @@ defmodule HydepwnsLiveview.ThemeSystem do
 
   defp build_colors_map(params, is_system_theme) do
     base_colors = build_base_colors(params, is_system_theme)
-    if is_system_theme, do: build_system_colors(base_colors), else: build_custom_colors(base_colors, params)
+
+    if is_system_theme,
+      do: build_system_colors(base_colors),
+      else: build_custom_colors(base_colors, params)
   end
 
   defp build_base_colors(params, is_system_theme) do
@@ -420,24 +449,27 @@ defmodule HydepwnsLiveview.ThemeSystem do
   def delete_theme(theme) do
     ensure_ets_table()
     # Convert Theme to MockTheme if needed
-    mock_theme = case theme do
-      %HydepwnsLiveview.ThemeSystem.Models.Theme{} ->
-        %MockTheme{
-          id: theme.id,
-          name: theme.name,
-          mode: theme.mode,
-          primary_color: theme.primary_color,
-          secondary_color: theme.secondary_color,
-          background_color: theme.background_color,
-          text_color: theme.text_color,
-          is_default: theme.is_default,
-          settings: theme.settings,
-          colors: theme.colors,
-          inserted_at: theme.inserted_at,
-          updated_at: theme.updated_at
-        }
-      %MockTheme{} -> theme
-    end
+    mock_theme =
+      case theme do
+        %HydepwnsLiveview.ThemeSystem.Models.Theme{} ->
+          %MockTheme{
+            id: theme.id,
+            name: theme.name,
+            mode: theme.mode,
+            primary_color: theme.primary_color,
+            secondary_color: theme.secondary_color,
+            background_color: theme.background_color,
+            text_color: theme.text_color,
+            is_default: theme.is_default,
+            settings: theme.settings,
+            colors: theme.colors,
+            inserted_at: theme.inserted_at,
+            updated_at: theme.updated_at
+          }
+
+        %MockTheme{} ->
+          theme
+      end
 
     delete_theme_by_id(mock_theme.id)
     {:ok, mock_to_theme(mock_theme)}
@@ -451,6 +483,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
     case :ets.lookup(table, :applied_theme) do
       [] ->
         {:ok, ensure_default_theme() |> mock_to_theme()}
+
       [{:applied_theme, theme}] ->
         {:ok, theme}
     end
@@ -462,29 +495,37 @@ defmodule HydepwnsLiveview.ThemeSystem do
          {:ok, _} <- validate_mode(params),
          {:ok, _} <- validate_colors(params) do
       # Convert string keys to atoms for consistency
-      validated_params = for {k, v} <- params, into: %{} do
-        key = if is_binary(k), do: String.to_atom(k), else: k
-        {key, v}
-      end
+      validated_params =
+        for {k, v} <- params, into: %{} do
+          key = if is_binary(k), do: String.to_atom(k), else: k
+          {key, v}
+        end
+
       {:ok, validated_params}
     end
   end
 
   defp validate_required_fields(params) do
     required_fields = [:name, :mode]
-    missing_fields = Enum.filter(required_fields, fn field ->
-      value = Map.get(params, field) || Map.get(params, to_string(field))
-      is_nil(value) || value == ""
-    end)
+
+    missing_fields =
+      Enum.filter(required_fields, fn field ->
+        value = Map.get(params, field) || Map.get(params, to_string(field))
+        is_nil(value) || value == ""
+      end)
 
     if missing_fields != [] do
       changeset = %Ecto.Changeset{
         data: %HydepwnsLiveview.ThemeSystem.Models.Theme{},
         changes: %{},
-        errors: Enum.map(missing_fields, fn field -> {field, {"can't be blank", [validation: :required]}} end),
+        errors:
+          Enum.map(missing_fields, fn field ->
+            {field, {"can't be blank", [validation: :required]}}
+          end),
         valid?: false,
         action: :validate
       }
+
       {:error, changeset}
     else
       {:ok, params}
@@ -503,6 +544,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
         valid?: false,
         action: :validate
       }
+
       {:error, changeset}
     else
       {:ok, params}
@@ -511,19 +553,25 @@ defmodule HydepwnsLiveview.ThemeSystem do
 
   defp validate_colors(params) do
     color_fields = [:primary_color, :secondary_color, :background_color, :text_color]
-    invalid_colors = Enum.filter(color_fields, fn field ->
-      color = Map.get(params, field) || Map.get(params, to_string(field))
-      color && !Regex.match?(~r/^#[0-9A-Fa-f]{6}$/, color)
-    end)
+
+    invalid_colors =
+      Enum.filter(color_fields, fn field ->
+        color = Map.get(params, field) || Map.get(params, to_string(field))
+        color && !Regex.match?(~r/^#[0-9A-Fa-f]{6}$/, color)
+      end)
 
     if invalid_colors != [] do
       changeset = %Ecto.Changeset{
         data: %HydepwnsLiveview.ThemeSystem.Models.Theme{},
         changes: %{},
-        errors: Enum.map(invalid_colors, fn field -> {field, {"must be a valid hex color", [validation: :format]}} end),
+        errors:
+          Enum.map(invalid_colors, fn field ->
+            {field, {"must be a valid hex color", [validation: :format]}}
+          end),
         valid?: false,
         action: :validate
       }
+
       {:error, changeset}
     else
       {:ok, params}

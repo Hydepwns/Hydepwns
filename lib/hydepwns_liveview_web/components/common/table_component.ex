@@ -12,7 +12,7 @@ defmodule HydepwnsLiveviewWeb.Components.Common.TableComponent do
     ~H"""
     <div class="table-responsive">
       <table class={["table", @class]}>
-        <%= render_slot(@inner_block) %>
+        {render_slot(@inner_block)}
       </table>
     </div>
     """

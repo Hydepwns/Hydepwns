@@ -93,10 +93,10 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
               <div class="sm:flex sm:items-start">
                 <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
                   <h3 class="text-lg font-semibold leading-6 text-zinc-800" id={"#{@id}-title"}>
-                    <%= @title %>
+                    {@title}
                   </h3>
                   <div class="mt-2" id={"#{@id}-description"}>
-                    <%= render_slot(@inner_block) %>
+                    {render_slot(@inner_block)}
                   </div>
                 </div>
               </div>
@@ -125,16 +125,16 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
       role="alert"
       class={[
         "fixed top-2 right-2 mr-2 w-80 sm:w-96 z-50 rounded-lg p-3 ring-1",
-        ((@kind == :info) or (@kind == "info")) && "alert-success bg-emerald-50 text-emerald-800 ring-emerald-500 fill-cyan-900",
-        ((@kind == :error) or (@kind == "error")) && "alert-error bg-rose-50 text-rose-900 shadow-md ring-rose-500 fill-rose-900"
+        (@kind == :info or @kind == "info") && "alert-success bg-emerald-50 text-emerald-800 ring-emerald-500 fill-cyan-900",
+        (@kind == :error or @kind == "error") && "alert-error bg-rose-50 text-rose-900 shadow-md ring-rose-500 fill-rose-900"
       ]}
-      data-test-id={((@kind == :info) or (@kind == "info")) && "flash-success" || ((@kind == :error) or (@kind == "error")) && "flash-error"}
+      data-test-id={((@kind == :info or @kind == "info") && "flash-success") || ((@kind == :error or @kind == "error") && "flash-error")}
     >
       <p :if={@title} class="flex items-center gap-1.5 text-sm font-semibold leading-6">
-        <.icon :if={(@kind == :info) or (@kind == "info")} name="hero-information-circle-mini" class="h-4 w-4" />
-        <.icon :if={(@kind == :error) or (@kind == "error")} name="hero-exclamation-circle-mini" class="h-4 w-4" /> {@title}
+        <.icon :if={@kind == :info or @kind == "info"} name="hero-information-circle-mini" class="h-4 w-4" />
+        <.icon :if={@kind == :error or @kind == "error"} name="hero-exclamation-circle-mini" class="h-4 w-4" /> {@title}
       </p>
-      <p class="mt-2 text-sm leading-5"><%= msg %></p>
+      <p class="mt-2 text-sm leading-5">{msg}</p>
       <button type="button" class="group absolute top-1 right-1 p-2" aria-label={gettext("close")}>
         <.icon name="hero-x-mark-solid" class="h-5 w-5 opacity-40 group-hover:opacity-70" />
       </button>
@@ -172,13 +172,13 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     <header class={[@actions_header != [] && "flex items-center justify-between gap-6", @class]}>
       <div>
         <h1 class="text-lg font-semibold leading-8 text-zinc-800">
-          <%= render_slot(@inner_block) %>
+          {render_slot(@inner_block)}
         </h1>
         <p :if={@subtitle != []} class="mt-2 text-sm leading-6 text-zinc-600">
-          <%= render_slot(@subtitle) %>
+          {render_slot(@subtitle)}
         </p>
       </div>
-      <div class="flex-none"><%= render_slot(@actions_header) %></div>
+      <div class="flex-none">{render_slot(@actions_header)}</div>
     </header>
     """
   end
@@ -261,7 +261,7 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     <div class="mt-16">
       <a href={@navigate} data-phx-link="redirect" data-phx-link-state="push" class="text-sm font-semibold leading-6 text-zinc-900 hover:text-zinc-700">
         <span class="hero-arrow-left-solid h-3 w-3"></span>
-        <%= render_slot(@inner_block) %>
+        {render_slot(@inner_block)}
       </a>
     </div>
     """
@@ -388,7 +388,7 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
       ]}
       {@rest}
     >
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </button>
     """
   end
@@ -433,27 +433,27 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
   def header_table(assigns) do
     ~H"""
     <header class="site-header">
-      <h1><%= @title %></h1>
+      <h1>{@title}</h1>
       <table class="metadata">
         <tr>
           <td>Version:</td>
-          <td><%= @version %></td>
+          <td>{@version}</td>
         </tr>
         <tr>
           <td>Updated:</td>
-          <td><%= @updated %></td>
+          <td>{@updated}</td>
         </tr>
         <tr>
           <td>Author:</td>
-          <td><%= @author %></td>
+          <td>{@author}</td>
         </tr>
         <tr>
           <td>License:</td>
-          <td><%= @license %></td>
+          <td>{@license}</td>
         </tr>
         <tr>
           <td>Line height:</td>
-          <td><%= @line_height %></td>
+          <td>{@line_height}</td>
         </tr>
       </table>
     </header>
@@ -467,7 +467,7 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
   def error(assigns) do
     ~H"""
     <p class="mt-2 text-sm text-red-600">
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </p>
     """
   end
@@ -480,7 +480,7 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
     ~H"""
     <div class="form-group">
       <label :if={@label} for={@id} class="block text-sm font-medium text-gray-700">
-        <%= @label %>
+        {@label}
       </label>
       <div class="mt-1">
         <input
@@ -496,7 +496,7 @@ defmodule HydepwnsLiveviewWeb.CoreComponents do
         />
       </div>
       <.error :for={msg <- @errors}>
-        <%= msg %>
+        {msg}
       </.error>
     </div>
     """

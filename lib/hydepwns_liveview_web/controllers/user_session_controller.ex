@@ -7,10 +7,12 @@ defmodule HydepwnsLiveviewWeb.UserSessionController do
     case Accounts.authenticate_user(%{"email" => email, "password" => password}) do
       {:ok, user} ->
         token = Accounts.generate_user_session_token(user)
+
         conn
         |> put_session(:user_token, token)
         |> put_flash(:info, "Logged in successfully.")
         |> redirect(to: "/")
+
       {:error, _reason} ->
         conn
         |> put_flash(:error, "Invalid email or password.")

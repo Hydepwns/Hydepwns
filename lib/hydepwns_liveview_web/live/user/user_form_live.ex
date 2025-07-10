@@ -81,7 +81,7 @@ defmodule HydepwnsLiveviewWeb.User.UserFormLive do
   def render(assigns) do
     ~H"""
     <div class="container mx-auto px-4 py-8">
-      <%= HydepwnsLiveviewWeb.Components.Common.HeaderComponent.header(assigns) %>
+      {HydepwnsLiveviewWeb.Components.Common.HeaderComponent.header(assigns)}
 
       <div class="bg-white shadow rounded-lg p-6">
         <div class="space-y-6">

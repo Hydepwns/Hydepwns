@@ -7,7 +7,10 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLive do
 
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveview.Accounts.User
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label_tag: 1, error: 1]
+
+  import HydepwnsLiveviewWeb.Components.UI.FormComponents,
+    only: [input: 1, label_tag: 1, error: 1]
+
   import Phoenix.Controller, only: [get_csrf_token: 0]
 
   @impl Phoenix.LiveView
@@ -67,7 +70,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLive do
               <.label_tag for={f[:email].id}>Email</.label_tag>
               <.input field={f[:email]} type="email" required phx-change="validate" />
               <.error :for={msg <- Keyword.get_values(f[:email].errors, :email)}>
-                <%= msg %>
+                {msg}
               </.error>
             </div>
 
@@ -75,7 +78,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLive do
               <.label_tag for={f[:name].id}>Name</.label_tag>
               <.input field={f[:name]} type="text" required phx-change="validate" />
               <.error :for={msg <- Keyword.get_values(f[:name].errors, :name)}>
-                <%= msg %>
+                {msg}
               </.error>
             </div>
 
@@ -83,7 +86,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLive do
               <.label_tag for={f[:password].id}>Password</.label_tag>
               <.input field={f[:password]} type="password" required phx-change="validate" />
               <.error :for={msg <- Keyword.get_values(f[:password].errors, :password)}>
-                <%= msg %>
+                {msg}
               </.error>
             </div>
 
@@ -91,7 +94,7 @@ defmodule HydepwnsLiveviewWeb.UserRegistrationLive do
               <.label_tag for={f[:password_confirmation].id}>Confirm Password</.label_tag>
               <.input field={f[:password_confirmation]} type="password" required phx-change="validate" />
               <.error :for={msg <- Keyword.get_values(f[:password_confirmation].errors, :password_confirmation)}>
-                <%= msg %>
+                {msg}
               </.error>
             </div>
 

@@ -207,11 +207,14 @@ defmodule HydepwnsLiveview.Accounts do
   """
   def authenticate_user(%{"email" => email, "password" => password}) do
     user = get_user_by_email(email)
+
     cond do
       user && Bcrypt.verify_pass(password, user.password_hash) ->
         {:ok, user}
+
       user ->
         {:error, :unauthorized}
+
       true ->
         Bcrypt.no_user_verify()
         {:error, :not_found}

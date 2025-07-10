@@ -408,7 +408,10 @@ defmodule HydepwnsLiveview.Resources.TestFramework do
       |> Enum.all?(fn {actual, expected} -> event_matches?(actual, expected) end)
   end
 
-  defp event_matches?(%HydepwnsLiveview.Events.Core.Event{} = actual, %HydepwnsLiveview.Events.Core.Event{} = expected) do
+  defp event_matches?(
+         %HydepwnsLiveview.Events.Core.Event{} = actual,
+         %HydepwnsLiveview.Events.Core.Event{} = expected
+       ) do
     # Compare directly with fallbacks for missing fields
     actual.type == expected.type &&
       actual.resource_id == expected.resource_id &&
@@ -416,14 +419,16 @@ defmodule HydepwnsLiveview.Resources.TestFramework do
       (expected.metadata == nil || actual.metadata == expected.metadata)
   end
 
-  defp event_matches?(%HydepwnsLiveview.Events.Core.Event{} = actual, %{} = expected) when is_map(expected) do
+  defp event_matches?(%HydepwnsLiveview.Events.Core.Event{} = actual, %{} = expected)
+       when is_map(expected) do
     # Compare just the specified fields
     Enum.all?(expected, fn {key, value} ->
       Map.get(actual, key) == value
     end)
   end
 
-  defp event_matches?(%HydepwnsLiveview.Events.Core.Event{type: type}, type) when is_binary(type) or is_atom(type) do
+  defp event_matches?(%HydepwnsLiveview.Events.Core.Event{type: type}, type)
+       when is_binary(type) or is_atom(type) do
     # Just check the event type
     true
   end

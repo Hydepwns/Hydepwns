@@ -89,4 +89,4 @@ defmodule HydepwnsLiveview.Resources.RevisionResource do
   def create_events(_params, _metadata), do: {:ok, []}
   def create_update_events(_params, _metadata), do: {:ok, []}
   def create_delete_events(_params, _metadata), do: {:ok, []}
-end 
+end

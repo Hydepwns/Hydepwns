@@ -38,8 +38,12 @@ defmodule HydepwnsLiveview.Events.Projections.ResourceProjection do
 
     # Subscribe to all resource and document events
     EventBus.subscribe(self(), [
-      "resource.created", "resource.updated", "resource.deleted",
-      "document.created", "document.updated", "document.deleted"
+      "resource.created",
+      "resource.updated",
+      "resource.deleted",
+      "document.created",
+      "document.updated",
+      "document.deleted"
     ])
 
     {:ok, state}
@@ -58,7 +62,10 @@ defmodule HydepwnsLiveview.Events.Projections.ResourceProjection do
 
   @impl true
   def handle_info({:event, event}, state) do
-    Logger.info("ResourceProjection received event: #{event.type} for resource: #{event.resource_id}")
+    Logger.info(
+      "ResourceProjection received event: #{event.type} for resource: #{event.resource_id}"
+    )
+
     new_state = update_state(state, event)
     {:noreply, new_state}
   end
@@ -67,8 +74,10 @@ defmodule HydepwnsLiveview.Events.Projections.ResourceProjection do
 
   defp update_state(state, event) do
     case event do
-      %{type: type, resource_id: id, data: data} when type in ["resource.created", "document.created"] ->
+      %{type: type, resource_id: id, data: data}
+      when type in ["resource.created", "document.created"] ->
         Logger.info("ResourceProjection: Processing #{type} for #{id}")
+
         %{
           state
           | resources: Map.put(state.resources, id, data),
@@ -76,8 +85,10 @@ defmodule HydepwnsLiveview.Events.Projections.ResourceProjection do
             last_updated: DateTime.utc_now()
         }
 
-      %{type: type, resource_id: id, data: data} when type in ["resource.updated", "document.updated"] ->
+      %{type: type, resource_id: id, data: data}
+      when type in ["resource.updated", "document.updated"] ->
         Logger.info("ResourceProjection: Processing #{type} for #{id}")
+
         %{
           state
           | resources: Map.update(state.resources, id, data, &Map.merge(&1, data)),
@@ -87,6 +98,7 @@ defmodule HydepwnsLiveview.Events.Projections.ResourceProjection do
 
       %{type: type, resource_id: id} when type in ["resource.deleted", "document.deleted"] ->
         Logger.info("ResourceProjection: Processing #{type} for #{id}")
+
         %{
           state
           | resources: Map.delete(state.resources, id),

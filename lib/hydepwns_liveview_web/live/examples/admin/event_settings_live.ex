@@ -53,7 +53,7 @@ defmodule HydepwnsLiveviewWeb.Admin.EventSettingsLive do
                   <.label_tag for={f[:timezone].id}>Timezone</.label_tag>
                   <select name={f[:timezone].name} id={f[:timezone].id} class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     <%= for tz <- Events.list_timezones() do %>
-                      <option value={tz}><%= tz %></option>
+                      <option value={tz}>{tz}</option>
                     <% end %>
                   </select>
                 </div>

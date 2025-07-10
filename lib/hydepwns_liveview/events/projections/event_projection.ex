@@ -52,14 +52,17 @@ defmodule HydepwnsLiveview.Events.Projections.EventProjection do
     # Fetch all events from the event store
     case HydepwnsLiveview.Events.EventStore.get_events(%{sort: [timestamp: :asc]}) do
       {:ok, events} ->
-        state = Enum.reduce(events, %{events: [], last_event_id: nil, last_updated: nil}, fn event, acc ->
-          %{
-            acc
-            | events: [event | acc.events],
-              last_event_id: event.id,
-              last_updated: DateTime.utc_now()
-          }
-        end)
+        state =
+          Enum.reduce(events, %{events: [], last_event_id: nil, last_updated: nil}, fn event,
+                                                                                       acc ->
+            %{
+              acc
+              | events: [event | acc.events],
+                last_event_id: event.id,
+                last_updated: DateTime.utc_now()
+            }
+          end)
+
         {:reply, :ok, state}
 
       {:error, reason} ->

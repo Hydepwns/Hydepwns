@@ -114,6 +114,9 @@ defmodule HydepwnsLiveviewWeb.Api.UserController do
       updated_at: user.updated_at
     }
   end
-  defp sanitize_value(val) when is_binary(val), do: String.replace(val, ~r/<script.*?>.*?<\/script>/si, "[removed]", global: true)
+
+  defp sanitize_value(val) when is_binary(val),
+    do: String.replace(val, ~r/<script.*?>.*?<\/script>/si, "[removed]", global: true)
+
   defp sanitize_value(val), do: val
 end

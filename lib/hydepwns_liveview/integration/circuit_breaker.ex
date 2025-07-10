@@ -12,10 +12,10 @@ defmodule HydepwnsLiveview.Integration.CircuitBreaker do
 
   @type circuit_state :: :closed | :open | :half_open
   @type circuit_config :: %{
-    failure_threshold: non_neg_integer(),
-    timeout_ms: non_neg_integer(),
-    reset_timeout_ms: non_neg_integer()
-  }
+          failure_threshold: non_neg_integer(),
+          timeout_ms: non_neg_integer(),
+          reset_timeout_ms: non_neg_integer()
+        }
 
   @doc """
   Executes a function with circuit breaker protection.

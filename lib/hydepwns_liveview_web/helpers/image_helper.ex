@@ -64,7 +64,7 @@ defmodule HydepwnsLiveviewWeb.ImageHelper do
     path_parts = String.split(image_path, "/")
     filename_with_ext = List.last(path_parts)
     directory = Enum.slice(path_parts, 0, -1) |> Enum.join("/")
-    
+
     # Extract filename and extension
     case String.split(filename_with_ext, ".") do
       [filename, ext] -> {directory <> "/", filename, "." <> ext}

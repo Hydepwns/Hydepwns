@@ -20,12 +20,12 @@ defmodule HydepwnsLiveview.ThemeSystem.Models.Theme do
     field :__unset_other_defaults__, :boolean, virtual: true
     field :colors, :map, virtual: true, default: %{}
     field :settings, :map, virtual: true, default: %{}
-    
+
     # Typography fields
     field :font_family, :string, virtual: true
     field :font_size, :string, virtual: true
     field :line_height, :string, virtual: true
-    
+
     # Spacing fields
     field :spacing_unit, :string, virtual: true
     field :container_padding, :string, virtual: true
@@ -153,39 +153,49 @@ defmodule HydepwnsLiveview.ThemeSystem.Models.Theme do
   defp put_colors(changeset) do
     if changeset.valid? do
       # For system themes, use "system" values for dynamic colors
-      is_system_theme = get_change(changeset, :mode) == "system" || get_field(changeset, :mode) == "system"
-      
+      is_system_theme =
+        get_change(changeset, :mode) == "system" || get_field(changeset, :mode) == "system"
+
       base_colors = %{
         primary: get_change(changeset, :primary_color) || get_field(changeset, :primary_color),
-        secondary: get_change(changeset, :secondary_color) || get_field(changeset, :secondary_color),
-        background: get_change(changeset, :background_color) || get_field(changeset, :background_color),
+        secondary:
+          get_change(changeset, :secondary_color) || get_field(changeset, :secondary_color),
+        background:
+          get_change(changeset, :background_color) || get_field(changeset, :background_color),
         text: get_change(changeset, :text_color) || get_field(changeset, :text_color)
       }
-      
+
       # Add additional colors that tests expect
-      colors = if is_system_theme do
-        base_colors
-        |> Map.put(:accent, "system")
-        |> Map.put(:border, "system")
-        |> Map.put(:error, "system")
-        |> Map.put(:success, "system")
-        |> Map.put(:warning, "system")
-        |> Map.put(:info, "system")
-      else
-        # For non-system themes, derive additional colors from base colors
-        primary = base_colors.primary
-        _secondary = base_colors.secondary
-        _background = base_colors.background
-        _text = base_colors.text
-        
-        base_colors
-        |> Map.put(:accent, primary)  # Use primary as accent
-        |> Map.put(:border, "#6B7280")  # Default border color
-        |> Map.put(:error, "#EF4444")   # Default error color
-        |> Map.put(:success, "#10B981") # Default success color
-        |> Map.put(:warning, "#F59E0B") # Default warning color
-        |> Map.put(:info, "#3B82F6")    # Default info color
-      end
+      colors =
+        if is_system_theme do
+          base_colors
+          |> Map.put(:accent, "system")
+          |> Map.put(:border, "system")
+          |> Map.put(:error, "system")
+          |> Map.put(:success, "system")
+          |> Map.put(:warning, "system")
+          |> Map.put(:info, "system")
+        else
+          # For non-system themes, derive additional colors from base colors
+          primary = base_colors.primary
+          _secondary = base_colors.secondary
+          _background = base_colors.background
+          _text = base_colors.text
+
+          base_colors
+          # Use primary as accent
+          |> Map.put(:accent, primary)
+          # Default border color
+          |> Map.put(:border, "#6B7280")
+          # Default error color
+          |> Map.put(:error, "#EF4444")
+          # Default success color
+          |> Map.put(:success, "#10B981")
+          # Default warning color
+          |> Map.put(:warning, "#F59E0B")
+          # Default info color
+          |> Map.put(:info, "#3B82F6")
+        end
 
       put_change(changeset, :colors, colors)
     else

@@ -115,13 +115,17 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
 
   defp validate_nested_list(list, type) do
     case list do
-      [] -> {:ok, list}
+      [] ->
+        {:ok, list}
+
       [head | tail] when is_list(head) ->
         case validate_list_type(head, type) do
           {:ok, _} -> validate_nested_list(tail, type)
           {:error, message} -> {:error, "nested_list validation failed: #{message}"}
         end
-      _ -> {:error, "nested_list validation failed: expected list of lists"}
+
+      _ ->
+        {:error, "nested_list validation failed: expected list of lists"}
     end
   end
 
@@ -129,7 +133,9 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
     Enum.with_index(value)
     |> Enum.reduce_while({:ok, value}, fn {item, index}, _acc ->
       case validate_map_schema(item, schema) do
-        {:ok, _} -> {:cont, {:ok, value}}
+        {:ok, _} ->
+          {:cont, {:ok, value}}
+
         {:error, message} ->
           error_message = "item at index #{index}: #{message}"
           {:halt, {:error, error_message}}
@@ -143,14 +149,16 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
 
   defp validate_map_schema(value, schema) when is_map(value) and is_map(schema) do
     # Check for required fields first
-    required_fields = Enum.filter(schema, fn {_key, type_spec} -> 
-      !match?({:optional, _}, type_spec)
-    end)
-    
-    missing_fields = Enum.filter(required_fields, fn {key, _} ->
-      !Map.has_key?(value, key)
-    end)
-    
+    required_fields =
+      Enum.filter(schema, fn {_key, type_spec} ->
+        !match?({:optional, _}, type_spec)
+      end)
+
+    missing_fields =
+      Enum.filter(required_fields, fn {key, _} ->
+        !Map.has_key?(value, key)
+      end)
+
     if Enum.empty?(missing_fields) do
       # Validate all fields
       Enum.reduce_while(schema, {:ok, value}, fn {key, type_spec}, _acc ->
@@ -160,6 +168,7 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
               {:ok, _} -> {:cont, {:ok, value}}
               {:error, message} -> {:halt, {:error, "#{key}: #{message}"}}
             end
+
           :error ->
             case type_spec do
               {:optional, _} -> {:cont, {:ok, value}}
@@ -181,7 +190,9 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
     Enum.with_index(value)
     |> Enum.reduce_while({:ok, value}, fn {item, index}, _acc ->
       case validate_type(item, type) do
-        {:ok, _} -> {:cont, {:ok, value}}
+        {:ok, _} ->
+          {:cont, {:ok, value}}
+
         {:error, message} ->
           error_message = "item at index #{index}: #{message}"
           {:halt, {:error, error_message}}
@@ -198,12 +209,16 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
   end
 
   def validate_union(value, types) when is_list(types) do
-    Enum.find_value(types, {:error, "Value matched none of the union types: #{inspect(types)}"}, fn type ->
-      case validate_type(value, type) do
-        {:ok, _} -> {:ok, value}
-        _ -> nil
+    Enum.find_value(
+      types,
+      {:error, "Value matched none of the union types: #{inspect(types)}"},
+      fn type ->
+        case validate_type(value, type) do
+          {:ok, _} -> {:ok, value}
+          _ -> nil
+        end
       end
-    end)
+    )
   end
 
   def validate_custom(value, validator) when is_function(validator, 1) do
@@ -315,6 +330,7 @@ defmodule HydepwnsLiveview.Utils.SocketValidator do
           {:ok, value} -> {:ok, value}
           {:error, message} -> {:error, message}
         end
+
       :error ->
         {:error, "Missing required assign: #{key}"}
     end

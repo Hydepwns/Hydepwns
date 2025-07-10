@@ -66,7 +66,8 @@ defmodule HydepwnsLiveview.Events.ReplayOperations do
   * `{:error, reason}` - The session could not be completed
   """
   @spec complete_session(String.t(), map()) :: {:ok, ReplaySession.t()} | {:error, any()}
-  def complete_session(session_id, final_state) when is_binary(session_id) and is_map(final_state) do
+  def complete_session(session_id, final_state)
+      when is_binary(session_id) and is_map(final_state) do
     with {:ok, session} <- get_session(session_id) do
       session
       |> ReplaySession.changeset(%{

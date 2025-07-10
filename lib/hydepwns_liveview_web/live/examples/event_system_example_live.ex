@@ -244,10 +244,10 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
                         <tbody>
                           <%= for event <- @events do %>
                             <tr>
-                              <td class="px-4 py-2"><%= event.id %></td>
-                              <td class="px-4 py-2"><%= event.type %></td>
-                              <td class="px-4 py-2"><%= event.resource_type %>:<%= event.resource_id %></td>
-                              <td class="px-4 py-2"><%= format_timestamp(event.timestamp) %></td>
+                              <td class="px-4 py-2">{event.id}</td>
+                              <td class="px-4 py-2">{event.type}</td>
+                              <td class="px-4 py-2">{event.resource_type}:{event.resource_id}</td>
+                              <td class="px-4 py-2">{format_timestamp(event.timestamp)}</td>
                             </tr>
                           <% end %>
                         </tbody>
@@ -264,7 +264,7 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
                     <div class="space-y-4">
                       <%= for {projection, index} <- Enum.with_index(@projections) do %>
                         <div class="projection-item p-4 border rounded">
-                          <h3 class="text-lg font-semibold mb-2"><%= projection %></h3>
+                          <h3 class="text-lg font-semibold mb-2">{projection}</h3>
                           <div class="flex space-x-2">
                             <button phx-click="view_projection" phx-value-projection={index} class="btn btn-secondary">
                               View State
@@ -294,11 +294,11 @@ defmodule HydepwnsLiveviewWeb.Examples.EventSystemExampleLive do
                 <div class="space-y-4">
                   <%= for handler <- @handlers do %>
                     <div class="handler-item p-4 border rounded">
-                      <h3 class="text-lg font-semibold mb-2"><%= handler.name %></h3>
-                      <p class="text-gray-600 mb-2"><%= handler.description %></p>
+                      <h3 class="text-lg font-semibold mb-2">{handler.name}</h3>
+                      <p class="text-gray-600 mb-2">{handler.description}</p>
                       <div class="text-sm">
-                        <p><strong>Event Types:</strong> <%= Enum.join(handler.event_types, ", ") %></p>
-                        <p><strong>Status:</strong> <%= handler.status %></p>
+                        <p><strong>Event Types:</strong> {Enum.join(handler.event_types, ", ")}</p>
+                        <p><strong>Status:</strong> {handler.status}</p>
                       </div>
                     </div>
                   <% end %>

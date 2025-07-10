@@ -17,7 +17,8 @@ defmodule HydepwnsLiveview.Performance.Monitor do
   - `{:ok, "metric-tracked"}` on success
   - `{:error, reason}` on failure
   """
-  def track_response_time(endpoint, response_time) when is_binary(endpoint) and is_number(response_time) do
+  def track_response_time(endpoint, response_time)
+      when is_binary(endpoint) and is_number(response_time) do
     # In a real implementation, this would store metrics in a time-series database
     # For now, we'll just return success
 
@@ -46,21 +47,25 @@ defmodule HydepwnsLiveview.Performance.Monitor do
     # For now, we'll simulate a performance check
 
     # Simulate checking average response time
-    avg_response_time = 500  # ms
-    threshold = 200  # ms
+    # ms
+    avg_response_time = 500
+    # ms
+    threshold = 200
 
     if avg_response_time > threshold do
-      {:warning, %{
-        avg_response_time: avg_response_time,
-        threshold: threshold,
-        recommendation: "Consider optimization"
-      }}
+      {:warning,
+       %{
+         avg_response_time: avg_response_time,
+         threshold: threshold,
+         recommendation: "Consider optimization"
+       }}
     else
-      {:ok, %{
-        avg_response_time: avg_response_time,
-        threshold: threshold,
-        status: "healthy"
-      }}
+      {:ok,
+       %{
+         avg_response_time: avg_response_time,
+         threshold: threshold,
+         status: "healthy"
+       }}
     end
   end
 
@@ -80,28 +85,31 @@ defmodule HydepwnsLiveview.Performance.Monitor do
 
     case time_range do
       "24h" ->
-        {:ok, %{
-          total_requests: 1000,
-          avg_response_time: 150,
-          error_rate: 0.01,
-          throughput: 10.5
-        }}
+        {:ok,
+         %{
+           total_requests: 1000,
+           avg_response_time: 150,
+           error_rate: 0.01,
+           throughput: 10.5
+         }}
 
       "7d" ->
-        {:ok, %{
-          total_requests: 7000,
-          avg_response_time: 180,
-          error_rate: 0.015,
-          throughput: 8.2
-        }}
+        {:ok,
+         %{
+           total_requests: 7000,
+           avg_response_time: 180,
+           error_rate: 0.015,
+           throughput: 8.2
+         }}
 
       "30d" ->
-        {:ok, %{
-          total_requests: 30000,
-          avg_response_time: 200,
-          error_rate: 0.02,
-          throughput: 6.8
-        }}
+        {:ok,
+         %{
+           total_requests: 30000,
+           avg_response_time: 200,
+           error_rate: 0.02,
+           throughput: 6.8
+         }}
 
       _ ->
         {:error, "Unsupported time range"}

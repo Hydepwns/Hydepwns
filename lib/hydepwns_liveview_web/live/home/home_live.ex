@@ -201,10 +201,10 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
       <!-- Theme Information Display -->
       <div class="theme-info" style="background: #f8f9fa; padding: 10px; margin: 10px; border-radius: 5px; border: 1px solid #dee2e6;">
         <div class="theme-applied" style="font-weight: bold; color: #495057;">
-          Current Theme: <%= @current_theme.name %>
+          Current Theme: {@current_theme.name}
         </div>
         <div class="theme-type" style="color: #6c757d; font-size: 0.9em;">
-          Mode: <%= @current_theme.mode %>
+          Mode: {@current_theme.mode}
         </div>
       </div>
 

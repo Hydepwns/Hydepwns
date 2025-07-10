@@ -1,7 +1,8 @@
 defmodule HydepwnsLiveview.RateLimitCleanup do
   use GenServer
 
-  @cleanup_interval 60_000  # 1 minute
+  # 1 minute
+  @cleanup_interval 60_000
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)

@@ -14,10 +14,12 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
   setup do
     # Temporarily set repo to use real database for integration tests
     Application.put_env(:hydepwns_liveview, :repo, HydepwnsLiveview.Repo)
+
     on_exit(fn ->
       # Restore mock repo after test
       Application.put_env(:hydepwns_liveview, :repo, HydepwnsLiveview.RepoMock)
     end)
+
     :ok
   end
 
@@ -28,37 +30,41 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
     # Set up mocks for external services
     HydepwnsLiveview.MockExternalAPI
     |> stub(:fetch_data, fn id ->
-      {:ok, %{
-        "id" => id,
-        "name" => "Security Test Resource",
-        "type" => "test",
-        "status" => "active"
-      }}
+      {:ok,
+       %{
+         "id" => id,
+         "name" => "Security Test Resource",
+         "type" => "test",
+         "status" => "active"
+       }}
     end)
 
     # Create test users with different roles
-    {:ok, regular_user} = Accounts.register_user(%{
-      email: "security_test@example.com",
-      password: "password123",
-      password_confirmation: "password123",
-      name: "Security Test User"
-    })
+    {:ok, regular_user} =
+      Accounts.register_user(%{
+        email: "security_test@example.com",
+        password: "password123",
+        password_confirmation: "password123",
+        name: "Security Test User"
+      })
 
-    {:ok, admin_user} = Accounts.register_user(%{
-      email: "admin_security@example.com",
-      password: "admin123",
-      password_confirmation: "admin123",
-      name: "Admin Security User"
-    })
+    {:ok, admin_user} =
+      Accounts.register_user(%{
+        email: "admin_security@example.com",
+        password: "admin123",
+        password_confirmation: "admin123",
+        name: "Admin Security User"
+      })
 
     # Create test resource
-    {:ok, resource} = ResourceSystem.create_resource(%{
-      name: "Security Test Resource",
-      description: "Resource for security testing",
-      type: "document",
-      status: "published",
-      content: %{text: "Test content"}
-    })
+    {:ok, resource} =
+      ResourceSystem.create_resource(%{
+        name: "Security Test Resource",
+        description: "Resource for security testing",
+        type: "document",
+        status: "published",
+        content: %{text: "Test content"}
+      })
 
     {:ok, regular_user: regular_user, admin_user: admin_user, resource: resource}
   end
@@ -67,11 +73,13 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
     test "prevents access to protected endpoints without authentication", %{conn: conn} do
       # Try to access protected endpoint without authentication
       conn = get(conn, "/users/settings")
-      assert conn.status == 302  # Redirect to login
+      # Redirect to login
+      assert conn.status == 302
 
       # Try to access API endpoint without authentication
       conn = get(conn, "/api/users/profile")
-      assert conn.status == 401  # Unauthorized
+      # Unauthorized
+      assert conn.status == 401
 
       response = json_response(conn, 401)
       assert response["error"] == "Unauthorized"
@@ -126,6 +134,7 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
 
           # Should redirect to login page
           assert_redirect(view, "/users/log_in")
+
         {:error, {:redirect, %{to: "/users/log_in"}}} ->
           # Already redirected to login, which is expected
           assert true
@@ -135,18 +144,21 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
     test "prevents brute force attacks", %{conn: conn} do
       # Try multiple failed login attempts
       for i <- 1..10 do
-        conn = post(conn, "/users/log_in", %{
-          "user" => %{
-            "email" => "nonexistent@example.com",
-            "password" => "wrong_password"
-          }
-        })
+        conn =
+          post(conn, "/users/log_in", %{
+            "user" => %{
+              "email" => "nonexistent@example.com",
+              "password" => "wrong_password"
+            }
+          })
 
         if i < 5 do
-          assert conn.status == 422  # Validation error
+          # Validation error
+          assert conn.status == 422
         else
           # After multiple attempts, should implement rate limiting
-          assert conn.status in [422, 429]  # Validation error or rate limited
+          # Validation error or rate limited
+          assert conn.status in [422, 429]
         end
       end
     end
@@ -161,7 +173,8 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
       # Try to access admin-only endpoint
       conn = conn |> put_req_header("authorization", "Bearer #{token}")
       conn = get(conn, "/api/admin/users")
-      assert conn.status == 403  # Forbidden
+      # Forbidden
+      assert conn.status == 403
 
       response = json_response(conn, 403)
       assert response["error"] == "Forbidden"
@@ -174,9 +187,11 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
 
       # Try to modify user role to admin
       conn = conn |> put_req_header("authorization", "Bearer #{token}")
-      conn = put(conn, "/api/users/#{user.id}", %{
-        "user" => %{"role" => "admin"}
-      })
+
+      conn =
+        put(conn, "/api/users/#{user.id}", %{
+          "user" => %{"role" => "admin"}
+        })
 
       # Should be forbidden
       assert conn.status == 403
@@ -184,12 +199,13 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
 
     test "enforces resource ownership", %{conn: conn, regular_user: user, admin_user: admin} do
       # Create resource owned by admin
-      {:ok, admin_resource} = ResourceSystem.create_resource(%{
-        name: "Admin Resource",
-        type: "document",
-        status: "published",
-        owner_id: admin.id
-      })
+      {:ok, admin_resource} =
+        ResourceSystem.create_resource(%{
+          name: "Admin Resource",
+          type: "document",
+          status: "published",
+          owner_id: admin.id
+        })
 
       # Try to access as regular user
       token = Accounts.generate_user_session_token(user)
@@ -197,7 +213,8 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
       conn = get(conn, "/api/resources/#{admin_resource.id}")
 
       # Should be forbidden unless user has permission
-      assert conn.status in [403, 404]  # Forbidden or Not Found
+      # Forbidden or Not Found
+      assert conn.status in [403, 404]
     end
 
     test "validates API permissions", %{conn: conn, regular_user: user} do
@@ -214,7 +231,8 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
 
       Enum.each(endpoints, fn endpoint ->
         conn = get(conn, endpoint)
-        assert conn.status == 403  # Forbidden
+        # Forbidden
+        assert conn.status == 403
       end)
     end
   end
@@ -261,14 +279,15 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
 
       Enum.each(xss_payloads, fn xss_payload ->
         # Try to create resource with XSS payload
-        conn = post(conn, "/api/resources", %{
-          "resource" => %{
-            "name" => xss_payload,
-            "description" => xss_payload,
-            "type" => "document",
-            "status" => "published"
-          }
-        })
+        conn =
+          post(conn, "/api/resources", %{
+            "resource" => %{
+              "name" => xss_payload,
+              "description" => xss_payload,
+              "type" => "document",
+              "status" => "published"
+            }
+          })
 
         if conn.status == 201 do
           response = json_response(conn, 201)
@@ -285,15 +304,17 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
       # API endpoints require authentication, so they return 401 before CSRF check
 
       # Try to make request to browser endpoint without CSRF token
-      conn = post(conn, "/users/log_in", %{
-        "user" => %{
-          "email" => "test@example.com",
-          "password" => "password123"
-        }
-      })
+      conn =
+        post(conn, "/users/log_in", %{
+          "user" => %{
+            "email" => "test@example.com",
+            "password" => "password123"
+          }
+        })
 
       # Should be redirected due to missing CSRF token
-      assert conn.status == 302  # Redirect (default Phoenix behavior)
+      # Redirect (default Phoenix behavior)
+      assert conn.status == 302
     end
 
     test "validates file uploads", %{conn: conn, regular_user: user} do
@@ -310,9 +331,10 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
 
       Enum.each(malicious_files, fn malicious_file ->
         # Try to upload malicious file
-        conn = post(conn, "/api/upload", %{
-          "file" => malicious_file
-        })
+        conn =
+          post(conn, "/api/upload", %{
+            "file" => malicious_file
+          })
 
         # Should be rejected
         assert conn.status in [400, 403, 422]
@@ -331,13 +353,14 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
 
       Enum.each(command_injections, fn injection ->
         # Try to use in various inputs
-        conn = post(conn, "/api/resources", %{
-          "resource" => %{
-            "name" => injection,
-            "type" => "document",
-            "status" => "published"
-          }
-        })
+        conn =
+          post(conn, "/api/resources", %{
+            "resource" => %{
+              "name" => injection,
+              "type" => "document",
+              "status" => "published"
+            }
+          })
 
         # Should handle gracefully
         assert conn.status in [201, 400, 422]
@@ -358,12 +381,13 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
       password = "sensitive_password"
 
       # Create user with password
-      {:ok, user} = Accounts.register_user(%{
-        email: "encryption_test@example.com",
-        password: password,
-        password_confirmation: password,
-        name: "Encryption Test User"
-      })
+      {:ok, user} =
+        Accounts.register_user(%{
+          email: "encryption_test@example.com",
+          password: password,
+          password_confirmation: password,
+          name: "Encryption Test User"
+        })
 
       # Password should be encrypted in database
       # This would require database access to verify
@@ -403,14 +427,15 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
 
       Enum.each(sensitive_data, fn sensitive ->
         # Try to create resource with sensitive data
-        test_conn = post(conn, "/api/resources", %{
-          "resource" => %{
-            "name" => "Test Resource",
-            "description" => "Contains #{sensitive}",
-            "type" => "document",
-            "status" => "published"
-          }
-        })
+        test_conn =
+          post(conn, "/api/resources", %{
+            "resource" => %{
+              "name" => "Test Resource",
+              "description" => "Contains #{sensitive}",
+              "type" => "document",
+              "status" => "published"
+            }
+          })
 
         if test_conn.status == 201 do
           response = json_response(test_conn, 201)
@@ -439,10 +464,11 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
   describe "API Security" do
     test "implements rate limiting", %{conn: conn} do
       # Test rate limiting
-      responses = for _ <- 1..20 do
-        conn = get(conn, "/api/resources")
-        conn.status
-      end
+      responses =
+        for _ <- 1..20 do
+          conn = get(conn, "/api/resources")
+          conn.status
+        end
 
       # Should eventually hit rate limit
       assert Enum.any?(responses, &(&1 == 429))
@@ -451,10 +477,12 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
     test "validates API versioning", %{conn: conn} do
       # Test API version validation
       conn = get(conn, "/api/v1/resources")
-      assert conn.status in [200, 404]  # Should handle versioning
+      # Should handle versioning
+      assert conn.status in [200, 404]
 
       conn = get(conn, "/api/v999/resources")
-      assert conn.status == 404  # Invalid version
+      # Invalid version
+      assert conn.status == 404
     end
 
     test "implements proper error handling", %{conn: conn} do
@@ -472,7 +500,8 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
       # Test header validation
       conn = conn |> put_req_header("content-type", "invalid/type")
       conn = post(conn, "/api/resources", %{})
-      assert conn.status == 415  # Unsupported Media Type
+      # Unsupported Media Type
+      assert conn.status == 415
     end
   end
 
@@ -504,6 +533,7 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
         {:ok, _view, _html} ->
           # Session works, verify it
           assert true
+
         {:error, {:redirect, %{to: "/users/log_in"}}} ->
           # Redirected to login, which is expected behavior
           assert true
@@ -522,23 +552,25 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
       end)
 
       # Trigger security event
-      conn = post(conn, "/users/log_in", %{
-        "user" => %{
-          "email" => "nonexistent@example.com",
-          "password" => "wrong_password"
-        }
-      })
+      conn =
+        post(conn, "/users/log_in", %{
+          "user" => %{
+            "email" => "nonexistent@example.com",
+            "password" => "wrong_password"
+          }
+        })
 
       # Log the security event
-      result = HydepwnsLiveview.MockSecurityLogger.log_security_event(
-        "failed_login",
-        %{"email" => "nonexistent@example.com", "ip" => "127.0.0.1"}
-      )
+      result =
+        HydepwnsLiveview.MockSecurityLogger.log_security_event(
+          "failed_login",
+          %{"email" => "nonexistent@example.com", "ip" => "127.0.0.1"}
+        )
 
       assert {:ok, "event-logged"} = result
     end
 
-        test "detects suspicious activity", %{conn: conn} do
+    test "detects suspicious activity", %{conn: conn} do
       # Mock suspicious activity detection
       HydepwnsLiveview.MockSecurityDetector
       |> expect(:detect_suspicious_activity, fn activity ->
@@ -558,16 +590,17 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
       end
 
       # Detect suspicious activity
-      result = HydepwnsLiveview.MockSecurityDetector.detect_suspicious_activity(%{
-        "type" => "multiple_failed_logins",
-        "count" => 10,
-        "ip" => "127.0.0.1"
-      })
+      result =
+        HydepwnsLiveview.MockSecurityDetector.detect_suspicious_activity(%{
+          "type" => "multiple_failed_logins",
+          "count" => 10,
+          "ip" => "127.0.0.1"
+        })
 
       assert {:warning, "Suspicious activity detected"} = result
     end
 
-        test "implements security alerts", %{conn: conn} do
+    test "implements security alerts", %{conn: conn} do
       # Mock security alerting
       HydepwnsLiveview.MockSecurityAlerting
       |> expect(:send_alert, fn alert_type, details ->
@@ -577,14 +610,15 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
       end)
 
       # Send security alert
-      result = HydepwnsLiveview.MockSecurityAlerting.send_alert(
-        "security_breach",
-        %{
-          "severity" => "high",
-          "description" => "Potential security breach detected",
-          "timestamp" => DateTime.utc_now()
-        }
-      )
+      result =
+        HydepwnsLiveview.MockSecurityAlerting.send_alert(
+          "security_breach",
+          %{
+            "severity" => "high",
+            "description" => "Potential security breach detected",
+            "timestamp" => DateTime.utc_now()
+          }
+        )
 
       assert {:ok, "alert-sent"} = result
     end

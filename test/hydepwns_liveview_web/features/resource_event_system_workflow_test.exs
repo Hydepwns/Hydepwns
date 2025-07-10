@@ -35,6 +35,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
     case Process.whereis(HydepwnsLiveview.TestSupport.MockEventStore) do
       nil ->
         {:ok, pid} = start_supervised(HydepwnsLiveview.TestSupport.MockEventStore)
+
       pid ->
         :ok
     end
@@ -43,13 +44,14 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
     TestMockHelper.setup_mocks()
 
     # Create a test resource for tests that need it
-    {:ok, resource} = ResourceFixtures.create_test_resource(%{
-      name: "Event Test Resource",
-      status: "published",
-      type: "document",
-      description: "A resource for testing event generation",
-      content: %{text: "Test content"}
-    })
+    {:ok, resource} =
+      ResourceFixtures.create_test_resource(%{
+        name: "Event Test Resource",
+        status: "published",
+        type: "document",
+        description: "A resource for testing event generation",
+        content: %{text: "Test content"}
+      })
 
     # Visit resources page and wait for it to load
     session = visit_and_wait(session, "/resources")
@@ -60,8 +62,14 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
 
     # Debug: Check page source to see what's rendered
     page_source = Wallaby.Browser.page_source(session)
-    IO.puts("DEBUG: Page source contains resource name: #{String.contains?(page_source, resource.name)}")
-    IO.puts("DEBUG: Page source contains 'No resources found': #{String.contains?(page_source, "No resources found")}")
+
+    IO.puts(
+      "DEBUG: Page source contains resource name: #{String.contains?(page_source, resource.name)}"
+    )
+
+    IO.puts(
+      "DEBUG: Page source contains 'No resources found': #{String.contains?(page_source, "No resources found")}"
+    )
 
     # Wait for the resource to be visible on the page
     session = wait_for_text(session, resource.name, timeout: 5000)
@@ -138,7 +146,12 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
       IO.puts("DEBUG: All events in MockEventStore: #{inspect(all_events)}")
 
       # Debug: Check events for this specific resource
-      {:ok, resource_events} = HydepwnsLiveview.TestSupport.MockEventStore.get_events_for_resource("document", resource.id)
+      {:ok, resource_events} =
+        HydepwnsLiveview.TestSupport.MockEventStore.get_events_for_resource(
+          "document",
+          resource.id
+        )
+
       IO.puts("DEBUG: Events for resource #{resource.id}: #{inspect(resource_events)}")
 
       # Navigate to events page for this resource
@@ -146,8 +159,14 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
 
       # Debug: Check page source to see what's rendered
       page_source = Wallaby.Browser.page_source(session)
-      IO.puts("DEBUG: Page source contains 'event-row': #{String.contains?(page_source, "event-row")}")
-      IO.puts("DEBUG: Page source contains 'document.updated': #{String.contains?(page_source, "document.updated")}")
+
+      IO.puts(
+        "DEBUG: Page source contains 'event-row': #{String.contains?(page_source, "event-row")}"
+      )
+
+      IO.puts(
+        "DEBUG: Page source contains 'document.updated': #{String.contains?(page_source, "document.updated")}"
+      )
 
       # Continue with session chain
       session = wait_for_text(session, "document.updated", timeout: 10_000)
@@ -157,7 +176,10 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
       assert length(updated_events) >= 1
 
       # Verify the event type contains "updated"
-      Wallaby.Browser.assert_has(session, css("[data-test-id='event-type']", text: "document.updated"))
+      Wallaby.Browser.assert_has(
+        session,
+        css("[data-test-id='event-type']", text: "document.updated")
+      )
     end
 
     test "resource deletion generates events", %{session: session, resource: resource} do
@@ -184,13 +206,16 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
 
       # Use fallback helper to find event rows
       import HydepwnsLiveviewWeb.TestHelpers.WallabyFallback
-      event_rows = find_elements_with_fallback(
-        new_session,
-        ".event-row",
-        common_patterns().event_row,
-        ["Event Test Resource", "deleted"],
-        5000
-      )
+
+      event_rows =
+        find_elements_with_fallback(
+          new_session,
+          ".event-row",
+          common_patterns().event_row,
+          ["Event Test Resource", "deleted"],
+          5000
+        )
+
       assert length(event_rows) >= 1
 
       # Verify the deleted resource ID is present in the event
@@ -206,13 +231,14 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
   describe "event visualization and monitoring" do
     test "user can view event timeline", %{session: session} do
       # Create a test resource for timeline testing
-      {:ok, _resource} = ResourceFixtures.create_test_resource(%{
-        name: "Event Test Resource",
-        status: "published",
-        type: "document",
-        description: "A resource for testing event generation",
-        content: %{text: "Test content"}
-      })
+      {:ok, _resource} =
+        ResourceFixtures.create_test_resource(%{
+          name: "Event Test Resource",
+          status: "published",
+          type: "document",
+          description: "A resource for testing event generation",
+          content: %{text: "Test content"}
+        })
 
       # Navigate to timeline page
       session = visit(session, "/timeline")
@@ -228,13 +254,14 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
 
     test "user can filter events", %{session: session} do
       # Create a test resource for filtering
-      {:ok, resource} = ResourceFixtures.create_test_resource(%{
-        name: "Filter Test Resource",
-        status: "published",
-        type: "document",
-        description: "A resource for testing event filtering",
-        content: %{text: "Filter test content"}
-      })
+      {:ok, resource} =
+        ResourceFixtures.create_test_resource(%{
+          name: "Filter Test Resource",
+          status: "published",
+          type: "document",
+          description: "A resource for testing event filtering",
+          content: %{text: "Filter test content"}
+        })
 
       # Navigate to resources page and wait for the resource to appear
       session = visit(session, "/resources")
@@ -249,7 +276,11 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
       session = wait_for_text(session, "Edit Resource")
 
       # Update the resource to generate events
-      session = fill_in(session, Query.text_field("resource[description]"), with: "Updated for filter test")
+      session =
+        fill_in(session, Query.text_field("resource[description]"),
+          with: "Updated for filter test"
+        )
+
       session = click(session, Query.button("Save Resource"))
 
       # Wait for the update to complete and navigate to events
@@ -328,11 +359,13 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
       session
       |> click(Query.css("[data-test-id='create-resource-link']"))
       |> wait_for_element(css("form"))
-      |> fill_in(text_field("resource[name]"), with: "")  # Empty name should cause validation error
+      # Empty name should cause validation error
+      |> fill_in(text_field("resource[name]"), with: "")
       |> click(button("Create Resource"))
 
       # Verify error message is displayed (check for validation error)
-      assert has_text?(session, "can't be blank") || has_text?(session, "is invalid") || has_text?(session, "required")
+      assert has_text?(session, "can't be blank") || has_text?(session, "is invalid") ||
+               has_text?(session, "required")
 
       # Fix the error and create successfully
       session

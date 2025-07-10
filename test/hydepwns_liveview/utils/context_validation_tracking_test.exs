@@ -77,7 +77,7 @@ defmodule HydepwnsLiveview.Utils.ContextValidationTrackingTest do
         if Map.get(metadata, :context_validation) do
           # Apply changes first, then validate the updated resource
           updated_resource = Map.merge(resource, changes)
-          
+
           # Simulate validation rules
           validation_rules = Map.get(metadata, :validation_rules, [])
           validation_context = Map.get(metadata, :validation_context, %{})

@@ -72,7 +72,8 @@ defmodule HydepwnsLiveviewWeb.TestErrorLive do
     end
   end
 
-  def handle_event(event, params, socket) when event not in ["update_count", "update_status", "update_settings"] do
+  def handle_event(event, params, socket)
+      when event not in ["update_count", "update_status", "update_settings"] do
     require Logger
 
     Logger.warning(

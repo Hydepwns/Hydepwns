@@ -16,34 +16,58 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResourceTest d
     # Required by the macro - note: create_events/2 (id, params)
     def create_events(id, params) do
       resource_id = id || params[:id] || "test-resource-#{System.unique_integer()}"
-      {:ok, [
-        %{type: "resource.created", data: params, resource_id: resource_id, resource_type: resource_type()}
-      ]}
+
+      {:ok,
+       [
+         %{
+           type: "resource.created",
+           data: params,
+           resource_id: resource_id,
+           resource_type: resource_type()
+         }
+       ]}
     end
 
     def create_update_events(resource, params) do
       # The resource parameter is the event data, extract the ID from it
       resource_id = resource[:id] || resource[:resource_id] || "unknown"
+
       [
-        %{type: "resource.updated", data: params, resource_id: resource_id, resource_type: resource_type()}
+        %{
+          type: "resource.updated",
+          data: params,
+          resource_id: resource_id,
+          resource_type: resource_type()
+        }
       ]
     end
 
     def create_delete_events(id, _params) do
-      {:ok, [
-        %{type: "resource.deleted", data: %{}, resource_id: id, resource_type: resource_type()}
-      ]}
+      {:ok,
+       [
+         %{type: "resource.deleted", data: %{}, resource_id: id, resource_type: resource_type()}
+       ]}
     end
 
     def execute_command(resource, "increment", %{amount: amount}) do
       [
-        %{type: "incremented", data: %{amount: amount, previous_value: resource.value}, resource_id: resource.id, resource_type: resource_type()}
+        %{
+          type: "incremented",
+          data: %{amount: amount, previous_value: resource.value},
+          resource_id: resource.id,
+          resource_type: resource_type()
+        }
       ]
     end
 
     def execute_command(resource, "set_value", %{value: value}) do
       [
-        %{type: "value_set", data: %{new_value: value, previous_value: resource.value}, resource_id: resource.id, resource_type: resource_type()}
+        %{
+          type: "value_set",
+          data: %{new_value: value, previous_value: resource.value},
+          resource_id: resource.id,
+          resource_type: resource_type()
+        }
       ]
     end
 
@@ -59,15 +83,19 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResourceTest d
 
     def apply_event(%{type: "resource.created", data: data}, state), do: Map.merge(state, data)
     def apply_event(%{type: "resource.updated", data: data}, state), do: Map.merge(state, data)
+
     def apply_event(%{type: "incremented", data: %{amount: amount}}, state) do
       %{state | value: state.value + amount}
     end
+
     def apply_event(%{type: "value_set", data: %{new_value: value}}, state) do
       %{state | value: value}
     end
+
     def apply_event(%{type: "reset", data: %{}}, state) do
       %{state | value: 0}
     end
+
     def apply_event(_event, state), do: state
   end
 
@@ -141,7 +169,8 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResourceTest d
       assert final_resource.value == 6
 
       # Verify all events were stored
-      EventStoreTestHelper.assert_event_count(4, TestResource, resource_id) # created + 3 increments
+      # created + 3 increments
+      EventStoreTestHelper.assert_event_count(4, TestResource, resource_id)
     end
 
     test "handles reset command" do

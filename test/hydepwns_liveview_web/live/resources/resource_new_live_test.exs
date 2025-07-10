@@ -3,6 +3,7 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLiveTest do
   import Mox
   setup :set_mox_from_context
   setup :verify_on_exit!
+
   import HydepwnsLiveview.TestSupport.ResourceFixtures,
     only: [create_test_resource: 1]
 
@@ -17,14 +18,21 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLiveTest do
     {:ok, %{}}
   end
 
-    describe "resource creation workflow" do
-        test "creates resource and sets flash message", %{session: session} do
+  describe "resource creation workflow" do
+    test "creates resource and sets flash message", %{session: session} do
       session = visit_and_wait(session, "/resources/new")
 
       # Debug: Check what's actually on the page
       page_source = Wallaby.Browser.page_source(session)
-      IO.puts("DEBUG: Page source contains 'resource_name': #{String.contains?(page_source, "resource_name")}")
-      IO.puts("DEBUG: Page source contains 'resource-form': #{String.contains?(page_source, "resource-form")}")
+
+      IO.puts(
+        "DEBUG: Page source contains 'resource_name': #{String.contains?(page_source, "resource_name")}"
+      )
+
+      IO.puts(
+        "DEBUG: Page source contains 'resource-form': #{String.contains?(page_source, "resource-form")}"
+      )
+
       IO.puts("DEBUG: Page source contains 'name': #{String.contains?(page_source, "name")}")
 
       session
@@ -44,17 +52,18 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLiveTest do
       # Note: Flash messages don't persist across LiveView sessions, so we don't test for them
     end
 
-        test "handles validation errors without setting flash", %{session: session} do
+    test "handles validation errors without setting flash", %{session: session} do
       session = visit_and_wait(session, "/resources/new")
 
       session
-      |> fill_in(css("input[name='resource[name]']"), with: "")  # Empty name should trigger validation error
+      # Empty name should trigger validation error
+      |> fill_in(css("input[name='resource[name]']"), with: "")
       |> fill_in(css("textarea[name='resource[description]']"), with: "Test Description")
       |> fill_in(css("select[name='resource[type]']"), with: "document")
       |> fill_in(css("textarea[name='resource[content]']"), with: "{}")
       |> click(css("#resource-form button[type='submit']"))
 
-            # Check that validation error is displayed
+      # Check that validation error is displayed
       Wallaby.Browser.has?(session, css("[data-test-id='name-error']"))
       Wallaby.Browser.has?(session, css("p", text: "can't be blank"))
 
@@ -62,8 +71,10 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLiveTest do
       Wallaby.Browser.has?(session, css("h1", text: "New Resource"))
     end
 
-        test "updates resource and sets flash message", %{session: session} do
-      {:ok, resource} = create_test_resource(%{name: "Original Name", type: "document", status: "published"})
+    test "updates resource and sets flash message", %{session: session} do
+      {:ok, resource} =
+        create_test_resource(%{name: "Original Name", type: "document", status: "published"})
+
       session = visit_and_wait(session, "/resources/#{resource.id}/edit")
 
       session
@@ -98,13 +109,15 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLiveTest do
 
     test "can cancel form submission", %{session: session} do
       session = visit_and_wait(session, "/resources/new")
+
       session
       |> click(css("[data-test-id='cancel-resource-link']"))
+
       Wallaby.Browser.has?(session, css("h1", text: "Resources"))
     end
   end
 
-    describe "flash message rendering" do
+  describe "flash message rendering" do
     test "flash message disappears after being displayed", %{session: session} do
       session = visit_and_wait(session, "/resources/new")
 
@@ -126,7 +139,7 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLiveTest do
     end
   end
 
-    describe "form validation" do
+  describe "form validation" do
     test "validates form fields in real-time", %{session: session} do
       session = visit_and_wait(session, "/resources/new")
 
@@ -154,7 +167,7 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLiveTest do
       |> fill_in(css("textarea[name='resource[content]']"), with: "{}")
       |> click(css("#resource-form button[type='submit']"))
 
-            # Check that validation errors are displayed
+      # Check that validation errors are displayed
       Wallaby.Browser.has?(session, css("[data-test-id='name-error']"))
       Wallaby.Browser.has?(session, css("p", text: "can't be blank"))
 

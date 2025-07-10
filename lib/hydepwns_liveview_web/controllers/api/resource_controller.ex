@@ -11,23 +11,28 @@ defmodule HydepwnsLiveviewWeb.Api.ResourceController do
     # Parse pagination parameters
     page = String.to_integer(params["page"] || "1")
     per_page = String.to_integer(params["per_page"] || "50")
-    limit = min(per_page, 100) # Cap at 100 per page
+    # Cap at 100 per page
+    limit = min(per_page, 100)
     offset = (page - 1) * limit
 
     # Parse filters
     filters = %{}
     filters = if params["type"], do: Map.put(filters, :type, params["type"]), else: filters
     filters = if params["status"], do: Map.put(filters, :status, params["status"]), else: filters
-    filters = if params["parent_id"], do: Map.put(filters, :parent_id, params["parent_id"]), else: filters
+
+    filters =
+      if params["parent_id"], do: Map.put(filters, :parent_id, params["parent_id"]), else: filters
 
     # Get resources with pagination and caching
     opts = [limit: limit, offset: offset, use_cache: true]
 
-    {resources, total_count} = if map_size(filters) > 0 do
-      {ResourceSystem.list_resources_with_filters(filters, opts), ResourceSystem.count_resources(filters)}
-    else
-      {ResourceSystem.list_resources(opts), ResourceSystem.count_resources()}
-    end
+    {resources, total_count} =
+      if map_size(filters) > 0 do
+        {ResourceSystem.list_resources_with_filters(filters, opts),
+         ResourceSystem.count_resources(filters)}
+      else
+        {ResourceSystem.list_resources(opts), ResourceSystem.count_resources()}
+      end
 
     # Calculate pagination metadata
     total_pages = ceil(total_count / limit)
@@ -182,15 +187,32 @@ defmodule HydepwnsLiveviewWeb.Api.ResourceController do
 
   defp sanitize_resource(resource) when is_map(resource) do
     # Convert struct to map first if needed
-    resource_map = case resource do
-      %{__struct__: _} -> Map.from_struct(resource)
-      _ -> resource
-    end
+    resource_map =
+      case resource do
+        %{__struct__: _} -> Map.from_struct(resource)
+        _ -> resource
+      end
 
     # Redact sensitive fields and sanitize strings
     resource_map
     |> Map.take([
-      :id, :name, :type, :status, :description, :content, :metadata, :settings, :version, :parent_id, :child_ids, :tags, :categories, :created_by, :updated_by, :inserted_at, :updated_at
+      :id,
+      :name,
+      :type,
+      :status,
+      :description,
+      :content,
+      :metadata,
+      :settings,
+      :version,
+      :parent_id,
+      :child_ids,
+      :tags,
+      :categories,
+      :created_by,
+      :updated_by,
+      :inserted_at,
+      :updated_at
     ])
     |> Enum.map(fn {k, v} ->
       {k, sanitize_value(v)}
@@ -209,7 +231,7 @@ defmodule HydepwnsLiveviewWeb.Api.ResourceController do
 
   defp sanitize_resource(_), do: %{error: "Invalid resource"}
 
-    defp validate_uuid(id) do
+  defp validate_uuid(id) do
     # Simple UUID v4 validation
     uuid_pattern = ~r/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
     if Regex.match?(uuid_pattern, id), do: :ok, else: :error
@@ -227,7 +249,10 @@ defmodule HydepwnsLiveviewWeb.Api.ResourceController do
 
   defp sanitize_value(%DateTime{} = dt), do: DateTime.to_iso8601(dt)
   defp sanitize_value(%NaiveDateTime{} = dt), do: NaiveDateTime.to_iso8601(dt)
-  defp sanitize_value(val) when is_map(val), do: Enum.into(val, %{}, fn {k, v} -> {k, sanitize_value(v)} end)
+
+  defp sanitize_value(val) when is_map(val),
+    do: Enum.into(val, %{}, fn {k, v} -> {k, sanitize_value(v)} end)
+
   defp sanitize_value(val) when is_list(val), do: Enum.map(val, &sanitize_value/1)
   defp sanitize_value(val), do: val
 end

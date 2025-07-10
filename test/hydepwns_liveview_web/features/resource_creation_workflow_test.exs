@@ -25,7 +25,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
     {:ok, resource: resource}
   end
 
-        test "user can create a new resource", %{session: session} do
+  test "user can create a new resource", %{session: session} do
     unique_name = "Unique Test Resource #{:rand.uniform(10000)}"
 
     # Create resource via API
@@ -80,9 +80,9 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
     |> Wallaby.Browser.assert_has(Query.text("Resources"))
 
     # Wait for the resource to be removed and assert it's no longer present
-    |> fn session ->
-      refute_has(session, Query.link("Resource to Delete"), timeout: 2000)
-      session
-    end.()
+    |> (fn session ->
+          refute_has(session, Query.link("Resource to Delete"), timeout: 2000)
+          session
+        end).()
   end
 end

@@ -11,9 +11,10 @@ defmodule HydepwnsLiveviewWeb.Api.AdminController do
     users = Accounts.list_users()
 
     # Return user data without sensitive information
-    users_data = Enum.map(users, fn user ->
-      sanitize_user(user)
-    end)
+    users_data =
+      Enum.map(users, fn user ->
+        sanitize_user(user)
+      end)
 
     json(conn, %{data: users_data})
   end

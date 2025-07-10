@@ -27,7 +27,10 @@ defmodule HydepwnsLiveviewWeb.Components.UI.GeneralHelpersTest do
 
     test "get_error_message/1 extracts message from different error formats" do
       assert GeneralHelpers.get_error_message(%{message: "Test error"}) == "Test error"
-      assert GeneralHelpers.get_error_message(%{error: %{message: "Nested error"}}) == "Nested error"
+
+      assert GeneralHelpers.get_error_message(%{error: %{message: "Nested error"}}) ==
+               "Nested error"
+
       assert GeneralHelpers.get_error_message("String error") == "String error"
       assert GeneralHelpers.get_error_message(%{}) == "Unknown error"
     end
@@ -44,6 +47,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.GeneralHelpersTest do
         %{module: ModuleA, message: "Error 2"},
         %{module: ModuleB, message: "Error 3"}
       ]
+
       assert GeneralHelpers.most_affected_view(errors) == ModuleA
     end
 
@@ -53,6 +57,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.GeneralHelpersTest do
         %{type: :validation, message: "Error 2"},
         %{type: :system, message: "Error 3"}
       ]
+
       assert GeneralHelpers.most_common_error_type(errors) == :validation
     end
 
@@ -62,6 +67,7 @@ defmodule HydepwnsLiveviewWeb.Components.UI.GeneralHelpersTest do
         %{type: :validation, message: "Error 2"},
         %{type: :system, message: "Error 3"}
       ]
+
       assert GeneralHelpers.unique_error_types(errors) == [:validation, :system]
     end
   end
@@ -69,7 +75,14 @@ defmodule HydepwnsLiveviewWeb.Components.UI.GeneralHelpersTest do
   describe "UI rendering functions" do
     test "render_errors/4 renders error component" do
       errors = [%{message: "Test error"}]
-      _assigns = %{errors: errors, level: :critical, title: "Error Title", content: "Error Content"}
+
+      _assigns = %{
+        errors: errors,
+        level: :critical,
+        title: "Error Title",
+        content: "Error Content"
+      }
+
       html = GeneralHelpers.render_errors(errors, :critical, "Error Title", "Error Content")
       assert html =~ "Error Title"
       assert html =~ "Error Content"
@@ -112,7 +125,9 @@ defmodule HydepwnsLiveviewWeb.Components.UI.GeneralHelpersTest do
 
     test "short_view_name/1 shortens view names" do
       assert GeneralHelpers.short_view_name("HydepwnsLiveviewWeb.UserView") == "User"
-      assert GeneralHelpers.short_view_name("HydepwnsLiveviewWeb.Admin.DashboardView") == "Dashboard"
+
+      assert GeneralHelpers.short_view_name("HydepwnsLiveviewWeb.Admin.DashboardView") ==
+               "Dashboard"
     end
 
     test "status_icon/1 returns appropriate icon" do
@@ -159,4 +174,4 @@ defmodule HydepwnsLiveviewWeb.Components.UI.GeneralHelpersTest do
       assert Enum.all?(result -- [Enum.find(result, &(&1.id == 2))], &(&1.is_default == false))
     end
   end
-end 
+end

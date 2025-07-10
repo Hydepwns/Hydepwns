@@ -39,8 +39,8 @@ defmodule HydepwnsLiveviewWeb.GalleryLive do
                 <div class="relative">
                   <img src={image.url} alt={image.title} class="w-full h-48 object-cover rounded-lg" />
                   <div class="mt-2">
-                    <h4 class="text-sm font-medium"><%= image.title %></h4>
-                    <p class="text-xs text-gray-500"><%= image.description %></p>
+                    <h4 class="text-sm font-medium">{image.title}</h4>
+                    <p class="text-xs text-gray-500">{image.description}</p>
                   </div>
                 </div>
               <% end %>

@@ -12,4 +12,4 @@ defmodule HydepwnsLiveview.Events.Adapters.MockEmailAdapter do
     Logger.info("Mock email sent to #{reminder.recipient}")
     {:ok, "Mock email sent successfully"}
   end
-end 
+end

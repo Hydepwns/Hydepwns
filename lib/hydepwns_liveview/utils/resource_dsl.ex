@@ -13,12 +13,10 @@ defmodule HydepwnsLiveview.Utils.ResourceDSL do
 
       # Only define struct if not already defined
       if !Module.defines?(__MODULE__, {:__struct__, 0}) do
-        @struct_fields (
-          Module.get_attribute(__MODULE__, :attributes)
-          |> Enum.map(fn {name, _} -> name end)
-          |> Enum.concat([:__resource_module__])
-          |> Enum.uniq()
-        )
+        @struct_fields Module.get_attribute(__MODULE__, :attributes)
+                       |> Enum.map(fn {name, _} -> name end)
+                       |> Enum.concat([:__resource_module__])
+                       |> Enum.uniq()
         defstruct @struct_fields
       end
 

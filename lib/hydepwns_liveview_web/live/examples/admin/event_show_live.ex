@@ -66,39 +66,39 @@ defmodule HydepwnsLiveviewWeb.Admin.EventShowLive do
           <div class="px-6 py-4">
             <div class="mb-4">
               <h2 class="text-lg font-semibold text-gray-900">Name</h2>
-              <p class="mt-1 text-gray-600"><%= @event.name %></p>
+              <p class="mt-1 text-gray-600">{@event.name}</p>
             </div>
 
             <div class="mb-4">
               <h2 class="text-lg font-semibold text-gray-900">Description</h2>
-              <p class="mt-1 text-gray-600"><%= @event.description %></p>
+              <p class="mt-1 text-gray-600">{@event.description}</p>
             </div>
 
             <div class="mb-4">
               <h2 class="text-lg font-semibold text-gray-900">Date</h2>
-              <p class="mt-1 text-gray-600"><%= Calendar.strftime(@event.date, "%B %d, %Y at %I:%M %p") %></p>
+              <p class="mt-1 text-gray-600">{Calendar.strftime(@event.date, "%B %d, %Y at %I:%M %p")}</p>
             </div>
 
             <div class="mb-4">
               <h2 class="text-lg font-semibold text-gray-900">Location</h2>
-              <p class="mt-1 text-gray-600"><%= @event.location %></p>
+              <p class="mt-1 text-gray-600">{@event.location}</p>
             </div>
 
             <div class="mb-4">
               <h2 class="text-lg font-semibold text-gray-900">Status</h2>
               <span class={"mt-1 px-2 inline-flex text-xs leading-5 font-semibold rounded-full #{event_status_class(@event.status)}"}>
-                <%= @event.status %>
+                {@event.status}
               </span>
             </div>
 
             <div class="mb-4">
               <h2 class="text-lg font-semibold text-gray-900">Created</h2>
-              <p class="mt-1 text-gray-600"><%= Calendar.strftime(@event.inserted_at, "%B %d, %Y at %I:%M %p") %></p>
+              <p class="mt-1 text-gray-600">{Calendar.strftime(@event.inserted_at, "%B %d, %Y at %I:%M %p")}</p>
             </div>
 
             <div>
               <h2 class="text-lg font-semibold text-gray-900">Last Updated</h2>
-              <p class="mt-1 text-gray-600"><%= Calendar.strftime(@event.updated_at, "%B %d, %Y at %I:%M %p") %></p>
+              <p class="mt-1 text-gray-600">{Calendar.strftime(@event.updated_at, "%B %d, %Y at %I:%M %p")}</p>
             </div>
           </div>
         </div>

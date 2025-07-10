@@ -37,4 +37,4 @@ defmodule HydepwnsLiveviewWeb.Event.EventShowLive do
     </div>
     """
   end
-end 
+end

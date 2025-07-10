@@ -20,13 +20,13 @@ defmodule HydepwnsLiveview.Resources.PostResource do
 
   # Demonstrate belongs_to relationship
   belongs_to(:author, HydepwnsLiveview.Resources.UserResource, foreign_key: :author_id)
-  
+
   # Demonstrate belongs_to with custom foreign key
   belongs_to(:category, HydepwnsLiveview.Resources.CategoryResource, foreign_key: :category_id)
 
   # Demonstrate has_many relationship
   has_many(:comments, HydepwnsLiveview.Resources.CommentResource, foreign_key: :post_id)
-  
+
   # Demonstrate has_many with custom foreign key
   has_many(:revisions, HydepwnsLiveview.Resources.RevisionResource, foreign_key: :post_id)
 
@@ -43,16 +43,20 @@ defmodule HydepwnsLiveview.Resources.PostResource do
   has_one_through(:author_profile, through: [:author, :profile])
 
   # Demonstrate polymorphic relationship
-  polymorphic(:commentable, types: [
-    HydepwnsLiveview.Resources.PostResource,
-    HydepwnsLiveview.Resources.CommentResource
-  ])
+  polymorphic(:commentable,
+    types: [
+      HydepwnsLiveview.Resources.PostResource,
+      HydepwnsLiveview.Resources.CommentResource
+    ]
+  )
 
   # Demonstrate polymorphic with options
-  polymorphic(:attachable, types: [
-    HydepwnsLiveview.Resources.MediaResource,
-    HydepwnsLiveview.Resources.DocumentResource
-  ])
+  polymorphic(:attachable,
+    types: [
+      HydepwnsLiveview.Resources.MediaResource,
+      HydepwnsLiveview.Resources.DocumentResource
+    ]
+  )
 
   validate(:title_not_empty, fn resource ->
     if resource.title && String.length(resource.title) > 0 do
@@ -63,7 +67,8 @@ defmodule HydepwnsLiveview.Resources.PostResource do
   end)
 
   validate(:content_required_for_published, fn resource ->
-    if resource.status == "published" && (!resource.content || String.length(resource.content) == 0) do
+    if resource.status == "published" &&
+         (!resource.content || String.length(resource.content) == 0) do
       {:error, "Published posts must have content"}
     else
       :ok
@@ -136,7 +141,8 @@ defmodule HydepwnsLiveview.Resources.PostResource do
   end
 
   defp validate_content_for_published(errors, resource) do
-    if resource.status == "published" && (!resource.content || String.length(resource.content) == 0) do
+    if resource.status == "published" &&
+         (!resource.content || String.length(resource.content) == 0) do
       ["Published posts must have content" | errors]
     else
       errors
@@ -165,18 +171,18 @@ defmodule HydepwnsLiveview.Resources.PostResource do
         else
           {:ok, nil}
         end
-      
+
       :comments ->
         # In a real implementation, this would query for comments
         {:ok, []}
-      
+
       :category ->
         if resource.category_id do
           HydepwnsLiveview.Resources.CategoryResource.load(resource.category_id)
         else
           {:ok, nil}
         end
-      
+
       _ ->
         {:error, "Unknown relationship: #{relationship_name}"}
     end

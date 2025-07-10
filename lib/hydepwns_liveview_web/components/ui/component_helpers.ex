@@ -81,9 +81,9 @@ defmodule HydepwnsLiveviewWeb.Components.UI.ComponentHelpers do
     ~H"""
     <div class="notification">
       <div class="notification-content">
-        <%= @content %>
+        {@content}
       </div>
     </div>
     """
   end
-end 
+end

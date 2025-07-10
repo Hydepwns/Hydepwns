@@ -51,7 +51,7 @@ defmodule HydepwnsLiveview.Integration.WebhookAdapter do
 
     if retry_count < max_retries do
       # Implement exponential backoff
-      delay = :math.pow(2, retry_count) * 1000 |> round()
+      delay = (:math.pow(2, retry_count) * 1000) |> round()
       Process.sleep(delay)
 
       Logger.info("Retrying webhook #{webhook_id} (attempt #{retry_count + 1})")
@@ -97,7 +97,8 @@ defmodule HydepwnsLiveview.Integration.WebhookAdapter do
   - {:ok, true} if signature is valid
   - {:error, reason} if signature is invalid
   """
-  def validate_signature(payload, signature, secret) when is_binary(signature) and is_binary(secret) do
+  def validate_signature(payload, signature, secret)
+      when is_binary(signature) and is_binary(secret) do
     # In production, this would use proper HMAC validation
     expected_signature = generate_signature(payload, secret)
 
@@ -131,13 +132,14 @@ defmodule HydepwnsLiveview.Integration.WebhookAdapter do
     case URI.parse(url) do
       %URI{scheme: scheme, host: host} when scheme in ["http", "https"] and not is_nil(host) ->
         true
+
       _ ->
         false
     end
   end
 
   defp generate_webhook_id do
-    "wh_" <> :crypto.strong_rand_bytes(16) |> Base.encode16(case: :lower)
+    ("wh_" <> :crypto.strong_rand_bytes(16)) |> Base.encode16(case: :lower)
   end
 
   defp generate_signature(payload, secret) do

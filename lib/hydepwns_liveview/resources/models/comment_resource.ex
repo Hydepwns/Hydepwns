@@ -21,23 +21,30 @@ defmodule HydepwnsLiveview.Resources.CommentResource do
   # Demonstrate belongs_to relationships
   belongs_to(:author, HydepwnsLiveview.Resources.UserResource, foreign_key: :author_id)
   belongs_to(:post, HydepwnsLiveview.Resources.PostResource, foreign_key: :post_id)
-  belongs_to(:parent_comment, HydepwnsLiveview.Resources.CommentResource, foreign_key: :parent_comment_id)
+
+  belongs_to(:parent_comment, HydepwnsLiveview.Resources.CommentResource,
+    foreign_key: :parent_comment_id
+  )
 
   # Demonstrate has_many relationships
   has_many(:replies, HydepwnsLiveview.Resources.CommentResource, foreign_key: :parent_comment_id)
   has_many(:reactions, HydepwnsLiveview.Resources.ReactionResource, foreign_key: :comment_id)
 
   # Demonstrate has_one relationship
-  has_one(:moderation_note, HydepwnsLiveview.Resources.ModerationNoteResource, foreign_key: :comment_id)
+  has_one(:moderation_note, HydepwnsLiveview.Resources.ModerationNoteResource,
+    foreign_key: :comment_id
+  )
 
   # Demonstrate has_many_through relationship
   has_many_through(:author_comments, through: [:author, :comments])
 
   # Demonstrate polymorphic relationship
-  polymorphic(:commentable, types: [
-    HydepwnsLiveview.Resources.PostResource,
-    HydepwnsLiveview.Resources.CommentResource
-  ])
+  polymorphic(:commentable,
+    types: [
+      HydepwnsLiveview.Resources.PostResource,
+      HydepwnsLiveview.Resources.CommentResource
+    ]
+  )
 
   validate(:content_not_empty, fn resource ->
     if resource.content && String.length(resource.content) > 0 do
@@ -127,4 +134,4 @@ defmodule HydepwnsLiveview.Resources.CommentResource do
   def create_events(_params, _metadata), do: {:ok, []}
   def create_update_events(_params, _metadata), do: {:ok, []}
   def create_delete_events(_params, _metadata), do: {:ok, []}
-end 
+end

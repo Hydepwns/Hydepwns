@@ -64,7 +64,7 @@ defmodule HydepwnsLiveviewWeb.UserSecurityLive do
               <HydepwnsLiveviewWeb.Components.UI.FormComponents.label for={f[:current_password].id}>Current Password</HydepwnsLiveviewWeb.Components.UI.FormComponents.label>
               <.input field={f[:current_password]} type="password" />
               <HydepwnsLiveviewWeb.Components.UI.FormComponents.error :for={msg <- Keyword.get_values(f[:current_password].errors, :current_password)}>
-                <%= msg %>
+                {msg}
               </HydepwnsLiveviewWeb.Components.UI.FormComponents.error>
             </div>
 
@@ -72,7 +72,7 @@ defmodule HydepwnsLiveviewWeb.UserSecurityLive do
               <HydepwnsLiveviewWeb.Components.UI.FormComponents.label for={f[:password].id}>New Password</HydepwnsLiveviewWeb.Components.UI.FormComponents.label>
               <.input field={f[:password]} type="password" />
               <HydepwnsLiveviewWeb.Components.UI.FormComponents.error :for={msg <- Keyword.get_values(f[:password].errors, :password)}>
-                <%= msg %>
+                {msg}
               </HydepwnsLiveviewWeb.Components.UI.FormComponents.error>
             </div>
 
@@ -80,7 +80,7 @@ defmodule HydepwnsLiveviewWeb.UserSecurityLive do
               <HydepwnsLiveviewWeb.Components.UI.FormComponents.label for={f[:password_confirmation].id}>Confirm New Password</HydepwnsLiveviewWeb.Components.UI.FormComponents.label>
               <.input field={f[:password_confirmation]} type="password" />
               <HydepwnsLiveviewWeb.Components.UI.FormComponents.error :for={msg <- Keyword.get_values(f[:password_confirmation].errors, :password_confirmation)}>
-                <%= msg %>
+                {msg}
               </HydepwnsLiveviewWeb.Components.UI.FormComponents.error>
             </div>
 

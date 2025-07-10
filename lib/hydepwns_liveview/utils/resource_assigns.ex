@@ -111,20 +111,22 @@ defmodule HydepwnsLiveview.Utils.ResourceAssigns do
     processed_opts =
       if Keyword.has_key?(opts, :default) do
         default = Keyword.get(opts, :default)
+
         escaped_default =
           case default do
             %{} when map_size(default) == 0 -> Macro.escape(%{})
             m when is_map(m) or is_list(m) -> Macro.escape(m)
             _ -> default
           end
+
         Keyword.put(Keyword.delete(opts, :default), :default, escaped_default)
       else
         opts
       end
-    
+
     # Escape the entire opts keyword list before injecting it into the quoted expression
     escaped_opts = Macro.escape(processed_opts)
-    
+
     quote do
       @resource_attributes {unquote(name), unquote(type), unquote(escaped_opts)}
     end
@@ -135,28 +137,37 @@ defmodule HydepwnsLiveview.Utils.ResourceAssigns do
   """
   defmacro nested_attribute(name, type, opts \\ [], do: block) when type == :map do
     # Compute nested attributes at macro expansion time
-    nested_module = Module.concat(__CALLER__.module, "Nested#{:rand.uniform(1000000)}")
+    nested_module = Module.concat(__CALLER__.module, "Nested#{:rand.uniform(1_000_000)}")
+
     defmodule nested_module do
       Module.register_attribute(__MODULE__, :nested_attributes, accumulate: true)
       _block_result = block
       def get_nested_attributes, do: @nested_attributes
     end
+
     nested_attrs = nested_module.get_nested_attributes()
-    nested_schema = Enum.reduce(nested_attrs, %{}, fn {attr_name, attr_type, attr_opts}, acc ->
-      Map.put(acc, attr_name, HydepwnsLiveview.Utils.ResourceAssigns.build_type_spec(attr_type, attr_opts))
-    end)
-    
+
+    nested_schema =
+      Enum.reduce(nested_attrs, %{}, fn {attr_name, attr_type, attr_opts}, acc ->
+        Map.put(
+          acc,
+          attr_name,
+          HydepwnsLiveview.Utils.ResourceAssigns.build_type_spec(attr_type, attr_opts)
+        )
+      end)
+
     # Build nested defaults
-    nested_defaults = Enum.reduce(nested_attrs, %{}, fn {attr_name, _attr_type, attr_opts}, acc ->
-      if Keyword.has_key?(attr_opts, :default) do
-        Map.put(acc, attr_name, Keyword.get(attr_opts, :default))
-      else
-        acc
-      end
-    end)
-    
+    nested_defaults =
+      Enum.reduce(nested_attrs, %{}, fn {attr_name, _attr_type, attr_opts}, acc ->
+        if Keyword.has_key?(attr_opts, :default) do
+          Map.put(acc, attr_name, Keyword.get(attr_opts, :default))
+        else
+          acc
+        end
+      end)
+
     # Process opts with proper escaping
-    processed_opts = 
+    processed_opts =
       if Keyword.has_key?(opts, :default) do
         # If a default is explicitly provided, use it
         default = Keyword.get(opts, :default)
@@ -165,13 +176,14 @@ defmodule HydepwnsLiveview.Utils.ResourceAssigns do
         # If no default is provided, use the nested defaults
         Keyword.put(opts, :default, nested_defaults)
       end
-    
+
     # Escape the nested_schema before injecting it into the quoted expression
     escaped_nested_schema = Macro.escape(nested_schema)
     escaped_processed_opts = Macro.escape(processed_opts)
-    
+
     quote do
-      @resource_attributes {unquote(name), unquote(escaped_nested_schema), unquote(escaped_processed_opts)}
+      @resource_attributes {unquote(name), unquote(escaped_nested_schema),
+                            unquote(escaped_processed_opts)}
     end
   end
 
@@ -283,15 +295,17 @@ defmodule HydepwnsLiveview.Utils.ResourceAssigns do
   defp build_default_values(attributes) do
     attributes
     |> Enum.filter(fn {_name, _type, opts} -> Keyword.has_key?(opts, :default) end)
-    |> Enum.map(fn {name, _type, opts} -> 
+    |> Enum.map(fn {name, _type, opts} ->
       default = Keyword.get(opts, :default)
       # Ensure the default is a simple value that Phoenix.Component.assign can handle
-      flattened_default = case default do
-        %{} when map_size(default) == 0 -> %{}
-        m when is_map(m) -> m
-        l when is_list(l) -> l
-        other -> other
-      end
+      flattened_default =
+        case default do
+          %{} when map_size(default) == 0 -> %{}
+          m when is_map(m) -> m
+          l when is_list(l) -> l
+          other -> other
+        end
+
       {name, flattened_default}
     end)
     |> Enum.into(%{})

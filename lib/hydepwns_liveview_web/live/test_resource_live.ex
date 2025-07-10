@@ -11,6 +11,7 @@ defmodule HydepwnsLiveviewWeb.TestResourceLive do
       |> Phoenix.Component.assign(:user_role, "user")
       |> Phoenix.Component.assign(:theme, "dark")
       |> Phoenix.Component.assign(:items, [])
+
     Logger.info("[TestResourceLive] do_mount/3 after assigns: #{inspect(socket.assigns)}")
     socket
   end
@@ -66,4 +67,4 @@ defmodule HydepwnsLiveviewWeb.TestResourceLive do
     </div>
     """
   end
-end 
+end

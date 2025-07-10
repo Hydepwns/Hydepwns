@@ -723,11 +723,13 @@ defmodule HydepwnsLiveview.Utils.LiveViewAPI do
           :ok -> {:ok, value}
           {:error, message} -> {:error, message, socket}
         end
+
       :sidebar_open ->
         case SocketValidator.validate_type(value, :boolean) do
           :ok -> {:ok, value}
           {:error, message} -> {:error, message, socket}
         end
+
       _ ->
         {:ok, value}
     end

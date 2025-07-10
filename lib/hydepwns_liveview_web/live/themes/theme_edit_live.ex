@@ -23,7 +23,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeEditLive do
     table_atom = String.to_existing_atom(table)
     Process.put(:theme_system_ets_table, table_atom)
     IO.puts("DEBUG: Set theme_system_ets_table from URL to #{table_atom}")
-    
+
     theme = ThemeSystem.get_theme!(id)
     changeset = ThemeSystem.change_theme(theme)
     {:noreply, assign(socket, :theme, theme) |> assign(:changeset, changeset)}
@@ -39,14 +39,14 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeEditLive do
   @impl Phoenix.LiveView
   def handle_event("save", %{"theme" => theme_params}, socket) do
     case ThemeSystem.update_theme(socket.assigns.theme, theme_params) do
-              {:ok, _theme} ->
-          theme_table = Process.get(:theme_system_ets_table)
-          navigate_to = if theme_table, do: "/themes?theme_table=#{theme_table}", else: ~p"/themes"
-          
-          {:noreply,
-           socket
-           |> put_flash(:info, "Theme updated successfully")
-           |> push_navigate(to: navigate_to)}
+      {:ok, _theme} ->
+        theme_table = Process.get(:theme_system_ets_table)
+        navigate_to = if theme_table, do: "/themes?theme_table=#{theme_table}", else: ~p"/themes"
+
+        {:noreply,
+         socket
+         |> put_flash(:info, "Theme updated successfully")
+         |> push_navigate(to: navigate_to)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :changeset, changeset)}

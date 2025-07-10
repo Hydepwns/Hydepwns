@@ -34,6 +34,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       nil ->
         {:ok, pid} = start_supervised(HydepwnsLiveview.TestSupport.MockEventStore)
         pid
+
       pid ->
         :ok
     end
@@ -41,11 +42,9 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
     # Set up mocks first, before any resource creation
     TestMockHelper.setup_mocks()
 
-
-
     unique = System.unique_integer([:positive])
 
-        # Create resources in test setup (not through UI)
+    # Create resources in test setup (not through UI)
     {:ok, parent} =
       ResourceFixtures.create_test_resource(%{
         id: "parent-#{unique}",
@@ -90,7 +89,8 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       session =
         session
         |> wait_for_flash_message("success", "Resource updated successfully")
-        |> visit_and_wait("/resources")  # Use visit_and_wait instead of force_reload
+        # Use visit_and_wait instead of force_reload
+        |> visit_and_wait("/resources")
         |> wait_for_resource_link(child.id)
         |> click(Wallaby.Query.css("a[data-test-id='resource-link-#{child.id}']"))
         |> wait_for_text(child.name)
@@ -115,7 +115,9 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       session = wait_for_element(session, css("a[data-test-id='events-link']"))
 
       # Debug: Check if events are stored in MockEventStore
-      {:ok, events} = HydepwnsLiveview.TestSupport.MockEventStore.get_events_for_resource("document", child.id)
+      {:ok, events} =
+        HydepwnsLiveview.TestSupport.MockEventStore.get_events_for_resource("document", child.id)
+
       IO.puts("DEBUG: Events in MockEventStore for resource #{child.id}: #{inspect(events)}")
 
       # Continue with session
@@ -126,8 +128,14 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       # Debug: Check what's on the page
       page_source = Wallaby.Browser.page_source(session)
       IO.puts("DEBUG: Page source length: #{String.length(page_source)}")
-      IO.puts("DEBUG: Page source contains 'event-row': #{String.contains?(page_source, "event-row")}")
-      IO.puts("DEBUG: Page source contains 'document.updated': #{String.contains?(page_source, "document.updated")}")
+
+      IO.puts(
+        "DEBUG: Page source contains 'event-row': #{String.contains?(page_source, "event-row")}"
+      )
+
+      IO.puts(
+        "DEBUG: Page source contains 'document.updated': #{String.contains?(page_source, "document.updated")}"
+      )
 
       session
       |> wait_for_element(css(".event-row"))
@@ -199,13 +207,18 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
         end
 
       # Verify second child was created with parent relationship
-      second_child_resource = HydepwnsLiveview.Resources.ResourceSystem.get_resource(second_child.id) |> elem(1)
+      second_child_resource =
+        HydepwnsLiveview.Resources.ResourceSystem.get_resource(second_child.id) |> elem(1)
+
       assert second_child_resource.parent_id == parent.id
 
       # Verify both children have the same parent by checking their resource data
       child_resource = HydepwnsLiveview.Resources.ResourceSystem.get_resource(child.id) |> elem(1)
       assert child_resource.parent_id == parent.id
-      second_child_resource = HydepwnsLiveview.Resources.ResourceSystem.get_resource(second_child.id) |> elem(1)
+
+      second_child_resource =
+        HydepwnsLiveview.Resources.ResourceSystem.get_resource(second_child.id) |> elem(1)
+
       assert second_child_resource.parent_id == parent.id
 
       # Navigate to resources and verify they're all visible
@@ -318,7 +331,9 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       session = Wallaby.Browser.assert_has(session, css("h1", text: child.name))
 
       # Verify that the relationship was removed in the backend
-      updated_child_resource = HydepwnsLiveview.Resources.ResourceSystem.get_resource(child.id) |> elem(1)
+      updated_child_resource =
+        HydepwnsLiveview.Resources.ResourceSystem.get_resource(child.id) |> elem(1)
+
       assert updated_child_resource.parent_id == nil
     end
 
@@ -375,7 +390,9 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
     } do
       # Create relationship from backend using the resource system
       {:ok, _updated_child} =
-        HydepwnsLiveview.Resources.ResourceSystem.update_resource(child.id, %{"parent_id" => parent.id})
+        HydepwnsLiveview.Resources.ResourceSystem.update_resource(child.id, %{
+          "parent_id" => parent.id
+        })
 
       # Verify the relationship was created by checking the child's resource data
       updated_child = HydepwnsLiveview.Resources.ResourceSystem.get_resource(child.id) |> elem(1)

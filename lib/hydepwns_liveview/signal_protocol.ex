@@ -24,6 +24,7 @@ defmodule HydepwnsLiveview.SignalProtocol do
       case :libsignal_protocol_nif.generate_identity_key_pair() do
         {:ok, {public_key, signature}} ->
           {:ok, {public_key, signature}}
+
         {:error, reason} ->
           {:error, reason}
       end
@@ -45,6 +46,7 @@ defmodule HydepwnsLiveview.SignalProtocol do
       case :libsignal_protocol_nif.generate_pre_key(key_id) do
         {:ok, {key_id, public_key}} ->
           {:ok, {key_id, public_key}}
+
         {:error, reason} ->
           {:error, reason}
       end
@@ -58,7 +60,8 @@ defmodule HydepwnsLiveview.SignalProtocol do
   @doc """
   Generates a new signed pre-key.
   """
-  def generate_signed_pre_key(identity_key, key_id) when is_binary(identity_key) and is_integer(key_id) do
+  def generate_signed_pre_key(identity_key, key_id)
+      when is_binary(identity_key) and is_integer(key_id) do
     if @in_test do
       # Use stub in test environment
       SignalNifStub.generate_signed_pre_key(identity_key, key_id)
@@ -66,6 +69,7 @@ defmodule HydepwnsLiveview.SignalProtocol do
       case :libsignal_protocol_nif.generate_signed_pre_key(identity_key, key_id) do
         {:ok, {key_id, public_key, signature}} ->
           {:ok, {key_id, public_key, signature}}
+
         {:error, reason} ->
           {:error, reason}
       end
@@ -79,7 +83,8 @@ defmodule HydepwnsLiveview.SignalProtocol do
   @doc """
   Creates a new session.
   """
-  def create_session(local_identity_key, remote_identity_key) when is_binary(local_identity_key) and is_binary(remote_identity_key) do
+  def create_session(local_identity_key, remote_identity_key)
+      when is_binary(local_identity_key) and is_binary(remote_identity_key) do
     if @in_test do
       # Use stub in test environment
       SignalNifStub.create_session(local_identity_key, remote_identity_key)
@@ -87,6 +92,7 @@ defmodule HydepwnsLiveview.SignalProtocol do
       case :libsignal_protocol_nif.create_session(local_identity_key, remote_identity_key) do
         {:ok, session} ->
           {:ok, session}
+
         {:error, reason} ->
           {:error, reason}
       end
@@ -127,6 +133,7 @@ defmodule HydepwnsLiveview.SignalProtocol do
       case :libsignal_protocol_nif.encrypt_message(session, message) do
         {:ok, ciphertext} ->
           {:ok, ciphertext}
+
         {:error, reason} ->
           {:error, reason}
       end
@@ -148,6 +155,7 @@ defmodule HydepwnsLiveview.SignalProtocol do
       case :libsignal_protocol_nif.decrypt_message(session, ciphertext) do
         {:ok, plaintext} ->
           {:ok, plaintext}
+
         {:error, reason} ->
           {:error, reason}
       end
@@ -199,7 +207,8 @@ defmodule HydepwnsLiveview.SignalProtocol do
   @doc """
   Sets cache size.
   """
-  def set_cache_size(session, chain_key_size, root_key_size) when is_integer(chain_key_size) and is_integer(root_key_size) do
+  def set_cache_size(session, chain_key_size, root_key_size)
+      when is_integer(chain_key_size) and is_integer(root_key_size) do
     if @in_test do
       # Use stub in test environment
       :ok

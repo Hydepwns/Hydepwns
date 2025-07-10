@@ -5,4 +5,4 @@ defmodule HydepwnsLiveviewWeb.MinimalWallabyTest do
     session = visit(session, "/")
     assert has_text?(session, "Hydepwns")
   end
-end 
+end

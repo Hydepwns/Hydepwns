@@ -24,6 +24,7 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
     case Process.whereis(HydepwnsLiveview.TestSupport.MockEventStore) do
       nil ->
         {:ok, _pid} = start_supervised(HydepwnsLiveview.TestSupport.MockEventStore)
+
       _pid ->
         :ok
     end
@@ -60,6 +61,7 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
     test "resource creation with parent relationship", %{conn: conn, parent: parent} do
       {:ok, view, html} = live(conn, "/resources")
       view = element(view, "a[data-test-id='create-resource-link']") |> render_click()
+
       view
       |> form("#resource-form", %{
         "resource[name]" => "New Child Resource",
@@ -67,6 +69,7 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
         "resource[parent_id]" => parent.id
       })
       |> render_submit()
+
       assert_redirect(view, "/resources")
       {:ok, dashboard_view, html} = follow_redirect(view, conn)
       resources = HydepwnsLiveview.Resources.ResourceSystem.list_resources()
@@ -77,12 +80,16 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
     end
 
     test "resource update with parent relationship", %{conn: conn, parent: parent, child: child} do
-      {:ok, updated_child} = HydepwnsLiveview.Resources.ResourceSystem.update_resource(child.id, %{"parent_id" => nil})
+      {:ok, updated_child} =
+        HydepwnsLiveview.Resources.ResourceSystem.update_resource(child.id, %{"parent_id" => nil})
+
       {:ok, view, html} = live(conn, "/resources/#{child.id}")
       assert has_element?(view, "h1", child.name)
 
       # Click edit link and handle the live redirect
-      {:error, {:live_redirect, %{to: edit_path}}} = element(view, "a[data-test-id='edit-resource-link']") |> render_click()
+      {:error, {:live_redirect, %{to: edit_path}}} =
+        element(view, "a[data-test-id='edit-resource-link']") |> render_click()
+
       {:ok, edit_view, html} = live(conn, edit_path)
 
       # Now fill and submit the form on the edit page
@@ -91,6 +98,7 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
         "resource[parent_id]" => parent.id
       })
       |> render_submit()
+
       assert_redirect(edit_view, "/resources/#{child.id}")
       # Instead of follow_redirect, fetch the new LiveView
       {:ok, show_view, html} = live(conn, "/resources/#{child.id}")
@@ -99,8 +107,16 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
       assert has_element?(show_view, "h1", child.name)
     end
 
-    test "resource list updates reflect relationships", %{conn: conn, parent: parent, child: child} do
-      {:ok, updated_child} = HydepwnsLiveview.Resources.ResourceSystem.update_resource(child.id, %{"parent_id" => parent.id})
+    test "resource list updates reflect relationships", %{
+      conn: conn,
+      parent: parent,
+      child: child
+    } do
+      {:ok, updated_child} =
+        HydepwnsLiveview.Resources.ResourceSystem.update_resource(child.id, %{
+          "parent_id" => parent.id
+        })
+
       {:ok, view, html} = live(conn, "/resources")
       assert has_element?(view, "a[data-test-id='resource-link-#{parent.id}']")
       assert has_element?(view, "a[data-test-id='resource-link-#{child.id}']")
@@ -109,44 +125,66 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
     end
 
     test "relationship validation validates compatible resource types", %{conn: conn} do
-      {:ok, document} = ResourceFixtures.create_test_resource(%{
-        id: "document-1667",
-        name: "Test Document",
-        type: "document"
-      })
-      {:ok, folder} = ResourceFixtures.create_test_resource(%{
-        id: "folder-1410",
-        name: "Test Folder",
-        type: "folder"
-      })
+      {:ok, document} =
+        ResourceFixtures.create_test_resource(%{
+          id: "document-1667",
+          name: "Test Document",
+          type: "document"
+        })
+
+      {:ok, folder} =
+        ResourceFixtures.create_test_resource(%{
+          id: "folder-1410",
+          name: "Test Folder",
+          type: "folder"
+        })
+
       {:ok, view, html} = live(conn, "/resources/#{document.id}/edit")
+
       view
       |> form("#resource-form", %{
         "resource[parent_id]" => document.id
       })
       |> render_submit()
+
       assert has_element?(view, "[data-test-id='parent-id-error']")
-      assert has_element?(view, "[data-test-id='parent-id-error']", "Circular relationship detected")
+
+      assert has_element?(
+               view,
+               "[data-test-id='parent-id-error']",
+               "Circular relationship detected"
+             )
+
       view
       |> form("#resource-form", %{
         "resource[parent_id]" => folder.id
       })
       |> render_submit()
+
       assert_redirect(view, "/resources/#{document.id}")
       {:ok, show_view, html} = follow_redirect(view, conn)
-      updated_document = HydepwnsLiveview.Resources.ResourceSystem.get_resource(document.id) |> elem(1)
+
+      updated_document =
+        HydepwnsLiveview.Resources.ResourceSystem.get_resource(document.id) |> elem(1)
+
       assert updated_document.parent_id == folder.id
       assert has_element?(show_view, "h1", document.name)
     end
 
     test "relationship removal works correctly", %{conn: conn, parent: parent, child: child} do
-      {:ok, updated_child} = HydepwnsLiveview.Resources.ResourceSystem.update_resource(child.id, %{"parent_id" => parent.id})
+      {:ok, updated_child} =
+        HydepwnsLiveview.Resources.ResourceSystem.update_resource(child.id, %{
+          "parent_id" => parent.id
+        })
+
       {:ok, view, html} = live(conn, "/resources/#{child.id}/edit")
+
       view
       |> form("#resource-form", %{
         "resource[parent_id]" => ""
       })
       |> render_submit()
+
       assert_redirect(view, "/resources/#{child.id}")
       {:ok, show_view, html} = follow_redirect(view, conn)
       updated_child = HydepwnsLiveview.Resources.ResourceSystem.get_resource(child.id) |> elem(1)
@@ -155,16 +193,30 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
     end
 
     test "circular relationship prevention", %{conn: conn, parent: parent, child: child} do
-      {:ok, updated_child} = HydepwnsLiveview.Resources.ResourceSystem.update_resource(child.id, %{"parent_id" => parent.id})
+      {:ok, updated_child} =
+        HydepwnsLiveview.Resources.ResourceSystem.update_resource(child.id, %{
+          "parent_id" => parent.id
+        })
+
       {:ok, view, html} = live(conn, "/resources/#{parent.id}/edit")
+
       view
       |> form("#resource-form", %{
         "resource[parent_id]" => child.id
       })
       |> render_submit()
+
       assert has_element?(view, "[data-test-id='parent-id-error']")
-      assert has_element?(view, "[data-test-id='parent-id-error']", "Circular relationship detected")
-      updated_parent = HydepwnsLiveview.Resources.ResourceSystem.get_resource(parent.id) |> elem(1)
+
+      assert has_element?(
+               view,
+               "[data-test-id='parent-id-error']",
+               "Circular relationship detected"
+             )
+
+      updated_parent =
+        HydepwnsLiveview.Resources.ResourceSystem.get_resource(parent.id) |> elem(1)
+
       assert updated_parent.parent_id == nil
     end
   end

@@ -20,6 +20,7 @@ defmodule HydepwnsLiveview.Resources.ReactionResource do
 
   validate(:reaction_type_valid, fn resource ->
     valid_types = ["like", "love", "laugh", "sad", "angry"]
+
     if resource.reaction_type && resource.reaction_type in valid_types do
       :ok
     else
@@ -74,6 +75,7 @@ defmodule HydepwnsLiveview.Resources.ReactionResource do
 
   defp validate_reaction_type(errors, resource) do
     valid_types = ["like", "love", "laugh", "sad", "angry"]
+
     if !resource.reaction_type || !(resource.reaction_type in valid_types) do
       ["Invalid reaction type" | errors]
     else
@@ -85,4 +87,4 @@ defmodule HydepwnsLiveview.Resources.ReactionResource do
   def create_events(_params, _metadata), do: {:ok, []}
   def create_update_events(_params, _metadata), do: {:ok, []}
   def create_delete_events(_params, _metadata), do: {:ok, []}
-end 
+end

@@ -67,14 +67,17 @@ defmodule HydepwnsLiveviewWeb.Plugs.RateLimitPlug do
       :ok
     end
   end
+
   defp get_request_count(key) do
     case :ets.lookup(:rate_limits, key) do
       [{^key, count, _timestamp}] -> count
       [] -> 0
     end
   end
+
   defp increment_request_count(key) do
     now = System.system_time(:second)
+
     case :ets.lookup(:rate_limits, key) do
       [{^key, count, _timestamp}] -> :ets.insert(:rate_limits, {key, count + 1, now})
       [] -> :ets.insert(:rate_limits, {key, 1, now})
@@ -91,16 +94,14 @@ defmodule HydepwnsLiveviewWeb.Plugs.RateLimitPlug do
 
       _ ->
         now = System.system_time(:second)
-        cutoff_minute = div(now, 60) - 2  # Keep last 2 minutes
-        cutoff_hour = div(now, 3600) - 2  # Keep last 2 hours
+        # Keep last 2 minutes
+        cutoff_minute = div(now, 60) - 2
+        # Keep last 2 hours
+        cutoff_hour = div(now, 3600) - 2
 
         :ets.select_delete(table_name, [
-          {{:_, :_, :"$1"},
-           [{:<, :"$1", cutoff_minute * 60}],
-           [true]},
-          {{:_, :_, :"$1"},
-           [{:<, :"$1", cutoff_hour * 3600}],
-           [true]}
+          {{:_, :_, :"$1"}, [{:<, :"$1", cutoff_minute * 60}], [true]},
+          {{:_, :_, :"$1"}, [{:<, :"$1", cutoff_hour * 3600}], [true]}
         ])
     end
   end

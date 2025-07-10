@@ -14,14 +14,16 @@ defmodule HydepwnsLiveview.Telemetry.Alerts do
   use GenServer
   require Logger
 
-  @check_interval 30_000 # 30 seconds
+  # 30 seconds
+  @check_interval 30_000
 
   defmodule Alert do
     @moduledoc "Alert structure for telemetry alerts"
 
     defstruct [
       :id,
-      :severity,      # :info, :warning, :critical
+      # :info, :warning, :critical
+      :severity,
       :metric_name,
       :current_value,
       :threshold,
@@ -38,12 +40,15 @@ defmodule HydepwnsLiveview.Telemetry.Alerts do
       :id,
       :name,
       :metric_name,
-      :condition,     # :gt, :lt, :eq, :gte, :lte
+      # :gt, :lt, :eq, :gte, :lte
+      :condition,
       :threshold,
       :severity,
       :enabled,
-      :cooldown,      # seconds
-      :channels       # list of alert channels
+      # seconds
+      :cooldown,
+      # list of alert channels
+      :channels
     ]
   end
 
@@ -115,11 +120,12 @@ defmodule HydepwnsLiveview.Telemetry.Alerts do
     # Start the monitoring process
     schedule_check()
 
-    {:ok, %{
-      rules: default_rules,
-      alert_channels: load_alert_channels(opts),
-      check_interval: Keyword.get(opts, :check_interval, @check_interval)
-    }}
+    {:ok,
+     %{
+       rules: default_rules,
+       alert_channels: load_alert_channels(opts),
+       check_interval: Keyword.get(opts, :check_interval, @check_interval)
+     }}
   end
 
   @impl true
@@ -132,7 +138,7 @@ defmodule HydepwnsLiveview.Telemetry.Alerts do
   @impl true
   def handle_call({:remove_rule, rule_id}, _from, state) do
     :ets.delete(:alert_rules, rule_id)
-    new_rules = Enum.reject(state.rules, & &1.id == rule_id)
+    new_rules = Enum.reject(state.rules, &(&1.id == rule_id))
     {:reply, :ok, %{state | rules: new_rules}}
   end
 
@@ -179,10 +185,12 @@ defmodule HydepwnsLiveview.Telemetry.Alerts do
         name: "High Memory Usage",
         metric_name: "vm.memory.total",
         condition: :gt,
-        threshold: 0.8, # 80%
+        # 80%
+        threshold: 0.8,
         severity: :warning,
         enabled: true,
-        cooldown: 300, # 5 minutes
+        # 5 minutes
+        cooldown: 300,
         channels: [:console, :email]
       },
       %AlertRule{
@@ -201,7 +209,8 @@ defmodule HydepwnsLiveview.Telemetry.Alerts do
         name: "High Validation Error Rate",
         metric_name: "hydepwns.socket.validation.error.count",
         condition: :gt,
-        threshold: 0.1, # 10%
+        # 10%
+        threshold: 0.1,
         severity: :critical,
         enabled: true,
         cooldown: 60,
@@ -212,7 +221,8 @@ defmodule HydepwnsLiveview.Telemetry.Alerts do
         name: "Slow Response Time",
         metric_name: "phoenix.endpoint.stop.duration",
         condition: :gt,
-        threshold: 1000, # 1 second
+        # 1 second
+        threshold: 1000,
         severity: :warning,
         enabled: true,
         cooldown: 120,
@@ -223,7 +233,8 @@ defmodule HydepwnsLiveview.Telemetry.Alerts do
         name: "Slow Database Queries",
         metric_name: "hydepwns_liveview.repo.query.total_time",
         condition: :gt,
-        threshold: 500, # 500ms
+        # 500ms
+        threshold: 500,
         severity: :warning,
         enabled: true,
         cooldown: 180,
@@ -282,18 +293,24 @@ defmodule HydepwnsLiveview.Telemetry.Alerts do
       "vm.memory.total" ->
         memory = :erlang.memory(:total)
         # Use a reasonable default for total system memory if we can't get it
-        total_memory = case :os.type() do
-          {:unix, :linux} ->
-            try do
-              {result, 0} = System.cmd("grep", ["MemTotal", "/proc/meminfo"])
-              [_, value_str | _] = String.split(result, "\\s+")
-              String.to_integer(value_str) * 1024  # Convert KB to bytes
-            rescue
-              _ -> memory * 10  # Fallback: assume 10x current memory
-            end
-          _ ->
-            memory * 10  # Fallback for other systems
-        end
+        total_memory =
+          case :os.type() do
+            {:unix, :linux} ->
+              try do
+                {result, 0} = System.cmd("grep", ["MemTotal", "/proc/meminfo"])
+                [_, value_str | _] = String.split(result, "\\s+")
+                # Convert KB to bytes
+                String.to_integer(value_str) * 1024
+              rescue
+                # Fallback: assume 10x current memory
+                _ -> memory * 10
+              end
+
+            _ ->
+              # Fallback for other systems
+              memory * 10
+          end
+
         {:ok, memory / total_memory}
 
       "vm.total_run_queue_lengths.total" ->
@@ -337,6 +354,7 @@ defmodule HydepwnsLiveview.Telemetry.Alerts do
     case :ets.lookup(:alert_cooldowns, rule.id) do
       [{rule_id, timestamp}] when rule_id == rule.id ->
         DateTime.diff(DateTime.utc_now(), timestamp) < rule.cooldown
+
       _ ->
         false
     end
@@ -365,20 +383,31 @@ defmodule HydepwnsLiveview.Telemetry.Alerts do
 
   defp format_alert_message(rule, value) do
     case rule.condition do
-      :gt -> "#{rule.name}: Current value #{format_value(value)} exceeds threshold #{format_value(rule.threshold)}"
-      :gte -> "#{rule.name}: Current value #{format_value(value)} is at or above threshold #{format_value(rule.threshold)}"
-      :lt -> "#{rule.name}: Current value #{format_value(value)} is below threshold #{format_value(rule.threshold)}"
-      :lte -> "#{rule.name}: Current value #{format_value(value)} is at or below threshold #{format_value(rule.threshold)}"
-      :eq -> "#{rule.name}: Current value #{format_value(value)} equals threshold #{format_value(rule.threshold)}"
+      :gt ->
+        "#{rule.name}: Current value #{format_value(value)} exceeds threshold #{format_value(rule.threshold)}"
+
+      :gte ->
+        "#{rule.name}: Current value #{format_value(value)} is at or above threshold #{format_value(rule.threshold)}"
+
+      :lt ->
+        "#{rule.name}: Current value #{format_value(value)} is below threshold #{format_value(rule.threshold)}"
+
+      :lte ->
+        "#{rule.name}: Current value #{format_value(value)} is at or below threshold #{format_value(rule.threshold)}"
+
+      :eq ->
+        "#{rule.name}: Current value #{format_value(value)} equals threshold #{format_value(rule.threshold)}"
     end
   end
 
   defp format_value(value) when is_float(value) do
     "#{Float.round(value * 100, 1)}%"
   end
+
   defp format_value(value) when is_integer(value) do
     "#{value}"
   end
+
   defp format_value(value), do: "#{value}"
 
   defp process_alert(alert, state) do
@@ -391,6 +420,7 @@ defmodule HydepwnsLiveview.Telemetry.Alerts do
         Enum.each(rule.channels, fn channel ->
           send_alert_to_channel(alert, channel, state.alert_channels)
         end)
+
       _ ->
         Logger.warning("Rule not found for alert: #{alert.metadata.rule_id}")
     end
@@ -418,11 +448,12 @@ defmodule HydepwnsLiveview.Telemetry.Alerts do
   end
 
   defp handle_console_alert(alert) do
-    severity_icon = case alert.severity do
-      :critical -> "🔴"
-      :warning -> "🟡"
-      :info -> "🔵"
-    end
+    severity_icon =
+      case alert.severity do
+        :critical -> "🔴"
+        :warning -> "🟡"
+        :info -> "🔵"
+      end
 
     Logger.warning("""
     #{severity_icon} ALERT: #{alert.message}

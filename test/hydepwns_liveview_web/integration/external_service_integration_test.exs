@@ -14,10 +14,12 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
   setup do
     # Temporarily set repo to use real database for integration tests
     Application.put_env(:hydepwns_liveview, :repo, HydepwnsLiveview.Repo)
+
     on_exit(fn ->
       # Restore mock repo after test
       Application.put_env(:hydepwns_liveview, :repo, HydepwnsLiveview.RepoMock)
     end)
+
     :ok
   end
 
@@ -30,21 +32,23 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
     setup_external_service_mocks()
 
     # Create test user
-    {:ok, user} = Accounts.register_user(%{
-      email: "external_test@example.com",
-      password: "password123",
-      password_confirmation: "password123",
-      name: "External Test User"
-    })
+    {:ok, user} =
+      Accounts.register_user(%{
+        email: "external_test@example.com",
+        password: "password123",
+        password_confirmation: "password123",
+        name: "External Test User"
+      })
 
     # Create test resource
-    {:ok, resource} = ResourceSystem.create_resource(%{
-      name: "External Service Test Resource",
-      description: "Resource for external service testing",
-      type: "document",
-      status: "published",
-      content: %{text: "Test content"}
-    })
+    {:ok, resource} =
+      ResourceSystem.create_resource(%{
+        name: "External Service Test Resource",
+        description: "Resource for external service testing",
+        type: "document",
+        status: "published",
+        content: %{text: "Test content"}
+      })
 
     {:ok, user: user, resource: resource}
   end
@@ -54,17 +58,18 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       # Mock successful API response
       HydepwnsLiveview.MockExternalAPI
       |> expect(:fetch_data, fn id ->
-        {:ok, %{
-          "id" => id,
-          "name" => "External API Resource",
-          "description" => "Fetched from external API",
-          "type" => "external",
-          "status" => "active",
-          "external_metadata" => %{
-            "source" => "external_api",
-            "last_sync" => DateTime.utc_now() |> DateTime.to_iso8601()
-          }
-        }}
+        {:ok,
+         %{
+           "id" => id,
+           "name" => "External API Resource",
+           "description" => "Fetched from external API",
+           "type" => "external",
+           "status" => "active",
+           "external_metadata" => %{
+             "source" => "external_api",
+             "last_sync" => DateTime.utc_now() |> DateTime.to_iso8601()
+           }
+         }}
       end)
 
       # Test API call
@@ -129,11 +134,12 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       end)
 
       # Test email integration
-      result = HydepwnsLiveview.Notifications.EmailAdapter.send_email(
-        "test@example.com",
-        "Test Email",
-        "Test content"
-      )
+      result =
+        HydepwnsLiveview.Notifications.EmailAdapter.send_email(
+          "test@example.com",
+          "Test Email",
+          "Test content"
+        )
 
       assert {:ok, "email-sent-123"} = result
     end
@@ -148,10 +154,11 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       end)
 
       # Test SMS integration
-      result = HydepwnsLiveview.Notifications.Twilio.send_sms(
-        "+1234567890",
-        "Test SMS message"
-      )
+      result =
+        HydepwnsLiveview.Notifications.Twilio.send_sms(
+          "+1234567890",
+          "Test SMS message"
+        )
 
       assert {:ok, "sms-sent-456"} = result
     end
@@ -173,10 +180,11 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
         data: %{action: "test"}
       }
 
-      result = HydepwnsLiveview.Events.Adapters.PushAdapter.send_notification(
-        "device-token-123",
-        notification
-      )
+      result =
+        HydepwnsLiveview.Events.Adapters.PushAdapter.send_notification(
+          "device-token-123",
+          notification
+        )
 
       assert {:ok, "push-sent-789"} = result
     end
@@ -191,10 +199,11 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       end)
 
       # Test analytics integration
-      result = HydepwnsLiveview.Integration.AnalyticsAdapter.track_event(
-        "resource_created",
-        %{"resource_id" => "analytics-test-123"}
-      )
+      result =
+        HydepwnsLiveview.Integration.AnalyticsAdapter.track_event(
+          "resource_created",
+          %{"resource_id" => "analytics-test-123"}
+        )
 
       assert {:ok, "event-tracked"} = result
     end
@@ -218,10 +227,11 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
         "timestamp" => DateTime.utc_now() |> DateTime.to_iso8601()
       }
 
-      result = HydepwnsLiveview.Integration.WebhookAdapter.send_webhook(
-        "https://webhook.example.com/resource-events",
-        webhook_data
-      )
+      result =
+        HydepwnsLiveview.Integration.WebhookAdapter.send_webhook(
+          "https://webhook.example.com/resource-events",
+          webhook_data
+        )
 
       assert {:ok, "webhook-sent"} = result
     end
@@ -234,10 +244,11 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       end)
 
       # Test webhook failure handling
-      result = HydepwnsLiveview.Integration.WebhookAdapter.send_webhook(
-        "https://webhook.example.com/resource-events",
-        %{"event_type" => "resource.created"}
-      )
+      result =
+        HydepwnsLiveview.Integration.WebhookAdapter.send_webhook(
+          "https://webhook.example.com/resource-events",
+          %{"event_type" => "resource.created"}
+        )
 
       assert {:error, "Webhook delivery failed"} = result
     end
@@ -250,10 +261,11 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       end)
 
       # Test webhook call
-      result = HydepwnsLiveview.Integration.WebhookAdapter.send_webhook(
-        "https://webhook.example.com/resource-events",
-        %{"event_type" => "resource.created"}
-      )
+      result =
+        HydepwnsLiveview.Integration.WebhookAdapter.send_webhook(
+          "https://webhook.example.com/resource-events",
+          %{"event_type" => "resource.created"}
+        )
 
       # Should succeed
       assert {:ok, "webhook-retry-success"} = result
@@ -270,11 +282,12 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       end)
 
       # Test signature validation
-      result = HydepwnsLiveview.Integration.WebhookAdapter.validate_signature(
-        "test-payload",
-        "valid-signature",
-        "webhook-secret"
-      )
+      result =
+        HydepwnsLiveview.Integration.WebhookAdapter.validate_signature(
+          "test-payload",
+          "valid-signature",
+          "webhook-secret"
+        )
 
       assert {:ok, true} = result
     end
@@ -308,19 +321,21 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       # Mock synchronization conflict
       HydepwnsLiveview.Integration.ExternalSyncAdapter
       |> expect(:sync_resource, fn _resource ->
-        {:error, :conflict, %{
-          local_version: 1,
-          remote_version: 2,
-          conflict_data: %{name: "Conflicting Name"}
-        }}
+        {:error, :conflict,
+         %{
+           local_version: 1,
+           remote_version: 2,
+           conflict_data: %{name: "Conflicting Name"}
+         }}
       end)
 
       # Test conflict handling
-      result = HydepwnsLiveview.Integration.ExternalSyncAdapter.sync_resource(%{
-        id: "conflict-test-123",
-        name: "Local Resource",
-        version: 1
-      })
+      result =
+        HydepwnsLiveview.Integration.ExternalSyncAdapter.sync_resource(%{
+          id: "conflict-test-123",
+          name: "Local Resource",
+          version: 1
+        })
 
       assert {:error, :conflict, conflict_info} = result
       assert conflict_info.local_version == 1
@@ -332,10 +347,12 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       HydepwnsLiveview.Integration.ExternalSyncAdapter
       |> expect(:incremental_sync, fn since_timestamp ->
         assert since_timestamp != nil
-        {:ok, [
-          %{id: "inc-1", action: "created"},
-          %{id: "inc-2", action: "updated"}
-        ]}
+
+        {:ok,
+         [
+           %{id: "inc-1", action: "created"},
+           %{id: "inc-2", action: "updated"}
+         ]}
       end)
 
       # Test incremental synchronization
@@ -357,10 +374,11 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       end)
 
       # Test failure handling
-      result = HydepwnsLiveview.Integration.ExternalSyncAdapter.sync_resource(%{
-        id: "failure-test-123",
-        name: "Failure Test Resource"
-      })
+      result =
+        HydepwnsLiveview.Integration.ExternalSyncAdapter.sync_resource(%{
+          id: "failure-test-123",
+          name: "Failure Test Resource"
+        })
 
       assert {:error, "External system unavailable"} = result
     end
@@ -372,11 +390,13 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       HydepwnsLiveview.Integration.ExternalServiceMonitor
       |> expect(:check_health, fn service_name ->
         assert service_name == "external_api"
-        {:ok, %{
-          status: "healthy",
-          response_time: 150,
-          last_check: DateTime.utc_now()
-        }}
+
+        {:ok,
+         %{
+           status: "healthy",
+           response_time: 150,
+           last_check: DateTime.utc_now()
+         }}
       end)
 
       # Test health monitoring
@@ -412,11 +432,12 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       end)
 
       # Test metrics tracking
-      result = HydepwnsLiveview.Integration.ExternalServiceMonitor.track_metric(
-        "external_api",
-        "response_time",
-        150.5
-      )
+      result =
+        HydepwnsLiveview.Integration.ExternalServiceMonitor.track_metric(
+          "external_api",
+          "response_time",
+          150.5
+        )
 
       assert {:ok, "metric-tracked"} = result
     end
@@ -433,10 +454,11 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       end)
 
       # Test credential validation
-      result = HydepwnsLiveview.Integration.ExternalServiceAuth.validate_credentials(
-        "external_api",
-        %{api_key: "valid-key"}
-      )
+      result =
+        HydepwnsLiveview.Integration.ExternalServiceAuth.validate_credentials(
+          "external_api",
+          %{api_key: "valid-key"}
+        )
 
       assert {:ok, true} = result
     end
@@ -450,10 +472,11 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       end)
 
       # Test invalid credential handling
-      result = HydepwnsLiveview.Integration.ExternalServiceAuth.validate_credentials(
-        "external_api",
-        %{api_key: "invalid-key"}
-      )
+      result =
+        HydepwnsLiveview.Integration.ExternalServiceAuth.validate_credentials(
+          "external_api",
+          %{api_key: "invalid-key"}
+        )
 
       assert {:error, "Invalid API key"} = result
     end
@@ -468,10 +491,11 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       end)
 
       # Test data encryption
-      result = HydepwnsLiveview.Integration.ExternalServiceAuth.encrypt_data(
-        "sensitive-data",
-        "encryption-key"
-      )
+      result =
+        HydepwnsLiveview.Integration.ExternalServiceAuth.encrypt_data(
+          "sensitive-data",
+          "encryption-key"
+        )
 
       assert {:ok, "encrypted-data"} = result
     end
@@ -490,11 +514,12 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       # Test under load
       start_time = System.monotonic_time(:millisecond)
 
-      tasks = for i <- 1..10 do
-        Task.async(fn ->
-          HydepwnsLiveview.MockExternalAPI.fetch_data("load-test-#{i}")
-        end)
-      end
+      tasks =
+        for i <- 1..10 do
+          Task.async(fn ->
+            HydepwnsLiveview.MockExternalAPI.fetch_data("load-test-#{i}")
+          end)
+        end
 
       results = Task.await_many(tasks)
       end_time = System.monotonic_time(:millisecond)
@@ -502,13 +527,15 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
 
       # Verify all requests succeeded
       assert length(results) == 10
+
       Enum.each(results, fn result ->
         assert {:ok, data} = result
         assert data["name"] == "Load Test Resource"
       end)
 
       # Verify performance is acceptable
-      assert duration < 5000  # Less than 5 seconds for 10 concurrent requests
+      # Less than 5 seconds for 10 concurrent requests
+      assert duration < 5000
     end
 
     test "implements circuit breaker pattern", %{_conn: _conn} do
@@ -521,11 +548,12 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
       end)
 
       # Test circuit breaker
-      result = HydepwnsLiveview.Integration.CircuitBreaker.call(
-        "external_api",
-        "fetch_data",
-        fn -> {:ok, "success"} end
-      )
+      result =
+        HydepwnsLiveview.Integration.CircuitBreaker.call(
+          "external_api",
+          "fetch_data",
+          fn -> {:ok, "success"} end
+        )
 
       assert {:ok, "circuit-breaker-success"} = result
     end
@@ -536,12 +564,13 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
     # Set up default mocks for all external services
     HydepwnsLiveview.MockExternalAPI
     |> stub(:fetch_data, fn id ->
-      {:ok, %{
-        "id" => id,
-        "name" => "Default External Resource",
-        "type" => "external",
-        "status" => "active"
-      }}
+      {:ok,
+       %{
+         "id" => id,
+         "name" => "Default External Resource",
+         "type" => "external",
+         "status" => "active"
+       }}
     end)
     |> stub(:update_resource, fn id, data ->
       {:ok, Map.put(data, "id", id)}

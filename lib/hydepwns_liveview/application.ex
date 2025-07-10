@@ -12,10 +12,13 @@ defmodule HydepwnsLiveview.Application do
 
     # Ensure ETS table for rate limiting exists at startup
     table_name = :rate_limits
+
     case :ets.info(table_name) do
       :undefined ->
         :ets.new(table_name, [:set, :public, :named_table])
-      _ -> :ok
+
+      _ ->
+        :ok
     end
 
     children =

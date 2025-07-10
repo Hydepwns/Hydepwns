@@ -2,7 +2,9 @@ defmodule HydepwnsLiveview.Resources.OrderResourceTest do
   use HydepwnsLiveview.DataCase
   alias HydepwnsLiveview.TestSupport.EventStoreTestHelper
   alias HydepwnsLiveview.Resources.TestOrderResource
-  import HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource, only: [rebuild_from_events: 3]
+
+  import HydepwnsLiveview.Events.ResourceIntegration.EventSourcedResource,
+    only: [rebuild_from_events: 3]
 
   setup do
     EventStoreTestHelper.setup_mock_event_store()
@@ -60,11 +62,13 @@ defmodule HydepwnsLiveview.Resources.OrderResourceTest do
       }
 
       {:ok, _order} = TestOrderResource.create(order_params)
+
       update_params = %{
         status: "submitted",
         shipping_address: "123 Main St",
         billing_address: "123 Main St"
       }
+
       {:ok, updated_order} = TestOrderResource.update("test-order-2", update_params)
 
       assert updated_order.status == "submitted"
@@ -127,9 +131,17 @@ defmodule HydepwnsLiveview.Resources.OrderResourceTest do
 
       # Get events from the store and rebuild state
       {:ok, events} = TestOrderResource.get_history("test-order-4")
-      rebuilt = rebuild_from_events(events, TestOrderResource.initial_state(), &TestOrderResource.apply_event/2)
-      assert rebuilt.status == "cancelled" # deleted sets status to cancelled
+
+      rebuilt =
+        rebuild_from_events(
+          events,
+          TestOrderResource.initial_state(),
+          &TestOrderResource.apply_event/2
+        )
+
+      # deleted sets status to cancelled
+      assert rebuilt.status == "cancelled"
       assert rebuilt.customer_id == "customer-1"
     end
   end
-end 
+end

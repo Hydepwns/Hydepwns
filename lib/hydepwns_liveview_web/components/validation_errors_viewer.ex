@@ -188,6 +188,9 @@ defmodule HydepwnsLiveviewWeb.Components.ValidationErrorsViewer do
   # --- Restored private functions required for compilation ---
   defp format_error_message(error, _include_ids), do: "Error: #{inspect(error)}"
   defp format_error_type(error_type), do: to_string(error_type)
-  defp render_errors(_error_report, _style, _include_resource_ids, _max_depth), do: "[Error details here]"
+
+  defp render_errors(_error_report, _style, _include_resource_ids, _max_depth),
+    do: "[Error details here]"
+
   defp get_style(view_mode), do: view_mode
 end

@@ -26,6 +26,7 @@ defmodule HydepwnsLiveview.Integration.AnalyticsAdapter do
       :ok ->
         # In production, this would send to an analytics service
         event_id = generate_event_id()
+
         _analytics_event = %{
           id: event_id,
           name: event_name,
@@ -55,11 +56,12 @@ defmodule HydepwnsLiveview.Integration.AnalyticsAdapter do
   - {:error, reason} on failure
   """
   def track_page_view(page_path, page_data \\ %{}) when is_binary(page_path) do
-    event_data = Map.merge(page_data, %{
-      page_path: page_path,
-      referrer: get_referrer(),
-      user_agent: get_user_agent()
-    })
+    event_data =
+      Map.merge(page_data, %{
+        page_path: page_path,
+        referrer: get_referrer(),
+        user_agent: get_user_agent()
+      })
 
     track_event("page_view", event_data)
   end
@@ -76,12 +78,14 @@ defmodule HydepwnsLiveview.Integration.AnalyticsAdapter do
   - {:ok, event_id} on success
   - {:error, reason} on failure
   """
-  def track_user_action(user_id, action, action_data \\ %{}) when is_binary(user_id) and is_binary(action) do
-    event_data = Map.merge(action_data, %{
-      user_id: user_id,
-      action: action,
-      timestamp: DateTime.utc_now()
-    })
+  def track_user_action(user_id, action, action_data \\ %{})
+      when is_binary(user_id) and is_binary(action) do
+    event_data =
+      Map.merge(action_data, %{
+        user_id: user_id,
+        action: action,
+        timestamp: DateTime.utc_now()
+      })
 
     track_event("user_action", event_data)
   end
@@ -98,12 +102,14 @@ defmodule HydepwnsLiveview.Integration.AnalyticsAdapter do
   - {:ok, event_id} on success
   - {:error, reason} on failure
   """
-  def track_conversion(conversion_type, conversion_value, conversion_data \\ %{}) when is_binary(conversion_type) and is_number(conversion_value) do
-    event_data = Map.merge(conversion_data, %{
-      conversion_type: conversion_type,
-      conversion_value: conversion_value,
-      currency: "USD"
-    })
+  def track_conversion(conversion_type, conversion_value, conversion_data \\ %{})
+      when is_binary(conversion_type) and is_number(conversion_value) do
+    event_data =
+      Map.merge(conversion_data, %{
+        conversion_type: conversion_type,
+        conversion_value: conversion_value,
+        currency: "USD"
+      })
 
     track_event("conversion", event_data)
   end
@@ -120,11 +126,13 @@ defmodule HydepwnsLiveview.Integration.AnalyticsAdapter do
   - {:ok, metric_id} on success
   - {:error, reason} on failure
   """
-  def track_metric(metric_name, metric_value, metric_tags \\ %{}) when is_binary(metric_name) and is_number(metric_value) do
+  def track_metric(metric_name, metric_value, metric_tags \\ %{})
+      when is_binary(metric_name) and is_number(metric_value) do
     case validate_metric_params(metric_name, metric_value) do
       :ok ->
         # In production, this would send to a metrics service
         metric_id = generate_metric_id()
+
         _metric_data = %{
           id: metric_id,
           name: metric_name,
@@ -178,7 +186,8 @@ defmodule HydepwnsLiveview.Integration.AnalyticsAdapter do
   - {:ok, analytics_data} on success
   - {:error, reason} on failure
   """
-  def get_analytics_data(start_date, end_date, _filters \\ %{}) when is_struct(start_date, DateTime) and is_struct(end_date, DateTime) do
+  def get_analytics_data(start_date, end_date, _filters \\ %{})
+      when is_struct(start_date, DateTime) and is_struct(end_date, DateTime) do
     case validate_date_range(start_date, end_date) do
       :ok ->
         # In production, this would fetch from analytics service
@@ -253,16 +262,16 @@ defmodule HydepwnsLiveview.Integration.AnalyticsAdapter do
   end
 
   defp generate_event_id do
-    "evt_" <> :crypto.strong_rand_bytes(16) |> Base.encode16(case: :lower)
+    ("evt_" <> :crypto.strong_rand_bytes(16)) |> Base.encode16(case: :lower)
   end
 
   defp generate_metric_id do
-    "met_" <> :crypto.strong_rand_bytes(16) |> Base.encode16(case: :lower)
+    ("met_" <> :crypto.strong_rand_bytes(16)) |> Base.encode16(case: :lower)
   end
 
   defp get_session_id do
     # In production, this would get the actual session ID
-    "sess_" <> :crypto.strong_rand_bytes(8) |> Base.encode16(case: :lower)
+    ("sess_" <> :crypto.strong_rand_bytes(8)) |> Base.encode16(case: :lower)
   end
 
   defp get_referrer do

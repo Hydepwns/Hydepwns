@@ -128,7 +128,7 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
       assert query_time < 1000
     end
 
-    test "event processing maintains performance under load", %{_conn: _conn} do
+    test "event processing maintains performance under load", %{conn: _conn} do
       # Subscribe to events
       HydepwnsLiveview.Events.Core.EventBus.subscribe(["document.created"])
 
@@ -212,7 +212,7 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
       assert throughput > 10
     end
 
-    test "handles concurrent resource creation", %{_conn: _conn} do
+    test "handles concurrent resource creation", %{conn: _conn} do
       # Test concurrent resource creation
       start_time = System.monotonic_time(:millisecond)
 
@@ -420,7 +420,7 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
       end
     end
 
-    test "handles connection pool scaling", %{_conn: _conn} do
+    test "handles connection pool scaling", %{conn: _conn} do
       # Test database connection pool under load
       pool_size = 20
 
@@ -494,7 +494,7 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
       assert degradation_info.recommendation == "Consider optimization"
     end
 
-    test "generates performance reports", %{_conn: _conn} do
+    test "generates performance reports", %{conn: _conn} do
       # Mock performance reporting
       HydepwnsLiveview.MockPerformanceMonitor
       |> expect(:generate_report, fn time_range ->
@@ -521,7 +521,7 @@ defmodule HydepwnsLiveviewWeb.Integration.PerformanceIntegrationTest do
   end
 
   describe "Performance Optimization" do
-    test "implements caching for frequently accessed data", %{_conn: _conn} do
+    test "implements caching for frequently accessed data", %{conn: _conn} do
       # Mock caching
       HydepwnsLiveview.MockPerformanceCache
       |> expect(:get, fn key ->

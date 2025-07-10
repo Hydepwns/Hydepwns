@@ -376,7 +376,7 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
   end
 
   describe "Data Protection Security" do
-    test "encrypts sensitive data", %{_conn: _conn, regular_user: _user} do
+    test "encrypts sensitive data", %{conn: _conn, regular_user: _user} do
       # Test password encryption
       password = "sensitive_password"
 
@@ -446,7 +446,7 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
       end)
     end
 
-    test "implements secure session management", %{_conn: _conn, regular_user: user} do
+    test "implements secure session management", %{conn: _conn, regular_user: user} do
       # Test session security
       token = Accounts.generate_user_session_token(user)
 

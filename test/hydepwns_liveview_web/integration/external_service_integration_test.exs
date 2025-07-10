@@ -50,7 +50,10 @@ defmodule HydepwnsLiveviewWeb.Integration.ExternalServiceIntegrationTest do
         content: %{text: "Test content"}
       })
 
-    {:ok, user: user, resource: resource}
+    # Create a connection for the tests
+    conn = build_conn()
+
+    {:ok, user: user, resource: resource, _conn: conn}
   end
 
   describe "External API Integration" do

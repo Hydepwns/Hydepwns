@@ -34,7 +34,10 @@ defmodule HydepwnsLiveviewWeb.UserAuthTest do
         role: "editor"
       })
 
-    %{admin_user: admin_user, regular_user: regular_user, editor_user: editor_user}
+    # Create a test connection
+    conn = build_conn()
+
+    %{_conn: conn, admin_user: admin_user, regular_user: regular_user, editor_user: editor_user}
   end
 
   describe "authentication guards" do

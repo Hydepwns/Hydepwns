@@ -83,6 +83,10 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
       {:ok, updated_child} =
         HydepwnsLiveview.Resources.ResourceSystem.update_resource(child.id, %{"parent_id" => nil})
 
+      # Ensure resources are available in the system
+      resources = HydepwnsLiveview.Resources.ResourceSystem.list_resources()
+      assert length(resources) >= 2
+
       {:ok, view, html} = live(conn, "/resources/#{child.id}")
       assert has_element?(view, "h1", child.name)
 
@@ -139,8 +143,13 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
           type: "folder"
         })
 
+      # Ensure resources are available in the system
+      resources = HydepwnsLiveview.Resources.ResourceSystem.list_resources()
+      assert length(resources) >= 2
+
       {:ok, view, html} = live(conn, "/resources/#{document.id}/edit")
 
+      # First test: try to set document as its own parent (circular relationship)
       view
       |> form("#resource-form", %{
         "resource[parent_id]" => document.id
@@ -155,6 +164,7 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
                "Circular relationship detected"
              )
 
+      # Second test: set folder as parent (valid relationship)
       view
       |> form("#resource-form", %{
         "resource[parent_id]" => folder.id

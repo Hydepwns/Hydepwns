@@ -12,8 +12,8 @@ defmodule HydepwnsLiveviewWeb.Endpoint do
   ]
 
   socket "/live", Phoenix.LiveView.Socket,
-    websocket: [connect_info: [session: @session_options]],
-    longpoll: [connect_info: [session: @session_options]]
+    websocket: [connect_info: [session: @session_options, cookies: :all]],
+    longpoll: [connect_info: [session: @session_options, cookies: :all]]
 
   # Serve at "/" the static files from "priv/static" directory.
   #
@@ -55,9 +55,9 @@ defmodule HydepwnsLiveviewWeb.Endpoint do
   # Add custom security headers
   plug HydepwnsLiveviewWeb.Plugs.CustomSecurityHeaders
 
-  plug HydepwnsLiveviewWeb.Router
-
   if Application.compile_env(:hydepwns_liveview, :sql_sandbox, false) do
     plug Phoenix.Ecto.SQL.Sandbox
   end
+
+  plug HydepwnsLiveviewWeb.Router
 end

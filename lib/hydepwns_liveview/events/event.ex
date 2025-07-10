@@ -76,15 +76,6 @@ defmodule HydepwnsLiveview.Events.Event do
   """
   @spec create(String.t(), map()) :: {:ok, map()} | {:error, term()}
   def create(type, data) when is_binary(type) and is_map(data) do
-    case CoreEvent.create(type, data) do
-      {:ok, event} ->
-        case HydepwnsLiveview.Events.EventBus.publish(event) do
-          :ok -> {:ok, event}
-          error -> error
-        end
-
-      error ->
-        error
-    end
+    CoreEvent.create(type, data)
   end
 end

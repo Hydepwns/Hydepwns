@@ -78,23 +78,23 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
   @spec detect_backpressure(%{any() => integer()}, %{any() => map()}, %{any() => float()}) ::
           map()
   def detect_backpressure(queue_sizes, processing_metrics, error_rates) do
-    # Check if any queue sizes are above threshold
+    # Check if any queue sizes are at or above threshold
     queue_pressure =
       queue_sizes
-      |> Enum.any?(fn {_handler, size} -> size > @queue_high_threshold end)
+      |> Enum.any?(fn {_handler, size} -> size >= @queue_high_threshold end)
 
-    # Check if any event types have slow processing
+    # Check if any event types have slow processing (at or above threshold)
     slow_types =
       processing_metrics
       |> Enum.filter(fn {_type, metrics} ->
-        metrics.avg_time > @processing_time_threshold
+        metrics.avg_time >= @processing_time_threshold
       end)
       |> Enum.map(fn {type, _metrics} -> type end)
 
-    # Check for high error rates
+    # Check for high error rates (at or above threshold)
     high_error_types =
       error_rates
-      |> Enum.filter(fn {_type, rate} -> rate > @error_rate_threshold end)
+      |> Enum.filter(fn {_type, rate} -> rate >= @error_rate_threshold end)
       |> Enum.map(fn {type, _rate} -> type end)
 
     # Determine overall backpressure status
@@ -200,6 +200,10 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
 
     GenServer.cast(__MODULE__, {:record_metric, event, metrics})
   end
+
+  # Handle nil or non-map metrics gracefully
+  def record_processing_metric(%Event{} = event, nil), do: record_processing_metric(event, %{})
+  def record_processing_metric(%Event{} = event, metrics) when not is_map(metrics), do: record_processing_metric(event, %{})
 
   @doc """
   Records an event processing metric with default metrics.
@@ -334,7 +338,7 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
 
       metrics = %{
         event_count: length(events),
-        events_per_second: length(events) / lookback_seconds,
+        events_per_second: if(lookback_seconds > 0, do: length(events) / lookback_seconds, else: 0.0),
         processing_metrics: processing_metrics,
         queue_sizes: queue_sizes,
         error_rates: error_rates,
@@ -521,6 +525,17 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
     {:noreply, state}
   end
 
+  @impl true
+  def handle_info(:check_and_alert, state) do
+    # This is triggered by the timer to check metrics and send alerts
+    updated_state = check_metrics_and_alert(state)
+
+    # Schedule next alert check
+    schedule_alert_check(state.alert_config.interval_ms)
+
+    {:noreply, updated_state}
+  end
+
   ##############################################################################
   # Helper functions
   ##############################################################################
@@ -629,7 +644,7 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
 
       metrics = %{
         event_count: length(events),
-        events_per_second: length(events) / lookback_seconds,
+        events_per_second: if(lookback_seconds > 0, do: length(events) / lookback_seconds, else: 0.0),
         processing_metrics: processing_metrics,
         queue_sizes: queue_sizes,
         error_rates: error_rates,

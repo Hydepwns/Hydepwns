@@ -28,10 +28,10 @@ defmodule HydepwnsLiveview.Events.ReplayOperations do
     %ReplaySession{}
     |> ReplaySession.changeset(%{
       name: name,
-      resource_type: resource_type,
-      resource_id: resource_id,
+      _resource_type: resource_type,
+      _resource_id: resource_id,
       status: "pending",
-      options: opts
+      _metadata: opts
     })
     |> Repo.insert()
   end

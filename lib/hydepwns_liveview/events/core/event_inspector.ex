@@ -507,8 +507,10 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
     case events do
       [] -> 0
       _ ->
-        # Filter out events without timestamp
-        valid_events = Enum.filter(events, &Map.has_key?(&1, :timestamp))
+        # Filter out events without timestamp or with nil timestamp
+        valid_events = Enum.filter(events, fn event ->
+          Map.has_key?(event, :timestamp) and not is_nil(event.timestamp)
+        end)
         case valid_events do
           [] -> 0
           _ ->

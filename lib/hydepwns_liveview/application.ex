@@ -21,6 +21,9 @@ defmodule HydepwnsLiveview.Application do
         :ok
     end
 
+    # Initialize theme system ETS table at startup
+    HydepwnsLiveview.ThemeSystem.ensure_default_theme()
+
     children =
       [
         HydepwnsLiveviewWeb.Telemetry,

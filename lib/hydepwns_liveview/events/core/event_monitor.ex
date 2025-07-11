@@ -203,7 +203,9 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
 
   # Handle nil or non-map metrics gracefully
   def record_processing_metric(%Event{} = event, nil), do: record_processing_metric(event, %{})
-  def record_processing_metric(%Event{} = event, metrics) when not is_map(metrics), do: record_processing_metric(event, %{})
+
+  def record_processing_metric(%Event{} = event, metrics) when not is_map(metrics),
+    do: record_processing_metric(event, %{})
 
   @doc """
   Records an event processing metric with default metrics.
@@ -338,7 +340,8 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
 
       metrics = %{
         event_count: length(events),
-        events_per_second: if(lookback_seconds > 0, do: length(events) / lookback_seconds, else: 0.0),
+        events_per_second:
+          if(lookback_seconds > 0, do: length(events) / lookback_seconds, else: 0.0),
         processing_metrics: processing_metrics,
         queue_sizes: queue_sizes,
         error_rates: error_rates,
@@ -472,29 +475,30 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
   def handle_cast(:reset_state, state) do
     # Reset all state except event_store and metric_interval
     new_state = %{
-      state |
-      metrics_by_type: %{},
-      error_rates: %{},
-      queue_sizes: %{},
-      alert_config: %{
-        enabled: false,
-        notification_fn: nil,
-        notification_channels: [:in_app, :log],
-        recipients: :admins_only,
-        interval_ms: state.alert_config.interval_ms,
-        lookback_seconds: 300,
-        last_alert_time: nil,
-        thresholds: %{
-          queue_high: 1000,
-          processing_time: 500,
-          error_rate: 0.05
+      state
+      | metrics_by_type: %{},
+        error_rates: %{},
+        queue_sizes: %{},
+        alert_config: %{
+          enabled: false,
+          notification_fn: nil,
+          notification_channels: [:in_app, :log],
+          recipients: :admins_only,
+          interval_ms: state.alert_config.interval_ms,
+          lookback_seconds: 300,
+          last_alert_time: nil,
+          thresholds: %{
+            queue_high: 1000,
+            processing_time: 500,
+            error_rate: 0.05
+          }
+        },
+        history: %{
+          metrics: [],
+          max_size: 1000
         }
-      },
-      history: %{
-        metrics: [],
-        max_size: 1000
-      }
     }
+
     {:noreply, new_state}
   end
 
@@ -644,7 +648,8 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
 
       metrics = %{
         event_count: length(events),
-        events_per_second: if(lookback_seconds > 0, do: length(events) / lookback_seconds, else: 0.0),
+        events_per_second:
+          if(lookback_seconds > 0, do: length(events) / lookback_seconds, else: 0.0),
         processing_metrics: processing_metrics,
         queue_sizes: queue_sizes,
         error_rates: error_rates,

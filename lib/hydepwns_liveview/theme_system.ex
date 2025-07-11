@@ -291,7 +291,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
   def apply_theme(theme) do
     # Store the applied theme in a global ETS table so it persists across processes
     ensure_ets_table()
-    table = Process.get(:theme_system_ets_table) || :theme_system_default
+    table = ets_table()
     :ets.insert(table, {:applied_theme, theme})
     {:ok, theme}
   end
@@ -478,7 +478,7 @@ defmodule HydepwnsLiveview.ThemeSystem do
   def get_current_theme do
     # Check if there's an applied theme stored in ETS table
     ensure_ets_table()
-    table = Process.get(:theme_system_ets_table) || :theme_system_default
+    table = ets_table()
 
     case :ets.lookup(table, :applied_theme) do
       [] ->

@@ -38,10 +38,13 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
              projections: projections
            }}
         end
+
       {:ok, nil} ->
         {:error, :not_found}
+
       {:error, :not_found} ->
         {:error, :not_found}
+
       {:error, reason} ->
         {:error, reason}
     end
@@ -84,16 +87,22 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
         }
 
         {:ok, diff}
+
       {{:ok, nil}, _} ->
         {:error, :not_found}
+
       {_, {:ok, nil}} ->
         {:error, :not_found}
+
       {{:error, :not_found}, _} ->
         {:error, :not_found}
+
       {_, {:error, :not_found}} ->
         {:error, :not_found}
+
       {{:error, reason}, _} ->
         {:error, reason}
+
       {_, {:error, reason}} ->
         {:error, reason}
     end
@@ -120,7 +129,8 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
   def start_replay_for_debugging(name, resource_type, resource_id, opts \\ []) do
     # Validate required parameters
     cond do
-      is_binary(resource_type) and resource_type != "" and is_binary(resource_id) and resource_id != "" ->
+      is_binary(resource_type) and resource_type != "" and is_binary(resource_id) and
+          resource_id != "" ->
         # Add debugging metadata
         metadata =
           Map.merge(
@@ -135,7 +145,8 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
                  resource_id,
                  Keyword.put(opts, :metadata, metadata)
                ),
-             {:ok, updated_session} <- EventStore.update_replay_session_status(session.id, "running"),
+             {:ok, updated_session} <-
+               EventStore.update_replay_session_status(session.id, "running"),
              # Get the events for the session
              {:ok, events} <- EventStore.get_replay_session_events(updated_session.id) do
           # Record the start of replay
@@ -453,6 +464,7 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
       :ok ->
         analysis = perform_sequence_analysis(events)
         {:ok, analysis}
+
       {:error, reason} ->
         {:error, reason}
     end
@@ -477,11 +489,11 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
 
   defp validate_event_sequence(events) do
     case Enum.find_value(events, :ok, fn event ->
-      case validate_event(event) do
-        :ok -> nil
-        {:error, reason} -> {:error, reason}
-      end
-    end) do
+           case validate_event(event) do
+             :ok -> nil
+             {:error, reason} -> {:error, reason}
+           end
+         end) do
       :ok -> :ok
       {:error, reason} -> {:error, reason}
     end
@@ -505,14 +517,20 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
 
   defp calculate_time_span(events) do
     case events do
-      [] -> 0
+      [] ->
+        0
+
       _ ->
         # Filter out events without timestamp or with nil timestamp
-        valid_events = Enum.filter(events, fn event ->
-          Map.has_key?(event, :timestamp) and not is_nil(event.timestamp)
-        end)
+        valid_events =
+          Enum.filter(events, fn event ->
+            Map.has_key?(event, :timestamp) and not is_nil(event.timestamp)
+          end)
+
         case valid_events do
-          [] -> 0
+          [] ->
+            0
+
           _ ->
             timestamps = Enum.map(valid_events, & &1.timestamp)
             {min, max} = Enum.min_max(timestamps)

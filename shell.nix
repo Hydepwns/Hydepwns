@@ -53,6 +53,9 @@ in pkgs.mkShell {
     # Browser testing
     chrome
     chromedriver
+
+    # Dart Sass for NixOS compatibility
+    pkgs.dart-sass
     
     # Optional: Additional useful tools
     pkgs.curl

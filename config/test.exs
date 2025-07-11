@@ -10,7 +10,6 @@ config :hydepwns_liveview, HydepwnsLiveview.Repo,
   password: System.get_env("TEST_DB_PASSWORD") || "",
   hostname: System.get_env("TEST_DB_HOST") || "localhost",
   port: String.to_integer(System.get_env("TEST_DB_PORT") || "5433"),
-  socket_dir: System.get_env("TEST_DB_SOCKET_DIR") || "/tmp",
   database:
     System.get_env("TEST_DB_NAME") ||
       "hydepwns_liveview_test#{System.get_env("MIX_TEST_PARTITION")}",
@@ -43,7 +42,8 @@ config :phoenix_live_view,
 # Configure Mox
 config :hydepwns_liveview, :http_client, HydepwnsLiveview.MockHTTPClient
 config :hydepwns_liveview, :external_api, HydepwnsLiveview.MockExternalAPI
-config :hydepwns_liveview, :repo, HydepwnsLiveview.RepoMock
+# Use real repo for tests that need database access
+config :hydepwns_liveview, :repo, HydepwnsLiveview.Repo
 # Set Mox to global mode to allow stubs to be used from concurrent tests
 config :mox, :global_stubs_only, true
 

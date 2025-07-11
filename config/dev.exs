@@ -26,10 +26,7 @@ config :hydepwns_liveview, HydepwnsLiveviewWeb.Endpoint,
   debug_errors: true,
   secret_key_base: System.get_env("DEV_SECRET_KEY_BASE") || String.duplicate("a", 64),
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:hydepwns_liveview, ~w(--sourcemap=inline --watch)]},
-    dart_sass:
-      {DartSass, :install_and_run,
-       [:default, ~w(--embed-source-map --source-map-urls=absolute --watch)]}
+    esbuild: {Esbuild, :install_and_run, [:hydepwns_liveview, ~w(--sourcemap=inline --watch)]}
   ]
 
 # ## SSL Support

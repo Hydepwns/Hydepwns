@@ -1,18 +1,14 @@
-defmodule HydepwnsLiveviewWeb.ConnCase do
+defmodule HydepwnsLiveviewWeb.LiveViewCase do
   @moduledoc """
   This module defines the test case to be used by
-  tests that require setting up a connection.
+  tests that require setting up a LiveView connection.
 
-  Such tests rely on `Phoenix.ConnTest` and also
+  Such tests rely on `Phoenix.LiveViewTest` and also
   import other functionality to make it easier
   to build common data structures and query the data layer.
 
-  Finally, if the test case interacts with the database,
-  we enable the SQL sandbox, so changes done to the database
-  are reverted at the end of every test. If you are using
-  PostgreSQL, you can even run database tests asynchronously
-  by setting `use HydepwnsLiveviewWeb.ConnCase, async: true`, although
-  this option is not recommended for other databases.
+  This case is specifically designed for LiveView tests
+  with proper database sandbox handling.
   """
 
   use ExUnit.CaseTemplate
@@ -21,6 +17,7 @@ defmodule HydepwnsLiveviewWeb.ConnCase do
     quote do
       import Plug.Conn
       import Phoenix.ConnTest
+      import Phoenix.LiveViewTest
       import HydepwnsLiveviewWeb.ConnCase
       import Phoenix.Component
       import Phoenix.VerifiedRoutes
@@ -49,10 +46,10 @@ defmodule HydepwnsLiveviewWeb.ConnCase do
   end
 
   setup tags do
-    # Use manual sandbox mode for all tests to ensure proper connection management
+    # Manual sandbox mode for LiveView tests
     pid = HydepwnsLiveview.DataCase.setup_sandbox(tags)
 
-    # Always allow the current process for database access
+    # Allow current process and any spawned processes
     Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), pid)
 
     {:ok, conn: Phoenix.ConnTest.build_conn()}

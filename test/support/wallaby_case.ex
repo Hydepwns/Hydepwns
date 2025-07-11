@@ -57,8 +57,14 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
       {:ok, session} = Wallaby.start_session(metadata: metadata)
       # Visit root to set domain context
       session = Wallaby.Browser.visit(session, "/")
+
       # Set the sandbox cookie for LiveView processes (just the PID as string), with domain and path
-      session = Wallaby.Browser.set_cookie(session, "_phoenix_liveview_sandbox", inspect(self()), domain: "localhost", path: "/")
+      session =
+        Wallaby.Browser.set_cookie(session, "_phoenix_liveview_sandbox", inspect(self()),
+          domain: "localhost",
+          path: "/"
+        )
+
       # Visit root again to ensure the cookie is sent
       session = Wallaby.Browser.visit(session, "/")
       # Allow the Wallaby session process to use the same DB connection

@@ -54,10 +54,13 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
             data: Map.get(event, :data) || Map.get(event, "data") || %{},
             resource_type: Map.get(event, :resource_type) || Map.get(event, "resource_type"),
             resource_id: Map.get(event, :resource_id) || Map.get(event, "resource_id"),
-            correlation_id: Map.get(event, :correlation_id) || Map.get(event, "correlation_id") || Ecto.UUID.generate(),
+            correlation_id:
+              Map.get(event, :correlation_id) || Map.get(event, "correlation_id") ||
+                Ecto.UUID.generate(),
             causation_id: Map.get(event, :causation_id) || Map.get(event, "causation_id"),
             metadata: Map.get(event, :metadata) || Map.get(event, "metadata") || %{},
-            timestamp: Map.get(event, :timestamp) || Map.get(event, "timestamp") || DateTime.utc_now()
+            timestamp:
+              Map.get(event, :timestamp) || Map.get(event, "timestamp") || DateTime.utc_now()
           }
 
         _ ->
@@ -91,10 +94,13 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
             data: Map.get(event, :data) || Map.get(event, "data") || %{},
             resource_type: Map.get(event, :resource_type) || Map.get(event, "resource_type"),
             resource_id: Map.get(event, :resource_id) || Map.get(event, "resource_id"),
-            correlation_id: Map.get(event, :correlation_id) || Map.get(event, "correlation_id") || Ecto.UUID.generate(),
+            correlation_id:
+              Map.get(event, :correlation_id) || Map.get(event, "correlation_id") ||
+                Ecto.UUID.generate(),
             causation_id: Map.get(event, :causation_id) || Map.get(event, "causation_id"),
             metadata: Map.get(event, :metadata) || Map.get(event, "metadata") || %{},
-            timestamp: Map.get(event, :timestamp) || Map.get(event, "timestamp") || DateTime.utc_now()
+            timestamp:
+              Map.get(event, :timestamp) || Map.get(event, "timestamp") || DateTime.utc_now()
           }
 
         _ ->
@@ -130,10 +136,13 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
                 data: Map.get(event, :data) || Map.get(event, "data") || %{},
                 resource_type: Map.get(event, :resource_type) || Map.get(event, "resource_type"),
                 resource_id: Map.get(event, :resource_id) || Map.get(event, "resource_id"),
-                correlation_id: Map.get(event, :correlation_id) || Map.get(event, "correlation_id") || Ecto.UUID.generate(),
+                correlation_id:
+                  Map.get(event, :correlation_id) || Map.get(event, "correlation_id") ||
+                    Ecto.UUID.generate(),
                 causation_id: Map.get(event, :causation_id) || Map.get(event, "causation_id"),
                 metadata: Map.get(event, :metadata) || Map.get(event, "metadata") || %{},
-                timestamp: Map.get(event, :timestamp) || Map.get(event, "timestamp") || DateTime.utc_now()
+                timestamp:
+                  Map.get(event, :timestamp) || Map.get(event, "timestamp") || DateTime.utc_now()
               }
 
             _ ->
@@ -175,6 +184,7 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
 
   def handle_call({:get_event, id}, _from, state) do
     event = Enum.find(state.events, fn event -> event.id == id end)
+
     case event do
       nil -> {:reply, {:error, :not_found}, state}
       event -> {:reply, {:ok, event}, state}

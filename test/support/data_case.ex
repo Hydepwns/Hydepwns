@@ -28,17 +28,12 @@ defmodule HydepwnsLiveview.DataCase do
   end
 
   setup(tags) do
-    # Start a sandboxed connection with better async handling
+    # Always use manual mode for better control with LiveView processes
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(HydepwnsLiveview.Repo)
+    Ecto.Adapters.SQL.Sandbox.mode(HydepwnsLiveview.Repo, :manual)
 
-    # Set the mode to shared for async tests, manual for sync tests
-    if tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(HydepwnsLiveview.Repo, {:shared, self()})
-      # Allow the current process to use the connection
-      Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), self())
-    else
-      Ecto.Adapters.SQL.Sandbox.mode(HydepwnsLiveview.Repo, :manual)
-    end
+    # Always allow the current process
+    Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), self())
 
     :ok
   end
@@ -46,10 +41,37 @@ defmodule HydepwnsLiveview.DataCase do
   @doc """
   Sets up the sandbox based on the test tags.
   """
-  def setup_sandbox(tags) do
-    pid = Ecto.Adapters.SQL.Sandbox.start_owner!(HydepwnsLiveview.Repo, shared: not tags[:async])
-    on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
-    pid
+    def setup_sandbox(tags) do
+    # Use shared mode for async tests, manual for sync tests
+    shared = tags[:async] || false
+
+    # Try to start the sandbox owner
+    try do
+      pid = Ecto.Adapters.SQL.Sandbox.start_owner!(HydepwnsLiveview.Repo, shared: shared)
+      on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
+      # Allow the current process to use the connection
+      Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), pid)
+      pid
+    rescue
+      e in RuntimeError ->
+        # If it's an "already started" error, try to get the existing owner
+        if String.contains?(e.message, "already started") or String.contains?(e.message, "already_shared") do
+          # For shared mode, we can just allow the current process
+          Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), self())
+          self()
+        else
+          reraise e, __STACKTRACE__
+        end
+      e in MatchError ->
+        # Handle the :already_shared error
+        if match?({:error, {{:badmatch, :already_shared}, _}}, e.term) do
+          # For shared mode, we can just allow the current process
+          Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), self())
+          self()
+        else
+          reraise e, __STACKTRACE__
+        end
+    end
   end
 
   @doc """

@@ -48,12 +48,14 @@ defmodule HydepwnsLiveview.Events.SnapshotOperationsTest do
       {:ok, snapshot1} =
         SnapshotOperations.save_snapshot("test_resource", "123", %{value: 1}, %{version: 1})
 
-      Process.sleep(10)  # Small delay to ensure different timestamps
+      # Small delay to ensure different timestamps
+      Process.sleep(10)
 
       {:ok, snapshot2} =
         SnapshotOperations.save_snapshot("test_resource", "123", %{value: 2}, %{version: 2})
 
-      Process.sleep(10)  # Small delay to ensure different timestamps
+      # Small delay to ensure different timestamps
+      Process.sleep(10)
 
       {:ok, snapshot3} =
         SnapshotOperations.save_snapshot("test_resource", "123", %{value: 3}, %{version: 3})
@@ -209,12 +211,14 @@ defmodule HydepwnsLiveview.Events.SnapshotOperationsTest do
       {:ok, snapshot1} =
         SnapshotOperations.save_snapshot("test_resource", "123", %{value: 1}, %{version: 1})
 
-      Process.sleep(10)  # Small delay to ensure different timestamps
+      # Small delay to ensure different timestamps
+      Process.sleep(10)
 
       {:ok, snapshot2} =
         SnapshotOperations.save_snapshot("test_resource", "123", %{value: 2}, %{version: 2})
 
-      Process.sleep(10)  # Small delay to ensure different timestamps
+      # Small delay to ensure different timestamps
+      Process.sleep(10)
 
       {:ok, snapshot3} =
         SnapshotOperations.save_snapshot("test_resource", "123", %{value: 3}, %{version: 3})

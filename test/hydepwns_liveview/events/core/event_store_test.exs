@@ -69,7 +69,8 @@ defmodule HydepwnsLiveview.Events.Core.EventStoreTest do
 
     test "returns error for invalid event" do
       invalid_event = %Event{
-        type: "",  # Empty type
+        # Empty type
+        type: "",
         resource_id: "test-123",
         resource_type: "test",
         timestamp: DateTime.utc_now()
@@ -83,13 +84,12 @@ defmodule HydepwnsLiveview.Events.Core.EventStoreTest do
         {:ok, _event} ->
           # Current implementation doesn't validate
           :ok
+
         {:error, changeset} ->
           # Expected behavior
           assert %{type: ["should be at least 3 character(s)"]} = errors_on(changeset)
       end
     end
-
-
 
     test "handles event with correlation and causation IDs" do
       correlation_id = Ecto.UUID.generate()
@@ -148,12 +148,14 @@ defmodule HydepwnsLiveview.Events.Core.EventStoreTest do
 
     test "returns error for invalid event type" do
       # Test with store_event/2 function
-      result = EventStore.store_event("", %{})  # Empty type
+      # Empty type
+      result = EventStore.store_event("", %{})
 
       case result do
         {:ok, _event} ->
           # Current implementation doesn't validate
           :ok
+
         {:error, changeset} ->
           # Expected behavior - check for either validation error
           errors = errors_on(changeset)
@@ -165,12 +167,14 @@ defmodule HydepwnsLiveview.Events.Core.EventStoreTest do
 
     test "returns error for invalid event data" do
       # Test with store_event/2 function
-      result = EventStore.store_event("test_event", "not a map")  # Invalid data
+      # Invalid data
+      result = EventStore.store_event("test_event", "not a map")
 
       case result do
         {:ok, _event} ->
           # Current implementation doesn't validate
           :ok
+
         {:error, changeset} ->
           # Expected behavior
           assert %{data: ["is invalid"]} = errors_on(changeset)
@@ -199,8 +203,8 @@ defmodule HydepwnsLiveview.Events.Core.EventStoreTest do
 
       assert {:ok, stored_events} = EventStore.store_events(events)
       assert length(stored_events) == 2
-      assert Enum.all?(stored_events, &(&1.id))
-      assert Enum.all?(stored_events, &(&1.inserted_at))
+      assert Enum.all?(stored_events, & &1.id)
+      assert Enum.all?(stored_events, & &1.inserted_at)
     end
 
     test "rolls back transaction if any event is invalid" do
@@ -212,7 +216,8 @@ defmodule HydepwnsLiveview.Events.Core.EventStoreTest do
       }
 
       invalid_event = %Event{
-        type: "",  # Invalid
+        # Invalid
+        type: "",
         resource_id: "user-2",
         resource_type: "user",
         timestamp: DateTime.utc_now()
@@ -229,6 +234,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStoreTest do
         {:ok, stored_events} ->
           # Current implementation doesn't validate in transaction
           assert length(stored_events) == 2
+
         {:error, _reason} ->
           # Expected behavior - transaction rolled back
           assert {:ok, []} = EventStore.get_events(%{})
@@ -243,6 +249,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStoreTest do
       case result do
         {:ok, events} ->
           assert events == []
+
         {:error, :no_events} ->
           # Expected behavior
           :ok
@@ -342,7 +349,9 @@ defmodule HydepwnsLiveview.Events.Core.EventStoreTest do
     end
 
     test "filters events by multiple event_types" do
-      assert {:ok, events} = EventStore.get_events(%{event_type: ["user_created", "user_updated"]})
+      assert {:ok, events} =
+               EventStore.get_events(%{event_type: ["user_created", "user_updated"]})
+
       assert length(events) == 2
       assert Enum.all?(events, &(&1.type in ["user_created", "user_updated"]))
     end
@@ -352,9 +361,11 @@ defmodule HydepwnsLiveview.Events.Core.EventStoreTest do
       past = DateTime.add(now, -3600, :second)
       future = DateTime.add(now, 3600, :second)
 
-      assert {:ok, events} = EventStore.get_events(%{
-        timestamp: %{after: past, before: future}
-      })
+      assert {:ok, events} =
+               EventStore.get_events(%{
+                 timestamp: %{after: past, before: future}
+               })
+
       assert length(events) == 3
     end
 
@@ -386,6 +397,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStoreTest do
 
     test "filters events by correlation_id" do
       correlation_id = Ecto.UUID.generate()
+
       event = %Event{
         type: "test_event",
         resource_id: "test-123",
@@ -393,6 +405,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStoreTest do
         correlation_id: correlation_id,
         timestamp: DateTime.utc_now()
       }
+
       {:ok, _} = EventStore.store_event(event)
 
       assert {:ok, events} = EventStore.get_events(%{correlation_id: correlation_id})
@@ -402,6 +415,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStoreTest do
 
     test "filters events by causation_id" do
       causation_id = Ecto.UUID.generate()
+
       event = %Event{
         type: "test_event",
         resource_id: "test-123",
@@ -409,6 +423,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStoreTest do
         causation_id: causation_id,
         timestamp: DateTime.utc_now()
       }
+
       {:ok, _} = EventStore.store_event(event)
 
       assert {:ok, events} = EventStore.get_events(%{causation_id: causation_id})
@@ -417,11 +432,13 @@ defmodule HydepwnsLiveview.Events.Core.EventStoreTest do
     end
 
     test "combines multiple filters" do
-      assert {:ok, events} = EventStore.get_events(%{
-        resource_type: "user",
-        event_type: "user_created",
-        limit: 1
-      })
+      assert {:ok, events} =
+               EventStore.get_events(%{
+                 resource_type: "user",
+                 event_type: "user_created",
+                 limit: 1
+               })
+
       assert length(events) == 1
       assert hd(events).resource_type == "user"
       assert hd(events).type == "user_created"
@@ -509,19 +526,22 @@ defmodule HydepwnsLiveview.Events.Core.EventStoreTest do
           type: "user_created",
           resource_id: "user-123",
           resource_type: "user",
-          timestamp: DateTime.add(base_time, -3600, :second)  # 1 hour ago
+          # 1 hour ago
+          timestamp: DateTime.add(base_time, -3600, :second)
         },
         %Event{
           type: "user_updated",
           resource_id: "user-123",
           resource_type: "user",
-          timestamp: DateTime.add(base_time, -1800, :second)  # 30 minutes ago
+          # 30 minutes ago
+          timestamp: DateTime.add(base_time, -1800, :second)
         },
         %Event{
           type: "user_deleted",
           resource_id: "user-123",
           resource_type: "user",
-          timestamp: base_time  # now
+          # now
+          timestamp: base_time
         }
       ]
 
@@ -532,7 +552,8 @@ defmodule HydepwnsLiveview.Events.Core.EventStoreTest do
     test "retrieves events up to specific timestamp" do
       HydepwnsLiveview.Repo.delete_all(Event)
       base_time = DateTime.utc_now()
-      cutoff_time = DateTime.add(base_time, -1800, :second)  # 30 minutes ago
+      # 30 minutes ago
+      cutoff_time = DateTime.add(base_time, -1800, :second)
 
       # Create events with specific timestamps
       events = [
@@ -540,19 +561,22 @@ defmodule HydepwnsLiveview.Events.Core.EventStoreTest do
           type: "user_created",
           resource_id: "user-123",
           resource_type: "user",
-          timestamp: DateTime.add(base_time, -3600, :second)  # 1 hour ago
+          # 1 hour ago
+          timestamp: DateTime.add(base_time, -3600, :second)
         },
         %Event{
           type: "user_updated",
           resource_id: "user-123",
           resource_type: "user",
-          timestamp: DateTime.add(base_time, -1800, :second)  # 30 minutes ago
+          # 30 minutes ago
+          timestamp: DateTime.add(base_time, -1800, :second)
         },
         %Event{
           type: "user_deleted",
           resource_id: "user-123",
           resource_type: "user",
-          timestamp: base_time  # now
+          # now
+          timestamp: base_time
         }
       ]
 
@@ -563,11 +587,13 @@ defmodule HydepwnsLiveview.Events.Core.EventStoreTest do
 
       case result do
         {:ok, events} ->
-          assert length(events) == 2  # Only the first two events
+          # Only the first two events
+          assert length(events) == 2
           # Check that all returned events have timestamps <= cutoff_time
           assert Enum.all?(events, fn event ->
-            DateTime.compare(event.timestamp, cutoff_time) in [:lt, :eq]
-          end)
+                   DateTime.compare(event.timestamp, cutoff_time) in [:lt, :eq]
+                 end)
+
         {:error, _} ->
           # Current implementation has a bug, but we can't fix it in tests
           :ok
@@ -575,13 +601,15 @@ defmodule HydepwnsLiveview.Events.Core.EventStoreTest do
     end
 
     test "returns empty list when no events exist before timestamp" do
-      past_time = DateTime.add(DateTime.utc_now(), -7200, :second)  # 2 hours ago
+      # 2 hours ago
+      past_time = DateTime.add(DateTime.utc_now(), -7200, :second)
 
       result = EventStore.get_events_for_resource_at("user", "user-123", past_time)
 
       case result do
         {:ok, events} ->
           assert events == []
+
         {:error, _} ->
           # Current implementation has a bug, but we can't fix it in tests
           :ok
@@ -715,6 +743,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStoreTest do
     test "handles very long event types" do
       # Test with a reasonable length that won't exceed database constraints (255 chars)
       long_type = String.duplicate("a", 200)
+
       event = %Event{
         type: long_type,
         resource_id: "test-123",
@@ -729,6 +758,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStoreTest do
     test "handles very long resource IDs" do
       # Test with a reasonable length that won't exceed database constraints
       long_id = String.duplicate("a", 200)
+
       event = %Event{
         type: "test_event",
         resource_id: long_id,
@@ -786,17 +816,19 @@ defmodule HydepwnsLiveview.Events.Core.EventStoreTest do
 
     test "handles concurrent event storage" do
       # Create multiple processes to store events concurrently
-      tasks = Enum.map(1..10, fn i ->
-        Task.async(fn ->
-          event = %Event{
-            type: "concurrent_event_#{i}",
-            resource_id: "resource-#{i}",
-            resource_type: "test",
-            timestamp: DateTime.utc_now()
-          }
-          EventStore.store_event(event)
+      tasks =
+        Enum.map(1..10, fn i ->
+          Task.async(fn ->
+            event = %Event{
+              type: "concurrent_event_#{i}",
+              resource_id: "resource-#{i}",
+              resource_type: "test",
+              timestamp: DateTime.utc_now()
+            }
+
+            EventStore.store_event(event)
+          end)
         end)
-      end)
 
       results = Enum.map(tasks, &Task.await/1)
       assert Enum.all?(results, &match?({:ok, _}, &1))
@@ -816,15 +848,16 @@ defmodule HydepwnsLiveview.Events.Core.EventStoreTest do
   describe "performance characteristics" do
     test "handles large number of events efficiently" do
       # Create 100 events
-      events = Enum.map(1..100, fn i ->
-        %Event{
-          type: "bulk_event_#{i}",
-          resource_id: "resource-#{i}",
-          resource_type: "test",
-          data: %{index: i, data: String.duplicate("x", 100)},
-          timestamp: DateTime.utc_now()
-        }
-      end)
+      events =
+        Enum.map(1..100, fn i ->
+          %Event{
+            type: "bulk_event_#{i}",
+            resource_id: "resource-#{i}",
+            resource_type: "test",
+            data: %{index: i, data: String.duplicate("x", 100)},
+            timestamp: DateTime.utc_now()
+          }
+        end)
 
       # Store them in batches
       assert {:ok, stored_events} = EventStore.store_events(events)
@@ -867,12 +900,13 @@ defmodule HydepwnsLiveview.Events.Core.EventStoreTest do
       Enum.each(events, &EventStore.store_event/1)
 
       # Complex query with multiple filters
-      assert {:ok, events} = EventStore.get_events(%{
-        resource_type: "user",
-        event_type: ["user_created", "user_updated"],
-        sort: [timestamp: :desc],
-        limit: 10
-      })
+      assert {:ok, events} =
+               EventStore.get_events(%{
+                 resource_type: "user",
+                 event_type: ["user_created", "user_updated"],
+                 sort: [timestamp: :desc],
+                 limit: 10
+               })
 
       assert length(events) == 2
       assert Enum.all?(events, &(&1.resource_type == "user"))

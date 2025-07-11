@@ -13,7 +13,14 @@ defmodule HydepwnsLiveview.Events.Adapters.EmailAdapterTest do
       }
 
       settings = %{}
-      config = %{provider: "sendgrid", api_key: "test_key", from_name: "Test Sender", attachments: []}
+
+      config = %{
+        provider: "sendgrid",
+        api_key: "test_key",
+        from_name: "Test Sender",
+        attachments: []
+      }
+
       encrypted_message = "encrypted_content"
 
       assert {:error, "Invalid email address"} =
@@ -57,7 +64,12 @@ defmodule HydepwnsLiveview.Events.Adapters.EmailAdapterTest do
 
   describe "email validation" do
     test "rejects invalid email formats" do
-      config = %{provider: "sendgrid", api_key: "test_key", from_name: "Test Sender", attachments: []}
+      config = %{
+        provider: "sendgrid",
+        api_key: "test_key",
+        from_name: "Test Sender",
+        attachments: []
+      }
 
       invalid_emails = [
         "invalid-email",
@@ -80,12 +92,21 @@ defmodule HydepwnsLiveview.Events.Adapters.EmailAdapterTest do
         result = EmailAdapter.send_reminder(reminder, %{}, config, "encrypted")
         # Some emails might pass regex validation but fail at HTTP call
         assert elem(result, 0) == :error
-        assert elem(result, 1) in ["Invalid email address", "Failed to send email with status code: 401"]
+
+        assert elem(result, 1) in [
+                 "Invalid email address",
+                 "Failed to send email with status code: 401"
+               ]
       end)
     end
 
     test "accepts valid email formats" do
-      config = %{provider: "sendgrid", api_key: "test_key", from_name: "Test Sender", attachments: []}
+      config = %{
+        provider: "sendgrid",
+        api_key: "test_key",
+        from_name: "Test Sender",
+        attachments: []
+      }
 
       valid_emails = [
         "user@example.com",
@@ -178,7 +199,13 @@ defmodule HydepwnsLiveview.Events.Adapters.EmailAdapterTest do
         attachments: []
       }
 
-      config = %{provider: "sendgrid", api_key: "test_key", from_name: "Test Sender", attachments: []}
+      config = %{
+        provider: "sendgrid",
+        api_key: "test_key",
+        from_name: "Test Sender",
+        attachments: []
+      }
+
       encrypted_message = "encrypted"
 
       # This will fail due to HTTP call, but provider handling should work
@@ -226,7 +253,13 @@ defmodule HydepwnsLiveview.Events.Adapters.EmailAdapterTest do
         attachments: []
       }
 
-      config = %{provider: "custom", custom_endpoint: "https://api.custom.com/send", from_name: "Test Sender", attachments: []}
+      config = %{
+        provider: "custom",
+        custom_endpoint: "https://api.custom.com/send",
+        from_name: "Test Sender",
+        attachments: []
+      }
+
       encrypted_message = "encrypted"
 
       # This will fail due to custom provider call, but provider handling should work
@@ -239,21 +272,39 @@ defmodule HydepwnsLiveview.Events.Adapters.EmailAdapterTest do
 
   describe "error handling" do
     test "handles nil reminder gracefully" do
-      config = %{provider: "sendgrid", api_key: "test_key", from_name: "Test Sender", attachments: []}
+      config = %{
+        provider: "sendgrid",
+        api_key: "test_key",
+        from_name: "Test Sender",
+        attachments: []
+      }
 
-      assert {:error, "Missing reminder"} = EmailAdapter.send_reminder(nil, %{}, config, "encrypted")
+      assert {:error, "Missing reminder"} =
+               EmailAdapter.send_reminder(nil, %{}, config, "encrypted")
     end
 
     test "handles empty reminder gracefully" do
-      config = %{provider: "sendgrid", api_key: "test_key", from_name: "Test Sender", attachments: []}
+      config = %{
+        provider: "sendgrid",
+        api_key: "test_key",
+        from_name: "Test Sender",
+        attachments: []
+      }
 
-      assert {:error, "Empty reminder"} = EmailAdapter.send_reminder(%{}, %{}, config, "encrypted")
+      assert {:error, "Empty reminder"} =
+               EmailAdapter.send_reminder(%{}, %{}, config, "encrypted")
     end
 
     test "handles invalid reminder format gracefully" do
-      config = %{provider: "sendgrid", api_key: "test_key", from_name: "Test Sender", attachments: []}
+      config = %{
+        provider: "sendgrid",
+        api_key: "test_key",
+        from_name: "Test Sender",
+        attachments: []
+      }
 
-      assert {:error, "Invalid reminder format"} = EmailAdapter.send_reminder("not a map", %{}, config, "encrypted")
+      assert {:error, "Invalid reminder format"} =
+               EmailAdapter.send_reminder("not a map", %{}, config, "encrypted")
     end
 
     test "handles missing config gracefully" do
@@ -265,7 +316,8 @@ defmodule HydepwnsLiveview.Events.Adapters.EmailAdapterTest do
         attachments: []
       }
 
-      assert {:error, "Unsupported email provider"} = EmailAdapter.send_reminder(reminder, %{}, %{}, "encrypted")
+      assert {:error, "Unsupported email provider"} =
+               EmailAdapter.send_reminder(reminder, %{}, %{}, "encrypted")
     end
   end
 
@@ -281,7 +333,13 @@ defmodule HydepwnsLiveview.Events.Adapters.EmailAdapterTest do
         attachments: []
       }
 
-      config = %{provider: "sendgrid", api_key: "test_key", from_name: "Test Sender", attachments: []}
+      config = %{
+        provider: "sendgrid",
+        api_key: "test_key",
+        from_name: "Test Sender",
+        attachments: []
+      }
+
       encrypted_message = "encrypted"
 
       # This will fail due to HTTP call, but validation should pass
@@ -300,7 +358,13 @@ defmodule HydepwnsLiveview.Events.Adapters.EmailAdapterTest do
         attachments: []
       }
 
-      config = %{provider: "sendgrid", api_key: "test_key", from_name: "Test Sender", attachments: []}
+      config = %{
+        provider: "sendgrid",
+        api_key: "test_key",
+        from_name: "Test Sender",
+        attachments: []
+      }
+
       encrypted_message = "encrypted"
 
       # This will fail due to HTTP call, but validation should pass
@@ -317,7 +381,13 @@ defmodule HydepwnsLiveview.Events.Adapters.EmailAdapterTest do
         attachments: []
       }
 
-      config = %{provider: "sendgrid", api_key: "test_key", from_name: "Test Sender", attachments: []}
+      config = %{
+        provider: "sendgrid",
+        api_key: "test_key",
+        from_name: "Test Sender",
+        attachments: []
+      }
+
       encrypted_message = "encrypted content with émojis 🎉"
 
       # This will fail due to HTTP call, but content building should work

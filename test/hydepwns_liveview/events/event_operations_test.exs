@@ -1,5 +1,5 @@
 defmodule HydepwnsLiveview.Events.EventOperationsTest do
-  use HydepwnsLiveview.DataCase, async: true
+  use HydepwnsLiveview.DataCase
 
   alias HydepwnsLiveview.Events.EventOperations
   alias HydepwnsLiveview.Events.Core.Event
@@ -37,8 +37,10 @@ defmodule HydepwnsLiveview.Events.EventOperationsTest do
       assert {:ok, stored_event} = EventOperations.store_event(event_type, event_data)
       assert stored_event.type == event_type
       assert stored_event.data == event_data
-      assert stored_event.resource_id == "123"  # Default value
-      assert stored_event.resource_type == "test_resource"  # Default value
+      # Default value
+      assert stored_event.resource_id == "123"
+      # Default value
+      assert stored_event.resource_type == "test_resource"
     end
 
     test "returns error for invalid parameters" do
@@ -427,7 +429,10 @@ defmodule HydepwnsLiveview.Events.EventOperationsTest do
 
     test "returns error for invalid event" do
       transform_fn = fn payload -> payload end
-      assert {:error, :invalid_event} = EventOperations.transform_event("not an event", transform_fn)
+
+      assert {:error, :invalid_event} =
+               EventOperations.transform_event("not an event", transform_fn)
+
       assert {:error, :invalid_event} = EventOperations.transform_event(nil, transform_fn)
     end
   end
@@ -463,6 +468,7 @@ defmodule HydepwnsLiveview.Events.EventOperationsTest do
       assert_raise FunctionClauseError, fn ->
         EventOperations.merge_events("not a list")
       end
+
       assert_raise FunctionClauseError, fn ->
         EventOperations.merge_events(nil)
       end

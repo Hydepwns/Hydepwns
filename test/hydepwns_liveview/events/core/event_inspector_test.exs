@@ -229,9 +229,15 @@ defmodule HydepwnsLiveview.Events.Core.EventInspectorTest do
       # The compare_maps function returns tuples for differences at the top level
       # For nested maps, we need to check the user field difference
       assert diff.data.user == {
-        %{name: "John", preferences: %{theme: "dark", notifications: %{email: true, sms: false}}},
-        %{name: "John Doe", preferences: %{theme: "light", notifications: %{email: true, sms: true}}}
-      }
+               %{
+                 name: "John",
+                 preferences: %{theme: "dark", notifications: %{email: true, sms: false}}
+               },
+               %{
+                 name: "John Doe",
+                 preferences: %{theme: "light", notifications: %{email: true, sms: true}}
+               }
+             }
     end
 
     test "handles unicode characters in event data" do
@@ -340,11 +346,12 @@ defmodule HydepwnsLiveview.Events.Core.EventInspectorTest do
 
   describe "start_replay_for_debugging/4" do
     test "successfully starts a replay session for debugging", %{test_event_1: event} do
-      result = EventInspector.start_replay_for_debugging(
-        "debug-session",
-        event.resource_type,
-        event.resource_id
-      )
+      result =
+        EventInspector.start_replay_for_debugging(
+          "debug-session",
+          event.resource_type,
+          event.resource_id
+        )
 
       # The replay session creation might fail due to missing schema or database issues
       # Let's just test that the function handles the parameters correctly
@@ -358,12 +365,14 @@ defmodule HydepwnsLiveview.Events.Core.EventInspectorTest do
 
     test "starts replay session with custom options", %{test_event_1: event} do
       opts = [metadata: %{custom: "value"}]
-      result = EventInspector.start_replay_for_debugging(
-        "debug-session",
-        event.resource_type,
-        event.resource_id,
-        opts
-      )
+
+      result =
+        EventInspector.start_replay_for_debugging(
+          "debug-session",
+          event.resource_type,
+          event.resource_id,
+          opts
+        )
 
       # The replay session creation might fail due to missing schema or database issues
       # Let's just test that the function handles the parameters correctly
@@ -485,7 +494,7 @@ defmodule HydepwnsLiveview.Events.Core.EventInspectorTest do
 
       assert {:ok, analysis} = result
       assert analysis.total_events == 2
-      assert analysis.event_types == [HydepwnsLiveview.Events.Event]
+      assert analysis.event_types == [HydepwnsLiveview.Events.Core.Event]
       assert is_integer(analysis.time_span)
       assert is_map(analysis.source_distribution)
     end
@@ -527,53 +536,48 @@ defmodule HydepwnsLiveview.Events.Core.EventInspectorTest do
 
       assert {:ok, analysis} = result
       assert analysis.total_events == 1
-      assert analysis.event_types == [HydepwnsLiveview.Events.Event]
+      assert analysis.event_types == [HydepwnsLiveview.Events.Core.Event]
       assert analysis.time_span == 0
       assert is_map(analysis.source_distribution)
     end
 
     test "handles events with different timestamps", %{test_event_1: event1} do
-      event2 = %{event1 |
-        id: "event-diff-time",
-        timestamp: DateTime.add(event1.timestamp, 3600, :second)
+      event2 = %{
+        event1
+        | id: "event-diff-time",
+          timestamp: DateTime.add(event1.timestamp, 3600, :second)
       }
 
       result = EventInspector.analyze_event_sequence([event1, event2])
 
       assert {:ok, analysis} = result
       assert analysis.total_events == 2
-      assert analysis.event_types == [HydepwnsLiveview.Events.Event]
+      assert analysis.event_types == [HydepwnsLiveview.Events.Core.Event]
       assert analysis.time_span == 3600
       assert is_map(analysis.source_distribution)
     end
 
     test "handles events with different sources", %{test_event_1: event1} do
-      event2 = %{event1 |
-        id: "event-diff-source",
-        metadata: %{source: "different_source"}
-      }
+      event2 = %{event1 | id: "event-diff-source", metadata: %{source: "different_source"}}
 
       result = EventInspector.analyze_event_sequence([event1, event2])
 
       assert {:ok, analysis} = result
       assert analysis.total_events == 2
-      assert analysis.event_types == [HydepwnsLiveview.Events.Event]
+      assert analysis.event_types == [HydepwnsLiveview.Events.Core.Event]
       assert is_integer(analysis.time_span)
       assert analysis.source_distribution["test"] == 1
       assert analysis.source_distribution["different_source"] == 1
     end
 
     test "handles events without metadata", %{test_event_1: event1} do
-      event2 = %{event1 |
-        id: "event-no-metadata",
-        metadata: %{}
-      }
+      event2 = %{event1 | id: "event-no-metadata", metadata: %{}}
 
       result = EventInspector.analyze_event_sequence([event1, event2])
 
       assert {:ok, analysis} = result
       assert analysis.total_events == 2
-      assert analysis.event_types == [HydepwnsLiveview.Events.Event]
+      assert analysis.event_types == [HydepwnsLiveview.Events.Core.Event]
       assert is_integer(analysis.time_span)
       assert analysis.source_distribution["test"] == 1
       assert analysis.source_distribution["unknown"] == 1
@@ -584,13 +588,13 @@ defmodule HydepwnsLiveview.Events.Core.EventInspectorTest do
     test "successfully extracts event metadata", %{test_event_1: event} do
       result = EventInspector.get_event_metadata(event)
 
-      assert result.type == HydepwnsLiveview.Events.Event
+      assert result.type == HydepwnsLiveview.Events.Core.Event
       assert result.timestamp == event.timestamp
       assert result.correlation_id == "corr-123"
     end
 
     test "handles event without correlation_id" do
-      event = %HydepwnsLiveview.Events.Event{
+      event = %HydepwnsLiveview.Events.Core.Event{
         id: "event-no-corr",
         type: "user.created",
         data: %{},
@@ -604,7 +608,7 @@ defmodule HydepwnsLiveview.Events.Core.EventInspectorTest do
 
       result = EventInspector.get_event_metadata(event)
 
-      assert result.type == HydepwnsLiveview.Events.Event
+      assert result.type == HydepwnsLiveview.Events.Core.Event
       assert result.timestamp == event.timestamp
       assert result.correlation_id == nil
     end
@@ -631,7 +635,7 @@ defmodule HydepwnsLiveview.Events.Core.EventInspectorTest do
       # Create multiple events for metrics testing
       events =
         for i <- 1..10 do
-          %HydepwnsLiveview.Events.Event{
+          %HydepwnsLiveview.Events.Core.Event{
             id: "metrics-event-#{i}",
             type: "user.#{rem(i, 5)}",
             data: %{index: i},
@@ -663,7 +667,7 @@ defmodule HydepwnsLiveview.Events.Core.EventInspectorTest do
       # Create multiple events for sequence analysis
       events =
         for i <- 1..5 do
-          %HydepwnsLiveview.Events.Event{
+          %HydepwnsLiveview.Events.Core.Event{
             id: "sequence-event-#{i}",
             type: "user.created",
             data: %{index: i},
@@ -680,13 +684,13 @@ defmodule HydepwnsLiveview.Events.Core.EventInspectorTest do
 
       assert {:ok, analysis} = result
       assert analysis.total_events == 5
-      assert analysis.event_types == [HydepwnsLiveview.Events.Event]
+      assert analysis.event_types == [HydepwnsLiveview.Events.Core.Event]
       assert is_integer(analysis.time_span)
       assert is_map(analysis.source_distribution)
     end
 
     test "handles events with missing timestamp" do
-      event_without_timestamp = %HydepwnsLiveview.Events.Event{
+      event_without_timestamp = %HydepwnsLiveview.Events.Core.Event{
         id: "no-timestamp",
         type: "user.created",
         data: %{},
@@ -702,7 +706,7 @@ defmodule HydepwnsLiveview.Events.Core.EventInspectorTest do
 
       assert {:ok, analysis} = result
       assert analysis.total_events == 1
-      assert analysis.event_types == [HydepwnsLiveview.Events.Event]
+      assert analysis.event_types == [HydepwnsLiveview.Events.Core.Event]
       assert analysis.time_span == 0
       assert is_map(analysis.source_distribution)
     end
@@ -710,7 +714,7 @@ defmodule HydepwnsLiveview.Events.Core.EventInspectorTest do
 
   describe "edge cases and error handling" do
     test "handles events with nil correlation_id" do
-      event = %HydepwnsLiveview.Events.Event{
+      event = %HydepwnsLiveview.Events.Core.Event{
         id: "event-nil-corr",
         type: "user.created",
         data: %{},
@@ -731,7 +735,7 @@ defmodule HydepwnsLiveview.Events.Core.EventInspectorTest do
     end
 
     test "handles events with empty data and metadata", %{test_event_1: event1} do
-      empty_event = %HydepwnsLiveview.Events.Event{
+      empty_event = %HydepwnsLiveview.Events.Core.Event{
         id: "event-empty",
         type: "user.created",
         data: %{},
@@ -752,7 +756,7 @@ defmodule HydepwnsLiveview.Events.Core.EventInspectorTest do
     end
 
     test "handles events with complex nested data structures" do
-      complex_event_1 = %HydepwnsLiveview.Events.Event{
+      complex_event_1 = %HydepwnsLiveview.Events.Core.Event{
         id: "complex-1",
         type: "user.created",
         data: %{
@@ -772,7 +776,7 @@ defmodule HydepwnsLiveview.Events.Core.EventInspectorTest do
         timestamp: DateTime.utc_now()
       }
 
-      complex_event_2 = %HydepwnsLiveview.Events.Event{
+      complex_event_2 = %HydepwnsLiveview.Events.Core.Event{
         id: "complex-2",
         type: "user.updated",
         data: %{
@@ -801,13 +805,19 @@ defmodule HydepwnsLiveview.Events.Core.EventInspectorTest do
       # The compare_maps function returns tuples for differences at the top level
       # For nested maps, we need to check the user field difference
       assert diff.data.user == {
-        %{name: "John", preferences: %{theme: "dark", notifications: %{email: true, sms: false}}},
-        %{name: "John Doe", preferences: %{theme: "light", notifications: %{email: true, sms: true}}}
-      }
+               %{
+                 name: "John",
+                 preferences: %{theme: "dark", notifications: %{email: true, sms: false}}
+               },
+               %{
+                 name: "John Doe",
+                 preferences: %{theme: "light", notifications: %{email: true, sms: true}}
+               }
+             }
     end
 
     test "handles unicode characters in event data" do
-      unicode_event_1 = %HydepwnsLiveview.Events.Event{
+      unicode_event_1 = %HydepwnsLiveview.Events.Core.Event{
         id: "unicode-1",
         type: "user.created",
         data: %{name: "José", message: "¡Hola mundo!"},
@@ -819,7 +829,7 @@ defmodule HydepwnsLiveview.Events.Core.EventInspectorTest do
         timestamp: DateTime.utc_now()
       }
 
-      unicode_event_2 = %HydepwnsLiveview.Events.Event{
+      unicode_event_2 = %HydepwnsLiveview.Events.Core.Event{
         id: "unicode-2",
         type: "user.updated",
         data: %{name: "José María", message: "¡Hola mundo! 👋"},

@@ -15,6 +15,7 @@ defmodule HydepwnsLiveview.Events.HandlerSupervisorTest do
   setup do
     # Clean up any existing handlers
     {:ok, handlers} = CoreHandlerSupervisor.list_handlers()
+
     Enum.each(handlers, fn {_module, pid} ->
       CoreHandlerSupervisor.stop_handler(pid)
     end)
@@ -89,7 +90,7 @@ defmodule HydepwnsLiveview.Events.HandlerSupervisorTest do
     end
   end
 
-    describe "count_handlers/0" do
+  describe "count_handlers/0" do
     test "delegates to core handler supervisor" do
       assert {:ok, count} = HandlerSupervisor.count_handlers()
       assert is_map(count)
@@ -97,9 +98,10 @@ defmodule HydepwnsLiveview.Events.HandlerSupervisorTest do
     end
 
     test "returns correct count of running handlers" do
-      initial_count = case HandlerSupervisor.count_handlers() do
-        {:ok, count} -> count.active
-      end
+      initial_count =
+        case HandlerSupervisor.count_handlers() do
+          {:ok, count} -> count.active
+        end
 
       {:ok, _pid} = HandlerSupervisor.start_handler(TestHandler)
 
@@ -121,7 +123,8 @@ defmodule HydepwnsLiveview.Events.HandlerSupervisorTest do
     end
 
     test "handles invalid handler reference" do
-      assert {:error, :not_found} = HandlerSupervisor.send_to_handler(:non_existent, :test_message)
+      assert {:error, :not_found} =
+               HandlerSupervisor.send_to_handler(:non_existent, :test_message)
     end
 
     test "handles handler that doesn't support calls" do
@@ -133,7 +136,9 @@ defmodule HydepwnsLiveview.Events.HandlerSupervisorTest do
       end
 
       {:ok, pid} = HandlerSupervisor.start_handler(SimpleHandler)
-      assert {:ok, {:error, :not_supported}} = HandlerSupervisor.send_to_handler(pid, :test_message)
+
+      assert {:ok, {:error, :not_supported}} =
+               HandlerSupervisor.send_to_handler(pid, :test_message)
     end
   end
 

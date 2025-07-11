@@ -9,6 +9,7 @@ defmodule HydepwnsLiveview.Events.EventSupervisorTest do
       # Test that the delegation module properly forwards calls
       # Since the supervisor is already started by the application, we expect an error
       result = EventSupervisor.start_link([])
+
       case result do
         {:ok, _pid} -> assert true
         {:error, {:already_started, _pid}} -> assert true
@@ -35,6 +36,7 @@ defmodule HydepwnsLiveview.Events.EventSupervisorTest do
     test "start_link/1 handles already started supervisor" do
       # Test that the supervisor handles the already started case gracefully
       result = CoreEventSupervisor.start_link([])
+
       case result do
         {:ok, _pid} -> assert true
         {:error, {:already_started, _pid}} -> assert true
@@ -109,9 +111,10 @@ defmodule HydepwnsLiveview.Events.EventSupervisorTest do
 
       # Simulate a child failure by killing one of the children
       # Find a child that's not a Registry (which might be harder to restart)
-      event_bus_child = Enum.find(initial_children, fn {name, _pid, _type, _modules} ->
-        name == HydepwnsLiveview.Events.Core.EventBus
-      end)
+      event_bus_child =
+        Enum.find(initial_children, fn {name, _pid, _type, _modules} ->
+          name == HydepwnsLiveview.Events.Core.EventBus
+        end)
 
       if event_bus_child do
         {_name, child_pid, _type, _modules} = event_bus_child
@@ -124,9 +127,11 @@ defmodule HydepwnsLiveview.Events.EventSupervisorTest do
 
         # Verify the child was restarted
         new_children = Supervisor.which_children(pid)
-        new_event_bus_child = Enum.find(new_children, fn {name, _pid, _type, _modules} ->
-          name == HydepwnsLiveview.Events.Core.EventBus
-        end)
+
+        new_event_bus_child =
+          Enum.find(new_children, fn {name, _pid, _type, _modules} ->
+            name == HydepwnsLiveview.Events.Core.EventBus
+          end)
 
         assert new_event_bus_child
         {_name, new_child_pid, _type, _modules} = new_event_bus_child
@@ -165,6 +170,7 @@ defmodule HydepwnsLiveview.Events.EventSupervisorTest do
       # Test with various invalid arguments
       # Since the supervisor is already started, we expect already_started errors
       result1 = CoreEventSupervisor.start_link(nil)
+
       case result1 do
         {:ok, _pid} -> assert true
         {:error, {:already_started, _pid}} -> assert true
@@ -172,6 +178,7 @@ defmodule HydepwnsLiveview.Events.EventSupervisorTest do
       end
 
       result2 = CoreEventSupervisor.start_link("invalid")
+
       case result2 do
         {:ok, _pid} -> assert true
         {:error, {:already_started, _pid}} -> assert true
@@ -179,6 +186,7 @@ defmodule HydepwnsLiveview.Events.EventSupervisorTest do
       end
 
       result3 = CoreEventSupervisor.start_link(%{})
+
       case result3 do
         {:ok, _pid} -> assert true
         {:error, {:already_started, _pid}} -> assert true
@@ -243,9 +251,10 @@ defmodule HydepwnsLiveview.Events.EventSupervisorTest do
 
     test "supervisor can handle multiple start attempts" do
       # Test that multiple start attempts are handled gracefully
-      results = for _ <- 1..3 do
-        CoreEventSupervisor.start_link([])
-      end
+      results =
+        for _ <- 1..3 do
+          CoreEventSupervisor.start_link([])
+        end
 
       # All should either succeed or return already_started
       Enum.each(results, fn result ->

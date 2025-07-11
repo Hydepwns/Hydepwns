@@ -18,6 +18,7 @@ defmodule HydepwnsLiveview.Events.EventStoreTest do
         causation_id: nil,
         timestamp: DateTime.utc_now()
       }
+
       {:ok, stored_event} = EventStore.store_event(event)
       assert stored_event.id == event.id
       assert {:ok, fetched_event} = EventStore.get_event(event.id)
@@ -50,7 +51,10 @@ defmodule HydepwnsLiveview.Events.EventStoreTest do
     test "get_events_for_resource_at/3 returns events up to timestamp" do
       now = DateTime.utc_now()
       {:ok, event} = EventStore.store_event("user.created", %{name: "Carol"})
-      {:ok, events} = EventStore.get_events_for_resource_at(event.resource_type, event.resource_id, now)
+
+      {:ok, events} =
+        EventStore.get_events_for_resource_at(event.resource_type, event.resource_id, now)
+
       assert is_list(events)
     end
 
@@ -119,7 +123,9 @@ defmodule HydepwnsLiveview.Events.EventStoreTest do
     end
 
     test "update_replay_session_status/3 returns ok" do
-      {:ok, result} = EventStore.update_replay_session_status("session-id", "running", %{foo: "bar"})
+      {:ok, result} =
+        EventStore.update_replay_session_status("session-id", "running", %{foo: "bar"})
+
       assert result[:id] == "session-id"
       assert result[:status] == "running"
     end

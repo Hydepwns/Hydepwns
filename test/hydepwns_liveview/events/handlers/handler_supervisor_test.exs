@@ -28,7 +28,7 @@ defmodule HydepwnsLiveview.Events.Handlers.HandlerSupervisorTest do
     end
   end
 
-    defmodule CastHandler do
+  defmodule CastHandler do
     @behaviour HydepwnsLiveview.Events.Handlers.Handler
 
     def init, do: {:ok, %{casts: 0}}
@@ -44,7 +44,7 @@ defmodule HydepwnsLiveview.Events.Handlers.HandlerSupervisorTest do
     end
   end
 
-    defmodule InfoHandler do
+  defmodule InfoHandler do
     @behaviour HydepwnsLiveview.Events.Handlers.Handler
 
     def init, do: {:ok, %{messages: []}}
@@ -80,10 +80,11 @@ defmodule HydepwnsLiveview.Events.Handlers.HandlerSupervisorTest do
     def handle_event(_event, state), do: {:ok, state}
   end
 
-    setup do
+  setup do
     # The supervisor is already started by the application
     # Clean up any existing handlers
     {:ok, handlers} = HandlerSupervisor.list_handlers()
+
     Enum.each(handlers, fn {_module, pid} ->
       HandlerSupervisor.stop_handler(pid)
     end)
@@ -262,12 +263,15 @@ defmodule HydepwnsLiveview.Events.Handlers.HandlerSupervisorTest do
     end
 
     test "handles non-existent handler name" do
-      assert {:error, :not_found} = HandlerSupervisor.send_to_handler(:non_existent, :test_message)
+      assert {:error, :not_found} =
+               HandlerSupervisor.send_to_handler(:non_existent, :test_message)
     end
 
     test "handles handler that doesn't support calls" do
       {:ok, pid} = HandlerSupervisor.start_handler(TestHandler)
-      assert {:ok, {:error, :not_supported}} = HandlerSupervisor.send_to_handler(pid, :test_message)
+
+      assert {:ok, {:error, :not_supported}} =
+               HandlerSupervisor.send_to_handler(pid, :test_message)
     end
 
     test "handles handler crash during call" do
@@ -322,7 +326,7 @@ defmodule HydepwnsLiveview.Events.Handlers.HandlerSupervisorTest do
     end
   end
 
-    describe "error handling" do
+  describe "error handling" do
     test "handles invalid handler modules gracefully" do
       # The HandlerProcess will try to start these anyway, so we expect success
       assert {:ok, _pid} = HandlerSupervisor.start_handler(nil)
@@ -330,7 +334,7 @@ defmodule HydepwnsLiveview.Events.Handlers.HandlerSupervisorTest do
       assert {:error, _reason} = HandlerSupervisor.start_handler("not_a_module")
     end
 
-        test "handles handler crashes gracefully" do
+    test "handles handler crashes gracefully" do
       # Start a handler that will crash
       assert {:error, _reason} = HandlerSupervisor.start_handler(CrashingHandler)
 

@@ -25,21 +25,23 @@ defmodule HydepwnsLiveview.Events.Core.EventBusTest do
 
   describe "publish/2" do
     test "publishes valid event successfully" do
-      event = Event.create!("test_event", %{
-        resource_id: "test-123",
-        resource_type: "test",
-        data: %{message: "Hello"}
-      })
+      event =
+        Event.create!("test_event", %{
+          resource_id: "test-123",
+          resource_type: "test",
+          data: %{message: "Hello"}
+        })
 
       assert :ok = EventBus.publish(event)
     end
 
     test "publishes event with options" do
-      event = Event.create!("test_event", %{
-        resource_id: "test-123",
-        resource_type: "test",
-        data: %{message: "Hello"}
-      })
+      event =
+        Event.create!("test_event", %{
+          resource_id: "test-123",
+          resource_type: "test",
+          data: %{message: "Hello"}
+        })
 
       assert :ok = EventBus.publish(event, %{store: true})
     end
@@ -78,7 +80,13 @@ defmodule HydepwnsLiveview.Events.Core.EventBusTest do
 
     test "subscribes registered process" do
       # Register a test process
-      test_pid = spawn(fn -> receive do _ -> :ok end end)
+      test_pid =
+        spawn(fn ->
+          receive do
+            _ -> :ok
+          end
+        end)
+
       Process.register(test_pid, :test_subscriber)
 
       assert :ok = EventBus.subscribe(:test_subscriber, "test_event")
@@ -131,7 +139,13 @@ defmodule HydepwnsLiveview.Events.Core.EventBusTest do
 
     test "unsubscribes registered process" do
       # Register a test process
-      test_pid = spawn(fn -> receive do _ -> :ok end end)
+      test_pid =
+        spawn(fn ->
+          receive do
+            _ -> :ok
+          end
+        end)
+
       Process.register(test_pid, :test_subscriber)
 
       # First subscribe
@@ -144,7 +158,7 @@ defmodule HydepwnsLiveview.Events.Core.EventBusTest do
     end
   end
 
-    describe "get_subscribers/1" do
+  describe "get_subscribers/1" do
     test "gets subscribers for valid event type" do
       test_pid = self()
       # Subscribe to the event type
@@ -203,7 +217,7 @@ defmodule HydepwnsLiveview.Events.Core.EventBusTest do
     end
   end
 
-    describe "event publishing and subscription" do
+  describe "event publishing and subscription" do
     test "subscribers receive published events" do
       test_pid = self()
       event_type = "test_publish_event"
@@ -212,11 +226,12 @@ defmodule HydepwnsLiveview.Events.Core.EventBusTest do
       assert :ok = EventBus.subscribe(test_pid, event_type)
 
       # Create and publish an event
-      event = Event.create!(event_type, %{
-        resource_id: "test-123",
-        resource_type: "test",
-        data: %{message: "Test message"}
-      })
+      event =
+        Event.create!(event_type, %{
+          resource_id: "test-123",
+          resource_type: "test",
+          data: %{message: "Test message"}
+        })
 
       assert :ok = EventBus.publish(event)
 
@@ -237,11 +252,12 @@ defmodule HydepwnsLiveview.Events.Core.EventBusTest do
       assert :ok = EventBus.subscribe(test_pid, :all)
 
       # Create and publish an event
-      event = Event.create!("test_all_event", %{
-        resource_id: "test-123",
-        resource_type: "test",
-        data: %{message: "Test message"}
-      })
+      event =
+        Event.create!("test_all_event", %{
+          resource_id: "test-123",
+          resource_type: "test",
+          data: %{message: "Test message"}
+        })
 
       assert :ok = EventBus.publish(event)
 
@@ -263,11 +279,12 @@ defmodule HydepwnsLiveview.Events.Core.EventBusTest do
       assert :ok = EventBus.unsubscribe(test_pid, event_type)
 
       # Create and publish an event
-      event = Event.create!(event_type, %{
-        resource_id: "test-123",
-        resource_type: "test",
-        data: %{message: "Test message"}
-      })
+      event =
+        Event.create!(event_type, %{
+          resource_id: "test-123",
+          resource_type: "test",
+          data: %{message: "Test message"}
+        })
 
       assert :ok = EventBus.publish(event)
 
@@ -279,17 +296,19 @@ defmodule HydepwnsLiveview.Events.Core.EventBusTest do
   describe "multiple subscribers" do
     test "multiple subscribers receive the same event" do
       # Create test processes
-      pid1 = spawn(fn ->
-        receive do
-          {:event, event} -> send(self(), {:received, 1, event})
-        end
-      end)
+      pid1 =
+        spawn(fn ->
+          receive do
+            {:event, event} -> send(self(), {:received, 1, event})
+          end
+        end)
 
-      pid2 = spawn(fn ->
-        receive do
-          {:event, event} -> send(self(), {:received, 2, event})
-        end
-      end)
+      pid2 =
+        spawn(fn ->
+          receive do
+            {:event, event} -> send(self(), {:received, 2, event})
+          end
+        end)
 
       event_type = "test_multiple_subscribers"
 
@@ -298,11 +317,12 @@ defmodule HydepwnsLiveview.Events.Core.EventBusTest do
       assert :ok = EventBus.subscribe(pid2, event_type)
 
       # Create and publish an event
-      event = Event.create!(event_type, %{
-        resource_id: "test-123",
-        resource_type: "test",
-        data: %{message: "Test message"}
-      })
+      event =
+        Event.create!(event_type, %{
+          resource_id: "test-123",
+          resource_type: "test",
+          data: %{message: "Test message"}
+        })
 
       assert :ok = EventBus.publish(event)
 
@@ -348,12 +368,13 @@ defmodule HydepwnsLiveview.Events.Core.EventBusTest do
       event_type = "test_concurrent"
 
       # Create multiple processes that subscribe concurrently
-      pids = for _i <- 1..5 do
-        spawn(fn ->
-          assert :ok = EventBus.subscribe(self(), event_type)
-          send(self(), {:subscribed, :ok})
-        end)
-      end
+      pids =
+        for _i <- 1..5 do
+          spawn(fn ->
+            assert :ok = EventBus.subscribe(self(), event_type)
+            send(self(), {:subscribed, :ok})
+          end)
+        end
 
       # Wait for all to subscribe
       for _pid <- pids do
@@ -374,12 +395,13 @@ defmodule HydepwnsLiveview.Events.Core.EventBusTest do
       event_type = "test_large_subscribers"
 
       # Create many subscribers
-      pids = for _i <- 1..20 do
-        spawn(fn ->
-          assert :ok = EventBus.subscribe(self(), event_type)
-          send(self(), {:subscribed, :ok})
-        end)
-      end
+      pids =
+        for _i <- 1..20 do
+          spawn(fn ->
+            assert :ok = EventBus.subscribe(self(), event_type)
+            send(self(), {:subscribed, :ok})
+          end)
+        end
 
       # Wait for all to subscribe
       for _pid <- pids do
@@ -417,12 +439,13 @@ defmodule HydepwnsLiveview.Events.Core.EventBusTest do
       event_type = "test_performance"
 
       # Create many subscribers
-      pids = for _i <- 1..20 do
-        spawn(fn ->
-          assert :ok = EventBus.subscribe(self(), event_type)
-          send(self(), {:subscribed, :ok})
-        end)
-      end
+      pids =
+        for _i <- 1..20 do
+          spawn(fn ->
+            assert :ok = EventBus.subscribe(self(), event_type)
+            send(self(), {:subscribed, :ok})
+          end)
+        end
 
       # Wait for all to subscribe
       for _pid <- pids do

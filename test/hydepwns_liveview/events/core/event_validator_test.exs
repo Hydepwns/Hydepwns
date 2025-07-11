@@ -61,11 +61,16 @@ defmodule HydepwnsLiveview.Events.Core.EventValidatorTest do
     test "rejects event with invalid field types" do
       invalid_event = %{
         type: :user_created,
-        id: 123,  # should be string
-        source: :invalid_source,  # should be string
-        timestamp: "not a datetime",  # should be DateTime
-        metadata: "not a map",  # should be map
-        data: "not a map"  # should be map
+        # should be string
+        id: 123,
+        # should be string
+        source: :invalid_source,
+        # should be DateTime
+        timestamp: "not a datetime",
+        # should be map
+        metadata: "not a map",
+        # should be map
+        data: "not a map"
       }
 
       # The order of fields in the error message can vary, so we check the content
@@ -112,12 +117,18 @@ defmodule HydepwnsLiveview.Events.Core.EventValidatorTest do
       # Invalid string fields
       invalid_strings = %{
         type: :user_created,
-        id: 123,  # should be string
-        source: :atom,  # should be string
-        resource_type: %{not: "string"},  # should be string
-        resource_id: [1, 2, 3],  # should be string
-        correlation_id: true,  # should be string
-        causation_id: 42.5  # should be string
+        # should be string
+        id: 123,
+        # should be string
+        source: :atom,
+        # should be string
+        resource_type: %{not: "string"},
+        # should be string
+        resource_id: [1, 2, 3],
+        # should be string
+        correlation_id: true,
+        # should be string
+        causation_id: 42.5
       }
 
       # The order of fields in the error message can vary, so we check the content
@@ -141,7 +152,8 @@ defmodule HydepwnsLiveview.Events.Core.EventValidatorTest do
 
       # Invalid atom field
       invalid_atom = %{
-        type: "user_created"  # should be atom
+        # should be atom
+        type: "user_created"
       }
 
       assert {:error, "Invalid field types: [:type]"} = EventValidator.validate(invalid_atom)
@@ -159,10 +171,12 @@ defmodule HydepwnsLiveview.Events.Core.EventValidatorTest do
       # Invalid datetime field
       invalid_datetime = %{
         type: :user_created,
-        timestamp: "2023-01-01T00:00:00Z"  # should be DateTime struct
+        # should be DateTime struct
+        timestamp: "2023-01-01T00:00:00Z"
       }
 
-      assert {:error, "Invalid field types: [:timestamp]"} = EventValidator.validate(invalid_datetime)
+      assert {:error, "Invalid field types: [:timestamp]"} =
+               EventValidator.validate(invalid_datetime)
     end
 
     test "validates map fields correctly" do
@@ -178,8 +192,10 @@ defmodule HydepwnsLiveview.Events.Core.EventValidatorTest do
       # Invalid map fields
       invalid_maps = %{
         type: :user_created,
-        metadata: "not a map",  # should be map
-        data: [1, 2, 3]  # should be map
+        # should be map
+        metadata: "not a map",
+        # should be map
+        data: [1, 2, 3]
       }
 
       # The order of fields in the error message can vary, so we check the content
@@ -237,16 +253,21 @@ defmodule HydepwnsLiveview.Events.Core.EventValidatorTest do
       }
 
       # Unknown fields should be ignored during validation
-      assert {:ok, ^event_with_unknown_fields} = EventValidator.validate(event_with_unknown_fields)
+      assert {:ok, ^event_with_unknown_fields} =
+               EventValidator.validate(event_with_unknown_fields)
     end
 
     test "handles multiple validation errors" do
       invalid_event = %{
         # missing required type field
-        id: 123,  # should be string
-        source: :invalid,  # should be string
-        timestamp: "not datetime",  # should be DateTime
-        metadata: "not map"  # should be map
+        # should be string
+        id: 123,
+        # should be string
+        source: :invalid,
+        # should be DateTime
+        timestamp: "not datetime",
+        # should be map
+        metadata: "not map"
       }
 
       # Should report missing required field first
@@ -274,7 +295,9 @@ defmodule HydepwnsLiveview.Events.Core.EventValidatorTest do
       assert length(schema.optional) == length(Enum.uniq(schema.optional))
 
       # Verify no overlap between required and optional
-      assert Enum.empty?(MapSet.intersection(MapSet.new(schema.required), MapSet.new(schema.optional)))
+      assert Enum.empty?(
+               MapSet.intersection(MapSet.new(schema.required), MapSet.new(schema.optional))
+             )
     end
   end
 
@@ -318,9 +341,10 @@ defmodule HydepwnsLiveview.Events.Core.EventValidatorTest do
     end
 
     test "handles very large map values" do
-      large_map = Enum.reduce(1..1000, %{}, fn i, acc ->
-        Map.put(acc, "key_#{i}", "value_#{i}")
-      end)
+      large_map =
+        Enum.reduce(1..1000, %{}, fn i, acc ->
+          Map.put(acc, "key_#{i}", "value_#{i}")
+        end)
 
       event_with_large_map = %{
         type: :user_created,
@@ -333,7 +357,8 @@ defmodule HydepwnsLiveview.Events.Core.EventValidatorTest do
 
     test "handles special atom values" do
       special_atoms = %{
-        type: :"user-created",  # atom with special characters
+        # atom with special characters
+        type: :"user-created",
         id: "event-123"
       }
 
@@ -369,8 +394,10 @@ defmodule HydepwnsLiveview.Events.Core.EventValidatorTest do
     test "handles different datetime formats" do
       # Test with different DateTime values
       now = DateTime.utc_now()
-      past = DateTime.add(now, -3600, :second)  # 1 hour ago
-      future = DateTime.add(now, 3600, :second)  # 1 hour from now
+      # 1 hour ago
+      past = DateTime.add(now, -3600, :second)
+      # 1 hour from now
+      future = DateTime.add(now, 3600, :second)
 
       events = [
         %{type: :user_created, timestamp: now},
@@ -458,7 +485,8 @@ defmodule HydepwnsLiveview.Events.Core.EventValidatorTest do
       {time, result} = :timer.tc(fn -> EventValidator.validate(large_event) end)
 
       assert {:ok, ^large_event} = result
-      assert time < 1000  # Should complete in less than 1ms
+      # Should complete in less than 1ms
+      assert time < 1000
     end
   end
 end

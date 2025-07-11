@@ -79,10 +79,12 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
   describe "detect_backpressure/3" do
     test "returns normal status when no backpressure detected" do
       queue_sizes = %{"handler1" => 50, "handler2" => 100}
+
       processing_metrics = %{
         "event1" => %{avg_time: 100},
         "event2" => %{avg_time: 200}
       }
+
       error_rates = %{"event1" => 0.01, "event2" => 0.02}
 
       result = EventMonitor.detect_backpressure(queue_sizes, processing_metrics, error_rates)
@@ -108,10 +110,12 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
 
     test "detects slow processing" do
       queue_sizes = %{"handler1" => 50}
+
       processing_metrics = %{
         "event1" => %{avg_time: 600},
         "event2" => %{avg_time: 100}
       }
+
       error_rates = %{"event1" => 0.01, "event2" => 0.02}
 
       result = EventMonitor.detect_backpressure(queue_sizes, processing_metrics, error_rates)
@@ -151,10 +155,12 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
 
     test "identifies bottlenecks correctly" do
       queue_sizes = %{"handler1" => 1500, "handler2" => 50}
+
       processing_metrics = %{
         "event1" => %{avg_time: 600},
         "event2" => %{avg_time: 100}
       }
+
       error_rates = %{"event1" => 0.1, "event2" => 0.02}
 
       result = EventMonitor.detect_backpressure(queue_sizes, processing_metrics, error_rates)
@@ -177,9 +183,12 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
 
     test "handles edge case thresholds" do
       # Test exactly at threshold values
-      queue_sizes = %{"handler1" => 1000}  # Exactly at threshold
-      processing_metrics = %{"event1" => %{avg_time: 500}}  # Exactly at threshold
-      error_rates = %{"event1" => 0.05}  # Exactly at threshold
+      # Exactly at threshold
+      queue_sizes = %{"handler1" => 1000}
+      # Exactly at threshold
+      processing_metrics = %{"event1" => %{avg_time: 500}}
+      # Exactly at threshold
+      error_rates = %{"event1" => 0.05}
 
       result = EventMonitor.detect_backpressure(queue_sizes, processing_metrics, error_rates)
 
@@ -192,9 +201,12 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
 
     test "handles just below threshold values" do
       # Test just below threshold values
-      queue_sizes = %{"handler1" => 999}  # Just below threshold
-      processing_metrics = %{"event1" => %{avg_time: 499}}  # Just below threshold
-      error_rates = %{"event1" => 0.049}  # Just below threshold
+      # Just below threshold
+      queue_sizes = %{"handler1" => 999}
+      # Just below threshold
+      processing_metrics = %{"event1" => %{avg_time: 499}}
+      # Just below threshold
+      error_rates = %{"event1" => 0.049}
 
       result = EventMonitor.detect_backpressure(queue_sizes, processing_metrics, error_rates)
 
@@ -245,24 +257,26 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
       # Should receive alert due to critical backpressure (queue + slow processing)
       assert_receive {:alert, alert}
       assert alert.type == :event_system_backpressure
-      assert alert.level == :critical  # Both queue pressure and slow processing
+      # Both queue pressure and slow processing
+      assert alert.level == :critical
       assert alert.message == "Event system experiencing backpressure"
       assert is_map(alert.details)
       assert is_struct(alert.timestamp, DateTime)
     end
 
     test "sets up alerting with custom options" do
-      assert :ok = EventMonitor.setup_alerting(nil, [
-        interval_ms: 30_000,
-        lookback_seconds: 600,
-        notification_channels: [:email, :slack],
-        recipients: :all_users,
-        threshold_overrides: %{
-          queue_high: 500,
-          processing_time: 300,
-          error_rate: 0.03
-        }
-      ])
+      assert :ok =
+               EventMonitor.setup_alerting(nil,
+                 interval_ms: 30_000,
+                 lookback_seconds: 600,
+                 notification_channels: [:email, :slack],
+                 recipients: :all_users,
+                 threshold_overrides: %{
+                   queue_high: 500,
+                   processing_time: 300,
+                   error_rate: 0.03
+                 }
+               )
     end
 
     test "sets up alerting with nil notification function" do
@@ -278,13 +292,15 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
     end
 
     test "sets up alerting with extreme threshold values" do
-      assert :ok = EventMonitor.setup_alerting(nil, [
-        threshold_overrides: %{
-          queue_high: 1_000_000,
-          processing_time: 60_000,
-          error_rate: 0.99
-        }
-      ])
+      assert :ok =
+               EventMonitor.setup_alerting(nil,
+                 threshold_overrides: %{
+                   queue_high: 1_000_000,
+                   processing_time: 60_000,
+                   error_rate: 0.99
+                 }
+               )
+
       # Should not crash
       assert {:ok, _metrics} = EventMonitor.get_metrics()
     end
@@ -319,12 +335,13 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
         timestamp: DateTime.utc_now()
       }
 
-      assert :ok = EventMonitor.record_processing_metric(event, %{
-        duration_ms: 150,
-        handler: "test_handler",
-        status: :success,
-        details: %{custom: "data"}
-      })
+      assert :ok =
+               EventMonitor.record_processing_metric(event, %{
+                 duration_ms: 150,
+                 handler: "test_handler",
+                 status: :success,
+                 details: %{custom: "data"}
+               })
 
       # Verify the metric was recorded
       assert {:ok, metrics} = EventMonitor.get_metrics()
@@ -347,11 +364,12 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
         timestamp: DateTime.utc_now()
       }
 
-      assert :ok = EventMonitor.record_processing_metric(event, %{
-        duration_ms: 200,
-        handler: "test_handler",
-        status: :error
-      })
+      assert :ok =
+               EventMonitor.record_processing_metric(event, %{
+                 duration_ms: 200,
+                 handler: "test_handler",
+                 status: :error
+               })
 
       # Verify the metric was recorded
       assert {:ok, metrics} = EventMonitor.get_metrics()
@@ -372,25 +390,28 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
       }
 
       # Record first metric
-      assert :ok = EventMonitor.record_processing_metric(event, %{
-        duration_ms: 100,
-        handler: "handler1",
-        status: :success
-      })
+      assert :ok =
+               EventMonitor.record_processing_metric(event, %{
+                 duration_ms: 100,
+                 handler: "handler1",
+                 status: :success
+               })
 
       # Record second metric
-      assert :ok = EventMonitor.record_processing_metric(event, %{
-        duration_ms: 200,
-        handler: "handler2",
-        status: :error
-      })
+      assert :ok =
+               EventMonitor.record_processing_metric(event, %{
+                 duration_ms: 200,
+                 handler: "handler2",
+                 status: :error
+               })
 
       # Record third metric
-      assert :ok = EventMonitor.record_processing_metric(event, %{
-        duration_ms: 150,
-        handler: "handler3",
-        status: :success
-      })
+      assert :ok =
+               EventMonitor.record_processing_metric(event, %{
+                 duration_ms: 150,
+                 handler: "handler3",
+                 status: :success
+               })
 
       # Verify accumulated metrics
       assert {:ok, metrics} = EventMonitor.get_metrics()
@@ -461,11 +482,12 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
       }
 
       # Record metric with unknown status
-      assert :ok = EventMonitor.record_processing_metric(event, %{
-        duration_ms: 100,
-        handler: "test_handler",
-        status: :unknown_status
-      })
+      assert :ok =
+               EventMonitor.record_processing_metric(event, %{
+                 duration_ms: 100,
+                 handler: "test_handler",
+                 status: :unknown_status
+               })
 
       # Should treat unknown status as success (default)
       assert {:ok, metrics} = EventMonitor.get_metrics()
@@ -484,11 +506,12 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
       }
 
       # Record metric with nil status
-      assert :ok = EventMonitor.record_processing_metric(event, %{
-        duration_ms: 100,
-        handler: "test_handler",
-        status: nil
-      })
+      assert :ok =
+               EventMonitor.record_processing_metric(event, %{
+                 duration_ms: 100,
+                 handler: "test_handler",
+                 status: nil
+               })
 
       # Should treat nil status as success (default)
       assert {:ok, metrics} = EventMonitor.get_metrics()
@@ -558,6 +581,7 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
     test "triggers alert when backpressure is detected" do
       # Set up alerting with notification function
       test_pid = self()
+
       notification_fn = fn alert ->
         send(test_pid, {:alert, alert})
       end
@@ -587,7 +611,8 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
       # Should receive alert
       assert_receive {:alert, alert}
       assert alert.type == :event_system_backpressure
-      assert alert.level == :critical  # Both queue pressure and slow processing
+      # Both queue pressure and slow processing
+      assert alert.level == :critical
       assert alert.message == "Event system experiencing backpressure"
       assert is_map(alert.details)
       assert is_struct(alert.timestamp, DateTime)
@@ -596,6 +621,7 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
     test "respects alert cooldown period" do
       # Set up alerting
       test_pid = self()
+
       notification_fn = fn alert ->
         send(test_pid, {:alert, alert})
       end
@@ -631,6 +657,7 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
     test "does not alert when alerting is disabled" do
       # Don't set up alerting
       test_pid = self()
+
       notification_fn = fn alert ->
         send(test_pid, {:alert, alert})
       end
@@ -659,21 +686,27 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
 
     test "handles alerting with custom thresholds" do
       test_pid = self()
+
       notification_fn = fn alert ->
         send(test_pid, {:alert, alert})
       end
 
       # Set up alerting with custom thresholds
-      assert :ok = EventMonitor.setup_alerting(notification_fn, [
-        threshold_overrides: %{
-          queue_high: 100,  # Lower threshold
-          processing_time: 200,  # Lower threshold
-          error_rate: 0.01  # Lower threshold
-        }
-      ])
+      assert :ok =
+               EventMonitor.setup_alerting(notification_fn,
+                 threshold_overrides: %{
+                   # Lower threshold
+                   queue_high: 100,
+                   # Lower threshold
+                   processing_time: 200,
+                   # Lower threshold
+                   error_rate: 0.01
+                 }
+               )
 
       # Create conditions that would trigger with custom thresholds
-      EventMonitor.record_queue_size("test_handler", 150)  # Above 100 threshold
+      # Above 100 threshold
+      EventMonitor.record_queue_size("test_handler", 150)
 
       event = %Event{
         id: "test-1",
@@ -684,7 +717,8 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
       }
 
       EventMonitor.record_processing_metric(event, %{
-        duration_ms: 250,  # Above 200 threshold
+        # Above 200 threshold
+        duration_ms: 250,
         handler: "test_handler",
         status: :success
       })
@@ -697,7 +731,8 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
       # Should receive alert (allow longer timeout)
       assert_receive {:alert, alert}, 2000
       assert alert.type == :event_system_backpressure
-      assert alert.level == :critical  # Both queue pressure and slow processing
+      # Both queue pressure and slow processing
+      assert alert.level == :critical
     end
   end
 
@@ -729,23 +764,24 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
 
     test "handles concurrent metric recording" do
       # Record metrics concurrently
-      tasks = Enum.map(1..50, fn i ->
-        Task.async(fn ->
-          event = %Event{
-            id: "concurrent-#{i}",
-            type: "concurrent_event",
-            data: %{},
-            metadata: %{},
-            timestamp: DateTime.utc_now()
-          }
+      tasks =
+        Enum.map(1..50, fn i ->
+          Task.async(fn ->
+            event = %Event{
+              id: "concurrent-#{i}",
+              type: "concurrent_event",
+              data: %{},
+              metadata: %{},
+              timestamp: DateTime.utc_now()
+            }
 
-          EventMonitor.record_processing_metric(event, %{
-            duration_ms: i,
-            handler: "concurrent_handler",
-            status: :success
-          })
+            EventMonitor.record_processing_metric(event, %{
+              duration_ms: i,
+              handler: "concurrent_handler",
+              status: :success
+            })
+          end)
         end)
-      end)
 
       # Wait for all tasks to complete
       Enum.each(tasks, &Task.await/1)
@@ -768,11 +804,13 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
       }
 
       # Record extreme values
-      assert :ok = EventMonitor.record_processing_metric(event, %{
-        duration_ms: 1_000_000,  # Very long processing time
-        handler: "extreme_handler",
-        status: :success
-      })
+      assert :ok =
+               EventMonitor.record_processing_metric(event, %{
+                 # Very long processing time
+                 duration_ms: 1_000_000,
+                 handler: "extreme_handler",
+                 status: :success
+               })
 
       assert {:ok, metrics} = EventMonitor.get_metrics()
 
@@ -791,23 +829,27 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
       }
 
       # Record zero and negative values
-      assert :ok = EventMonitor.record_processing_metric(event, %{
-        duration_ms: 0,
-        handler: "zero_handler",
-        status: :success
-      })
+      assert :ok =
+               EventMonitor.record_processing_metric(event, %{
+                 duration_ms: 0,
+                 handler: "zero_handler",
+                 status: :success
+               })
 
-      assert :ok = EventMonitor.record_processing_metric(event, %{
-        duration_ms: -100,  # Negative value
-        handler: "negative_handler",
-        status: :success
-      })
+      assert :ok =
+               EventMonitor.record_processing_metric(event, %{
+                 # Negative value
+                 duration_ms: -100,
+                 handler: "negative_handler",
+                 status: :success
+               })
 
       assert {:ok, metrics} = EventMonitor.get_metrics()
 
       event_metrics = metrics.processing_metrics["zero_event"]
       assert event_metrics.count == 2
-      assert event_metrics.total_time == -100  # Should handle negative values
+      # Should handle negative values
+      assert event_metrics.total_time == -100
       assert event_metrics.min_time == -100
       assert event_metrics.max_time == 0
     end
@@ -935,11 +977,12 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
       }
 
       # Should not crash when emitting telemetry
-      assert :ok = EventMonitor.record_processing_metric(event, %{
-        duration_ms: 100,
-        handler: "telemetry_handler",
-        status: :success
-      })
+      assert :ok =
+               EventMonitor.record_processing_metric(event, %{
+                 duration_ms: 100,
+                 handler: "telemetry_handler",
+                 status: :success
+               })
     end
 
     test "emits telemetry events for queue sizes" do
@@ -966,13 +1009,15 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
       })
 
       # Should not crash when detecting backpressure
-      result = EventMonitor.detect_backpressure(
-        %{"telemetry_handler" => 1500},
-        %{"telemetry_backpressure_event" => %{avg_time: 600}},
-        %{"telemetry_backpressure_event" => 0.0}
-      )
+      result =
+        EventMonitor.detect_backpressure(
+          %{"telemetry_handler" => 1500},
+          %{"telemetry_backpressure_event" => %{avg_time: 600}},
+          %{"telemetry_backpressure_event" => 0.0}
+        )
 
-      assert result.status == :critical  # Both queue pressure and slow processing
+      # Both queue pressure and slow processing
+      assert result.status == :critical
     end
 
     test "emits telemetry events for metrics collection" do
@@ -1043,6 +1088,7 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
     test "reset_state clears alerting configuration" do
       # Set up alerting
       test_pid = self()
+
       notification_fn = fn alert ->
         send(test_pid, {:alert, alert})
       end
@@ -1082,10 +1128,11 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
   describe "alerting edge cases" do
     test "handles alerting with custom notification channels" do
       # Set up alerting with custom channels
-      assert :ok = EventMonitor.setup_alerting(nil, [
-        notification_channels: [:email, :slack, :webhook],
-        recipients: :specific_users
-      ])
+      assert :ok =
+               EventMonitor.setup_alerting(nil,
+                 notification_channels: [:email, :slack, :webhook],
+                 recipients: :specific_users
+               )
 
       # Should not crash
       assert {:ok, _metrics} = EventMonitor.get_metrics()
@@ -1093,9 +1140,10 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
 
     test "handles alerting with custom recipients" do
       # Set up alerting with custom recipients
-      assert :ok = EventMonitor.setup_alerting(nil, [
-        recipients: :all_users
-      ])
+      assert :ok =
+               EventMonitor.setup_alerting(nil,
+                 recipients: :all_users
+               )
 
       # Should not crash
       assert {:ok, _metrics} = EventMonitor.get_metrics()
@@ -1103,9 +1151,11 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
 
     test "handles alerting with custom interval" do
       # Set up alerting with custom interval
-      assert :ok = EventMonitor.setup_alerting(nil, [
-        interval_ms: 5000  # 5 seconds
-      ])
+      assert :ok =
+               EventMonitor.setup_alerting(nil,
+                 # 5 seconds
+                 interval_ms: 5000
+               )
 
       # Should not crash
       assert {:ok, _metrics} = EventMonitor.get_metrics()
@@ -1113,9 +1163,11 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
 
     test "handles alerting with custom lookback" do
       # Set up alerting with custom lookback
-      assert :ok = EventMonitor.setup_alerting(nil, [
-        lookback_seconds: 60  # 1 minute
-      ])
+      assert :ok =
+               EventMonitor.setup_alerting(nil,
+                 # 1 minute
+                 lookback_seconds: 60
+               )
 
       # Should not crash
       assert {:ok, _metrics} = EventMonitor.get_metrics()
@@ -1123,15 +1175,18 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
 
     test "handles alerting with extreme values" do
       # Set up alerting with extreme values
-      assert :ok = EventMonitor.setup_alerting(nil, [
-        interval_ms: 1,  # 1 millisecond
-        lookback_seconds: 1,  # 1 second
-        threshold_overrides: %{
-          queue_high: 0,
-          processing_time: 0,
-          error_rate: 0.0
-        }
-      ])
+      assert :ok =
+               EventMonitor.setup_alerting(nil,
+                 # 1 millisecond
+                 interval_ms: 1,
+                 # 1 second
+                 lookback_seconds: 1,
+                 threshold_overrides: %{
+                   queue_high: 0,
+                   processing_time: 0,
+                   error_rate: 0.0
+                 }
+               )
 
       # Should not crash
       assert {:ok, _metrics} = EventMonitor.get_metrics()

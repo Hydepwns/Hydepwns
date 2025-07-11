@@ -11,6 +11,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
 
   @impl true
   def update(%{resource: resource} = assigns, socket) do
+    IO.inspect(assigns, label: "[DEBUG] assigns in update/2")
     # Normalize parent_id to "" for the form if nil
     resource =
       if Map.get(resource, :parent_id) == nil,
@@ -59,7 +60,21 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
   end
 
   @impl true
-  def handle_event("validate", %{"resource" => resource_params}, socket) do
+  def handle_event(event, params, socket) do
+    IO.puts(
+      "[DEBUG] handle_event/3 called with event: #{inspect(event)}, params: #{inspect(params)}"
+    )
+
+    IO.inspect(socket.assigns, label: "[DEBUG] assigns in handle_event/3")
+
+    case event do
+      "validate" -> handle_validate(params, socket)
+      "save" -> handle_save(params, socket)
+      _ -> {:noreply, socket}
+    end
+  end
+
+  defp handle_validate(%{"resource" => resource_params}, socket) do
     resource_params = process_form_params(resource_params)
 
     changeset =
@@ -79,8 +94,11 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
     {:noreply, assign(socket, :changeset, changeset)}
   end
 
-  @impl true
-  def handle_event("save", %{"resource" => resource_params}, socket) do
+  defp handle_save(%{"resource" => resource_params}, socket) do
+    IO.puts(
+      "[DEBUG] ResourceFormComponent.handle_event('save') called with params: #{inspect(resource_params)}"
+    )
+
     resource_params = process_form_params(resource_params)
     save_resource(socket, socket.assigns.action, resource_params)
   end
@@ -136,76 +154,53 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
     end
   end
 
+  defp notify_parent(socket, msg) do
+    IO.puts("[DEBUG] ResourceFormComponent.notify_parent called with message: #{inspect(msg)}")
+    IO.puts("[DEBUG] Component self(): #{inspect(self())}")
+    IO.puts("[DEBUG] Component parent_pid: #{inspect(socket.assigns[:parent_pid])}")
+
+    if socket.assigns[:parent_pid] do
+      IO.puts("[DEBUG] Sending message to parent_pid: #{inspect(socket.assigns.parent_pid)}")
+      send(socket.assigns.parent_pid, msg)
+    else
+      IO.puts("[ERROR] parent_pid is nil in notify_parent!")
+    end
+  end
+
   defp save_resource(socket, :edit, resource_params) do
-    IO.inspect(socket.assigns.parent_pid, label: "[DEBUG] parent_pid in save_resource")
+    IO.puts("[DEBUG] ResourceFormComponent.save_resource(:edit) called")
 
-    # Ensure content is always a map with :text key for the Resource schema
-    resource_params_with_map_content =
-      case Map.get(resource_params, "content") do
-        content when is_binary(content) ->
-          Map.put(resource_params, "content", %{"text" => content})
+    case ResourceSystem.update_resource(socket.assigns.resource, resource_params) do
+      {:ok, resource} ->
+        notify_parent(socket, {:resource_updated, resource})
 
-        content when is_map(content) ->
-          resource_params
-
-        _ ->
-          Map.put(resource_params, "content", %{"text" => ""})
-      end
-
-    IO.puts(
-      "🔍 ResourceFormComponent: Content before update: #{inspect(resource_params_with_map_content["content"])}"
-    )
-
-    case ResourceSystem.update_resource(
-           socket.assigns.resource.id,
-           resource_params_with_map_content
-         ) do
-      {:ok, updated_resource} ->
-        # Send event to parent LiveView for notification
-        IO.puts("🔍 Sending :resource_updated message to parent LiveView")
-        send(socket.assigns.parent_pid, {:resource_updated, updated_resource})
-
-        # Update the form with the new resource data
-        updated_resource_with_text_content =
-          if Map.has_key?(updated_resource, :content) and is_map(updated_resource.content) do
-            # Extract text from content map for form display
-            content_text = Map.get(updated_resource.content, :text, "")
-            %{updated_resource | content: content_text}
-          else
-            updated_resource
-          end
-
-        # Convert struct to map with string keys only
-        resource_map =
-          updated_resource_with_text_content
-          |> Map.from_struct()
-          |> Map.drop([:__meta__])
-          |> Enum.map(fn {k, v} -> {to_string(k), v} end)
-          |> Map.new()
-
-        updated_changeset = Resource.changeset(updated_resource_with_text_content, resource_map)
-
-        {:noreply,
-         socket
-         |> assign(:resource, updated_resource_with_text_content)
-         |> assign(:changeset, updated_changeset)}
+        {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        changeset = Map.put(changeset, :action, :validate)
         {:noreply, assign(socket, :changeset, changeset)}
     end
   end
 
   defp save_resource(socket, :new, resource_params) do
+    IO.puts(
+      "[DEBUG] ResourceFormComponent.save_resource(:new) called with params: #{inspect(resource_params)}"
+    )
+
     case ResourceSystem.create_resource(resource_params) do
       {:ok, resource} ->
-        # Send event to parent LiveView for notification
-        send(socket.assigns.parent_pid, {:resource_created, resource})
+        IO.puts(
+          "[DEBUG] ResourceFormComponent: Resource created successfully, sending message to parent"
+        )
+
+        notify_parent(socket, {:resource_created, resource})
 
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        changeset = Map.put(changeset, :action, :validate)
+        IO.puts(
+          "[DEBUG] ResourceFormComponent: Resource creation failed with errors: #{inspect(changeset.errors)}"
+        )
+
         {:noreply, assign(socket, :changeset, changeset)}
     end
   end
@@ -213,8 +208,8 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div>
-      <.form :let={f} for={@changeset} id="resource-form" phx-target={@myself} phx-change="validate" phx-submit="save">
+    <div data-debug="ResourceFormComponent-template-rendered">
+      <.form :let={f} for={@changeset} id="resource-form" phx-change="validate" phx-submit="save" phx-target={@myself}>
         <div class="space-y-6">
           <div>
             <.input field={f[:name]} type="text" label="Name" />
@@ -222,69 +217,96 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
               {case error do
                 {message, _opts} -> message
                 message when is_binary(message) -> message
-                other -> inspect(other)
+                _ -> "Invalid name"
               end}
             </.error>
           </div>
 
-          <div>
+          <div data-test-id="resource-form_description-container">
             <.input field={f[:description]} type="textarea" label="Description" />
             <.error :for={error <- f[:description].errors} data-test-id="description-error">
               {case error do
                 {message, _opts} -> message
                 message when is_binary(message) -> message
-                other -> inspect(other)
+                _ -> "Invalid description"
               end}
             </.error>
           </div>
 
-          <div>
-            <.input field={f[:content]} type="textarea" label="Content" value={@changeset.data.content || ""} />
+          <div data-test-id="resource-form_content-container">
+            <.input field={f[:content]} type="textarea" label="Content" />
             <.error :for={error <- f[:content].errors} data-test-id="content-error">
               {case error do
                 {message, _opts} -> message
                 message when is_binary(message) -> message
-                other -> inspect(other)
+                _ -> "Invalid content"
               end}
             </.error>
           </div>
 
-          <div>
-            <.input field={f[:type]} type="select" label="Type" options={[{"Document", "document"}, {"Folder", "folder"}, {"Task", "task"}, {"Note", "note"}]} />
+          <div data-test-id="resource-form_type-container">
+            <.input
+              field={f[:type]}
+              type="select"
+              label="Type"
+              options={[
+                {"Document", "document"},
+                {"Folder", "folder"},
+                {"Task", "task"},
+                {"Note", "note"}
+              ]}
+            />
             <.error :for={error <- f[:type].errors} data-test-id="type-error">
               {case error do
                 {message, _opts} -> message
                 message when is_binary(message) -> message
-                other -> inspect(other)
+                _ -> "Invalid type"
               end}
             </.error>
           </div>
 
-          <div>
-            <.input field={f[:status]} type="select" label="Status" options={[{"Draft", "draft"}, {"Published", "published"}, {"Active", "active"}, {"Archived", "archived"}]} />
+          <div data-test-id="resource-form_status-container">
+            <.input
+              field={f[:status]}
+              type="select"
+              label="Status"
+              options={[
+                {"Draft", "draft"},
+                {"Published", "published"},
+                {"Active", "active"},
+                {"Archived", "archived"}
+              ]}
+            />
             <.error :for={error <- f[:status].errors} data-test-id="status-error">
               {case error do
                 {message, _opts} -> message
                 message when is_binary(message) -> message
-                other -> inspect(other)
+                _ -> "Invalid status"
               end}
             </.error>
           </div>
 
-          <div>
-            <.input field={f[:parent_id]} type="select" label="Parent" options={[{"None", ""} | Enum.map(@resources, &{&1.name, &1.id})]} />
-            <.error :for={error <- f[:parent_id].errors} data-test-id="parent-id-error">
+          <div data-test-id="resource-form_parent_id-container">
+            <.input
+              field={f[:parent_id]}
+              type="select"
+              label="Parent"
+              options={[
+                {"None", ""} | Enum.map(@resources, fn resource -> {resource.name, resource.id} end)
+              ]}
+            />
+            <.error :for={error <- f[:parent_id].errors} data-test-id="parent_id-error">
               {case error do
                 {message, _opts} -> message
                 message when is_binary(message) -> message
-                other -> inspect(other)
+                _ -> "Invalid parent"
               end}
             </.error>
           </div>
 
           <div class="flex justify-end space-x-4">
             <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-              {if @changeset.data.id, do: "Save Resource", else: "Create Resource"}
+              {if @action == :new, do: "Create Resource", else: "Update Resource"}
             </button>
           </div>
         </div>

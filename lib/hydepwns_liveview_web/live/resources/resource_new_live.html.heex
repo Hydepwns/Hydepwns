@@ -1,4 +1,4 @@
-<div class="container mx-auto px-4 py-8">
+<div class="container mx-auto px-4 py-8" data-debug="ResourceNewLive-template-rendered">
   <div class="flex justify-between items-center mb-8">
     <h1 class="text-3xl font-bold">New Resource</h1>
     <div class="flex space-x-4">
@@ -10,5 +10,71 @@
 
   <.flash_group flash={@flash} />
 
-  <.live_component module={HydepwnsLiveviewWeb.ResourceFormComponent} id="new" title={@page_title} action={:new} resource={@resource} resources={@resources} navigate={~p"/resources"} parent_pid={self()} flash_messages={@flash} />
+  <form id="resource-form" phx-change="validate" phx-submit="save">
+    <input type="hidden" name="_csrf_token" value={get_csrf_token()} />
+    <div class="space-y-6">
+      <div>
+        <label for="resource-name" class="block text-sm font-semibold leading-6 text-zinc-800">
+          Name
+        </label>
+        <input type="text" id="resource-name" name="resource[name]" class="mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6 border-zinc-300 focus:border-zinc-400" />
+      </div>
+
+      <div data-test-id="resource-form_description-container">
+        <label for="resource-description" class="block text-sm font-semibold leading-6 text-zinc-800">
+          Description
+        </label>
+        <textarea id="resource-description" name="resource[description]" data-test-id="resource-form_description" class="mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6 min-h-[6rem] border-zinc-300 focus:border-zinc-400"></textarea>
+      </div>
+
+      <div data-test-id="resource-form_content-container">
+        <label for="resource-content" class="block text-sm font-semibold leading-6 text-zinc-800">
+          Content
+        </label>
+        <textarea id="resource-content" name="resource[content]" data-test-id="resource-form_content" class="mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6 min-h-[6rem] border-zinc-300 focus:border-zinc-400"></textarea>
+      </div>
+
+      <div data-test-id="resource-form_type-container">
+        <label for="resource-type" class="block text-sm font-semibold leading-6 text-zinc-800">
+          Type
+        </label>
+        <select id="resource-type" name="resource[type]" class="mt-2 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm" data-test-id="resource-form_type">
+          <option value="document">Document</option>
+          <option value="folder">Folder</option>
+          <option value="task">Task</option>
+          <option value="note">Note</option>
+        </select>
+      </div>
+
+      <div data-test-id="resource-form_status-container">
+        <label for="resource-status" class="block text-sm font-semibold leading-6 text-zinc-800">
+          Status
+        </label>
+        <select id="resource-status" name="resource[status]" class="mt-2 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm" data-test-id="resource-form_status">
+          <option value="draft">Draft</option>
+          <option value="published">Published</option>
+          <option value="active">Active</option>
+          <option value="archived">Archived</option>
+        </select>
+      </div>
+
+      <div data-test-id="resource-form_parent_id-container">
+        <label for="resource-parent_id" class="block text-sm font-semibold leading-6 text-zinc-800">
+          Parent
+        </label>
+        <select id="resource-parent_id" name="resource[parent_id]" class="mt-2 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm" data-test-id="resource-form_parent_id">
+          <option value="">None</option>
+          <%= for resource <- @resources do %>
+            <option value={resource.id}>{resource.name}</option>
+          <% end %>
+        </select>
+      </div>
+
+      <div class="flex justify-end space-x-4">
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+          Create Resource
+        </button>
+      </div>
+    </div>
+  </form>
 </div>

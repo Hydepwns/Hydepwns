@@ -19,31 +19,44 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
     cookies = if is_map(connect_info), do: Map.get(connect_info, :cookies, %{}), else: %{}
     Logger.debug("[ResourceDashboardLive] connect_info[:cookies]: #{inspect(cookies)}")
     sandbox_cookie = Map.get(session, "_phoenix_liveview_sandbox")
+
     if is_map(cookies) do
       sandbox_cookie = sandbox_cookie || Map.get(cookies, "_phoenix_liveview_sandbox")
     end
+
     Logger.debug("[ResourceDashboardLive] _phoenix_liveview_sandbox: #{inspect(sandbox_cookie)}")
     # Check if we're in test mode and try to join the sandbox
     if Mix.env() == :test do
       case sandbox_cookie do
         nil ->
           Logger.debug("[ResourceDashboardLive] No sandbox cookie found, cannot join sandbox")
+
         sandbox_pid_str ->
-          Logger.debug("[ResourceDashboardLive] Attempting to join sandbox with PID: #{inspect(sandbox_pid_str)}")
+          Logger.debug(
+            "[ResourceDashboardLive] Attempting to join sandbox with PID: #{inspect(sandbox_pid_str)}"
+          )
+
           try do
             case Regex.run(~r/#PID<(\d+)\.(\d+)\.(\d+)>/, sandbox_pid_str) do
               [_, node_id, process_id, serial] ->
                 pid_str = "<#{node_id}.#{process_id}.#{serial}>"
                 pid = :erlang.list_to_pid(String.to_charlist(pid_str))
                 Logger.debug("[ResourceDashboardLive] Parsed PID: #{inspect(pid)}")
+
                 case Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, pid, self()) do
                   :ok ->
                     Logger.debug("[ResourceDashboardLive] Successfully joined sandbox")
+
                   error ->
-                    Logger.debug("[ResourceDashboardLive] Failed to join sandbox: #{inspect(error)}")
+                    Logger.debug(
+                      "[ResourceDashboardLive] Failed to join sandbox: #{inspect(error)}"
+                    )
                 end
+
               _ ->
-                Logger.debug("[ResourceDashboardLive] Failed to parse PID: #{inspect(sandbox_pid_str)}")
+                Logger.debug(
+                  "[ResourceDashboardLive] Failed to parse PID: #{inspect(sandbox_pid_str)}"
+                )
             end
           rescue
             e -> Logger.debug("[ResourceDashboardLive] Error joining sandbox: #{inspect(e)}")
@@ -55,6 +68,7 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
       Phoenix.PubSub.subscribe(HydepwnsLiveview.PubSub, "resources")
       # Track user presence
       user_id = get_user_id_from_session(socket)
+
       if user_id do
         HydepwnsLiveviewWeb.Presence.track(
           self(),
@@ -103,7 +117,10 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
           |> offset(^offset)
           |> HydepwnsLiveview.Repo.all()
 
-        IO.puts("[DEBUG] direct_list_resources/2 returned #{length(resources)} resources: #{inspect(Enum.map(resources, & &1.name))}")
+        IO.puts(
+          "[DEBUG] direct_list_resources/2 returned #{length(resources)} resources: #{inspect(Enum.map(resources, & &1.name))}"
+        )
+
         resources
       rescue
         e ->

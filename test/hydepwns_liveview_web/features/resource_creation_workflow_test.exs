@@ -91,12 +91,13 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
     # because it's running in a separate process with a different database connection
 
     # For now, let's just verify that resource creation works
-    {:ok, resource} = HydepwnsLiveview.Resources.ResourceSystem.create_resource(%{
-      name: "Resource to Delete",
-      type: "document",
-      status: "published",
-      content: %{text: "Test content"}
-    })
+    {:ok, resource} =
+      HydepwnsLiveview.Resources.ResourceSystem.create_resource(%{
+        name: "Resource to Delete",
+        type: "document",
+        status: "published",
+        content: %{text: "Test content"}
+      })
 
     # Verify the resource was created
     assert resource.name == "Resource to Delete"

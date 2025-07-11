@@ -3,7 +3,7 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
   require HydepwnsLiveviewWeb.Router
   @phoenix_router HydepwnsLiveviewWeb.Router
 
-  use HydepwnsLiveviewWeb.ConnCase, async: true
+  use HydepwnsLiveviewWeb.ConnCase
 
   import Phoenix.LiveViewTest
   import Mox
@@ -21,29 +21,36 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
     Application.put_env(:hydepwns_liveview, :external_api, HydepwnsLiveview.MockExternalAPI)
     TestMockHelper.setup_mocks()
 
-    # Set up database mock expectations
-    HydepwnsLiveview.RepoMock
-    |> stub(:get, fn _module, _id, _opts ->
-      %HydepwnsLiveview.Resources.Resource{
-        id: "123",
-        name: "Test Resource",
-        description: "A test resource",
-        type: "test-type",
-        status: "active",
-        parent_id: nil,
-        child_ids: []
-      }
-    end)
-
     :ok
   end
 
   describe "external API integration" do
     @tag :external_api_integration
     test "displays data from external API when loaded", %{conn: conn} do
+      resource_id = "22222222-2222-2222-2222-222222222222"
+
+      # Insert the resource directly into the database
+      HydepwnsLiveview.Repo.insert!(%HydepwnsLiveview.Resources.Resource{
+        id: resource_id,
+        name: "Test Resource",
+        description: "A test resource",
+        type: "test-type",
+        status: "active",
+        content: %{},
+        metadata: %{},
+        settings: %{},
+        version: 1,
+        parent_id: nil,
+        child_ids: [],
+        tags: [],
+        categories: [],
+        created_by: nil,
+        updated_by: nil
+      })
+
       # This is a placeholder test - replace with an actual route in your app
       # that would make external API calls. Uses string path instead of ~p.
-      {:ok, view, _html} = live(conn, "/resources/123")
+      {:ok, view, _html} = live(conn, "/resources/#{resource_id}")
       Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), view.pid)
 
       # Assert that the data from the mocked API is displayed
@@ -53,8 +60,29 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
 
     @tag :external_api_integration
     test "handles API errors gracefully", %{conn: conn} do
+      resource_id = "33333333-3333-3333-3333-333333333333"
+
+      # Insert the resource directly into the database
+      HydepwnsLiveview.Repo.insert!(%HydepwnsLiveview.Resources.Resource{
+        id: resource_id,
+        name: "Test Resource",
+        description: "A test resource",
+        type: "test-type",
+        status: "active",
+        content: %{},
+        metadata: %{},
+        settings: %{},
+        version: 1,
+        parent_id: nil,
+        child_ids: [],
+        tags: [],
+        categories: [],
+        created_by: nil,
+        updated_by: nil
+      })
+
       # This is a placeholder test. Uses string path instead of ~p.
-      {:ok, view, html} = live(conn, "/resources/123")
+      {:ok, view, html} = live(conn, "/resources/#{resource_id}")
       Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), view.pid)
 
       # Since the LiveView doesn't actually call external API, just verify it loads
@@ -63,7 +91,7 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
 
     @tag :external_api_integration
     test "allows user to update resource data", %{conn: conn} do
-      resource_id = "123"
+      resource_id = "11111111-1111-1111-1111-111111111111"
 
       # Ensure the resource exists in the ResourceSystem Agent for the test
       _create_result =
@@ -74,6 +102,25 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
           "type" => "test_type",
           "status" => "active"
         })
+
+      # Also insert the resource directly into the database
+      HydepwnsLiveview.Repo.insert!(%HydepwnsLiveview.Resources.Resource{
+        id: resource_id,
+        name: "Test Resource",
+        description: "Initial Description",
+        type: "test_type",
+        status: "active",
+        content: %{},
+        metadata: %{},
+        settings: %{},
+        version: 1,
+        parent_id: nil,
+        child_ids: [],
+        tags: [],
+        categories: [],
+        created_by: nil,
+        updated_by: nil
+      })
 
       # Load the EDIT page using string path instead of ~p
       {:ok, view, html} = live(conn, "/resources/#{resource_id}/edit")

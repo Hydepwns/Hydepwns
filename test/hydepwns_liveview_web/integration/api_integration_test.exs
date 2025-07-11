@@ -40,29 +40,32 @@ defmodule HydepwnsLiveviewWeb.Integration.APIIntegrationTest do
        }}
     end)
 
-    # Create test user
+    # Create test user with unique email
+    unique_email = "api_test_#{System.system_time(:millisecond)}@example.com"
     {:ok, user} =
       Accounts.register_user(%{
-        email: "api_test@example.com",
+        email: unique_email,
         password: "password123",
         password_confirmation: "password123",
         name: "API Test User"
       })
 
-    # Create test resource
+    # Create test resource with unique name
+    unique_resource_name = "API Test Resource #{System.system_time(:millisecond)}"
     {:ok, resource} =
       ResourceSystem.create_resource(%{
-        name: "API Test Resource",
+        name: unique_resource_name,
         description: "Resource for API testing",
         type: "document",
         status: "published",
         content: %{text: "Test content"}
       })
 
-    # Create test theme
+    # Create test theme with unique name to avoid constraint violations
+    unique_theme_name = "API Test Theme #{System.system_time(:millisecond)}"
     {:ok, theme} =
       ThemeSystem.create_theme(%{
-        name: "API Test Theme",
+        name: unique_theme_name,
         mode: "light",
         primary_color: "#3b82f6",
         secondary_color: "#6b7280"

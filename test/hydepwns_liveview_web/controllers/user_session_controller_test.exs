@@ -1,5 +1,5 @@
 defmodule HydepwnsLiveviewWeb.UserSessionControllerTest do
-  use HydepwnsLiveviewWeb.ConnCase, async: true
+  use HydepwnsLiveviewWeb.ConnCase
 
   alias HydepwnsLiveview.Accounts
 

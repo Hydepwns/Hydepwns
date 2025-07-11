@@ -1,6 +1,6 @@
 defmodule HydepwnsLiveviewWeb.UserRegistrationLiveTest do
   @router HydepwnsLiveviewWeb.Router
-  use HydepwnsLiveviewWeb.ConnCase, async: true, liveview: true
+  use HydepwnsLiveviewWeb.ConnCase, liveview: true
 
   import Phoenix.LiveViewTest
   import HydepwnsLiveviewWeb.TestHelpers.WallabyUIHelper

@@ -29,7 +29,12 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
 
     # Fill in the resource form
     session = fill_in(session, Query.text_field("Name"), with: "Event Workflow Test Resource")
-    session = fill_in(session, Query.text_field("Description"), with: "A resource for testing event workflows")
+
+    session =
+      fill_in(session, Query.text_field("Description"),
+        with: "A resource for testing event workflows"
+      )
+
     session = fill_in(session, Query.text_field("Content"), with: "Initial content")
     session = set_value(session, Query.select("Type"), "document")
     session = set_value(session, Query.select("Status"), "published")
@@ -78,7 +83,12 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
 
     # Fill in the resource form
     session = fill_in(session, Query.text_field("Name"), with: "Multiple Updates Test Resource")
-    session = fill_in(session, Query.text_field("Description"), with: "A resource for testing multiple updates")
+
+    session =
+      fill_in(session, Query.text_field("Description"),
+        with: "A resource for testing multiple updates"
+      )
+
     session = fill_in(session, Query.text_field("Content"), with: "Initial content")
     session = set_value(session, Query.select("Type"), "document")
     session = set_value(session, Query.select("Status"), "published")
@@ -144,8 +154,14 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
     session = wait_for_text(session, "New Resource")
 
     # Fill in the resource form
-    session = fill_in(session, Query.text_field("Name"), with: "Event Visualization Test Resource")
-    session = fill_in(session, Query.text_field("Description"), with: "A resource for testing event visualization")
+    session =
+      fill_in(session, Query.text_field("Name"), with: "Event Visualization Test Resource")
+
+    session =
+      fill_in(session, Query.text_field("Description"),
+        with: "A resource for testing event visualization"
+      )
+
     session = fill_in(session, Query.text_field("Content"), with: "Test content")
     session = set_value(session, Query.select("Type"), "document")
     session = set_value(session, Query.select("Status"), "published")
@@ -188,7 +204,12 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
 
     # Fill in the resource form
     session = fill_in(session, Query.text_field("Name"), with: "Error Handling Test Resource")
-    session = fill_in(session, Query.text_field("Description"), with: "A resource for testing error handling")
+
+    session =
+      fill_in(session, Query.text_field("Description"),
+        with: "A resource for testing error handling"
+      )
+
     session = fill_in(session, Query.text_field("Content"), with: "Initial content")
     session = set_value(session, Query.select("Type"), "document")
     session = set_value(session, Query.select("Status"), "published")

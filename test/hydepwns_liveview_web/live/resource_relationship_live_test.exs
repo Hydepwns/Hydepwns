@@ -60,9 +60,14 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
 
     test "resource creation with parent relationship", %{conn: conn, parent: parent} do
       {:ok, view, html} = live(conn, "/resources")
-      view = element(view, "a[data-test-id='create-resource-link']") |> render_click()
 
-      view
+      # Handle the live redirect when clicking the create resource link
+      {:error, {:live_redirect, %{to: new_path}}} =
+        element(view, "a[data-test-id='create-resource-link']") |> render_click()
+
+      {:ok, new_view, html} = live(conn, new_path)
+
+      new_view
       |> form("#resource-form", %{
         "resource[name]" => "New Child Resource",
         "resource[type]" => "document",
@@ -70,8 +75,9 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
       })
       |> render_submit()
 
-      assert_redirect(view, "/resources")
-      {:ok, dashboard_view, html} = follow_redirect(view, conn)
+      # Wait for the redirect to happen
+      assert_redirect(new_view, "/resources")
+      {:ok, dashboard_view, html} = follow_redirect(new_view, conn)
       resources = HydepwnsLiveview.Resources.ResourceSystem.list_resources()
       new_resource = Enum.find(resources, fn r -> r.name == "New Child Resource" end)
       assert new_resource != nil
@@ -171,6 +177,7 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
       })
       |> render_submit()
 
+      # Wait for the redirect to happen
       assert_redirect(view, "/resources/#{document.id}")
       {:ok, show_view, html} = follow_redirect(view, conn)
 
@@ -195,6 +202,7 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
       })
       |> render_submit()
 
+      # Wait for the redirect to happen
       assert_redirect(view, "/resources/#{child.id}")
       {:ok, show_view, html} = follow_redirect(view, conn)
       updated_child = HydepwnsLiveview.Resources.ResourceSystem.get_resource(child.id) |> elem(1)

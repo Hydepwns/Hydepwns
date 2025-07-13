@@ -165,8 +165,9 @@ defmodule HydepwnsLiveviewWeb.Router do
       # Terminal demo route removed
     end
 
-    # Examples routes
+        # Examples routes
     scope "/examples", Examples, as: :examples do
+      live "/", ExamplesIndexLive, :index, as: :index
       live "/type-validation", TypeValidationExample, :index, as: :type_validation
       live "/resource-assigns", UserResourceLive, :index, as: :resource_assigns
       live "/user-resource", UserResourceExampleLive, :index, as: :user_resource
@@ -182,6 +183,13 @@ defmodule HydepwnsLiveviewWeb.Router do
         as: :context_validation_tracking
 
       live "/event-system", EventSystemExampleLive, :index, as: :event_system
+
+      # New interactive examples
+      live "/ascii-art-editor", AsciiArtEditorLive, :index, as: :ascii_art_editor
+      live "/system-monitor", SystemMonitorLive, :index, as: :system_monitor
+      live "/code-flow-visualizer", CodeFlowVisualizerLive, :index, as: :code_flow_visualizer
+      live "/network-topology", NetworkTopologyLive, :index, as: :network_topology
+      live "/data-visualizer", DataVisualizerLive, :index, as: :data_visualizer
     end
 
     # Offline fallback page

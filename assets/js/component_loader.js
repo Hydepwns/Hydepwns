@@ -7,6 +7,7 @@ const componentRegistry = {
   'body': [ 
     () => import('./components/keyboard_navigation.js'),
     () => import('./utils/viewport_detector.js'),
+    () => import('./components/file_download.js'),
   ],
   '[data-tab]': () => import('./components/mono_tabs.js'),
   "[data-action='dismiss-notification']": () => import('./components/notifications.js'),

@@ -68,7 +68,7 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLive do
   end
 
   @impl true
-  def handle_info({:resource_created, resource}, socket) do
+  def handle_info({:resource_created, _resource}, socket) do
     IO.puts(
       "[DEBUG] ResourceNewLive.handle_info({:resource_created, _}) called. Redirecting to /resources."
     )

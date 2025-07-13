@@ -21,7 +21,7 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
     sandbox_cookie = Map.get(session, "_phoenix_liveview_sandbox")
 
     if is_map(cookies) do
-      sandbox_cookie = sandbox_cookie || Map.get(cookies, "_phoenix_liveview_sandbox")
+      _sandbox_cookie = sandbox_cookie || Map.get(cookies, "_phoenix_liveview_sandbox")
     end
 
     Logger.debug("[ResourceDashboardLive] _phoenix_liveview_sandbox: #{inspect(sandbox_cookie)}")
@@ -89,13 +89,6 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
        page_title: "Resources",
        notifications: []
      )}
-  end
-
-  defp get_connect_info(socket) do
-    case socket.transport_pid do
-      nil -> %{}
-      _ -> Phoenix.LiveView.get_connect_info(socket)
-    end
   end
 
   defp list_resources_dashboard(opts \\ []) do

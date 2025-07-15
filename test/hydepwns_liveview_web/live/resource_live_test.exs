@@ -5,7 +5,7 @@ defmodule HydepwnsLiveviewWeb.ResourceLiveTest do
 
   describe "ResourceLive with assigns_resource" do
     test "mounts with default values", %{conn: conn} do
-      {:ok, view, html} = live(conn, "/test-resource-live")
+      {:ok, _view, html} = live(conn, "/test-resource-live")
 
       # Check that default values are set
       assert html =~ "Test Resource"
@@ -17,7 +17,7 @@ defmodule HydepwnsLiveviewWeb.ResourceLiveTest do
     end
 
     test "updates resource values via event", %{conn: conn} do
-      {:ok, view, html} = live(conn, "/test-resource-live")
+      {:ok, view, _html} = live(conn, "/test-resource-live")
 
       # Click the set-admin button
       view |> element("#set-admin") |> render_click()
@@ -33,7 +33,7 @@ defmodule HydepwnsLiveviewWeb.ResourceLiveTest do
     end
 
     test "updates resource via API", %{conn: conn} do
-      {:ok, view, html} = live(conn, "/test-resource-live")
+      {:ok, view, _html} = live(conn, "/test-resource-live")
 
       # Update the user name via the new event handler
       html =
@@ -48,7 +48,7 @@ defmodule HydepwnsLiveviewWeb.ResourceLiveTest do
     end
 
     test "validates resource updates", %{conn: conn} do
-      {:ok, view, html} = live(conn, "/test-resource-live")
+      {:ok, view, _html} = live(conn, "/test-resource-live")
 
       # Attempt to update with invalid value via the event handler
       html =
@@ -63,7 +63,7 @@ defmodule HydepwnsLiveviewWeb.ResourceLiveTest do
     end
 
     test "adds items to list", %{conn: conn} do
-      {:ok, view, html} = live(conn, "/test-resource-live")
+      {:ok, view, _html} = live(conn, "/test-resource-live")
 
       # Add an item to the list
       html =

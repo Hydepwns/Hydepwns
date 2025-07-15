@@ -393,7 +393,7 @@ defmodule HydepwnsLiveviewWeb.Integration.RealtimeIntegrationTest do
       assert event.type == "resource.created"
     end
 
-    test "handles multiple event types", %{_conn: _conn} do
+    test "handles multiple event types", %{_conn: _conn, _user: _user, _resource: _resource} do
       # Subscribe to multiple event types
       HydepwnsLiveview.Events.Core.EventBus.subscribe([
         "resource.created",
@@ -603,7 +603,7 @@ defmodule HydepwnsLiveviewWeb.Integration.RealtimeIntegrationTest do
       assert view |> has_element?("h1", "Resources")
     end
 
-    test "prevents unauthorized event subscriptions", %{_conn: _conn} do
+    test "prevents unauthorized event subscriptions", %{_conn: _conn, _user: _user, _resource: _resource} do
       # Try to subscribe to admin-only events
       # This should be handled gracefully
       result = HydepwnsLiveview.Events.Core.EventBus.subscribe(["admin.only.event"])

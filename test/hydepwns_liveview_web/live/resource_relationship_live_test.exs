@@ -51,7 +51,7 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
 
   describe "resource relationship management" do
     test "dashboard displays resources correctly", %{conn: conn, parent: parent, child: child} do
-      {:ok, view, html} = live(conn, "/resources")
+      {:ok, view, _html} = live(conn, "/resources")
       assert has_element?(view, "a[data-test-id='resource-link-#{parent.id}']")
       assert has_element?(view, "a[data-test-id='resource-link-#{child.id}']")
       assert has_element?(view, "a[data-test-id='resource-link-#{parent.id}']", parent.name)
@@ -59,13 +59,13 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
     end
 
     test "resource creation with parent relationship", %{conn: conn, parent: parent} do
-      {:ok, view, html} = live(conn, "/resources")
+      {:ok, view, _html} = live(conn, "/resources")
 
       # Handle the live redirect when clicking the create resource link
       {:error, {:live_redirect, %{to: new_path}}} =
         element(view, "a[data-test-id='create-resource-link']") |> render_click()
 
-      {:ok, new_view, html} = live(conn, new_path)
+      {:ok, new_view, _html} = live(conn, new_path)
 
       new_view
       |> form("#resource-form", %{
@@ -77,7 +77,7 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
 
       # Wait for the redirect to happen
       assert_redirect(new_view, "/resources")
-      {:ok, dashboard_view, html} = follow_redirect(new_view, conn)
+      {:ok, dashboard_view, _html} = follow_redirect(new_view, conn)
       resources = HydepwnsLiveview.Resources.ResourceSystem.list_resources()
       new_resource = Enum.find(resources, fn r -> r.name == "New Child Resource" end)
       assert new_resource != nil
@@ -86,21 +86,21 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
     end
 
     test "resource update with parent relationship", %{conn: conn, parent: parent, child: child} do
-      {:ok, updated_child} =
+      {:ok, _updated_child} =
         HydepwnsLiveview.Resources.ResourceSystem.update_resource(child.id, %{"parent_id" => nil})
 
       # Ensure resources are available in the system
       resources = HydepwnsLiveview.Resources.ResourceSystem.list_resources()
       assert length(resources) >= 2
 
-      {:ok, view, html} = live(conn, "/resources/#{child.id}")
+      {:ok, view, _html} = live(conn, "/resources/#{child.id}")
       assert has_element?(view, "h1", child.name)
 
       # Click edit link and handle the live redirect
       {:error, {:live_redirect, %{to: edit_path}}} =
         element(view, "a[data-test-id='edit-resource-link']") |> render_click()
 
-      {:ok, edit_view, html} = live(conn, edit_path)
+      {:ok, edit_view, _html} = live(conn, edit_path)
 
       # Now fill and submit the form on the edit page
       edit_view
@@ -111,7 +111,7 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
 
       assert_redirect(edit_view, "/resources/#{child.id}")
       # Instead of follow_redirect, fetch the new LiveView
-      {:ok, show_view, html} = live(conn, "/resources/#{child.id}")
+      {:ok, show_view, _html} = live(conn, "/resources/#{child.id}")
       updated_child = HydepwnsLiveview.Resources.ResourceSystem.get_resource(child.id) |> elem(1)
       assert updated_child.parent_id == parent.id
       assert has_element?(show_view, "h1", child.name)
@@ -122,12 +122,12 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
       parent: parent,
       child: child
     } do
-      {:ok, updated_child} =
+      {:ok, _updated_child} =
         HydepwnsLiveview.Resources.ResourceSystem.update_resource(child.id, %{
           "parent_id" => parent.id
         })
 
-      {:ok, view, html} = live(conn, "/resources")
+      {:ok, view, _html} = live(conn, "/resources")
       assert has_element?(view, "a[data-test-id='resource-link-#{parent.id}']")
       assert has_element?(view, "a[data-test-id='resource-link-#{child.id}']")
       updated_child = HydepwnsLiveview.Resources.ResourceSystem.get_resource(child.id) |> elem(1)
@@ -153,7 +153,7 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
       resources = HydepwnsLiveview.Resources.ResourceSystem.list_resources()
       assert length(resources) >= 2
 
-      {:ok, view, html} = live(conn, "/resources/#{document.id}/edit")
+      {:ok, view, _html} = live(conn, "/resources/#{document.id}/edit")
 
       # First test: try to set document as its own parent (circular relationship)
       view
@@ -179,7 +179,7 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
 
       # Wait for the redirect to happen
       assert_redirect(view, "/resources/#{document.id}")
-      {:ok, show_view, html} = follow_redirect(view, conn)
+      {:ok, show_view, _html} = follow_redirect(view, conn)
 
       updated_document =
         HydepwnsLiveview.Resources.ResourceSystem.get_resource(document.id) |> elem(1)
@@ -189,12 +189,12 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
     end
 
     test "relationship removal works correctly", %{conn: conn, parent: parent, child: child} do
-      {:ok, updated_child} =
+      {:ok, _updated_child} =
         HydepwnsLiveview.Resources.ResourceSystem.update_resource(child.id, %{
           "parent_id" => parent.id
         })
 
-      {:ok, view, html} = live(conn, "/resources/#{child.id}/edit")
+      {:ok, view, _html} = live(conn, "/resources/#{child.id}/edit")
 
       view
       |> form("#resource-form", %{
@@ -204,19 +204,19 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
 
       # Wait for the redirect to happen
       assert_redirect(view, "/resources/#{child.id}")
-      {:ok, show_view, html} = follow_redirect(view, conn)
+      {:ok, show_view, _html} = follow_redirect(view, conn)
       updated_child = HydepwnsLiveview.Resources.ResourceSystem.get_resource(child.id) |> elem(1)
       assert updated_child.parent_id == nil
       assert has_element?(show_view, "h1", child.name)
     end
 
     test "circular relationship prevention", %{conn: conn, parent: parent, child: child} do
-      {:ok, updated_child} =
+      {:ok, _updated_child} =
         HydepwnsLiveview.Resources.ResourceSystem.update_resource(child.id, %{
           "parent_id" => parent.id
         })
 
-      {:ok, view, html} = live(conn, "/resources/#{parent.id}/edit")
+      {:ok, view, _html} = live(conn, "/resources/#{parent.id}/edit")
 
       view
       |> form("#resource-form", %{

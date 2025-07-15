@@ -27,30 +27,17 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
   describe "external API integration" do
     @tag :external_api_integration
     test "displays data from external API when loaded", %{conn: conn} do
-      resource_id = "22222222-2222-2222-2222-222222222222"
-
-      # Insert the resource directly into the database
-      HydepwnsLiveview.Repo.insert!(%HydepwnsLiveview.Resources.Resource{
-        id: resource_id,
+      # Create the resource using ResourceSystem and get the actual ID
+      {:ok, resource} = HydepwnsLiveview.Resources.ResourceSystem.create_resource(%{
         name: "Test Resource",
         description: "A test resource",
-        type: "test-type",
-        status: "active",
-        content: %{},
-        metadata: %{},
-        settings: %{},
-        version: 1,
-        parent_id: nil,
-        child_ids: [],
-        tags: [],
-        categories: [],
-        created_by: nil,
-        updated_by: nil
+        type: "test_type",
+        status: "active"
       })
 
       # This is a placeholder test - replace with an actual route in your app
       # that would make external API calls. Uses string path instead of ~p.
-      {:ok, view, _html} = live(conn, "/resources/#{resource_id}")
+      {:ok, view, _html} = live(conn, "/resources/#{resource.id}")
       Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), view.pid)
 
       # Assert that the data from the mocked API is displayed
@@ -60,29 +47,16 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
 
     @tag :external_api_integration
     test "handles API errors gracefully", %{conn: conn} do
-      resource_id = "33333333-3333-3333-3333-333333333333"
-
-      # Insert the resource directly into the database
-      HydepwnsLiveview.Repo.insert!(%HydepwnsLiveview.Resources.Resource{
-        id: resource_id,
+      # Create the resource using ResourceSystem and get the actual ID
+      {:ok, resource} = HydepwnsLiveview.Resources.ResourceSystem.create_resource(%{
         name: "Test Resource",
         description: "A test resource",
-        type: "test-type",
-        status: "active",
-        content: %{},
-        metadata: %{},
-        settings: %{},
-        version: 1,
-        parent_id: nil,
-        child_ids: [],
-        tags: [],
-        categories: [],
-        created_by: nil,
-        updated_by: nil
+        type: "test_type",
+        status: "active"
       })
 
       # This is a placeholder test. Uses string path instead of ~p.
-      {:ok, view, html} = live(conn, "/resources/#{resource_id}")
+      {:ok, view, _html} = live(conn, "/resources/#{resource.id}")
       Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), view.pid)
 
       # Since the LiveView doesn't actually call external API, just verify it loads
@@ -91,39 +65,16 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
 
     @tag :external_api_integration
     test "allows user to update resource data", %{conn: conn} do
-      resource_id = "11111111-1111-1111-1111-111111111111"
-
-      # Ensure the resource exists in the ResourceSystem Agent for the test
-      _create_result =
-        HydepwnsLiveview.Resources.ResourceSystem.create_resource(%{
-          "id" => resource_id,
-          "name" => "Test Resource",
-          "description" => "Initial Description",
-          "type" => "test_type",
-          "status" => "active"
-        })
-
-      # Also insert the resource directly into the database
-      HydepwnsLiveview.Repo.insert!(%HydepwnsLiveview.Resources.Resource{
-        id: resource_id,
-        name: "Test Resource",
-        description: "Initial Description",
-        type: "test_type",
-        status: "active",
-        content: %{},
-        metadata: %{},
-        settings: %{},
-        version: 1,
-        parent_id: nil,
-        child_ids: [],
-        tags: [],
-        categories: [],
-        created_by: nil,
-        updated_by: nil
+      # Create the resource using ResourceSystem and get the actual ID
+      {:ok, resource} = HydepwnsLiveview.Resources.ResourceSystem.create_resource(%{
+        "name" => "Test Resource",
+        "description" => "Initial Description",
+        "type" => "test_type",
+        "status" => "active"
       })
 
       # Load the EDIT page using string path instead of ~p
-      {:ok, view, html} = live(conn, "/resources/#{resource_id}/edit")
+      {:ok, view, _html} = live(conn, "/resources/#{resource.id}/edit")
       Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), view.pid)
 
       # assert has_element?(view, "form")

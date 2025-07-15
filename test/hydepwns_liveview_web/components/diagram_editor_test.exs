@@ -1,7 +1,16 @@
 defmodule HydepwnsLiveviewWeb.Components.Visualization.DiagramEditorTest do
-  use HydepwnsLiveviewWeb.ConnCase, async: true
+  use ExUnit.Case, async: true
   import Phoenix.LiveViewTest
+  import Phoenix.ConnTest
   alias HydepwnsLiveviewWeb.TestLive.DiagramEditorTestLive
+
+  # The default endpoint for testing
+  @endpoint HydepwnsLiveviewWeb.Endpoint
+
+  # Simple setup without database
+  setup do
+    {:ok, conn: Phoenix.ConnTest.build_conn()}
+  end
 
   describe "diagram editor" do
     test "renders the diagram editor with default values", %{conn: conn} do

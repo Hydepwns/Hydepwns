@@ -34,9 +34,9 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
     # Start the MockEventStore if not already started
     case Process.whereis(HydepwnsLiveview.TestSupport.MockEventStore) do
       nil ->
-        {:ok, pid} = start_supervised(HydepwnsLiveview.TestSupport.MockEventStore)
+        {:ok, _pid} = start_supervised(HydepwnsLiveview.TestSupport.MockEventStore)
 
-      pid ->
+      _pid ->
         :ok
     end
 
@@ -94,7 +94,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
       |> click(button("Create Resource"))
 
       # Wait for successful creation
-      session = wait_for_flash_message(session, "success", "Resource created successfully")
+      session = wait_for_flash_message(session, "info", "Resource created successfully")
 
       # Get the newly created resource ID from the flash message or redirect
       # For now, we'll use the setup resource for navigation testing
@@ -139,7 +139,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
       |> click(button("Save Resource"))
 
       # Wait for successful update
-      session = wait_for_flash_message(session, "success", "Resource updated successfully")
+      session = wait_for_flash_message(session, "info", "Resource updated successfully")
 
       # Debug: Check what events are stored in MockEventStore
       {:ok, all_events} = HydepwnsLiveview.TestSupport.MockEventStore.get_all_events()
@@ -193,7 +193,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
       end)
 
       # Wait for successful deletion
-      session = wait_for_flash_message(session, "success", "Resource deleted successfully")
+      session = wait_for_flash_message(session, "info", "Resource deleted successfully")
 
       # Start a new Wallaby session with the same metadata and visit /events
       metadata = Phoenix.Ecto.SQL.Sandbox.metadata_for(HydepwnsLiveview.Repo, self())
@@ -277,14 +277,14 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
 
       # Update the resource to generate events
       session =
-        fill_in(session, Query.text_field("resource[description]"),
+        fill_in(session, css("#resource_description"),
           with: "Updated for filter test"
         )
 
       session = click(session, Query.button("Save Resource"))
 
       # Wait for the update to complete and navigate to events
-      session = wait_for_flash_message(session, "success", "Resource updated successfully")
+      session = wait_for_flash_message(session, "info", "Resource updated successfully")
       session = visit(session, "/events")
       session = wait_for_text(session, "Events")
 
@@ -302,7 +302,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
       # Navigate to notification settings
       session
       |> click(link("Account"))
-      |> click(link("Notification Settings"))
+      |> click(css("[data-test-id='notification-settings-link']"))
 
       # Toggle email notifications using the checkbox
       session
@@ -310,7 +310,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
       |> click(button("Save Settings"))
 
       # Wait for settings to be saved
-      session = wait_for_flash_message(session, "success", "Notification settings updated")
+      session = wait_for_flash_message(session, "info", "Notification settings updated")
 
       # Navigate back to resources
       session
@@ -338,7 +338,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
       |> click(button("Create Resource"))
 
       # Wait for successful creation and real-time update
-      session = wait_for_flash_message(session, "success", "Resource created successfully")
+      session = wait_for_flash_message(session, "info", "Resource created successfully")
 
       # Verify the new resource appears in the list
       Wallaby.Browser.assert_has(session, Query.text("Real-time Test Resource"))
@@ -375,7 +375,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
       |> click(button("Create Resource"))
 
       # Verify successful creation
-      session = wait_for_flash_message(session, "success", "Resource created successfully")
+      session = wait_for_flash_message(session, "info", "Resource created successfully")
     end
   end
 end

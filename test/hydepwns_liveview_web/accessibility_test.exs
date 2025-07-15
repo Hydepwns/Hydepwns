@@ -4,7 +4,7 @@ defmodule HydepwnsLiveviewWeb.AccessibilityTest do
 
   describe "Accessibility features" do
     test "skip to content link is present", %{conn: conn} do
-      {:ok, view, html} = live(conn, "/")
+      {:ok, _view, html} = live(conn, "/")
 
       # Check that the skip to content link is present
       assert html =~ "Skip to content"
@@ -13,7 +13,7 @@ defmodule HydepwnsLiveviewWeb.AccessibilityTest do
     end
 
     test "proper heading hierarchy in style guide", %{conn: conn} do
-      {:ok, view, html} = live(conn, "/style-guide")
+      {:ok, view, _html} = live(conn, "/style-guide")
 
       # Check that there is an h1
       assert has_element?(view, "h1", "Hydepwns Monospace Style Guide")
@@ -35,7 +35,7 @@ defmodule HydepwnsLiveviewWeb.AccessibilityTest do
     end
 
     test "proper ARIA attributes in style guide", %{conn: conn} do
-      {:ok, view, html} = live(conn, "/style-guide")
+      {:ok, view, _html} = live(conn, "/style-guide")
 
       # Check that the theme toggle buttons have proper ARIA attributes
       assert has_element?(view, "button[aria-label='Switch to light theme']")
@@ -50,7 +50,7 @@ defmodule HydepwnsLiveviewWeb.AccessibilityTest do
     test "reduced motion media query is used in CSS", %{conn: conn} do
       # We can't directly test the CSS, but we can check that the style guide
       # mentions the reduced motion media query
-      {:ok, view, html} = live(conn, "/style-guide")
+      {:ok, _view, html} = live(conn, "/style-guide")
 
       assert html =~ "@media (prefers-reduced-motion: reduce)"
       assert html =~ "animation-duration"
@@ -58,7 +58,7 @@ defmodule HydepwnsLiveviewWeb.AccessibilityTest do
     end
 
     test "keyboard navigation is supported", %{conn: conn} do
-      {:ok, view, html} = live(conn, "/style-guide")
+      {:ok, view, _html} = live(conn, "/style-guide")
 
       # Check that interactive elements are keyboard accessible
       assert has_element?(view, ".theme-button")

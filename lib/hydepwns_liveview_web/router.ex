@@ -101,6 +101,12 @@ defmodule HydepwnsLiveviewWeb.Router do
     end
   end
 
+  # Catch-all for unknown API versions
+  scope "/api", HydepwnsLiveviewWeb do
+    pipe_through :api
+    match :*, "/*path", Api.ErrorController, :not_found
+  end
+
   # Main application routes
   scope "/", HydepwnsLiveviewWeb do
     pipe_through :browser

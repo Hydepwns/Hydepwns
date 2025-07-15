@@ -11,7 +11,7 @@ defmodule HydepwnsLiveviewWeb.Endpoint do
     same_site: "Lax"
   ]
 
-  socket "/live", Phoenix.LiveView.Socket,
+  socket "/live", HydepwnsLiveviewWeb.Socket,
     websocket: [connect_info: [session: @session_options, cookies: :all]],
     longpoll: [connect_info: [session: @session_options, cookies: :all]]
 

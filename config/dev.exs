@@ -6,6 +6,7 @@ config :hydepwns_liveview, HydepwnsLiveview.Repo,
   # If your user doesn't have a password
   password: System.get_env("DEV_DB_PASSWORD") || "",
   hostname: System.get_env("DEV_DB_HOST") || "localhost",
+  port: String.to_integer(System.get_env("DEV_DB_PORT") || "5433"),
   database: System.get_env("DEV_DB_NAME") || "hydepwns_liveview_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,

@@ -44,8 +44,7 @@ config :hydepwns_liveview, :http_client, HydepwnsLiveview.MockHTTPClient
 config :hydepwns_liveview, :external_api, HydepwnsLiveview.MockExternalAPI
 # Use real repo for tests that need database access
 config :hydepwns_liveview, :repo, HydepwnsLiveview.Repo
-# Set Mox to global mode to allow stubs to be used from concurrent tests
-config :mox, :global_stubs_only, true
+# Mox is set to private mode in test_helper.exs for Wallaby compatibility
 
 # Configure Wallaby
 config :wallaby,

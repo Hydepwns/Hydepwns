@@ -38,7 +38,12 @@ defmodule HydepwnsLiveviewWeb.Plugs.ContentTypePlug do
     # Check if there's actual body content
     case conn.body_params do
       %{} when map_size(conn.body_params) > 0 -> true
-      _ -> false
+      _ ->
+        # Also check if there's a content-type header indicating body content
+        case get_req_header(conn, "content-type") do
+          [_ | _] -> true
+          [] -> false
+        end
     end
   end
 

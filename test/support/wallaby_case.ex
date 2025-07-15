@@ -67,6 +67,14 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
           path: "/"
         )
 
+      # Also store the sandbox PID in the session for socket access
+      session = Wallaby.Browser.visit(session, "/")
+
+      # Set session data for sandbox access
+      session = Wallaby.Browser.execute_script(session, """
+        localStorage.setItem('_phoenix_liveview_sandbox', '#{inspect(self())}');
+      """, [])
+
       # Visit root again to ensure the cookie is sent
       session = Wallaby.Browser.visit(session, "/")
       # Allow the Wallaby session process to use the same DB connection

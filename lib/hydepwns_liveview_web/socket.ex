@@ -28,9 +28,11 @@ defmodule HydepwnsLiveviewWeb.Socket do
     # Handle sandbox connection for tests
     if @sandbox_enabled do
       cookies = connect_info[:cookies]
+      session = connect_info[:session] || %{}
       IO.puts("[debug] [Socket] connect_info[:cookies]: #{inspect(cookies)}")
       IO.puts("[debug] [Socket] Full connect_info keys: #{inspect(Map.keys(connect_info))}")
       IO.puts("[debug] [Socket] connect_info[:conn]: #{inspect(connect_info[:conn])}")
+      IO.puts("[debug] [Socket] Session keys: #{inspect(Map.keys(session))}")
 
       sandbox_cookie =
         case cookies do
@@ -54,7 +56,10 @@ defmodule HydepwnsLiveviewWeb.Socket do
           _ -> nil
         end
 
-      case sandbox_cookie do
+      # Also check session for sandbox PID
+      sandbox_pid = sandbox_cookie || session["_phoenix_liveview_sandbox"]
+
+      case sandbox_pid do
         nil ->
           IO.puts("[debug] [Socket] No sandbox cookie found, cannot join sandbox")
           {:ok, socket}

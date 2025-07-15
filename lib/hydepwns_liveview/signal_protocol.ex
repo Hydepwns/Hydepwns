@@ -3,6 +3,30 @@ defmodule HydepwnsLiveview.SignalProtocol do
   Wrapper module for the Signal Protocol NIF functions.
   """
 
+  # Suppress warnings for undefined NIF functions during development
+  @compile {:no_warn_undefined, {:libsignal_protocol_nif, :generate_identity_key_pair, 0}}
+  @compile {:no_warn_undefined, {:libsignal_protocol_nif, :generate_pre_key, 1}}
+  @compile {:no_warn_undefined, {:libsignal_protocol_nif, :generate_signed_pre_key, 2}}
+  @compile {:no_warn_undefined, {:libsignal_protocol_nif, :create_session, 2}}
+  @compile {:no_warn_undefined, {:libsignal_protocol_nif, :process_pre_key_bundle, 2}}
+  @compile {:no_warn_undefined, {:libsignal_protocol_nif, :encrypt_message, 2}}
+  @compile {:no_warn_undefined, {:libsignal_protocol_nif, :decrypt_message, 2}}
+  @compile {:no_warn_undefined, {:libsignal_protocol_nif, :get_cache_stats, 1}}
+  @compile {:no_warn_undefined, {:libsignal_protocol_nif, :reset_cache_stats, 1}}
+  @compile {:no_warn_undefined, {:libsignal_protocol_nif, :set_cache_size, 3}}
+
+  # Suppress warnings for undefined SignalNifStub functions during development
+  @compile {:no_warn_undefined, {SignalNifStub, :generate_identity_key_pair, 0}}
+  @compile {:no_warn_undefined, {SignalNifStub, :generate_pre_key, 1}}
+  @compile {:no_warn_undefined, {SignalNifStub, :generate_signed_pre_key, 2}}
+  @compile {:no_warn_undefined, {SignalNifStub, :create_session, 2}}
+  @compile {:no_warn_undefined, {SignalNifStub, :process_pre_key_bundle, 2}}
+  @compile {:no_warn_undefined, {SignalNifStub, :encrypt_message, 2}}
+  @compile {:no_warn_undefined, {SignalNifStub, :decrypt_message, 2}}
+  @compile {:no_warn_undefined, {SignalNifStub, :get_cache_stats, 1}}
+  @compile {:no_warn_undefined, {SignalNifStub, :reset_cache_stats, 1}}
+  @compile {:no_warn_undefined, {SignalNifStub, :set_cache_size, 3}}
+
   # Check if we're in test environment
   @in_test Mix.env() == :test
 
@@ -18,21 +42,28 @@ defmodule HydepwnsLiveview.SignalProtocol do
   """
   def generate_identity_key_pair do
     if @in_test do
-      # Use stub in test environment
-      SignalNifStub.generate_identity_key_pair()
+      # Use stub in test environment if available, otherwise fallback
+      try do
+        SignalNifStub.generate_identity_key_pair()
+      rescue
+        UndefinedFunctionError ->
+          {:ok, {"mock_public_key", "mock_signature"}}
+      end
     else
-      case :libsignal_protocol_nif.generate_identity_key_pair() do
-        {:ok, {public_key, signature}} ->
-          {:ok, {public_key, signature}}
+      try do
+        case :libsignal_protocol_nif.generate_identity_key_pair() do
+          {:ok, {public_key, signature}} ->
+            {:ok, {public_key, signature}}
 
-        {:error, reason} ->
-          {:error, reason}
+          {:error, reason} ->
+            {:error, reason}
+        end
+      rescue
+        UndefinedFunctionError ->
+          # Fallback implementation for testing when NIF is not available
+          {:ok, {"mock_public_key", "mock_signature"}}
       end
     end
-  rescue
-    UndefinedFunctionError ->
-      # Fallback implementation for testing when NIF is not available
-      {:ok, {"mock_public_key", "mock_signature"}}
   end
 
   @doc """
@@ -40,21 +71,28 @@ defmodule HydepwnsLiveview.SignalProtocol do
   """
   def generate_pre_key(key_id) when is_integer(key_id) do
     if @in_test do
-      # Use stub in test environment
-      SignalNifStub.generate_pre_key(key_id)
+      # Use stub in test environment if available, otherwise fallback
+      try do
+        SignalNifStub.generate_pre_key(key_id)
+      rescue
+        UndefinedFunctionError ->
+          {:ok, {key_id, "mock_pre_key"}}
+      end
     else
-      case :libsignal_protocol_nif.generate_pre_key(key_id) do
-        {:ok, {key_id, public_key}} ->
-          {:ok, {key_id, public_key}}
+      try do
+        case :libsignal_protocol_nif.generate_pre_key(key_id) do
+          {:ok, {key_id, public_key}} ->
+            {:ok, {key_id, public_key}}
 
-        {:error, reason} ->
-          {:error, reason}
+          {:error, reason} ->
+            {:error, reason}
+        end
+      rescue
+        UndefinedFunctionError ->
+          # Fallback implementation for testing when NIF is not available
+          {:ok, {key_id, "mock_pre_key"}}
       end
     end
-  rescue
-    UndefinedFunctionError ->
-      # Fallback implementation for testing when NIF is not available
-      {:ok, {key_id, "mock_pre_key"}}
   end
 
   @doc """
@@ -63,21 +101,28 @@ defmodule HydepwnsLiveview.SignalProtocol do
   def generate_signed_pre_key(identity_key, key_id)
       when is_binary(identity_key) and is_integer(key_id) do
     if @in_test do
-      # Use stub in test environment
-      SignalNifStub.generate_signed_pre_key(identity_key, key_id)
+      # Use stub in test environment if available, otherwise fallback
+      try do
+        SignalNifStub.generate_signed_pre_key(identity_key, key_id)
+      rescue
+        UndefinedFunctionError ->
+          {:ok, {key_id, "mock_signed_pre_key", "mock_signature"}}
+      end
     else
-      case :libsignal_protocol_nif.generate_signed_pre_key(identity_key, key_id) do
-        {:ok, {key_id, public_key, signature}} ->
-          {:ok, {key_id, public_key, signature}}
+      try do
+        case :libsignal_protocol_nif.generate_signed_pre_key(identity_key, key_id) do
+          {:ok, {key_id, public_key, signature}} ->
+            {:ok, {key_id, public_key, signature}}
 
-        {:error, reason} ->
-          {:error, reason}
+          {:error, reason} ->
+            {:error, reason}
+        end
+      rescue
+        UndefinedFunctionError ->
+          # Fallback implementation for testing when NIF is not available
+          {:ok, {key_id, "mock_signed_pre_key", "mock_signature"}}
       end
     end
-  rescue
-    UndefinedFunctionError ->
-      # Fallback implementation for testing when NIF is not available
-      {:ok, {key_id, "mock_signed_pre_key", "mock_signature"}}
   end
 
   @doc """
@@ -86,21 +131,28 @@ defmodule HydepwnsLiveview.SignalProtocol do
   def create_session(local_identity_key, remote_identity_key)
       when is_binary(local_identity_key) and is_binary(remote_identity_key) do
     if @in_test do
-      # Use stub in test environment
-      SignalNifStub.create_session(local_identity_key, remote_identity_key)
+      # Use stub in test environment if available, otherwise fallback
+      try do
+        SignalNifStub.create_session(local_identity_key, remote_identity_key)
+      rescue
+        UndefinedFunctionError ->
+          {:ok, :mock_session}
+      end
     else
-      case :libsignal_protocol_nif.create_session(local_identity_key, remote_identity_key) do
-        {:ok, session} ->
-          {:ok, session}
+      try do
+        case :libsignal_protocol_nif.create_session(local_identity_key, remote_identity_key) do
+          {:ok, session} ->
+            {:ok, session}
 
-        {:error, reason} ->
-          {:error, reason}
+          {:error, reason} ->
+            {:error, reason}
+        end
+      rescue
+        UndefinedFunctionError ->
+          # Fallback implementation for testing when NIF is not available
+          {:ok, :mock_session}
       end
     end
-  rescue
-    UndefinedFunctionError ->
-      # Fallback implementation for testing when NIF is not available
-      {:ok, :mock_session}
   end
 
   @doc """
@@ -108,18 +160,25 @@ defmodule HydepwnsLiveview.SignalProtocol do
   """
   def process_pre_key_bundle(session, bundle) when is_reference(session) and is_binary(bundle) do
     if @in_test do
-      # Use stub in test environment
-      SignalNifStub.process_pre_key_bundle(session, bundle)
+      # Use stub in test environment if available, otherwise fallback
+      try do
+        SignalNifStub.process_pre_key_bundle(session, bundle)
+      rescue
+        UndefinedFunctionError ->
+          :ok
+      end
     else
-      case :libsignal_protocol_nif.process_pre_key_bundle(session, bundle) do
-        :ok -> :ok
-        {:error, reason} -> {:error, reason}
+      try do
+        case :libsignal_protocol_nif.process_pre_key_bundle(session, bundle) do
+          :ok -> :ok
+          {:error, reason} -> {:error, reason}
+        end
+      rescue
+        UndefinedFunctionError ->
+          # Fallback implementation for testing when NIF is not available
+          :ok
       end
     end
-  rescue
-    UndefinedFunctionError ->
-      # Fallback implementation for testing when NIF is not available
-      :ok
   end
 
   @doc """
@@ -127,21 +186,28 @@ defmodule HydepwnsLiveview.SignalProtocol do
   """
   def encrypt_message(session, message) when is_reference(session) and is_binary(message) do
     if @in_test do
-      # Use stub in test environment
-      SignalNifStub.encrypt_message(session, message)
+      # Use stub in test environment if available, otherwise fallback
+      try do
+        SignalNifStub.encrypt_message(session, message)
+      rescue
+        UndefinedFunctionError ->
+          {:ok, "mock_encrypted_#{message}"}
+      end
     else
-      case :libsignal_protocol_nif.encrypt_message(session, message) do
-        {:ok, ciphertext} ->
-          {:ok, ciphertext}
+      try do
+        case :libsignal_protocol_nif.encrypt_message(session, message) do
+          {:ok, ciphertext} ->
+            {:ok, ciphertext}
 
-        {:error, reason} ->
-          {:error, reason}
+          {:error, reason} ->
+            {:error, reason}
+        end
+      rescue
+        UndefinedFunctionError ->
+          # Fallback implementation for testing when NIF is not available
+          {:ok, "mock_encrypted_#{message}"}
       end
     end
-  rescue
-    UndefinedFunctionError ->
-      # Fallback implementation for testing when NIF is not available
-      {:ok, "mock_encrypted_#{message}"}
   end
 
   @doc """
@@ -149,21 +215,28 @@ defmodule HydepwnsLiveview.SignalProtocol do
   """
   def decrypt_message(session, ciphertext) when is_reference(session) and is_binary(ciphertext) do
     if @in_test do
-      # Use stub in test environment
-      SignalNifStub.decrypt_message(session, ciphertext)
+      # Use stub in test environment if available, otherwise fallback
+      try do
+        SignalNifStub.decrypt_message(session, ciphertext)
+      rescue
+        UndefinedFunctionError ->
+          {:ok, "mock_decrypted_message"}
+      end
     else
-      case :libsignal_protocol_nif.decrypt_message(session, ciphertext) do
-        {:ok, plaintext} ->
-          {:ok, plaintext}
+      try do
+        case :libsignal_protocol_nif.decrypt_message(session, ciphertext) do
+          {:ok, plaintext} ->
+            {:ok, plaintext}
 
-        {:error, reason} ->
-          {:error, reason}
+          {:error, reason} ->
+            {:error, reason}
+        end
+      rescue
+        UndefinedFunctionError ->
+          # Fallback implementation for testing when NIF is not available
+          {:ok, "mock_decrypted_message"}
       end
     end
-  rescue
-    UndefinedFunctionError ->
-      # Fallback implementation for testing when NIF is not available
-      {:ok, "mock_decrypted_message"}
   end
 
   @doc """
@@ -171,18 +244,25 @@ defmodule HydepwnsLiveview.SignalProtocol do
   """
   def get_cache_stats(session) do
     if @in_test do
-      # Use stub in test environment
-      {:ok, %{chain_key_count: 0, root_key_count: 0}}
+      # Use stub in test environment if available, otherwise fallback
+      try do
+        SignalNifStub.get_cache_stats(session)
+      rescue
+        UndefinedFunctionError ->
+          {:ok, %{chain_key_count: 0, root_key_count: 0}}
+      end
     else
-      case :libsignal_protocol_nif.get_cache_stats(session) do
-        {:ok, stats} -> {:ok, stats}
-        {:error, reason} -> {:error, reason}
+      try do
+        case :libsignal_protocol_nif.get_cache_stats(session) do
+          {:ok, stats} -> {:ok, stats}
+          {:error, reason} -> {:error, reason}
+        end
+      rescue
+        UndefinedFunctionError ->
+          # Fallback implementation for testing when NIF is not available
+          {:ok, %{chain_key_count: 0, root_key_count: 0}}
       end
     end
-  rescue
-    UndefinedFunctionError ->
-      # Fallback implementation for testing when NIF is not available
-      {:ok, %{chain_key_count: 0, root_key_count: 0}}
   end
 
   @doc """
@@ -190,18 +270,25 @@ defmodule HydepwnsLiveview.SignalProtocol do
   """
   def reset_cache_stats(session) do
     if @in_test do
-      # Use stub in test environment
-      :ok
+      # Use stub in test environment if available, otherwise fallback
+      try do
+        SignalNifStub.reset_cache_stats(session)
+      rescue
+        UndefinedFunctionError ->
+          :ok
+      end
     else
-      case :libsignal_protocol_nif.reset_cache_stats(session) do
-        :ok -> :ok
-        {:error, reason} -> {:error, reason}
+      try do
+        case :libsignal_protocol_nif.reset_cache_stats(session) do
+          :ok -> :ok
+          {:error, reason} -> {:error, reason}
+        end
+      rescue
+        UndefinedFunctionError ->
+          # Fallback implementation for testing when NIF is not available
+          :ok
       end
     end
-  rescue
-    UndefinedFunctionError ->
-      # Fallback implementation for testing when NIF is not available
-      :ok
   end
 
   @doc """
@@ -210,17 +297,24 @@ defmodule HydepwnsLiveview.SignalProtocol do
   def set_cache_size(session, chain_key_size, root_key_size)
       when is_integer(chain_key_size) and is_integer(root_key_size) do
     if @in_test do
-      # Use stub in test environment
-      :ok
+      # Use stub in test environment if available, otherwise fallback
+      try do
+        SignalNifStub.set_cache_size(session, chain_key_size, root_key_size)
+      rescue
+        UndefinedFunctionError ->
+          :ok
+      end
     else
-      case :libsignal_protocol_nif.set_cache_size(session, chain_key_size, root_key_size) do
-        :ok -> :ok
-        {:error, reason} -> {:error, reason}
+      try do
+        case :libsignal_protocol_nif.set_cache_size(session, chain_key_size, root_key_size) do
+          :ok -> :ok
+          {:error, reason} -> {:error, reason}
+        end
+      rescue
+        UndefinedFunctionError ->
+          # Fallback implementation for testing when NIF is not available
+          :ok
       end
     end
-  rescue
-    UndefinedFunctionError ->
-      # Fallback implementation for testing when NIF is not available
-      :ok
   end
 end

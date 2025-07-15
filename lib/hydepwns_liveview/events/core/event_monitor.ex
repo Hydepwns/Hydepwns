@@ -71,30 +71,36 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
   * `queue_sizes` - Map of handler -> queue size
   * `processing_metrics` - Processing metrics by event type
   * `error_rates` - Error rates by event type
+  * `thresholds` - Optional map of thresholds to override defaults
 
   ## Returns
   * Map with backpressure information
   """
-  @spec detect_backpressure(%{any() => integer()}, %{any() => map()}, %{any() => float()}) ::
+  @spec detect_backpressure(%{any() => integer()}, %{any() => map()}, %{any() => float()}, map() | nil) ::
           map()
-  def detect_backpressure(queue_sizes, processing_metrics, error_rates) do
+  def detect_backpressure(queue_sizes, processing_metrics, error_rates, thresholds \\ nil) do
+    # Use provided thresholds or defaults
+    queue_threshold = Map.get(thresholds || %{}, :queue_high, @queue_high_threshold)
+    processing_threshold = Map.get(thresholds || %{}, :processing_time, @processing_time_threshold)
+    error_threshold = Map.get(thresholds || %{}, :error_rate, @error_rate_threshold)
+
     # Check if any queue sizes are at or above threshold
     queue_pressure =
       queue_sizes
-      |> Enum.any?(fn {_handler, size} -> size >= @queue_high_threshold end)
+      |> Enum.any?(fn {_handler, size} -> size >= queue_threshold end)
 
     # Check if any event types have slow processing (at or above threshold)
     slow_types =
       processing_metrics
       |> Enum.filter(fn {_type, metrics} ->
-        metrics.avg_time >= @processing_time_threshold
+        metrics.avg_time >= processing_threshold
       end)
       |> Enum.map(fn {type, _metrics} -> type end)
 
     # Check for high error rates (at or above threshold)
     high_error_types =
       error_rates
-      |> Enum.filter(fn {_type, rate} -> rate >= @error_rate_threshold end)
+      |> Enum.filter(fn {_type, rate} -> rate >= error_threshold end)
       |> Enum.map(fn {type, _rate} -> type end)
 
     # Determine overall backpressure status
@@ -110,7 +116,7 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
       queue_pressure: queue_pressure,
       slow_processing_types: slow_types,
       high_error_types: high_error_types,
-      bottlenecks: identify_bottlenecks(queue_sizes, processing_metrics, error_rates)
+      bottlenecks: identify_bottlenecks(queue_sizes, processing_metrics, error_rates, thresholds)
     }
 
     # Emit telemetry for backpressure detection
@@ -643,8 +649,8 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
       # Get error rates
       error_rates = calculate_error_rates(events, state)
 
-      # Check for backpressure
-      backpressure = detect_backpressure(queue_sizes, processing_metrics, error_rates)
+      # Check for backpressure using alert thresholds if available
+      backpressure = detect_backpressure(queue_sizes, processing_metrics, error_rates, state.alert_config.thresholds)
 
       metrics = %{
         event_count: length(events),
@@ -663,20 +669,25 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
   end
 
   # Identify bottlenecks in the event processing system
-  defp identify_bottlenecks(queue_sizes, processing_metrics, error_rates) do
+  defp identify_bottlenecks(queue_sizes, processing_metrics, error_rates, thresholds \\ nil) do
+    # Use provided thresholds or defaults
+    queue_threshold = Map.get(thresholds || %{}, :queue_high, @queue_high_threshold)
+    processing_threshold = Map.get(thresholds || %{}, :processing_time, @processing_time_threshold)
+    error_threshold = Map.get(thresholds || %{}, :error_rate, @error_rate_threshold)
+
     # Implementation for identifying bottlenecks in the event system
     %{
       high_queue_handlers:
         queue_sizes
-        |> Enum.filter(fn {_handler, size} -> size > @queue_high_threshold end)
+        |> Enum.filter(fn {_handler, size} -> size > queue_threshold end)
         |> Enum.map(fn {handler, _} -> handler end),
       slow_event_types:
         processing_metrics
-        |> Enum.filter(fn {_type, metrics} -> metrics.avg_time > @processing_time_threshold end)
+        |> Enum.filter(fn {_type, metrics} -> metrics.avg_time > processing_threshold end)
         |> Enum.map(fn {type, _} -> type end),
       high_error_types:
         error_rates
-        |> Enum.filter(fn {_type, rate} -> rate > @error_rate_threshold end)
+        |> Enum.filter(fn {_type, rate} -> rate > error_threshold end)
         |> Enum.map(fn {type, _} -> type end)
     }
   end

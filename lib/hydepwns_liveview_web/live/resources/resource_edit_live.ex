@@ -30,10 +30,41 @@ defmodule HydepwnsLiveviewWeb.ResourceEditLive do
   def handle_info({:resource_updated, resource}, socket) do
     IO.puts("🔍 ResourceEditLive: Received :resource_updated message")
     IO.puts("🔍 Setting flash message for resource update")
+    IO.puts("🔍 ResourceEditLive: Resource data: #{inspect(resource)}")
 
-    {:noreply,
-     socket
-     |> put_flash(:info, "Resource updated successfully")
-     |> redirect(to: ~p"/resources/#{resource.id}")}
+    updated_socket =
+      socket
+      |> put_flash(:info, "Resource updated successfully")
+    IO.puts("[DEBUG] ResourceEditLive: flash before redirect: #{inspect(updated_socket.assigns[:flash])}")
+    updated_socket =
+      updated_socket
+      |> redirect(to: ~p"/resources/#{resource.id}")
+    {:noreply, updated_socket}
   end
+
+  @impl true
+  def handle_event("validate", %{"resource" => resource_params}, socket) do
+    IO.puts("🔍 ResourceEditLive: handle_event('validate') called")
+    # Forward validation to the form component
+    send_update(HydepwnsLiveviewWeb.ResourceFormComponent,
+      id: socket.assigns.resource.id,
+      resource_params: resource_params)
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("save", %{"resource" => resource_params}, socket) do
+    IO.puts("🔍 ResourceEditLive: handle_event('save') called with params: #{inspect(resource_params)}")
+    IO.puts("🔍 ResourceEditLive: parent_id in params: #{inspect(Map.get(resource_params, "parent_id"))}")
+    # The form component will handle the update and notify us
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event(event, params, socket) do
+    IO.puts("🔍 ResourceEditLive: Received unexpected event '#{event}' with params: #{inspect(params)}")
+    {:noreply, socket}
+  end
+
+
 end

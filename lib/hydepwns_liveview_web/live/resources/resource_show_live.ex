@@ -5,23 +5,25 @@ defmodule HydepwnsLiveviewWeb.ResourceShowLive do
 
   @impl true
   def mount(_params, _session, socket) do
+    IO.puts("🔍 ResourceShowLive: mount called")
+    IO.puts("🔍 ResourceShowLive: socket assigns: #{inspect(socket.assigns)}")
+    IO.puts("[DEBUG] ResourceShowLive: mount flash: #{inspect(socket.assigns[:flash])}")
     {:ok, socket}
   end
 
   @impl true
-  def handle_params(%{"id" => id}, _url, socket) do
+  def handle_params(%{"id" => id} = _params, _uri, socket) do
+    IO.puts("🔍 ResourceShowLive: handle_params called with id: #{id}")
+    IO.puts("🔍 ResourceShowLive: flash in socket: #{inspect(socket.assigns.flash)}")
+    IO.puts("[DEBUG] ResourceShowLive: handle_params flash: #{inspect(socket.assigns[:flash])}")
+
     case ResourceSystem.get_resource(id) do
       {:ok, resource} ->
-        {:noreply,
-         socket
-         |> assign(:page_title, resource.name)
-         |> assign(:resource, resource)}
+        IO.puts("🔍 ResourceShowLive: Found resource: #{inspect(resource)}")
+        {:noreply, assign(socket, :resource, resource)}
 
       {:error, :not_found} ->
-        {:noreply,
-         socket
-         |> put_flash(:error, "Resource not found")
-         |> redirect(to: ~p"/resources")}
+        {:noreply, socket |> put_flash(:error, "Resource not found") |> push_navigate(to: ~p"/resources")}
     end
   end
 
@@ -58,9 +60,9 @@ defmodule HydepwnsLiveviewWeb.ResourceShowLive do
           <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold" data-test-id="resource-name">{@resource.name}</h1>
             <div class="space-x-4">
-              <.link navigate={~p"/resources/#{@resource.id}/edit"} class="text-blue-600 hover:text-blue-800" data-test-id="edit-resource-link">
+              <a href={~p"/resources/#{@resource.id}/edit"} class="text-blue-600 hover:text-blue-800" data-test-id="edit-resource-link">
                 Edit
-              </.link>
+              </a>
               <button phx-click="delete" phx-value-id={@resource.id} data-confirm="Are you sure?" class="text-red-600 hover:text-red-800" data-test-id="delete-resource-button">
                 Delete
               </button>
@@ -97,9 +99,9 @@ defmodule HydepwnsLiveviewWeb.ResourceShowLive do
 
                 <div class="relationship-row" data-test-id="children-relationship-row">
                   <h4 class="font-medium">Child Resources</h4>
-                  <%= if @resource.child_ids && Enum.any?(@resource.child_ids) do %>
+                  <%= if Map.get(@resource, :child_ids) && Enum.any?(Map.get(@resource, :child_ids, [])) do %>
                     <div class="space-y-2">
-                      <%= for child_id <- @resource.child_ids do %>
+                      <%= for child_id <- Map.get(@resource, :child_ids, []) do %>
                         <.link navigate={~p"/resources/#{child_id}"} class="text-blue-600 hover:text-blue-800 block" data-test-id="child-resource-link">
                           Child Resource (ID: {child_id})
                         </.link>

@@ -7,11 +7,13 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
 
   alias HydepwnsLiveview.Resources.ResourceSystem
   alias HydepwnsLiveview.Resources.Resource
-  import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, error: 1]
 
   @impl true
   def update(%{resource: resource} = assigns, socket) do
     IO.inspect(assigns, label: "[DEBUG] assigns in update/2")
+    IO.puts("[DEBUG] ResourceFormComponent.update/2 - @myself: #{inspect(assigns[:myself])}")
+    IO.puts("[DEBUG] ResourceFormComponent.update/2 - parent_pid: #{inspect(assigns[:parent_pid])}")
+
     # Normalize parent_id to "" for the form if nil
     resource =
       if Map.get(resource, :parent_id) == nil,
@@ -53,24 +55,53 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
 
     IO.inspect(changeset.data.content, label: "[DEBUG] changeset.data.content before assign")
 
+    # Prepare options for select fields
+    type_options = [
+      {"Document", "document"},
+      {"Folder", "folder"},
+      {"Task", "task"},
+      {"Note", "note"}
+    ]
+
+    status_options = [
+      {"Draft", "draft"},
+      {"Published", "published"},
+      {"Active", "active"},
+      {"Archived", "archived"}
+    ]
+
+    parent_options = [
+      {"None", ""} | Enum.map(assigns[:resources] || [], fn resource -> {resource.id, resource.name} end)
+    ]
+
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(:changeset, changeset)}
+     |> assign(:changeset, changeset)
+     |> assign(:type_options, type_options)
+     |> assign(:status_options, status_options)
+     |> assign(:parent_options, parent_options)}
   end
 
   @impl true
   def handle_event(event, params, socket) do
-    IO.puts(
-      "[DEBUG] handle_event/3 called with event: #{inspect(event)}, params: #{inspect(params)}"
-    )
-
+    IO.puts("=== ResourceFormComponent.handle_event/3 CALLED: event=#{inspect(event)}, params=#{inspect(params)} ===")
+    IO.puts("🔍 ResourceFormComponent: handle_event/3 called with event: '#{event}', params: #{inspect(params)}")
+    IO.puts("🔍 ResourceFormComponent: socket assigns keys: #{inspect(Map.keys(socket.assigns))}")
+    IO.puts("🔍 ResourceFormComponent: socket assigns id: #{inspect(socket.assigns[:id])}")
+    IO.puts("🔍 ResourceFormComponent: socket assigns parent_pid: #{inspect(socket.assigns[:parent_pid])}")
     IO.inspect(socket.assigns, label: "[DEBUG] assigns in handle_event/3")
 
     case event do
-      "validate" -> handle_validate(params, socket)
-      "save" -> handle_save(params, socket)
-      _ -> {:noreply, socket}
+      "validate" ->
+        IO.puts("🔍 ResourceFormComponent: handle_event('validate') params: #{inspect(params)}")
+        handle_validate(params, socket)
+      "save" ->
+        IO.puts("🔍 ResourceFormComponent: handle_event('save') params: #{inspect(params)}")
+        handle_save(params, socket)
+      _ ->
+        IO.puts("🔍 ResourceFormComponent: Received unexpected event: '#{event}'")
+        {:noreply, socket}
     end
   end
 
@@ -94,11 +125,9 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
     {:noreply, assign(socket, :changeset, changeset)}
   end
 
-  defp handle_save(%{"resource" => resource_params}, socket) do
-    IO.puts(
-      "[DEBUG] ResourceFormComponent.handle_event('save') called with params: #{inspect(resource_params)}"
-    )
-
+  defp handle_save(%{"resource" => resource_params} = params, socket) do
+    IO.puts("[DEBUG] handle_save/2 received params: #{inspect(params)}")
+    IO.puts("[DEBUG] handle_save/2 received resource_params: #{inspect(resource_params)}")
     resource_params = process_form_params(resource_params)
     save_resource(socket, socket.assigns.action, resource_params)
   end
@@ -173,9 +202,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
     case ResourceSystem.update_resource(socket.assigns.resource, resource_params) do
       {:ok, resource} ->
         notify_parent(socket, {:resource_updated, resource})
-
         {:noreply, socket}
-
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :changeset, changeset)}
     end
@@ -209,108 +236,81 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
   def render(assigns) do
     ~H"""
     <div data-debug="ResourceFormComponent-template-rendered">
-      <.form :let={f} for={@changeset} id="resource-form" phx-change="validate" phx-submit="save" phx-target={@myself}>
+      <form id="resource-form" phx-change="validate" phx-submit="save" phx-target={@id} data-test-id="resource-form">
         <div class="space-y-6">
           <div>
-            <.input field={f[:name]} type="text" label="Name" />
-            <.error :for={error <- f[:name].errors} data-test-id="name-error">
-              {case error do
-                {message, _opts} -> message
-                message when is_binary(message) -> message
-                _ -> "Invalid name"
-              end}
-            </.error>
+            <div class="form-group">
+              <label for="resource-form_name" class="block text-sm font-semibold leading-6 text-zinc-800" data-test-id="resource-form_name-label">
+                Name
+              </label>
+              <input type="text" id="resource-form_name" name="resource[name]" value={@resource.name} class="form-control" />
+            </div>
           </div>
 
           <div data-test-id="resource-form_description-container">
-            <.input field={f[:description]} type="textarea" label="Description" />
-            <.error :for={error <- f[:description].errors} data-test-id="description-error">
-              {case error do
-                {message, _opts} -> message
-                message when is_binary(message) -> message
-                _ -> "Invalid description"
-              end}
-            </.error>
+            <div data-test-id="resource-form_description-container">
+              <label for="resource-form_description" class="block text-sm font-semibold leading-6 text-zinc-800" data-test-id="resource-form_description-label">
+                Description
+              </label>
+              <textarea id="resource-form_description" name="resource[description]" data-test-id="resource-form_description" class="mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6 min-h-[6rem] border-zinc-300 focus:border-zinc-400">{@resource.description}</textarea>
+            </div>
           </div>
 
           <div data-test-id="resource-form_content-container">
-            <.input field={f[:content]} type="textarea" label="Content" />
-            <.error :for={error <- f[:content].errors} data-test-id="content-error">
-              {case error do
-                {message, _opts} -> message
-                message when is_binary(message) -> message
-                _ -> "Invalid content"
-              end}
-            </.error>
+            <div data-test-id="resource-form_content-container">
+              <label for="resource-form_content" class="block text-sm font-semibold leading-6 text-zinc-800" data-test-id="resource-form_content-label">
+                Content
+              </label>
+              <textarea id="resource-form_content" name="resource[content]" data-test-id="resource-form_content" class="mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6 min-h-[6rem] border-zinc-300 focus:border-zinc-400">{if is_map(@resource.content), do: Map.get(@resource.content, :text, ""), else: @resource.content}</textarea>
+            </div>
           </div>
 
           <div data-test-id="resource-form_type-container">
-            <.input
-              field={f[:type]}
-              type="select"
-              label="Type"
-              options={[
-                {"Document", "document"},
-                {"Folder", "folder"},
-                {"Task", "task"},
-                {"Note", "note"}
-              ]}
-            />
-            <.error :for={error <- f[:type].errors} data-test-id="type-error">
-              {case error do
-                {message, _opts} -> message
-                message when is_binary(message) -> message
-                _ -> "Invalid type"
-              end}
-            </.error>
+            <div data-test-id="resource-form_type-container">
+              <label for="resource-form_type" class="block text-sm font-semibold leading-6 text-zinc-800" data-test-id="resource-form_type-label">
+                Type
+              </label>
+              <select id="resource-form_type" name="resource[type]" class="mt-2 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm" data-test-id="resource-form_type">
+                <%= for {value, label} <- @type_options do %>
+                  <option value={value} selected={@resource.type == value}><%= label %></option>
+                <% end %>
+              </select>
+            </div>
           </div>
 
           <div data-test-id="resource-form_status-container">
-            <.input
-              field={f[:status]}
-              type="select"
-              label="Status"
-              options={[
-                {"Draft", "draft"},
-                {"Published", "published"},
-                {"Active", "active"},
-                {"Archived", "archived"}
-              ]}
-            />
-            <.error :for={error <- f[:status].errors} data-test-id="status-error">
-              {case error do
-                {message, _opts} -> message
-                message when is_binary(message) -> message
-                _ -> "Invalid status"
-              end}
-            </.error>
+            <div data-test-id="resource-form_status-container">
+              <label for="resource-form_status" class="block text-sm font-semibold leading-6 text-zinc-800" data-test-id="resource-form_status-label">
+                Status
+              </label>
+              <select id="resource-form_status" name="resource[status]" class="mt-2 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm" data-test-id="resource-form_status">
+                <%= for {value, label} <- @status_options do %>
+                  <option value={value} selected={@resource.status == value}><%= label %></option>
+                <% end %>
+              </select>
+            </div>
           </div>
 
           <div data-test-id="resource-form_parent_id-container">
-            <.input
-              field={f[:parent_id]}
-              type="select"
-              label="Parent"
-              options={[
-                {"None", ""} | Enum.map(@resources, fn resource -> {resource.name, resource.id} end)
-              ]}
-            />
-            <.error :for={error <- f[:parent_id].errors} data-test-id="parent_id-error">
-              {case error do
-                {message, _opts} -> message
-                message when is_binary(message) -> message
-                _ -> "Invalid parent"
-              end}
-            </.error>
+            <div data-test-id="resource-form_parent_id-container">
+              <label for="resource-form_parent_id" class="block text-sm font-semibold leading-6 text-zinc-800" data-test-id="resource-form_parent_id-label">
+                Parent
+              </label>
+              <select id="resource-form_parent_id" name="resource[parent_id]" class="mt-2 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm" data-test-id="resource-form_parent_id">
+                <%= for {value, label} <- @parent_options do %>
+                  <option value={value} selected={@resource.parent_id == value}><%= label %></option>
+                <% end %>
+              </select>
+            </div>
           </div>
 
           <div class="flex justify-end space-x-4">
-            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-              {if @action == :new, do: "Create Resource", else: "Update Resource"}
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" data-test-id="save-resource-button">
+              Save Resource
             </button>
           </div>
         </div>
-      </.form>
+      </form>
     </div>
     """
   end

@@ -39,6 +39,8 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
 
   @impl Phoenix.LiveView
   def handle_event("validate", %{"resource" => resource_params}, socket) do
+    IO.puts("🔍 ResourceFormLive: handle_event('validate') called with params: #{inspect(resource_params)}")
+
     changeset =
       socket.assigns.resource
       |> Resources.change_resource(resource_params)
@@ -49,7 +51,15 @@ defmodule HydepwnsLiveviewWeb.ResourceFormLive do
 
   @impl Phoenix.LiveView
   def handle_event("save", %{"resource" => resource_params}, socket) do
+    IO.puts("🔍 ResourceFormLive: handle_event('save') called with params: #{inspect(resource_params)}")
+
     save_resource(socket, socket.assigns.live_action, resource_params)
+  end
+
+  @impl Phoenix.LiveView
+  def handle_event(event, params, socket) do
+    IO.puts("🔍 ResourceFormLive: Received unexpected event '#{event}' with params: #{inspect(params)}")
+    {:noreply, socket}
   end
 
   defp save_resource(socket, :edit, resource_params) do

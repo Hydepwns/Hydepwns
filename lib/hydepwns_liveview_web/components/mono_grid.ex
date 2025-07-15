@@ -154,6 +154,9 @@ defmodule HydepwnsLiveviewWeb.Components.MonoGrid do
   # Alias for mono_grid to maintain backward compatibility
   def grid(assigns), do: mono_grid(assigns)
 
+  # Alias for mono_grid_cell to maintain backward compatibility
+  def cell(assigns), do: mono_grid_cell(assigns)
+
   @doc """
   Renders a row within the monospace grid system.
 
@@ -194,16 +197,24 @@ defmodule HydepwnsLiveviewWeb.Components.MonoGrid do
 
   * `id` - Optional unique identifier for this cell
   * `class` - Additional CSS classes to add to the cell
-  * `cols` - Number of columns this cell spans (default: 1)
-  * `rows` - Number of rows this cell spans (default: 1)
+  * `row` - Grid row position (1-based)
+  * `col` - Grid column position (1-based)
+  * `colspan` - Number of columns this cell spans (default: 1)
+  * `rowspan` - Number of rows this cell spans (default: 1)
+  * `cols` - Alternative to colspan for backward compatibility
+  * `rows` - Alternative to rowspan for backward compatibility
   * `debug` - When true, shows grid lines for debugging (default: false)
   * `align` - Text alignment within the cell: :left, :center, :right (default: :left)
   * `rest` - Additional attributes to add to the cell element
   """
   attr :id, :string, default: nil
   attr :class, :string, default: nil
-  attr :cols, :integer, default: 1
-  attr :rows, :integer, default: 1
+  attr :row, :integer, default: nil
+  attr :col, :integer, default: nil
+  attr :colspan, :integer, default: nil
+  attr :rowspan, :integer, default: nil
+  attr :cols, :integer, default: nil
+  attr :rows, :integer, default: nil
   attr :debug, :boolean, default: false
   attr :align, :atom, default: :left, values: [:left, :center, :right]
   attr :rest, :global
@@ -211,6 +222,13 @@ defmodule HydepwnsLiveviewWeb.Components.MonoGrid do
   slot :inner_block, required: true
 
   def mono_grid_cell(assigns) do
+    # Handle backward compatibility: use cols/rows if colspan/rowspan not provided
+    colspan = assigns.colspan || assigns.cols || 1
+    rowspan = assigns.rowspan || assigns.rows || 1
+
+    assigns = assign(assigns, :colspan, colspan)
+    assigns = assign(assigns, :rowspan, rowspan)
+
     ~H"""
     <div
       id={@id}
@@ -221,7 +239,7 @@ defmodule HydepwnsLiveviewWeb.Components.MonoGrid do
         @align == :right && "mono-grid-cell--right",
         @class
       ]}
-      style={cell_style(@cols, @rows)}
+      style={cell_style(@colspan, @rowspan)}
       {@rest}
     >
       {render_slot(@inner_block)}
@@ -234,7 +252,7 @@ defmodule HydepwnsLiveviewWeb.Components.MonoGrid do
 
   ## Attributes
 
-  * `id` - Optional unique identifier 
+  * `id` - Optional unique identifier
   * `class` - Additional CSS classes
   * `style` - Additional inline styles
   * `padding` - Padding in character units (format: "top right bottom left")
@@ -306,7 +324,7 @@ defmodule HydepwnsLiveviewWeb.Components.MonoGrid do
 
       iex> MonoGrid.char_width("Hello")
       5
-      
+
       iex> MonoGrid.char_width(["Hello", "World"])
       10
   """

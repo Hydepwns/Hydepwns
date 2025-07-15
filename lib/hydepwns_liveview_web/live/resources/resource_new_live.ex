@@ -26,9 +26,7 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLive do
 
   @impl true
   def handle_event("validate", %{"resource" => resource_params}, socket) do
-    IO.puts(
-      "[DEBUG] ResourceNewLive.handle_event('validate') called with params: #{inspect(resource_params)}"
-    )
+    IO.puts("🔍 ResourceNewLive: handle_event('validate') called with params: #{inspect(resource_params)}")
 
     changeset =
       socket.assigns.resource
@@ -40,13 +38,9 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLive do
 
   @impl true
   def handle_event("save", %{"resource" => resource_params}, socket) do
-    IO.puts(
-      "[DEBUG] ResourceNewLive.handle_event('save') called with params: #{inspect(resource_params)}"
-    )
+    IO.puts("🔍 ResourceNewLive: handle_event('save') called with params: #{inspect(resource_params)}")
 
-    IO.puts(
-      "[DEBUG] ResourceNewLive.handle_event('save') - socket assigns: #{inspect(socket.assigns)}"
-    )
+    IO.puts("🔍 ResourceNewLive: handle_event('save') - socket assigns: #{inspect(socket.assigns)}")
 
     case ResourceSystem.create_resource(resource_params) do
       {:ok, resource} ->
@@ -59,12 +53,19 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLive do
          |> push_navigate(to: ~p"/resources")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        IO.puts(
-          "[DEBUG] ResourceNewLive: Resource creation failed with errors: #{inspect(changeset.errors)}"
-        )
+        IO.puts("[DEBUG] ResourceNewLive: Resource creation failed with errors: #{inspect(changeset.errors)}")
 
         {:noreply, assign(socket, :changeset, changeset)}
     end
+  end
+
+  @impl true
+  def handle_event(event, params, socket) do
+    IO.puts(
+      "[DEBUG] ResourceNewLive: Received unexpected event '#{event}' with params: #{inspect(params)}"
+    )
+
+    {:noreply, socket}
   end
 
   @impl true
@@ -95,15 +96,6 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLive do
   def handle_info(message, socket) do
     IO.puts(
       "[DEBUG] ResourceNewLive: Received unexpected message: #{inspect(message)} (self: #{inspect(self())})"
-    )
-
-    {:noreply, socket}
-  end
-
-  @impl true
-  def handle_event(event, params, socket) do
-    IO.puts(
-      "[DEBUG] ResourceNewLive: Received unexpected event '#{event}' with params: #{inspect(params)}"
     )
 
     {:noreply, socket}

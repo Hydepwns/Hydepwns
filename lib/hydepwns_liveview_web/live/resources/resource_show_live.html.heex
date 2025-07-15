@@ -7,9 +7,9 @@
       <.link navigate={~p"/resources"} class="text-blue-600 hover:text-blue-800" data-test-id="back-to-resources-link">
         Back to Resources
       </.link>
-      <.link navigate={~p"/resources/#{@resource.id}/edit"} class="text-blue-600 hover:text-blue-800" data-test-id="edit-resource-link">
+      <a href={"/resources/#{@resource.id}/edit"} class="text-blue-600 hover:text-blue-800" data-test-id="edit-resource-link">
         Edit
-      </.link>
+      </a>
       <.link navigate={~p"/resources/#{@resource.id}/events"} class="text-blue-600 hover:text-blue-800" data-test-id="view-events-link">
         View Events
       </.link>

@@ -1,3 +1,4 @@
+Mox.set_mox_global(false)
 ExUnit.start()
 {:ok, _} = Application.ensure_all_started(:hydepwns_liveview)
 
@@ -25,9 +26,6 @@ Ecto.Adapters.SQL.Sandbox.mode(HydepwnsLiveview.Repo, :manual)
     {:ok, pid} -> {:ok, pid}
     {:error, {:already_started, _pid}} -> {:ok, :already_started}
   end
-
-# Set up global mocks for all tests
-HydepwnsLiveviewWeb.TestMockHelper.setup_mocks()
 
 # Start MockEventStore globally for all tests
 case HydepwnsLiveview.TestSupport.MockEventStore.start_link([]) do

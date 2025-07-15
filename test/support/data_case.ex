@@ -27,7 +27,7 @@ defmodule HydepwnsLiveview.DataCase do
     end
   end
 
-  setup(tags) do
+  setup(_tags) do
     # Always use manual mode for better control with LiveView processes
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(HydepwnsLiveview.Repo)
     Ecto.Adapters.SQL.Sandbox.mode(HydepwnsLiveview.Repo, :manual)
@@ -63,13 +63,20 @@ defmodule HydepwnsLiveview.DataCase do
           reraise e, __STACKTRACE__
         end
       e in MatchError ->
-        # Handle the :already_shared error
-        if match?({:error, {{:badmatch, :already_shared}, _}}, e.term) do
-          # For shared mode, we can just allow the current process
-          Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), self())
-          self()
-        else
-          reraise e, __STACKTRACE__
+        # Handle various sandbox errors
+        case e.term do
+          {:error, {{:badmatch, :already_shared}, _}} ->
+            # For shared mode, we can just allow the current process
+            Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), self())
+            self()
+          {:error, {{:badmatch, :not_found}, _}} ->
+            # Handle not_found error - try to use manual mode instead
+            :ok = Ecto.Adapters.SQL.Sandbox.checkout(HydepwnsLiveview.Repo)
+            Ecto.Adapters.SQL.Sandbox.mode(HydepwnsLiveview.Repo, :manual)
+            Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), self())
+            self()
+          _ ->
+            reraise e, __STACKTRACE__
         end
     end
   end

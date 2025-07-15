@@ -325,10 +325,32 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
             # Handle both Event structs and maps
             case event do
               %HydepwnsLiveview.Events.Core.Event{} ->
-                event.type == value
+                if is_list(value) do
+                  event.type in value
+                else
+                  event.type == value
+                end
 
               %{} ->
-                Map.get(event, :type) == value
+                event_type = Map.get(event, :type)
+                if is_list(value) do
+                  event_type in value
+                else
+                  event_type == value
+                end
+
+              _ ->
+                false
+            end
+
+          :resource_type ->
+            # Handle both Event structs and maps
+            case event do
+              %HydepwnsLiveview.Events.Core.Event{} ->
+                event.resource_type == value
+
+              %{} ->
+                Map.get(event, :resource_type) == value
 
               _ ->
                 false

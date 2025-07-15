@@ -24,6 +24,8 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
   import Wallaby.Query
 
   setup tags do
+    # Ensure Mox is in private mode before setting up mocks
+    Mox.set_mox_global(false)
     # Set up mocks before starting the session
     HydepwnsLiveviewWeb.TestMockHelper.setup_mocks()
 

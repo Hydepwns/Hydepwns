@@ -316,7 +316,14 @@ defmodule HydepwnsLiveviewWeb.TestHelpers.WallabyUIHelper do
   """
   def wait_for_flash_message(session, message_type, message_text, opts \\ []) do
     timeout = Keyword.get(opts, :timeout, 3000)
-    selector = ".alert-#{message_type}"
+
+    # Map message types to the actual CSS classes used by the flash components
+    selector = case message_type do
+      "info" -> "[class*='bg-emerald-50'][class*='text-emerald-800']"
+      "error" -> "[class*='bg-rose-50'][class*='text-rose-900']"
+      "success" -> "[class*='bg-emerald-50'][class*='text-emerald-800']"
+      _ -> "[class*='bg-emerald-50'][class*='text-emerald-800']"
+    end
 
     session
     |> wait_for_element(css(selector, text: message_text), timeout: timeout)

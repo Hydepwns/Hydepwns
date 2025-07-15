@@ -55,7 +55,7 @@ defmodule HydepwnsLiveview.SignalProtocolTest do
     end
 
     test "generates signed pre-key with empty identity key" do
-      assert {:ok, {key_id, public_key, signature}} =
+      assert {:ok, {_key_id, public_key, signature}} =
                SignalProtocol.generate_signed_pre_key("", 123)
 
       assert is_binary(public_key)
@@ -65,7 +65,7 @@ defmodule HydepwnsLiveview.SignalProtocolTest do
     test "generates signed pre-key with unicode identity key" do
       unicode_key = "café_identity_key_🚨"
 
-      assert {:ok, {key_id, public_key, signature}} =
+      assert {:ok, {_key_id, public_key, signature}} =
                SignalProtocol.generate_signed_pre_key(unicode_key, 456)
 
       assert is_binary(public_key)
@@ -280,12 +280,12 @@ defmodule HydepwnsLiveview.SignalProtocolTest do
       assert {:ok, {remote_identity, _remote_sig}} = SignalProtocol.generate_identity_key_pair()
 
       # Create session
-      assert {:ok, session} = SignalProtocol.create_session(local_identity, remote_identity)
+      assert {:ok, _session} = SignalProtocol.create_session(local_identity, remote_identity)
       # Use a valid reference for session
       session = make_ref()
 
       # Generate pre-keys
-      assert {:ok, {key_id, _pre_key}} = SignalProtocol.generate_pre_key(123)
+      assert {:ok, {_key_id, _pre_key}} = SignalProtocol.generate_pre_key(123)
 
       assert {:ok, {_signed_key_id, _signed_pre_key, _signed_sig}} =
                SignalProtocol.generate_signed_pre_key(local_identity, 456)

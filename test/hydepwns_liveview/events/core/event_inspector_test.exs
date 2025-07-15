@@ -73,8 +73,8 @@ defmodule HydepwnsLiveview.Events.Core.EventInspectorTest do
 
     test "handles events with correlation and causation relationships", %{
       test_event_1: event1,
-      test_event_2: event2,
-      test_event_3: event3
+      test_event_2: _event2,
+      test_event_3: _event3
     } do
       result = EventInspector.inspect_event(event1.id)
 

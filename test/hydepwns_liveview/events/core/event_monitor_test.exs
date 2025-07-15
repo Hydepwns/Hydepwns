@@ -658,7 +658,7 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
       # Don't set up alerting
       test_pid = self()
 
-      notification_fn = fn alert ->
+      _notification_fn = fn alert ->
         send(test_pid, {:alert, alert})
       end
 

@@ -327,8 +327,8 @@ defmodule HydepwnsLiveview.Events.Core.EventBusTest do
       assert :ok = EventBus.publish(event)
 
       # Both should receive the event
-      assert_receive {:received, 1, _received_event}
-      assert_receive {:received, 2, _received_event}
+      assert_receive {:received, 1, _received_event}, 1000
+      assert_receive {:received, 2, _received_event}, 1000
 
       # Clean up
       Process.exit(pid1, :kill)

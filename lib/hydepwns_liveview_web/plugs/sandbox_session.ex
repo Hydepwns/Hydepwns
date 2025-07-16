@@ -13,6 +13,9 @@ defmodule HydepwnsLiveviewWeb.Plugs.SandboxSession do
 
   def call(conn, _opts) do
     if Application.get_env(:hydepwns_liveview, :sql_sandbox, false) do
+      # First fetch the session to ensure it's available
+      conn = fetch_session(conn)
+
       # Check if we have a sandbox cookie
       case get_req_header(conn, "cookie") do
         [cookie_header] ->

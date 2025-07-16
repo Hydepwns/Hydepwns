@@ -36,11 +36,7 @@ defmodule HydepwnsLiveviewWeb.NotificationSettingsLive do
 
       <a href="/resources" class="inline-block mb-6 text-blue-600 hover:underline font-semibold">Resources</a>
 
-      <%= if Phoenix.Flash.get(@flash, :info) do %>
-        <div class="alert-success bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6" role="alert">
-          {Phoenix.Flash.get(@flash, :info)}
-        </div>
-      <% end %>
+      <.flash_group flash={@flash} />
 
       <form phx-submit="save_settings">
         <div class="bg-white shadow-lg rounded-lg p-6">

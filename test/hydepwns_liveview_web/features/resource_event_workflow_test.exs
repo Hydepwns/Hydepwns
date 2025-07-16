@@ -27,22 +27,26 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
     session = visit(session, "/resources/new")
     session = wait_for_text(session, "New Resource")
 
-    # Wait for the form to be present
-    session = wait_for_element(session, css("#resource-form"))
+    # Wait for the form to be present and ready
+    session = wait_for_form_ready(session, "#resource-form")
 
-    # Fill in the resource form using proper field IDs
-    session = fill_in(session, text_field("resource[name]"), with: "Event Workflow Test Resource")
-    session = fill_in(session, text_field("resource[description]"), with: "A resource for testing event workflows")
-    session = fill_in(session, text_field("resource[content]"), with: "Initial content")
+    # Use the new helper to fill and submit the form
+    form_data = %{
+      "resource[name]" => "Event Workflow Test Resource",
+      "resource[description]" => "A resource for testing event workflows",
+      "resource[content]" => "Initial content"
+    }
+
+    session = fill_and_submit_form(session, form_data, "Create Resource")
     session = set_value(session, select("resource[type]"), "document")
     session = set_value(session, select("resource[status]"), "published")
 
-    # Submit the form to create the resource
-    session = click(session, Query.button("Create Resource"))
-
-    # Wait for successful creation and redirect
-    session = wait_for_flash_message(session, "info", "Resource created successfully")
+    # Wait for redirect and flash message using the new helper
+    session = wait_for_redirect_and_flash(session, "/resources", "info", "Resource created successfully")
     session = wait_for_text(session, "Event Workflow Test Resource")
+
+    # Debug: Print page state to help with troubleshooting
+    session = debug_page_state(session, "After resource creation")
 
     # Click on the resource link to view it (the resource should now be visible)
     session = click(session, Query.css("[data-test-id='resource-link']"))
@@ -52,10 +56,13 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
     session = click(session, Query.css("[data-test-id='edit-resource-link']"))
     session = wait_for_text(session, "Edit Resource")
 
-    # Update the resource
-    session = fill_in(session, text_field("resource[name]"), with: "Updated Event Workflow Test Resource")
-    session = fill_in(session, text_field("resource[description]"), with: "Updated description for event workflow testing")
-    session = click(session, Query.button("Save Resource"))
+    # Update the resource using the helper
+    update_data = %{
+      "resource[name]" => "Updated Event Workflow Test Resource",
+      "resource[description]" => "Updated description for event workflow testing"
+    }
+
+    session = fill_and_submit_form(session, update_data, "Save Resource")
 
     # Wait for successful save
     session = wait_for_flash_message(session, "info", "Resource updated successfully")
@@ -183,29 +190,34 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
     session = visit(session, "/resources/new")
     session = wait_for_text(session, "New Resource")
 
+    # Wait for the form to be ready
+    session = wait_for_form_ready(session, "#resource-form")
+
     # Fill in the resource form with invalid data to test error handling
-    session = fill_in(session, text_field("resource[name]"), with: "")
-    session = fill_in(session, text_field("resource[description]"), with: "")
-    session = fill_in(session, text_field("resource[content]"), with: "")
+    invalid_data = %{
+      "resource[name]" => "",
+      "resource[description]" => "",
+      "resource[content]" => ""
+    }
 
-    # Submit the form to test error handling
-    session = click(session, Query.button("Create Resource"))
+    session = fill_and_submit_form(session, invalid_data, "Create Resource")
 
-    # Should show validation errors
-    assert has_text?(session, "can't be blank") || has_text?(session, "is required")
+    # Should show validation errors using the new helper
+    session = wait_for_validation_error(session, "can't be blank")
 
     # Fill in valid data
-    session = fill_in(session, text_field("resource[name]"), with: "Error Handling Test Resource")
-    session = fill_in(session, text_field("resource[description]"), with: "A resource for testing error handling")
-    session = fill_in(session, text_field("resource[content]"), with: "Test content")
+    valid_data = %{
+      "resource[name]" => "Error Handling Test Resource",
+      "resource[description]" => "A resource for testing error handling",
+      "resource[content]" => "Test content"
+    }
+
+    session = fill_and_submit_form(session, valid_data, "Create Resource")
     session = set_value(session, select("resource[type]"), "document")
     session = set_value(session, select("resource[status]"), "published")
 
-    # Submit the form again
-    session = click(session, Query.button("Create Resource"))
-
     # Wait for successful creation
-    session = wait_for_flash_message(session, "info", "Resource created successfully")
+    session = wait_for_redirect_and_flash(session, "/resources", "info", "Resource created successfully")
     session = wait_for_text(session, "Error Handling Test Resource")
   end
 end

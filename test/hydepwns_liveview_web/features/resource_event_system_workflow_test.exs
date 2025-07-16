@@ -93,8 +93,17 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
       |> set_value(select("resource[status]"), "published")
       |> click(button("Create Resource"))
 
-      # Wait for successful creation
-      session = wait_for_flash_message(session, "info", "Resource created successfully")
+      # Wait for redirect to complete and then look for flash message
+      session = wait_for_text(session, "Resources", timeout: 5000)
+
+      # Debug: Check if flash message is present in the page source
+      page_source = Wallaby.Browser.page_source(session)
+      IO.puts("DEBUG: Page source contains 'Resource created successfully': #{String.contains?(page_source, "Resource created successfully")}")
+      IO.puts("DEBUG: Page source contains 'bg-emerald-50': #{String.contains?(page_source, "bg-emerald-50")}")
+      IO.puts("DEBUG: Page source contains 'text-emerald-800': #{String.contains?(page_source, "text-emerald-800")}")
+
+      # Wait for flash message with longer timeout and more specific selector
+      session = wait_for_flash_message(session, "info", "Resource created successfully", timeout: 5000)
 
       # Get the newly created resource ID from the flash message or redirect
       # For now, we'll use the setup resource for navigation testing
@@ -138,7 +147,8 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
       |> fill_in(Query.text_field("resource[description]"), with: "Updated description")
       |> click(button("Save Resource"))
 
-      # Wait for successful update
+      # After save, redirected to show page. Wait for flash message there.
+      session = visit_and_wait(session, "/resources/#{resource.id}")
       session = wait_for_flash_message(session, "info", "Resource updated successfully")
 
       # Debug: Check what events are stored in MockEventStore

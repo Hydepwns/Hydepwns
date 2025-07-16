@@ -50,5 +50,25 @@ defmodule HydepwnsLiveviewWeb.ResourceEditLive do
     {:noreply, socket}
   end
 
+  @impl true
+  def handle_info({:resource_updated, resource}, socket) do
+    IO.puts(
+      "[DEBUG] ResourceEditLive.handle_info(:resource_updated) called with resource: #{inspect(resource)}"
+    )
+
+    {:noreply,
+     socket
+     |> put_flash(:info, "Resource updated successfully")
+     |> push_navigate(to: ~p"/resources")}
+  end
+
+  @impl true
+  def handle_info(message, socket) do
+    IO.puts(
+      "[DEBUG] ResourceEditLive: Received unexpected message: #{inspect(message)} (self: #{inspect(self())})"
+    )
+
+    {:noreply, socket}
+  end
 
 end

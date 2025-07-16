@@ -201,11 +201,9 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
 
     case ResourceSystem.update_resource(socket.assigns.resource, resource_params) do
       {:ok, resource} ->
-        # Set flash message and redirect directly from the component
-        {:noreply,
-         socket
-         |> put_flash(:info, "Resource updated successfully")
-         |> redirect(to: ~p"/resources/#{resource.id}")}
+        # Notify parent and let it handle the flash message and redirect
+        notify_parent(socket, {:resource_updated, resource})
+        {:noreply, socket}
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :changeset, changeset)}
     end

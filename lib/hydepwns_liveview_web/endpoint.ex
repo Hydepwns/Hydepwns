@@ -57,6 +57,7 @@ defmodule HydepwnsLiveviewWeb.Endpoint do
 
   if Application.compile_env(:hydepwns_liveview, :sql_sandbox, false) do
     plug Phoenix.Ecto.SQL.Sandbox
+    plug HydepwnsLiveviewWeb.Plugs.SandboxSession
   end
 
   plug HydepwnsLiveviewWeb.Router

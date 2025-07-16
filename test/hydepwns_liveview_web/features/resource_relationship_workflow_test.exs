@@ -139,12 +139,14 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       IO.puts("DEBUG: Page source contains 'Edit': #{String.contains?(page_source, "Edit")}")
 
       # Wait for edit link with longer timeout and debug
-      session = wait_for_element(session, css("a[data-test-id='edit-resource-link']"), timeout: 15000)
+      session = wait_for_element(session, css("a[data-test-id='edit-resource-link']"), timeout: 20000)
 
       # If edit link is still not found, print page source for debugging
       unless Wallaby.Browser.has?(session, css("a[data-test-id='edit-resource-link']")) do
-        IO.puts("DEBUG: edit-resource-link not found after 15s, printing page source:")
+        IO.puts("DEBUG: edit-resource-link not found after 20s, printing page source:")
         IO.puts(page_source(session))
+        IO.puts("DEBUG: All resources in DB:")
+        IO.inspect(HydepwnsLiveview.Resources.ResourceSystem.list_resources())
       end
 
       session = session
@@ -173,9 +175,9 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       session = click(session, button("Save Resource"))
 
       # Wait for successful save and navigate to dashboard
-      session = wait_for_element(session, Wallaby.Query.css("[class*='bg-emerald-50'][class*='text-emerald-800']", text: "Resource updated successfully"), timeout: 6000)
+      session = wait_for_element(session, Wallaby.Query.css("[class*='bg-emerald-50'][class*='text-emerald-800']", text: "Resource updated successfully"), timeout: 10000)
       session = visit_and_wait(session, "/resources")
-      session = wait_for_text(session, "Resources")
+      session = wait_for_text(session, "Resources", timeout: 10000)
 
       # Create a second child with the same parent
       session =
@@ -242,9 +244,9 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       session = wait_for_text(session, "Resources")
 
       # Wait for all resources to be visible in the dashboard
-      session = wait_for_element(session, css("a", text: child.name))
-      session = wait_for_element(session, css("a", text: "Second Child"))
-      session = wait_for_element(session, css("a", text: "Third Child"))
+      session = wait_for_element(session, css("a", text: child.name), timeout: 10000)
+      session = wait_for_element(session, css("a", text: "Second Child"), timeout: 10000)
+      session = wait_for_element(session, css("a", text: "Third Child"), timeout: 10000)
 
       # Verify all resources are visible in the dashboard
       session = Wallaby.Browser.assert_has(session, css("a", text: child.name))

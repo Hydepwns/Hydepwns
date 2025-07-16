@@ -377,11 +377,18 @@ defmodule HydepwnsLiveviewWeb.Integration.EventDrivenIntegrationTest do
           HydepwnsLiveview.Resources.ResourceSystem.create_resource(atomize_keys(test_resource))
       end
 
+      # Print all events in the event store before rebuild
+      IO.puts("DEBUG: All events in event store before rebuild:")
+      {:ok, all_events} = get_events_with_criteria(%{})
+      IO.inspect(all_events)
+
       # Rebuild projection
       :ok = HydepwnsLiveview.Events.Projections.ResourceProjection.rebuild()
 
-      # Get projection state
+      # Print full projection state after rebuild
       projection_state = HydepwnsLiveview.Events.Projections.ResourceProjection.get_state()
+      IO.puts("DEBUG: Projection state after rebuild:")
+      IO.inspect(projection_state)
 
       # Verify projection was rebuilt (flexible assertion)
       assert map_size(projection_state.resources) >= 3

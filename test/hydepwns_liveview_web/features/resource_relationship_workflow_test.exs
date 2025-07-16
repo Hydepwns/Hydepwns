@@ -174,15 +174,23 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       # Submit the form
       session = click(session, button("Save Resource"))
 
-      # Wait for successful save and navigate to dashboard
-      session = wait_for_element(session, Wallaby.Query.css("[class*='bg-emerald-50'][class*='text-emerald-800']", text: "Resource updated successfully"), timeout: 10000)
-      session = visit_and_wait(session, "/resources")
+      # Wait for successful save and redirect to dashboard
+      session = wait_for_flash_message(session, "info", "Resource updated successfully", timeout: 10000)
       session = wait_for_text(session, "Resources", timeout: 10000)
 
-      # Create a second child with the same parent
+      # After creating the first child, navigate to the dashboard
+      session = visit_and_wait(session, "/resources")
+      session = wait_for_text(session, "Resources", timeout: 10000)
+      session =
+        try do
+          wait_for_element(session, css("a[data-test-id='create-resource-link']"), timeout: 10000)
+        rescue
+          e ->
+            IO.puts("[DEBUG] Could not find create-resource-link. Page source:\n" <> page_source(session))
+            raise e
+        end
       session =
         session
-        |> wait_for_element(css("a[data-test-id='create-resource-link']"))
         |> click(Wallaby.Query.css("a[data-test-id='create-resource-link']"))
         |> wait_for_element(css("form"))
         |> fill_in(text_field("resource[name]"), with: "Second Child")
@@ -194,10 +202,10 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
 
       # Wait for successful creation and navigate to dashboard
       session = wait_for_flash_message(session, "info", "Resource created successfully", timeout: 6000)
-      session = visit_and_wait(session, "/resources")
       session = wait_for_text(session, "Resources")
 
       # Create another resource to test multiple relationships
+      session = wait_for_text(session, "Resources", timeout: 10000)
       session =
         session
         |> wait_for_element(css("a[data-test-id='create-resource-link']"))
@@ -212,7 +220,6 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
 
       # Wait for successful creation and navigate to dashboard
       session = wait_for_flash_message(session, "info", "Resource created successfully", timeout: 6000)
-      session = visit_and_wait(session, "/resources")
       session = wait_for_text(session, "Resources")
 
       # Fetch the second child resource from the database

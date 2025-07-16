@@ -618,7 +618,7 @@ defmodule HydepwnsLiveviewWeb.Integration.SecurityIntegrationTest do
       assert {:warning, "Suspicious activity detected"} = result
     end
 
-    test "implements security alerts", %{_conn: _conn} do
+    test "implements security alerts", %{conn: _conn} do
       # Mock security alerting
       HydepwnsLiveview.MockSecurityAlerting
       |> expect(:send_alert, fn alert_type, details ->

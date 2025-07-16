@@ -34,11 +34,15 @@ defmodule HydepwnsLiveviewWeb.Integration.EventDrivenIntegrationTest do
       Application.put_env(:hydepwns_liveview, :repo, original_repo)
     end)
 
-    # Reset event store for clean state
-    HydepwnsLiveview.TestSupport.EventStoreTestHelper.setup_mock_event_store()
-
     # Start the resource projection with explicit event subscriptions
-    {:ok, _pid} = HydepwnsLiveview.Events.Projections.ResourceProjection.start_link()
+    {:ok, projection_pid} = HydepwnsLiveview.Events.Projections.ResourceProjection.start_link()
+
+    # Allow ResourceProjection process to use the test DB connection
+    Ecto.Adapters.SQL.Sandbox.allow(
+      HydepwnsLiveview.Repo,
+      self(),
+      projection_pid
+    )
 
     # Set up mocks for external services
     HydepwnsLiveview.MockExternalAPI

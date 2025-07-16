@@ -27,22 +27,6 @@ defmodule HydepwnsLiveviewWeb.ResourceEditLive do
   end
 
   @impl true
-  def handle_info({:resource_updated, resource}, socket) do
-    IO.puts("🔍 ResourceEditLive: Received :resource_updated message")
-    IO.puts("🔍 Setting flash message for resource update")
-    IO.puts("🔍 ResourceEditLive: Resource data: #{inspect(resource)}")
-
-    updated_socket =
-      socket
-      |> put_flash(:info, "Resource updated successfully")
-    IO.puts("[DEBUG] ResourceEditLive: flash before redirect: #{inspect(updated_socket.assigns[:flash])}")
-    updated_socket =
-      updated_socket
-      |> redirect(to: ~p"/resources/#{resource.id}")
-    {:noreply, updated_socket}
-  end
-
-  @impl true
   def handle_event("validate", %{"resource" => resource_params}, socket) do
     IO.puts("🔍 ResourceEditLive: handle_event('validate') called")
     # Forward validation to the form component

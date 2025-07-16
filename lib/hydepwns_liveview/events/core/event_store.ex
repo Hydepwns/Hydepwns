@@ -186,7 +186,17 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   """
   @spec store_event(Event.t()) :: {:ok, Event.t()} | {:error, Ecto.Changeset.t()}
   def store_event(%Event{} = event) do
-    Repo.insert(event)
+    Logger.info("EventStore: Attempting to store event #{event.id} of type #{event.type}")
+
+    case Repo.insert(event) do
+      {:ok, stored_event} ->
+        Logger.info("EventStore: Successfully stored event #{stored_event.id}")
+        {:ok, stored_event}
+
+      {:error, changeset} ->
+        Logger.error("EventStore: Failed to store event #{event.id}: #{inspect(changeset.errors)}")
+        {:error, changeset}
+    end
   end
 
   @doc """

@@ -25,22 +25,38 @@ defmodule HydepwnsLiveview.Events.ResourceEventGenerator do
     # Extract resource type from module name
     resource_type = extract_resource_type(resource_module)
 
+    IO.puts("ResourceEventGenerator: Creating event of type #{event_data.type} for resource #{event_data.resource_id}")
+
     # Create the event
-    {:ok, event} =
-      Event.create(
-        event_data.type,
-        %{
-          resource_type: resource_type,
-          resource_id: event_data.resource_id,
-          data: event_data.data || %{},
-          metadata: event_data.metadata || %{}
-        }
-      )
+    case Event.create(
+      event_data.type,
+      %{
+        resource_type: resource_type,
+        resource_id: event_data.resource_id,
+        data: event_data.data || %{},
+        metadata: event_data.metadata || %{}
+      }
+    ) do
+      {:ok, event} ->
+        IO.puts("ResourceEventGenerator: Event created successfully, attempting to store")
 
-    # Publish the event
-    HydepwnsLiveview.Events.EventBus.publish(event)
+        # Store the event in the database
+        case HydepwnsLiveview.Events.Core.EventStore.store_event(event) do
+          {:ok, stored_event} ->
+            IO.puts("ResourceEventGenerator: Event stored successfully, publishing to EventBus")
+            # Publish the event
+            HydepwnsLiveview.Events.EventBus.publish(stored_event)
+            {:ok, stored_event}
 
-    {:ok, event}
+          {:error, reason} ->
+            IO.puts("ResourceEventGenerator: Failed to store event: #{inspect(reason)}")
+            {:error, reason}
+        end
+
+      {:error, changeset} ->
+        IO.puts("ResourceEventGenerator: Failed to create event: #{inspect(changeset.errors)}")
+        {:error, changeset}
+    end
   end
 
   @doc """
@@ -117,11 +133,28 @@ defmodule HydepwnsLiveview.Events.ResourceEventGenerator do
 
   # Private functions
 
-  defp extract_resource_type(module) when is_atom(module) do
-    module
-    |> Module.split()
-    |> List.last()
-    |> String.replace("Resource", "")
-    |> Macro.underscore()
+  defp extract_resource_type(module_or_struct) do
+    cond do
+      is_atom(module_or_struct) ->
+        module_or_struct
+        |> Module.split()
+        |> List.last()
+        |> String.replace("Resource", "")
+        |> Macro.underscore()
+        |> case do
+          "" -> "resource"
+          type -> type
+        end
+      is_map(module_or_struct) and Map.has_key?(module_or_struct, :type) ->
+        to_string(module_or_struct.type)
+      is_map(module_or_struct) and Map.has_key?(module_or_struct, :__struct__) ->
+        module_or_struct.__struct__
+        |> Module.split()
+        |> List.last()
+        |> String.replace("Resource", "")
+        |> Macro.underscore()
+      true ->
+        "resource"
+    end
   end
 end

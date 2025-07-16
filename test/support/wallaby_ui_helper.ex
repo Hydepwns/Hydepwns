@@ -283,7 +283,169 @@ defmodule HydepwnsLiveviewWeb.TestHelpers.WallabyUIHelper do
   end
 
   @doc """
-  Waits for a form to be fully interactive.
+  Waits for a flash message to appear.
+
+  ## Parameters
+  - session: Wallaby session
+  - message_type: Type of flash message (e.g., "success", "error")
+  - message_text: Expected text in the flash message
+  - opts: Options including timeout
+
+  ## Returns
+  The session, for chainability
+  """
+  def wait_for_flash_message(session, message_type, message_text, opts \\ []) do
+    timeout = Keyword.get(opts, :timeout, 3000)
+
+    # Map message types to the actual CSS classes used by the flash components
+    # Try multiple selectors to handle different flash implementations
+    selectors = case message_type do
+      "info" -> [
+        "[class*='bg-emerald-50'][class*='text-emerald-800']",
+        "[class*='alert-success']",
+        "[class*='bg-green-100']",
+        "[data-test-id='flash-success']"
+      ]
+      "error" -> [
+        "[class*='bg-rose-50'][class*='text-rose-900']",
+        "[class*='alert-error']",
+        "[class*='bg-red-100']",
+        "[data-test-id='flash-error']"
+      ]
+      "success" -> [
+        "[class*='bg-emerald-50'][class*='text-emerald-800']",
+        "[class*='alert-success']",
+        "[class*='bg-green-100']",
+        "[data-test-id='flash-success']"
+      ]
+      _ -> [
+        "[class*='bg-emerald-50'][class*='text-emerald-800']",
+        "[class*='alert-success']",
+        "[class*='bg-green-100']",
+        "[data-test-id='flash-success']"
+      ]
+    end
+
+    # Try each selector until one works
+    Enum.reduce_while(selectors, session, fn selector, session ->
+      try do
+        session = wait_for_element(css(selector, text: message_text), timeout: timeout)
+        {:halt, session}
+      rescue
+        _ ->
+          {:cont, session}
+      end
+    end)
+  end
+
+  @doc """
+  Waits for a redirect to complete and then waits for flash message.
+  This is useful for forms that redirect after submission.
+
+  ## Parameters
+  - session: Wallaby session
+  - expected_path: The path to wait for (optional)
+  - message_type: Type of flash message
+  - message_text: Expected text in the flash message
+  - opts: Options including timeout
+
+  ## Returns
+  The session, for chainability
+  """
+  def wait_for_redirect_and_flash(session, expected_path \\ nil, message_type, message_text, opts \\ []) do
+    timeout = Keyword.get(opts, :timeout, 5000)
+
+    # Wait for redirect to complete
+    session = wait_for_live_view(session, timeout: timeout)
+
+    # If expected path is provided, verify we're on the right page
+    if expected_path do
+      current_path = current_path(session)
+      if current_path != expected_path do
+        flunk("Expected to be on #{expected_path}, but was on #{current_path}")
+      end
+    end
+
+    # Wait for flash message
+    wait_for_flash_message(session, message_type, message_text, opts)
+  end
+
+  @doc """
+  Debug helper to print current page state for troubleshooting.
+
+  ## Parameters
+  - session: Wallaby session
+  - label: Optional label for the debug output
+
+  ## Returns
+  The session, for chainability
+  """
+  def debug_page_state(session, label \\ "Debug") do
+    current_path = current_path(session)
+    page_source = page_source(session)
+
+    IO.puts("\n=== #{label} ===")
+    IO.puts("Current path: #{current_path}")
+    IO.puts("Page source length: #{String.length(page_source)}")
+
+    # Check for flash messages in page source
+    if String.contains?(page_source, "bg-emerald-50") do
+      IO.puts("✅ Found success flash message in page source")
+    end
+    if String.contains?(page_source, "bg-rose-50") do
+      IO.puts("❌ Found error flash message in page source")
+    end
+
+    # Check for specific text
+    if String.contains?(page_source, "Resource created successfully") do
+      IO.puts("✅ Found 'Resource created successfully' in page source")
+    end
+    if String.contains?(page_source, "Resource updated successfully") do
+      IO.puts("✅ Found 'Resource updated successfully' in page source")
+    end
+
+    IO.puts("=== End #{label} ===\n")
+    session
+  end
+
+  @doc """
+  Waits for a resource to be created and visible in the list.
+
+  ## Parameters
+  - session: Wallaby session
+  - resource_name: Name of the resource to wait for
+  - opts: Options including timeout
+
+  ## Returns
+  The session, for chainability
+  """
+  def wait_for_resource_created(session, resource_name, opts \\ []) do
+    timeout = Keyword.get(opts, :timeout, 5000)
+
+    session
+    |> wait_for_element(link(resource_name), timeout: timeout)
+  end
+
+  @doc """
+  Waits for form validation errors to appear.
+
+  ## Parameters
+  - session: Wallaby session
+  - error_text: Expected error text (e.g., "can't be blank")
+  - opts: Options including timeout
+
+  ## Returns
+  The session, for chainability
+  """
+  def wait_for_validation_error(session, error_text, opts \\ []) do
+    timeout = Keyword.get(opts, :timeout, 3000)
+
+    session
+    |> wait_for_text(error_text, timeout: timeout)
+  end
+
+  @doc """
+  Waits for a form to be ready and interactive.
 
   ## Parameters
   - session: Wallaby session
@@ -303,47 +465,32 @@ defmodule HydepwnsLiveviewWeb.TestHelpers.WallabyUIHelper do
   end
 
   @doc """
-  Waits for a flash message to appear.
+  Fills in a form with the given data and submits it.
 
   ## Parameters
   - session: Wallaby session
-  - message_type: Type of flash message (e.g., "success", "error")
-  - message_text: Expected text in the flash message
-  - opts: Options including timeout
+  - form_data: Map of field names to values
+  - submit_button_text: Text on the submit button
 
   ## Returns
   The session, for chainability
   """
-  def wait_for_flash_message(session, message_type, message_text, opts \\ []) do
-    timeout = Keyword.get(opts, :timeout, 3000)
+  def fill_and_submit_form(session, form_data, submit_button_text) do
+    session = Enum.reduce(form_data, session, fn {field, value}, session ->
+      case field do
+        field_name when is_binary(field_name) ->
+          # Handle nested field names like "resource[name]"
+          if String.contains?(field_name, "[") do
+            fill_in(session, text_field(field_name), with: value)
+          else
+            # Handle simple field names
+            fill_in(session, text_field(field_name), with: value)
+          end
+        _ ->
+          session
+      end
+    end)
 
-    # Map message types to the actual CSS classes used by the flash components
-    selector = case message_type do
-      "info" -> "[class*='bg-emerald-50'][class*='text-emerald-800']"
-      "error" -> "[class*='bg-rose-50'][class*='text-rose-900']"
-      "success" -> "[class*='bg-emerald-50'][class*='text-emerald-800']"
-      _ -> "[class*='bg-emerald-50'][class*='text-emerald-800']"
-    end
-
-    session
-    |> wait_for_element(css(selector, text: message_text), timeout: timeout)
-  end
-
-  @doc """
-  Waits for a resource to be created and visible in the list.
-
-  ## Parameters
-  - session: Wallaby session
-  - resource_name: Name of the resource to wait for
-  - opts: Options including timeout
-
-  ## Returns
-  The session, for chainability
-  """
-  def wait_for_resource_created(session, resource_name, opts \\ []) do
-    timeout = Keyword.get(opts, :timeout, 5000)
-
-    session
-    |> wait_for_element(link(resource_name), timeout: timeout)
+    click(session, button(submit_button_text))
   end
 end

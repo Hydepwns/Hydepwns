@@ -34,8 +34,10 @@ defmodule HydepwnsLiveviewWeb.Integration.EventDrivenIntegrationTest do
       Application.put_env(:hydepwns_liveview, :repo, original_repo)
     end)
 
-    # Start the resource projection with explicit event subscriptions
-    {:ok, projection_pid} = HydepwnsLiveview.Events.Projections.ResourceProjection.start_link()
+    # Start the resource projection using the ProjectionSupervisor
+    {:ok, projection_pid} = HydepwnsLiveview.Events.ProjectionSupervisor.start_projection(
+      HydepwnsLiveview.Events.Projections.ResourceProjection
+    )
 
     # Allow ResourceProjection process to use the test DB connection
     Ecto.Adapters.SQL.Sandbox.allow(
@@ -81,7 +83,7 @@ defmodule HydepwnsLiveviewWeb.Integration.EventDrivenIntegrationTest do
     {:ok, resource} =
       HydepwnsLiveview.Resources.ResourceSystem.create_resource(atomize_keys(test_resource))
 
-    {:ok, user: user, resource: resource}
+    {:ok, user: user, resource: resource, projection_pid: projection_pid}
   end
 
   alias HydepwnsLiveview.Accounts
@@ -341,7 +343,7 @@ defmodule HydepwnsLiveviewWeb.Integration.EventDrivenIntegrationTest do
   end
 
   describe "Event Projections" do
-    test "updates projections when events occur", %{conn: _conn} do
+    test "updates projections when events occur", %{conn: _conn, projection_pid: projection_pid} do
       # Create resource to trigger projection updates
       test_resource =
         create_test_resource(
@@ -356,7 +358,7 @@ defmodule HydepwnsLiveviewWeb.Integration.EventDrivenIntegrationTest do
         HydepwnsLiveview.Resources.ResourceSystem.create_resource(atomize_keys(test_resource))
 
       # Get projection state
-      projection_state = HydepwnsLiveview.Events.Projections.ResourceProjection.get_state()
+      {:ok, projection_state} = HydepwnsLiveview.Events.ProjectionSupervisor.get_projection_state(projection_pid)
 
       # Verify projection was updated (flexible assertion)
       assert map_size(projection_state.resources) >= 1
@@ -365,7 +367,7 @@ defmodule HydepwnsLiveviewWeb.Integration.EventDrivenIntegrationTest do
       assert Map.has_key?(projection_state.resources, resource.id)
     end
 
-    test "rebuilds projections from event store", %{conn: _conn} do
+    test "rebuilds projections from event store", %{conn: _conn, projection_pid: projection_pid} do
       # Create multiple resources
       for i <- 1..3 do
         test_resource =
@@ -387,10 +389,10 @@ defmodule HydepwnsLiveviewWeb.Integration.EventDrivenIntegrationTest do
       IO.inspect(all_events)
 
       # Rebuild projection
-      :ok = HydepwnsLiveview.Events.Projections.ResourceProjection.rebuild()
+      HydepwnsLiveview.Events.ProjectionSupervisor.rebuild_projection(projection_pid)
 
       # Print full projection state after rebuild
-      projection_state = HydepwnsLiveview.Events.Projections.ResourceProjection.get_state()
+      {:ok, projection_state} = HydepwnsLiveview.Events.ProjectionSupervisor.get_projection_state(projection_pid)
       IO.puts("DEBUG: Projection state after rebuild:")
       IO.inspect(projection_state)
 
@@ -613,6 +615,7 @@ defmodule HydepwnsLiveviewWeb.Integration.EventDrivenIntegrationTest do
       updated_events =
         Enum.filter(all_events, fn event ->
           event.type == "document.updated" and
+            Map.has_key?(event.data, :name) and
             String.contains?(event.data.name, "Order Test Resource")
         end)
 

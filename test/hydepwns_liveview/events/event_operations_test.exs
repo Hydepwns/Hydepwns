@@ -7,6 +7,24 @@ defmodule HydepwnsLiveview.Events.EventOperationsTest do
 
   import Ecto.Query
 
+  setup do
+    # Reset the MockEventStore before each test to ensure clean state
+    if Process.whereis(HydepwnsLiveview.TestSupport.MockEventStore) do
+      HydepwnsLiveview.TestSupport.MockEventStore.reset()
+    end
+    :ok
+  end
+
+  # Also reset MockEventStore before each test in each describe block
+  setup :reset_mock_event_store
+
+  defp reset_mock_event_store(_context) do
+    if Process.whereis(HydepwnsLiveview.TestSupport.MockEventStore) do
+      HydepwnsLiveview.TestSupport.MockEventStore.reset()
+    end
+    :ok
+  end
+
   describe "store_event/1" do
     test "stores a valid event successfully" do
       event = %Event{
@@ -177,8 +195,15 @@ defmodule HydepwnsLiveview.Events.EventOperationsTest do
       {:ok, _} = EventOperations.store_event(event1)
       {:ok, _} = EventOperations.store_event(event2)
 
-      # The list_events function has an issue with metadata preload, so we expect an error
-      assert {:error, %ArgumentError{}} = EventOperations.list_events()
+      # The list_events function should now work correctly with the configured event store
+      assert {:ok, events} = EventOperations.list_events()
+      assert is_list(events)
+      assert length(events) >= 2
+
+      # Verify our test events are in the list
+      event_ids = Enum.map(events, & &1.id)
+      assert event1.id in event_ids
+      assert event2.id in event_ids
     end
   end
 

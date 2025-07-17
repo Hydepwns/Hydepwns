@@ -47,6 +47,23 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
       on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
       Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), pid)
 
+      # Allow the MockEventStore process to use the test's DB connection
+      if Process.whereis(HydepwnsLiveview.TestSupport.MockEventStore) do
+        Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), Process.whereis(HydepwnsLiveview.TestSupport.MockEventStore))
+      end
+
+      # Start the MockEventStore if not already started and allow it to use the test's DB connection
+      mock_pid =
+        case Process.whereis(HydepwnsLiveview.TestSupport.MockEventStore) do
+          nil ->
+            {:ok, pid} = start_supervised(HydepwnsLiveview.TestSupport.MockEventStore)
+            Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), pid)
+            pid
+          pid ->
+            Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), pid)
+            pid
+        end
+
       metadata = Phoenix.Ecto.SQL.Sandbox.metadata_for(HydepwnsLiveview.Repo, pid)
       # Add theme system ETS table to metadata if available
       metadata =
@@ -60,23 +77,19 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
       # Visit root to set domain context
       session = Wallaby.Browser.visit(session, "/")
 
-      # Set the sandbox cookie for LiveView processes (just the PID as string), with domain and path
+      # Set the sandbox cookie for LiveView processes
+      pid_str = inspect(pid)
       session =
-        Wallaby.Browser.set_cookie(session, "_phoenix_liveview_sandbox", inspect(self()),
+        Wallaby.Browser.set_cookie(session, "_phoenix_liveview_sandbox", pid_str,
           domain: "localhost",
           path: "/"
         )
 
-      # Also store the sandbox PID in the session for socket access
+      # Visit root to ensure the cookie is sent and wait for LiveView to be ready
       session = Wallaby.Browser.visit(session, "/")
 
-      # Set session data for sandbox access
-      session = Wallaby.Browser.execute_script(session, """
-        localStorage.setItem('_phoenix_liveview_sandbox', '#{inspect(self())}');
-      """, [])
-
-      # Visit root again to ensure the cookie is sent
-      session = Wallaby.Browser.visit(session, "/")
+      # Wait for LiveView to be fully loaded before proceeding
+      session = wait_for_live_view(session)
       # Allow the Wallaby session process to use the same DB connection
       case session.server do
         %{pid: pid} -> Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), pid)
@@ -138,15 +151,30 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
   """
   def wait_for_live_view(session) do
     if session do
-      session
-      |> execute_script("return window.phxLiveViewPids || [];", [])
-      |> case do
-        [] -> Process.sleep(100) && wait_for_live_view(session)
-        _ -> session
-      end
+      # Wait for LiveView to be ready with a timeout
+      wait_for_live_view_with_timeout(session, 5000)
     else
       session
     end
+  end
+
+  defp wait_for_live_view_with_timeout(session, timeout) when timeout > 0 do
+    session
+    |> execute_script("return window.phxLiveViewPids || [];", [])
+    |> case do
+      [] ->
+        Process.sleep(100)
+        wait_for_live_view_with_timeout(session, timeout - 100)
+      _ ->
+        # Additional wait to ensure LiveView is fully initialized
+        Process.sleep(200)
+        session
+    end
+  end
+
+  defp wait_for_live_view_with_timeout(session, _timeout) do
+    # Timeout reached, return session anyway
+    session
   end
 
   @doc """
@@ -181,6 +209,37 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
     start_time = System.monotonic_time(:millisecond)
 
     do_assert_has(session, query, timeout, interval, start_time)
+  end
+
+  @doc """
+  Helper to wait for an element with better error handling and debugging.
+  """
+  def wait_for_element_with_debug(session, query, opts \\ []) do
+    timeout = Keyword.get(opts, :timeout, 5000)
+    interval = Keyword.get(opts, :interval, 100)
+    start_time = System.monotonic_time(:millisecond)
+
+    do_wait_for_element_with_debug(session, query, timeout, interval, start_time)
+  end
+
+  defp do_wait_for_element_with_debug(session, query, timeout, interval, start_time) do
+    if Wallaby.Browser.has?(session, query) do
+      session
+    else
+      now = System.monotonic_time(:millisecond)
+      elapsed = now - start_time
+
+      if elapsed >= timeout do
+        # Print debug information before failing
+        IO.puts("DEBUG: Element not found after #{timeout}ms: #{inspect(query)}")
+        IO.puts("DEBUG: Page source:")
+        IO.puts(page_source(session))
+        raise "Element not found after #{timeout}ms: #{inspect(query)}"
+      else
+        Process.sleep(interval)
+        do_wait_for_element_with_debug(session, query, timeout, interval, start_time)
+      end
+    end
   end
 
   defp do_assert_has(session, query, timeout, interval, start_time) do

@@ -49,6 +49,12 @@ defmodule HydepwnsLiveview.TestSetup do
     HydepwnsLiveview.Resources.ResourceSystem.reset_store()
     # Ensure theme system has a default theme for tests
     HydepwnsLiveview.ThemeSystem.ensure_default_theme()
+
+    # Allow the MockEventStore process to use the test's DB connection
+    if Process.whereis(HydepwnsLiveview.TestSupport.MockEventStore) do
+      Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), Process.whereis(HydepwnsLiveview.TestSupport.MockEventStore))
+    end
+
     :ok
   end
 end

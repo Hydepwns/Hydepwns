@@ -31,33 +31,46 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
     {:reply, {:ok, event}, new_state}
   end
 
+  defp ensure_uuid(id) do
+    case id do
+      nil -> Ecto.UUID.generate()
+      uuid when is_binary(uuid) and byte_size(uuid) == 36 -> uuid
+      _ -> Ecto.UUID.generate()
+    end
+  end
+
   def handle_call({:store_event, event, _metadata}, _from, state) when is_map(event) do
-    # Handle single event object
-    event =
-      if Map.get(event, :id) do
-        event
-      else
-        Map.put(event, :id, Ecto.UUID.generate())
-      end
+    # Ensure the event ID and correlation/causation IDs are valid UUIDs
+    event = event
+    |> Map.update(:id, Ecto.UUID.generate(), &ensure_uuid/1)
+    |> Map.update(:correlation_id, Ecto.UUID.generate(), &ensure_uuid/1)
+    |> Map.update(:causation_id, nil, fn val -> if val, do: ensure_uuid(val), else: nil end)
 
     # Keep the original event struct or convert map to struct
     event_struct =
       case event do
         %{__struct__: HydepwnsLiveview.Events.Core.Event} ->
-          event
+          %{event |
+            id: ensure_uuid(event.id),
+            correlation_id: ensure_uuid(event.correlation_id),
+            causation_id: if(event.causation_id, do: ensure_uuid(event.causation_id), else: nil)
+          }
 
         %{} ->
           # Convert map to Event struct
           %HydepwnsLiveview.Events.Core.Event{
-            id: Map.get(event, :id) || Map.get(event, "id") || Ecto.UUID.generate(),
+            id: ensure_uuid(Map.get(event, :id) || Map.get(event, "id")),
             type: Map.get(event, :type) || Map.get(event, "type"),
             data: Map.get(event, :data) || Map.get(event, "data") || %{},
             resource_type: Map.get(event, :resource_type) || Map.get(event, "resource_type"),
             resource_id: Map.get(event, :resource_id) || Map.get(event, "resource_id"),
             correlation_id:
-              Map.get(event, :correlation_id) || Map.get(event, "correlation_id") ||
-                Ecto.UUID.generate(),
-            causation_id: Map.get(event, :causation_id) || Map.get(event, "causation_id"),
+              ensure_uuid(Map.get(event, :correlation_id) || Map.get(event, "correlation_id") || Ecto.UUID.generate()),
+            causation_id:
+              case Map.get(event, :causation_id) || Map.get(event, "causation_id") do
+                nil -> nil
+                val -> ensure_uuid(val)
+              end,
             metadata: Map.get(event, :metadata) || Map.get(event, "metadata") || %{},
             timestamp:
               Map.get(event, :timestamp) || Map.get(event, "timestamp") || DateTime.utc_now()
@@ -67,6 +80,7 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
           event
       end
 
+    # Store in memory only
     new_state = %{state | events: [event_struct | state.events]}
     {:reply, {:ok, event_struct}, new_state}
   end
@@ -107,6 +121,7 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
           event
       end
 
+    # Store in memory only
     new_state = %{state | events: [event_struct | state.events]}
     {:reply, {:ok, event_struct}, new_state}
   end
@@ -182,6 +197,33 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
     {:reply, :ok, %{events: [], next_id: 1}}
   end
 
+  def handle_call({:purge_events, criteria}, _from, state) do
+    # Remove events that match the criteria
+    remaining_events = Enum.reject(state.events, fn event ->
+      Enum.all?(criteria, fn {key, value} ->
+        case key do
+          :type ->
+            case event do
+              %HydepwnsLiveview.Events.Core.Event{} -> event.type == value
+              %{} -> Map.get(event, :type) == value
+              _ -> false
+            end
+          _ ->
+            case event do
+              %HydepwnsLiveview.Events.Core.Event{} ->
+                Map.get(Map.from_struct(event), key) == value
+              %{} ->
+                Map.get(event, key) == value
+              _ ->
+                false
+            end
+        end
+      end)
+    end)
+
+    {:reply, :ok, %{state | events: remaining_events}}
+  end
+
   def handle_call({:get_event, id}, _from, state) do
     event = Enum.find(state.events, fn event -> event.id == id end)
 
@@ -191,8 +233,19 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
     end
   end
 
+  def handle_call({:delete_event, id}, _from, state) do
+    case Enum.find(state.events, fn event -> event.id == id end) do
+      nil ->
+        {:reply, {:error, :not_found}, state}
+      event ->
+        remaining_events = Enum.reject(state.events, fn e -> e.id == id end)
+        {:reply, {:ok, event}, %{state | events: remaining_events}}
+    end
+  end
+
   def handle_call({:get_events_for_resource, resource_type, resource_id}, _from, state) do
-    events =
+    # Only use in-memory events to avoid database ownership issues
+    memory_events =
       Enum.filter(state.events, fn event ->
         # Handle both Event structs and maps
         {event_resource_type, event_resource_id} =
@@ -221,7 +274,7 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
         event_resource_type == resource_type && event_resource_id == resource_id
       end)
 
-    {:reply, {:ok, Enum.reverse(events)}, state}
+    {:reply, {:ok, Enum.reverse(memory_events)}, state}
   end
 
   def handle_call(
@@ -309,6 +362,42 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
 
   def get_all_events do
     GenServer.call(__MODULE__, :get_all_events)
+  end
+
+  def delete_event(id) when is_binary(id) do
+    GenServer.call(__MODULE__, {:delete_event, id})
+  end
+
+  def event_stream(criteria \\ %{}) do
+    # For MockEventStore, we'll return a stream that yields events from memory
+    # This simulates the behavior of a real event stream
+    case get_events(criteria) do
+      {:ok, events} ->
+        {:ok, Stream.map(events, & &1)}
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  def count_events(criteria \\ %{}) do
+    case get_events(criteria) do
+      {:ok, events} ->
+        {:ok, length(events)}
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  def purge_events(criteria) when map_size(criteria) > 0 do
+    case get_events(criteria) do
+      {:ok, events_to_purge} ->
+        count = length(events_to_purge)
+        # Remove the events from memory
+        GenServer.call(__MODULE__, {:purge_events, criteria})
+        {:ok, {count, nil}}
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 
   def reset do

@@ -58,7 +58,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
   end
 
   describe "theme management and application" do
-    test "theme can be created and applied", %{session: session, _light_theme: _light_theme} do
+    test "theme can be created and applied", %{session: session, light_theme: light_theme} do
       # Navigate directly to theme creation page
       session
       |> visit("/themes/new")
@@ -77,7 +77,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       )
     end
 
-    test "theme can be edited and updated", %{session: session, _light_theme: _light_theme} do
+    test "theme can be edited and updated", %{session: session, light_theme: light_theme} do
       # Get themes from DB
       themes = HydepwnsLiveview.ThemeSystem.list_themes()
 
@@ -110,7 +110,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       )
     end
 
-    test "theme can be deleted", %{session: session, _light_theme: _light_theme} do
+    test "theme can be deleted", %{session: session, light_theme: light_theme} do
       # Get themes from DB
       themes = HydepwnsLiveview.ThemeSystem.list_themes()
 
@@ -327,7 +327,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
   end
 
   describe "theme persistence and synchronization" do
-    test "theme preferences are persisted", %{session: session, _light_theme: _light_theme} do
+    test "theme preferences are persisted", %{session: session, light_theme: light_theme} do
       # Find the Test Theme
       themes = HydepwnsLiveview.ThemeSystem.list_themes()
       test_theme = Enum.find(themes, fn theme -> theme.name == "Test Theme" end)
@@ -348,7 +348,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       )
     end
 
-    test "theme changes sync across components", %{session: session, _light_theme: _light_theme} do
+    test "theme changes sync across components", %{session: session, light_theme: light_theme} do
       # Find the Test Theme
       themes = HydepwnsLiveview.ThemeSystem.list_themes()
       test_theme = Enum.find(themes, fn theme -> theme.name == "Test Theme" end)
@@ -395,7 +395,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
   end
 
   describe "theme performance" do
-    test "theme changes are applied efficiently", %{session: session, _light_theme: _light_theme} do
+    test "theme changes are applied efficiently", %{session: session, light_theme: light_theme} do
       # Navigate directly to the theme show page with the theme table parameter
       themes = HydepwnsLiveview.ThemeSystem.list_themes()
       test_theme = Enum.find(themes, fn theme -> theme.name == "Test Theme" end)
@@ -419,7 +419,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       )
     end
 
-    test "theme switching is smooth", %{session: session, _light_theme: _light_theme} do
+    test "theme switching is smooth", %{session: session, light_theme: light_theme} do
       table = Process.get(:theme_system_ets_table)
 
       # Create second theme directly via API to ensure it's in the same ETS table context

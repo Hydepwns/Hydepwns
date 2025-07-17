@@ -28,8 +28,8 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   """
   @spec store_event(Event.t()) :: {:ok, Event.t()} | {:error, Ecto.Changeset.t()}
   def store_event(event) when is_struct(event, Event) do
-    # Use real Repo in all environments except test
-    Repo.insert(event)
+    # Use configured event store
+    HydepwnsLiveview.Events.EventStore.store_event(event)
   end
 
   def store_event(_), do: {:error, :invalid_event}
@@ -61,8 +61,8 @@ defmodule HydepwnsLiveview.Events.EventOperations do
 
     case Event.create(event_type, event_attrs) do
       {:ok, event} ->
-        # Use real Repo in all environments except test
-        Repo.insert(event)
+        # Use configured event store
+        HydepwnsLiveview.Events.EventStore.store_event(event)
 
       {:error, reason} ->
         {:error, reason}
@@ -104,14 +104,8 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   """
   @spec get_events(map()) :: {:ok, [Event.t()]} | {:error, any()}
   def get_events(criteria) when is_map(criteria) do
-    # Use real Repo in all environments except test
-    try do
-      query = EventQuery.build_query(criteria)
-      events = Repo.all(query)
-      {:ok, events}
-    rescue
-      e -> {:error, e}
-    end
+    # Use configured event store
+    HydepwnsLiveview.Events.EventStore.get_events(criteria)
   end
 
   def get_events(_), do: {:error, :invalid_criteria}
@@ -129,11 +123,8 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   """
   @spec get_event(String.t()) :: {:ok, Event.t()} | {:error, :not_found | any()}
   def get_event(id) when is_binary(id) do
-    # Use real Repo in all environments except test
-    case Repo.get(Event, id) do
-      nil -> {:error, :not_found}
-      event -> {:ok, event}
-    end
+    # Use configured event store
+    HydepwnsLiveview.Events.EventStore.get_event(id)
   end
 
   def get_event(_), do: {:error, :invalid_id}
@@ -147,13 +138,8 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   """
   @spec list_events() :: {:ok, [Event.t()]} | {:error, any()}
   def list_events do
-    # Use real Repo in all environments except test
-    try do
-      events = Repo.all(Event) |> Repo.preload(:metadata)
-      {:ok, events}
-    rescue
-      e -> {:error, e}
-    end
+    # Use configured event store
+    HydepwnsLiveview.Events.EventStore.list_all_events()
   end
 
   @doc """
@@ -169,11 +155,8 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   """
   @spec delete_event(String.t()) :: {:ok, Event.t()} | {:error, :not_found | any()}
   def delete_event(id) when is_binary(id) do
-    # Use real Repo in all environments except test
-    case Repo.get(Event, id) do
-      nil -> {:error, :not_found}
-      event -> delete_event_from_repo(event)
-    end
+    # Use configured event store
+    HydepwnsLiveview.Events.EventStore.delete_event(id)
   end
 
   def delete_event(_), do: {:error, :invalid_id}
@@ -227,16 +210,8 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   """
   @spec event_stream(map()) :: {:ok, Enumerable.t()} | {:error, any()}
   def event_stream(criteria \\ %{}) do
-    query = EventQuery.build_query(criteria)
-
-    try do
-      stream = Repo.stream(query)
-      {:ok, stream}
-    rescue
-      e ->
-        Logger.error("Error creating event stream: #{inspect(e)}")
-        {:error, e}
-    end
+    # Use configured event store
+    HydepwnsLiveview.Events.EventStore.event_stream(criteria)
   end
 
   @doc """
@@ -251,18 +226,8 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   """
   @spec count_events(map()) :: {:ok, integer()} | {:error, any()}
   def count_events(criteria \\ %{}) do
-    query =
-      criteria
-      |> EventQuery.build_query()
-      |> select([e], count(e.id))
-
-    try do
-      {:ok, Repo.one(query)}
-    rescue
-      e ->
-        Logger.error("Error counting events: #{inspect(e)}")
-        {:error, e}
-    end
+    # Use configured event store
+    HydepwnsLiveview.Events.EventStore.count_events(criteria)
   end
 
   @doc """
@@ -279,17 +244,8 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   """
   @spec purge_events(map()) :: {:ok, integer()} | {:error, any()}
   def purge_events(criteria) when map_size(criteria) > 0 do
-    query = EventQuery.build_query(criteria)
-
-    try do
-      Repo.transaction(fn ->
-        Repo.delete_all(query)
-      end)
-    rescue
-      e ->
-        Logger.error("Error purging events: #{inspect(e)}")
-        {:error, e}
-    end
+    # Use configured event store
+    HydepwnsLiveview.Events.EventStore.purge_events(criteria)
   end
 
   # Refuses to purge all events without explicit criteria

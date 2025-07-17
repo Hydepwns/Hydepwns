@@ -159,6 +159,59 @@ defmodule HydepwnsLiveview.Events.EventStore do
     event_store_module().get_events(%{})
   end
 
+  @doc """
+  Creates a stream of events matching the given criteria.
+
+  ## Parameters
+  * `criteria` - Map of criteria to filter events by
+
+  ## Returns
+  * `{:ok, event_stream}` - A stream of events matching the criteria
+  * `{:error, reason}` - Error creating the stream
+  """
+  @spec event_stream(map()) :: {:ok, Enumerable.t()} | {:error, any()}
+  def event_stream(criteria \\ %{}) do
+    event_store_module().event_stream(criteria)
+  end
+
+  @doc """
+  Counts events matching the given criteria.
+
+  ## Parameters
+  * `criteria` - Map of criteria to filter events by
+
+  ## Returns
+  * `{:ok, count}` - The number of matching events
+  * `{:error, reason}` - Error counting events
+  """
+  @spec count_events(map()) :: {:ok, integer()} | {:error, any()}
+  def count_events(criteria \\ %{}) do
+    event_store_module().count_events(criteria)
+  end
+
+  @doc """
+  Purges events matching the given criteria.
+
+  CAUTION: This is a destructive operation and should be used with care.
+
+  ## Parameters
+  * `criteria` - Map of criteria to filter events by
+
+  ## Returns
+  * `{:ok, count}` - The number of events purged
+  * `{:error, reason}` - Error purging events
+  """
+  @spec purge_events(map()) :: {:ok, integer()} | {:error, any()}
+  def purge_events(criteria) when map_size(criteria) > 0 do
+    event_store_module().purge_events(criteria)
+  end
+
+  # Refuses to purge all events without explicit criteria
+  @spec purge_events(map()) :: {:ok, integer()} | {:error, any()}
+  def purge_events(_criteria) do
+    {:error, :no_criteria_specified}
+  end
+
   # Replay Operations
 
   @doc """

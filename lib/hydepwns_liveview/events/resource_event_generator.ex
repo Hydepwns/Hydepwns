@@ -21,10 +21,7 @@ defmodule HydepwnsLiveview.Events.ResourceEventGenerator do
   * `{:ok, event}` - The event was published successfully
   * `{:error, reason}` - The event failed to publish
   """
-  def generate_event(resource_module, event_data) when is_map(event_data) do
-    # Extract resource type from module name
-    resource_type = extract_resource_type(resource_module)
-
+  def generate_event(resource_type, event_data) when is_map(event_data) do
     IO.puts("ResourceEventGenerator: Creating event of type #{event_data.type} for resource #{event_data.resource_id}")
 
     # Create the event
@@ -40,8 +37,8 @@ defmodule HydepwnsLiveview.Events.ResourceEventGenerator do
       {:ok, event} ->
         IO.puts("ResourceEventGenerator: Event created successfully, attempting to store")
 
-        # Store the event in the database
-        case HydepwnsLiveview.Events.Core.EventStore.store_event(event) do
+        # Store the event using the configured event store
+        case HydepwnsLiveview.Events.EventStore.store_event(event) do
           {:ok, stored_event} ->
             IO.puts("ResourceEventGenerator: Event stored successfully, publishing to EventBus")
             # Publish the event
@@ -64,9 +61,7 @@ defmodule HydepwnsLiveview.Events.ResourceEventGenerator do
 
   ## Parameters
 
-  * `resource_module` - The module of the resource
-  * `resource_id` - The ID of the created resource
-  * `data` - Additional data about the creation
+  * `resource` - The resource struct or module
   * `metadata` - Additional metadata about the event
 
   ## Returns
@@ -74,11 +69,14 @@ defmodule HydepwnsLiveview.Events.ResourceEventGenerator do
   * `{:ok, event}` - The event was published successfully
   * `{:error, reason}` - The event failed to publish
   """
-  def resource_created(resource_module, resource_id, data \\ %{}, metadata \\ %{}) do
-    generate_event(resource_module, %{
-      type: "#{extract_resource_type(resource_module)}.created",
+  def resource_created(resource, metadata \\ %{}) do
+    resource_id = get_resource_id(resource)
+    resource_type = extract_resource_type(resource)
+
+    generate_event(resource_type, %{
+      type: "#{resource_type}.created",
       resource_id: resource_id,
-      data: data,
+      data: resource,
       metadata: metadata
     })
   end
@@ -88,9 +86,8 @@ defmodule HydepwnsLiveview.Events.ResourceEventGenerator do
 
   ## Parameters
 
-  * `resource_module` - The module of the resource
-  * `resource_id` - The ID of the updated resource
-  * `data` - Additional data about the update
+  * `resource` - The resource struct or module
+  * `changes` - The changes made to the resource
   * `metadata` - Additional metadata about the event
 
   ## Returns
@@ -98,11 +95,14 @@ defmodule HydepwnsLiveview.Events.ResourceEventGenerator do
   * `{:ok, event}` - The event was published successfully
   * `{:error, reason}` - The event failed to publish
   """
-  def resource_updated(resource_module, resource_id, data \\ %{}, metadata \\ %{}) do
-    generate_event(resource_module, %{
-      type: "#{extract_resource_type(resource_module)}.updated",
+  def resource_updated(resource, changes \\ %{}, metadata \\ %{}) do
+    resource_id = get_resource_id(resource)
+    resource_type = extract_resource_type(resource)
+
+    generate_event(resource_type, %{
+      type: "#{resource_type}.updated",
       resource_id: resource_id,
-      data: data,
+      data: changes,
       metadata: metadata
     })
   end
@@ -112,9 +112,7 @@ defmodule HydepwnsLiveview.Events.ResourceEventGenerator do
 
   ## Parameters
 
-  * `resource_module` - The module of the resource
-  * `resource_id` - The ID of the deleted resource
-  * `data` - Additional data about the deletion
+  * `resource` - The resource struct or module
   * `metadata` - Additional metadata about the event
 
   ## Returns
@@ -122,9 +120,39 @@ defmodule HydepwnsLiveview.Events.ResourceEventGenerator do
   * `{:ok, event}` - The event was published successfully
   * `{:error, reason}` - The event failed to publish
   """
-  def resource_deleted(resource_module, resource_id, data \\ %{}, metadata \\ %{}) do
-    generate_event(resource_module, %{
-      type: "#{extract_resource_type(resource_module)}.deleted",
+  def resource_deleted(resource, metadata \\ %{}) do
+    resource_id = get_resource_id(resource)
+    resource_type = extract_resource_type(resource)
+
+    generate_event(resource_type, %{
+      type: "#{resource_type}.deleted",
+      resource_id: resource_id,
+      data: resource,
+      metadata: metadata
+    })
+  end
+
+  @doc """
+  Generate a generic resource event.
+
+  ## Parameters
+
+  * `resource` - The resource struct or module
+  * `event_type` - The type of event
+  * `data` - Additional data about the event
+  * `metadata` - Additional metadata about the event
+
+  ## Returns
+
+  * `{:ok, event}` - The event was published successfully
+  * `{:error, reason}` - The event failed to publish
+  """
+  def resource_event(resource, event_type, data \\ %{}, metadata \\ %{}) do
+    resource_id = get_resource_id(resource)
+    resource_type = extract_resource_type(resource)
+
+    generate_event(resource_type, %{
+      type: event_type,
       resource_id: resource_id,
       data: data,
       metadata: metadata
@@ -132,6 +160,25 @@ defmodule HydepwnsLiveview.Events.ResourceEventGenerator do
   end
 
   # Private functions
+
+  defp get_resource_id(resource) when is_map(resource) do
+    cond do
+      Map.has_key?(resource, :id) -> resource.id
+      Map.has_key?(resource, "id") -> resource["id"]
+      true -> nil
+    end
+  end
+  defp get_resource_id(_resource), do: nil
+
+  defp get_resource_module(resource) when is_map(resource) do
+    if Map.has_key?(resource, :__struct__) do
+      resource.__struct__
+    else
+      HydepwnsLiveview.Resource
+    end
+  end
+  defp get_resource_module(resource) when is_atom(resource), do: resource
+  defp get_resource_module(_resource), do: HydepwnsLiveview.Resource
 
   defp extract_resource_type(module_or_struct) do
     cond do

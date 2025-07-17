@@ -54,6 +54,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
         else: changeset
 
     IO.inspect(changeset.data.content, label: "[DEBUG] changeset.data.content before assign")
+    IO.inspect(resource_with_text_content.parent_id, label: "[DEBUG] resource.parent_id")
 
     # Prepare options for select fields
     type_options = [
@@ -70,9 +71,32 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
       {"Archived", "archived"}
     ]
 
+    # Filter out resources that would create circular relationships
+    # A resource cannot be its own parent, and a child cannot be a parent of its parent
+    current_resource_id = resource_with_text_content.id
+
+    filtered_resources =
+      (assigns[:resources] || [])
+      |> Enum.filter(fn potential_parent ->
+        # Skip if this is the same resource (self-reference)
+        if current_resource_id && potential_parent.id == current_resource_id do
+          false
+        else
+          # Skip if this would create a circular relationship
+          # A child cannot be a parent of its own parent
+          if current_resource_id && potential_parent.parent_id == current_resource_id do
+            false
+          else
+            true
+          end
+        end
+      end)
+
     parent_options = [
-      {"None", ""} | Enum.map(assigns[:resources] || [], fn resource -> {resource.id, resource.name} end)
+      {"None", ""} | Enum.map(filtered_resources, fn resource -> {resource.name, resource.id} end)
     ]
+
+    IO.inspect(parent_options, label: "[DEBUG] parent_options")
 
     {:ok,
      socket
@@ -172,11 +196,6 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
       "" ->
         IO.puts("🔍 Converting empty parent_id to nil")
         Map.put(params, "parent_id", nil)
-
-      "None" ->
-        IO.puts("🔍 Converting 'None' parent_id to nil")
-        Map.put(params, "parent_id", nil)
-
       value ->
         IO.puts("🔍 parent_id value: #{inspect(value)}")
         params
@@ -245,6 +264,15 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
                 Name
               </label>
               <input type="text" id="resource-form_name" name="resource[name]" value={@resource.name} class="form-control" />
+              <%= if @changeset.errors[:name] do %>
+                <div class="mt-1 text-sm text-red-600" data-test-id="name-error">
+                  <%= for {_field, {message, _opts}} <- @changeset.errors do %>
+                    <%= if _field == :name do %>
+                      <%= message %>
+                    <% end %>
+                  <% end %>
+                </div>
+              <% end %>
             </div>
           </div>
 
@@ -297,11 +325,20 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
               <label for="resource-form_parent_id" class="block text-sm font-semibold leading-6 text-zinc-800" data-test-id="resource-form_parent_id-label">
                 Parent
               </label>
-              <select id="resource-form_parent_id" name="resource[parent_id]" class="mt-2 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm" data-test-id="resource-form_parent_id">
+              <select id="resource-form_parent_id" name="resource[parent_id]" class="mt-2 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm" data-test-id="resource-form_parent_id" phx-no-feedback>
                 <%= for {value, label} <- @parent_options do %>
-                  <option value={value} selected={@resource.parent_id == value}><%= label %></option>
+                  <option value={value} selected={@resource.parent_id == value} data-test-id={"parent-option-#{value}"}><%= label %></option>
                 <% end %>
               </select>
+              <%= if @changeset.errors[:parent_id] do %>
+                <div class="mt-1 text-sm text-red-600" data-test-id="parent-id-error">
+                  <%= for {_field, {message, _opts}} <- @changeset.errors do %>
+                    <%= if _field == :parent_id do %>
+                      <%= message %>
+                    <% end %>
+                  <% end %>
+                </div>
+              <% end %>
             </div>
           </div>
 

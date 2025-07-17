@@ -66,6 +66,17 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
 
     if connected?(socket) do
       Phoenix.PubSub.subscribe(HydepwnsLiveview.PubSub, "resources")
+
+      # Subscribe to EventBus for real-time updates
+      HydepwnsLiveview.Events.Core.EventBus.subscribe([
+        "document.created",
+        "document.updated",
+        "document.deleted",
+        "folder.created",
+        "folder.updated",
+        "folder.deleted"
+      ])
+
       # Track user presence
       user_id = get_user_id_from_session(socket)
 
@@ -264,6 +275,121 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
   @impl true
   def handle_info({:navigate_to_edit, resource_id}, socket) do
     {:noreply, push_navigate(socket, to: ~p"/resources/#{resource_id}/edit")}
+  end
+
+  @impl true
+  def handle_info({:event, event}, socket) do
+    # Handle real-time events from EventBus
+    case event.type do
+      "document.created" ->
+        # Refresh the resources list to show the new resource
+        {:noreply, assign(socket, :resources, list_resources_dashboard([]))}
+
+      "document.updated" ->
+        # Refresh the resources list to show the updated resource
+        {:noreply, assign(socket, :resources, list_resources_dashboard([]))}
+
+      "document.deleted" ->
+        # Refresh the resources list to remove the deleted resource
+        {:noreply, assign(socket, :resources, list_resources_dashboard([]))}
+
+      "folder.created" ->
+        # Refresh the resources list to show the new folder
+        {:noreply, assign(socket, :resources, list_resources_dashboard([]))}
+
+      "folder.updated" ->
+        # Refresh the resources list to show the updated folder
+        {:noreply, assign(socket, :resources, list_resources_dashboard([]))}
+
+      "folder.deleted" ->
+        # Refresh the resources list to remove the deleted folder
+        {:noreply, assign(socket, :resources, list_resources_dashboard([]))}
+
+      _ ->
+        # Ignore unknown event types
+        {:noreply, socket}
+    end
+  end
+
+  @impl true
+  def handle_info({:resource_created, resource}, socket) do
+    # Handle PubSub events for resource creation
+    notification = %{
+      id: :crypto.strong_rand_bytes(10) |> Base.encode16(case: :lower),
+      title: "Resource Created",
+      message: "Resource '#{resource.name}' was created successfully",
+      severity: :success,
+      persistent: false,
+      actions: [
+        %{
+          id: "edit",
+          label: "Edit Resource",
+          style: "primary",
+          dismiss: false,
+          href: "/resources/#{resource.id}/edit"
+        }
+      ]
+    }
+
+    notifications =
+      HydepwnsLiveviewWeb.NotificationComponent.add_notification(
+        socket.assigns.notifications,
+        notification
+      )
+
+    {:noreply,
+     socket
+     |> put_flash(:info, "Resource created successfully")
+     |> assign(:resources, list_resources_dashboard([]))
+     |> assign(:notifications, notifications)}
+  end
+
+  @impl true
+  def handle_info({:resource_updated, resource}, socket) do
+    # Handle PubSub events for resource updates
+    notification = %{
+      id: :crypto.strong_rand_bytes(10) |> Base.encode16(case: :lower),
+      title: "Resource Updated",
+      message: "Resource '#{resource.name}' was updated successfully",
+      severity: :success,
+      persistent: false
+    }
+
+    notifications =
+      HydepwnsLiveviewWeb.NotificationComponent.add_notification(
+        socket.assigns.notifications,
+        notification
+      )
+
+    {:noreply,
+     socket
+     |> put_flash(:info, "Resource updated successfully")
+     |> assign(:resources, list_resources_dashboard([]))
+     |> assign(:notifications, notifications)}
+  end
+
+  @impl true
+  def handle_info({:resource_deleted, resource}, socket) do
+    # Handle PubSub events for resource deletion
+    notification = %{
+      id: :crypto.strong_rand_bytes(10) |> Base.encode16(case: :lower),
+      title: "Resource Deleted",
+      message: "Resource '#{resource.name}' was deleted successfully",
+      severity: :info,
+      persistent: false
+    }
+
+    notifications =
+      HydepwnsLiveviewWeb.NotificationComponent.add_notification(
+        socket.assigns.notifications,
+        notification
+      )
+
+    {:noreply,
+     socket
+     |> put_flash(:info, "Resource deleted successfully")
+     |> assign(:resources, list_resources_dashboard([]))
+     |> assign(:notifications, notifications)}
   end
 
   @impl true

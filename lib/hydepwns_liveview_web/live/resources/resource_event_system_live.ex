@@ -26,8 +26,8 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
     # First get the resource to determine its type
     case HydepwnsLiveview.Resources.ResourceSystem.get_resource(resource_id) do
       {:ok, resource} ->
-        # Query for events with the specific resource type
-        {:ok, events} = EventStore.get_events_for_resource(resource.type, resource_id)
+        # Query for events with the resource type (always "resource" for our system)
+        {:ok, events} = EventStore.get_events_for_resource("resource", resource_id)
 
         # Debug: Log what we got from EventStore
         IO.puts("DEBUG: EventStore.get_events_for_resource returned: #{inspect(events)}")

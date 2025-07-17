@@ -133,8 +133,14 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
   end
 
   @impl true
-  def handle_call({:subscribe, event_type}, _from, state) do
-    subscribers = Map.update(state.subscribers, event_type, [self()], &[self() | &1])
+  def handle_call({:subscribe, event_type}, {from_pid, _ref}, state) do
+    IO.puts("[EventBus] Subscribing process #{inspect(from_pid)} to event type '#{event_type}'")
+
+    # Monitor the subscriber process
+    Process.monitor(from_pid)
+
+    subscribers = Map.update(state.subscribers, event_type, [from_pid], &[from_pid | &1])
+    IO.puts("[EventBus] Current subscribers for '#{event_type}': #{inspect(Map.get(subscribers, event_type, []))}")
     {:reply, :ok, %{state | subscribers: subscribers}}
   end
 
@@ -142,6 +148,11 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
   def handle_call({:subscribe_process, subscriber, event_types}, _from, state) do
     # Handle both single event type and list of event types
     event_types_list = if is_list(event_types), do: event_types, else: [event_types]
+
+    # Monitor the subscriber process if it's a PID
+    if is_pid(subscriber) do
+      Process.monitor(subscriber)
+    end
 
     # Add subscriber to each event type
     subscribers =
@@ -153,8 +164,8 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
   end
 
   @impl true
-  def handle_call({:unsubscribe, event_type}, _from, state) do
-    subscribers = Map.update(state.subscribers, event_type, [], &List.delete(&1, self()))
+  def handle_call({:unsubscribe, event_type}, {from_pid, _ref}, state) do
+    subscribers = Map.update(state.subscribers, event_type, [], &List.delete(&1, from_pid))
     {:reply, :ok, %{state | subscribers: subscribers}}
   end
 
@@ -232,6 +243,9 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
   end
 
   defp notify_subscribers(subscribers, event, _opts) do
+    IO.puts("[EventBus] Notifying #{length(subscribers)} subscribers for event '#{event.type}'")
+    IO.puts("[EventBus] Subscribers: #{inspect(subscribers)}")
+
     Enum.each(subscribers, fn subscriber ->
       if is_pid(subscriber) and Process.alive?(subscriber) do
         require Logger
@@ -240,7 +254,10 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
           "[EventBus] Sending event '#{event.type}' from #{inspect(self())} to subscriber #{inspect(subscriber)}"
         )
 
+        IO.puts("[EventBus] Sending event '#{event.type}' to subscriber #{inspect(subscriber)}")
         send(subscriber, {:event, event})
+      else
+        IO.puts("[EventBus] Skipping subscriber #{inspect(subscriber)} - not a valid PID or not alive")
       end
     end)
   end

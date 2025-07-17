@@ -7,112 +7,59 @@ defmodule HydepwnsLiveview.Events.Projections.ResourceProjection do
   stream each time.
   """
 
-  use GenServer
+  use HydepwnsLiveview.Events.Projections.Projection
   require Logger
-
-  alias HydepwnsLiveview.Events.EventBus
 
   # Client API
 
-  def start_link(opts \\ []) do
-    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
-  end
-
   def get_state do
-    GenServer.call(__MODULE__, :get_state)
+    current_state()
   end
 
   def rebuild do
-    GenServer.call(__MODULE__, :rebuild)
+    # This will be handled by the ProjectionProcess wrapper
+    # The rebuild functionality is now handled by the ProjectionSupervisor
+    :ok
   end
 
-  # Server Callbacks
+  # Projection Behavior Implementation
 
   @impl true
-  def init(_opts) do
+  def init do
     state = %{
       resources: %{},
       last_event_id: nil,
       last_updated: nil
     }
 
-    # Subscribe to all resource and document events
-    EventBus.subscribe(self(), [
+    {:ok, state}
+  end
+
+  @impl true
+  def interested_in do
+    [
       "resource.created",
       "resource.updated",
       "resource.deleted",
       "document.created",
       "document.updated",
       "document.deleted"
-    ])
-
-    {:ok, state}
+    ]
   end
 
   @impl true
-  def handle_call(:get_state, _from, state) do
-    {:reply, state, state}
-  end
-
-  @impl true
-  def handle_call(:rebuild, _from, _state) do
-    # Rebuild projection from event store
-    Logger.info("ResourceProjection: Starting rebuild from event store")
-
-    # Get all events from the event store
-    case HydepwnsLiveview.Events.Core.EventStore.get_events() do
-      {:ok, events} ->
-        Logger.info("ResourceProjection: Found #{length(events)} events to rebuild from")
-
-        # Debug: Inspect first event to understand format
-        if length(events) > 0 do
-          first_event = List.first(events)
-          Logger.info("ResourceProjection: First event format: #{inspect(first_event)}")
-          Logger.info("ResourceProjection: First event data type: #{inspect(typeof(first_event.data))}")
-          Logger.info("ResourceProjection: First event data: #{inspect(first_event.data)}")
-        end
-
-        # Process events in chronological order to rebuild state
-        rebuilt_state = Enum.reduce(events, %{resources: %{}, last_event_id: nil, last_updated: nil}, fn event, state ->
-          Logger.info("ResourceProjection: Processing event #{event.id} of type #{event.type}")
-
-          # Ensure event data is properly decoded
-          decoded_event = case event.data do
-            data when is_binary(data) ->
-              case Jason.decode(data) do
-                {:ok, decoded} -> %{event | data: decoded}
-                {:error, _} -> event
-              end
-            data when is_map(data) ->
-              event
-            _ ->
-              Logger.warning("ResourceProjection: Unknown event data format: #{inspect(event.data)}")
-              event
-          end
-
-          new_state = update_state(state, decoded_event)
-          Logger.info("ResourceProjection: State after event #{event.id}: #{map_size(new_state.resources)} resources")
-          new_state
-        end)
-
-        Logger.info("ResourceProjection: Rebuild complete, state has #{map_size(rebuilt_state.resources)} resources")
-        Logger.info("ResourceProjection: Final state: #{inspect(rebuilt_state)}")
-        {:reply, :ok, rebuilt_state}
-
-      {:error, reason} ->
-        Logger.error("ResourceProjection: Failed to get events for rebuild: #{inspect(reason)}")
-        {:reply, {:error, reason}, %{resources: %{}, last_event_id: nil, last_updated: nil}}
-    end
-  end
-
-  @impl true
-  def handle_info({:event, event}, state) do
+  def apply_event(event, state) do
     Logger.info(
       "ResourceProjection received event: #{event.type} for resource: #{event.resource_id}"
     )
 
     new_state = update_state(state, event)
-    {:noreply, new_state}
+    {:ok, new_state}
+  end
+
+  @impl true
+  def get_state do
+    current_state()
   end
 
   # Private Functions

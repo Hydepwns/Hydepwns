@@ -9,7 +9,7 @@ config :hydepwns_liveview, HydepwnsLiveview.Repo,
   username: System.get_env("TEST_DB_USERNAME") || "postgres",
   password: System.get_env("TEST_DB_PASSWORD") || "",
   hostname: System.get_env("TEST_DB_HOST") || "localhost",
-  port: String.to_integer(System.get_env("TEST_DB_PORT") || "5433"),
+  port: String.to_integer(System.get_env("TEST_DB_PORT") || "5432"),
   database:
     System.get_env("TEST_DB_NAME") ||
       "hydepwns_liveview_test#{System.get_env("MIX_TEST_PARTITION")}",
@@ -86,6 +86,10 @@ config :hydepwns_liveview, :testing, true
 
 # Enable the :sql_sandbox flag for the test environment
 config :hydepwns_liveview, :sql_sandbox, true
+
+# Configure LiveView sandbox for testing
+config :phoenix_live_view,
+  signing_salt: "test_salt"
 
 # Disable code reloader and live reloader for tests to avoid potential side effects
 config :hydepwns_liveview, HydepwnsLiveviewWeb.Endpoint, code_reloader: false

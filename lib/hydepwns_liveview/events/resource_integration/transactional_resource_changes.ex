@@ -14,7 +14,7 @@ defmodule HydepwnsLiveview.Events.ResourceIntegration.TransactionalResourceChang
   """
 
   alias HydepwnsLiveview.Events.Core.TransactionalEventStore
-  alias HydepwnsLiveview.Events.ResourceIntegration.ResourceEventGenerator
+  alias HydepwnsLiveview.Events.ResourceEventGenerator
 
   @doc """
   Creates a resource with event generation in a transaction.

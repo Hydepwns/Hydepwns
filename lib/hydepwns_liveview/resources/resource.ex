@@ -57,6 +57,60 @@ defmodule HydepwnsLiveview.Resources.Resource do
     end
   end
 
+  # Implement Access behavior for Resource struct
+  @behaviour Access
+
+  @impl Access
+  def fetch(resource, key) when is_atom(key) do
+    case Map.get(Map.from_struct(resource), key) do
+      nil -> :error
+      value -> {:ok, value}
+    end
+  end
+
+  @impl Access
+  def fetch(resource, key) when is_binary(key) do
+    # Convert string key to atom and try again
+    fetch(resource, String.to_atom(key))
+  end
+
+  @impl Access
+  def get_and_update(resource, key, fun) when is_atom(key) do
+    case Map.get(Map.from_struct(resource), key) do
+      nil ->
+        case fun.(nil) do
+          {get, update} -> {get, Map.put(resource, key, update)}
+          :pop -> {nil, resource}
+        end
+
+      value ->
+        case fun.(value) do
+          {get, update} -> {get, Map.put(resource, key, update)}
+          :pop -> {value, Map.delete(resource, key)}
+        end
+    end
+  end
+
+  @impl Access
+  def get_and_update(resource, key, fun) when is_binary(key) do
+    # Convert string key to atom and try again
+    get_and_update(resource, String.to_atom(key), fun)
+  end
+
+  @impl Access
+  def pop(resource, key) when is_atom(key) do
+    case Map.get(Map.from_struct(resource), key) do
+      nil -> {nil, resource}
+      value -> {value, Map.delete(resource, key)}
+    end
+  end
+
+  @impl Access
+  def pop(resource, key) when is_binary(key) do
+    # Convert string key to atom and try again
+    pop(resource, String.to_atom(key))
+  end
+
   @doc """
   Creates a changeset for resource records.
 

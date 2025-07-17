@@ -50,8 +50,8 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
           "🔵 ResourceSystem.create_resource: Resource created, generating event for #{resource.id}"
         )
 
-        event_data = Map.from_struct(resource) |> Map.drop([:__meta__, :__struct__])
-        case ResourceEventGenerator.resource_created(resource.__struct__, resource.id, event_data, %{action: "create"}) do
+        _event_data = Map.from_struct(resource) |> Map.drop([:__meta__, :__struct__])
+        case ResourceEventGenerator.resource_created(resource, %{action: "create"}) do
           {:ok, event} ->
             IO.puts(
               "✅ ResourceSystem.create_resource: Event generated successfully: #{event.type}"
@@ -332,7 +332,7 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
             # Generate event for resource update
             IO.puts("🔍 ResourceSystem.update_resource: Generating resource_updated event")
 
-            case ResourceEventGenerator.resource_updated(updated_resource.__struct__, updated_resource.id, attrs, %{action: "update"}) do
+            case ResourceEventGenerator.resource_updated(updated_resource, attrs, %{action: "update"}) do
               {:ok, _event} ->
                 IO.puts(
                   "✅ ResourceSystem.update_resource: resource_updated event generated successfully"
@@ -363,7 +363,7 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
               {:ok, transformed_resource, _context} ->
                 IO.puts("✅ ResourceSystem.update_resource: Transformations applied successfully")
                 # Generate event for resource transformation
-                case ResourceEventGenerator.generate_event(transformed_resource.__struct__, %{type: "transformed", resource_id: transformed_resource.id, data: %{}, metadata: %{action: "transform"}}) do
+                case ResourceEventGenerator.resource_event(transformed_resource, "transformed", %{}, %{action: "transform"}) do
                   {:ok, _event} ->
                     IO.puts(
                       "✅ ResourceSystem.update_resource: transformed event generated successfully"
@@ -417,8 +417,8 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
             # Invalidate cache
             invalidate_resource_cache()
             # Generate event for resource deletion
-            event_data = Map.from_struct(deleted_resource) |> Map.drop([:__meta__, :__struct__])
-            case ResourceEventGenerator.resource_deleted(deleted_resource.__struct__, deleted_resource.id, event_data, %{action: "delete"}) do
+            _event_data = Map.from_struct(deleted_resource) |> Map.drop([:__meta__, :__struct__])
+            case ResourceEventGenerator.resource_deleted(deleted_resource, %{action: "delete"}) do
               {:ok, _event} ->
                 IO.puts(
                   "✅ ResourceSystem.delete_resource: resource_deleted event generated successfully"

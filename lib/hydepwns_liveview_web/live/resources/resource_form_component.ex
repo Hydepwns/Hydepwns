@@ -98,6 +98,14 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
 
     IO.inspect(parent_options, label: "[DEBUG] parent_options")
 
+    # Debug: Check which option should be selected
+    current_parent_id = resource_with_text_content.parent_id
+    IO.inspect(current_parent_id, label: "[DEBUG] current_parent_id")
+
+    # Find the selected option for debugging
+    selected_option = Enum.find(parent_options, fn {_label, value} -> value == current_parent_id end)
+    IO.inspect(selected_option, label: "[DEBUG] selected_option")
+
     {:ok,
      socket
      |> assign(assigns)
@@ -327,7 +335,11 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
               </label>
               <select id="resource-form_parent_id" name="resource[parent_id]" class="mt-2 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm" data-test-id="resource-form_parent_id" phx-no-feedback>
                 <%= for {value, label} <- @parent_options do %>
-                  <option value={value} selected={@resource.parent_id == value} data-test-id={"parent-option-#{value}"}><%= label %></option>
+                  <%= if @resource.parent_id == value do %>
+                    <option value={value} selected data-test-id={"parent-option-#{value}"}><%= label %></option>
+                  <% else %>
+                    <option value={value} data-test-id={"parent-option-#{value}"}><%= label %></option>
+                  <% end %>
                 <% end %>
               </select>
               <%= if @changeset.errors[:parent_id] do %>

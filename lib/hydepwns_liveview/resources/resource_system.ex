@@ -28,68 +28,121 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
   Creates a new resource with the given attributes.
   """
   def create_resource(attrs) do
-    IO.puts("🔍 ResourceSystem.create_resource: Starting with attrs: #{inspect(attrs)}")
+    create_resource(attrs, %{})
+  end
+
+  @doc """
+  Creates a new resource with the given attributes and options.
+
+  ## Options
+  * `:skip_events` - Skip event generation (default: false)
+  * `:skip_pubsub` - Skip PubSub broadcasting (default: false)
+  * `:skip_cache_invalidation` - Skip cache invalidation (default: false)
+  """
+  def create_resource(attrs, opts) when is_map(opts) do
+    # Convert map to keyword list for compatibility
+    opts_list = Map.to_list(opts)
+    create_resource(attrs, opts_list)
+  end
+
+  def create_resource(attrs, opts) when is_list(opts) do
+    skip_events = Keyword.get(opts, :skip_events, false)
+    skip_pubsub = Keyword.get(opts, :skip_pubsub, false)
+    skip_cache_invalidation = Keyword.get(opts, :skip_cache_invalidation, false)
 
     changeset =
       %Resource{}
       |> Resource.changeset(attrs)
 
-    IO.puts("🔍 ResourceSystem.create_resource: Changeset valid? #{changeset.valid?}")
-    IO.puts("🔍 ResourceSystem.create_resource: Changeset errors: #{inspect(changeset.errors)}")
-
     case RepoHelper.insert(changeset) do
       {:ok, resource} ->
-        IO.puts(
-          "✅ ResourceSystem.create_resource: Resource created successfully with ID: #{resource.id}"
-        )
-
-        # Invalidate cache
-        invalidate_resource_cache()
-        # Generate event for resource creation
-        IO.puts(
-          "🔵 ResourceSystem.create_resource: Resource created, generating event for #{resource.id}"
-        )
-
-        _event_data = Map.from_struct(resource) |> Map.drop([:__meta__, :__struct__])
-        case ResourceEventGenerator.resource_created(resource, %{action: "create"}) do
-          {:ok, event} ->
-            IO.puts(
-              "✅ ResourceSystem.create_resource: Event generated successfully: #{event.type}"
-            )
-
-            Phoenix.PubSub.broadcast(
-              HydepwnsLiveview.PubSub,
-              "resources",
-              {:resource_created, resource}
-            )
-
-            {:ok, resource}
-
-          {:error, reason} ->
-            IO.puts(
-              "❌ ResourceSystem.create_resource: Event generation failed: #{inspect(reason)}"
-            )
-
-            Phoenix.PubSub.broadcast(
-              HydepwnsLiveview.PubSub,
-              "resources",
-              {:resource_created, resource}
-            )
-
-            # Still return the resource even if event generation fails
-            {:ok, resource}
+        # Invalidate cache (unless skipped)
+        unless skip_cache_invalidation do
+          invalidate_resource_cache()
         end
 
-      {:error, changeset} ->
-        IO.puts(
-          "❌ ResourceSystem.create_resource: Insert failed with errors: #{inspect(changeset.errors)}"
-        )
+        # Generate event for resource creation (unless skipped)
+        unless skip_events do
+          _event_data = Map.from_struct(resource) |> Map.drop([:__meta__, :__struct__])
+          case ResourceEventGenerator.resource_created(resource, %{action: "create"}) do
+            {:ok, _event} -> :ok
+            {:error, _reason} -> :ok  # Continue even if event generation fails
+          end
+        end
 
+        # Broadcast to PubSub (unless skipped)
+        unless skip_pubsub do
+          Phoenix.PubSub.broadcast(
+            HydepwnsLiveview.PubSub,
+            "resources",
+            {:resource_created, resource}
+          )
+        end
+
+        {:ok, resource}
+
+      {:error, changeset} ->
         {:error, changeset}
 
       error ->
-        IO.puts("❌ ResourceSystem.create_resource: Unexpected error: #{inspect(error)}")
         error
+    end
+  end
+
+  @doc """
+  Creates multiple resources efficiently in a batch operation.
+  This is optimized for performance when creating many resources at once.
+  """
+  def create_resources_batch(resources_attrs, opts \\ []) when is_map(opts) do
+    # Convert map to keyword list for compatibility
+    opts_list = Map.to_list(opts)
+    create_resources_batch(resources_attrs, opts_list)
+  end
+
+  def create_resources_batch(resources_attrs, opts) when is_list(opts) do
+    skip_events = Keyword.get(opts, :skip_events, false)
+    skip_pubsub = Keyword.get(opts, :skip_pubsub, false)
+    skip_cache_invalidation = Keyword.get(opts, :skip_cache_invalidation, false)
+
+    # Create all resources in a transaction
+    case RepoHelper.transaction(fn ->
+      Enum.map(resources_attrs, fn attrs ->
+        changeset = %Resource{} |> Resource.changeset(attrs)
+        case RepoHelper.insert(changeset) do
+          {:ok, resource} -> {:ok, resource}
+          {:error, changeset} -> RepoHelper.rollback(changeset)
+        end
+      end)
+    end) do
+      {:ok, resources} ->
+        # Batch operations for better performance
+        unless skip_cache_invalidation do
+          invalidate_resource_cache()
+        end
+
+        unless skip_events do
+          # Generate events in batch
+          Enum.each(resources, fn {:ok, resource} ->
+            _event_data = Map.from_struct(resource) |> Map.drop([:__meta__, :__struct__])
+            ResourceEventGenerator.resource_created(resource, %{action: "create"})
+          end)
+        end
+
+        unless skip_pubsub do
+          # Broadcast all resources at once
+          Enum.each(resources, fn {:ok, resource} ->
+            Phoenix.PubSub.broadcast(
+              HydepwnsLiveview.PubSub,
+              "resources",
+              {:resource_created, resource}
+            )
+          end)
+        end
+
+        {:ok, Enum.map(resources, fn {:ok, resource} -> resource end)}
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 

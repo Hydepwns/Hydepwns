@@ -13,7 +13,14 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLive do
       "[DEBUG] ResourceNewLive.mount - socket assigns keys: #{inspect(Map.keys(socket.assigns))}"
     )
 
-    resource = %Resource{}
+    resource = %Resource{
+      name: "",
+      description: "",
+      content: "",
+      type: "document",
+      status: "draft",
+      parent_id: nil
+    }
     changeset = Resource.changeset(resource, %{})
 
     {:ok,

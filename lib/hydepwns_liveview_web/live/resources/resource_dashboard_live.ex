@@ -8,90 +8,43 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
 
   alias HydepwnsLiveview.Resources.ResourceSystem
   alias HydepwnsLiveview.Resources.Resource
+  alias HydepwnsLiveviewWeb.Live.SandboxHelper
 
   @impl true
   def mount(_params, session, socket) do
     Logger.debug("[ResourceDashboardLive] session: #{inspect(session)}")
-    # Remove any reference to socket.connect_params
-    # Use only session and cookies from connect_info (already guarded above)
-    # The rest of the mount function remains unchanged.
+
+    # Use the new SandboxHelper for robust sandbox connection handling
     connect_info = Map.get(socket.private, :connect_info, %{})
-    cookies = if is_map(connect_info), do: Map.get(connect_info, :cookies, %{}), else: %{}
-    Logger.debug("[ResourceDashboardLive] connect_info[:cookies]: #{inspect(cookies)}")
-    sandbox_cookie = Map.get(session, "_phoenix_liveview_sandbox")
+    SandboxHelper.setup_sandbox_connection(session, connect_info)
 
-    if is_map(cookies) do
-      _sandbox_cookie = sandbox_cookie || Map.get(cookies, "_phoenix_liveview_sandbox")
-    end
+    # Subscribe to PubSub for real-time updates
+    Phoenix.PubSub.subscribe(HydepwnsLiveview.PubSub, "resources")
 
-    Logger.debug("[ResourceDashboardLive] _phoenix_liveview_sandbox: #{inspect(sandbox_cookie)}")
-    # Check if we're in test mode and try to join the sandbox
-    if Mix.env() == :test do
-      case sandbox_cookie do
-        nil ->
-          Logger.debug("[ResourceDashboardLive] No sandbox cookie found, cannot join sandbox")
+    # Subscribe to EventBus for real-time updates
+    HydepwnsLiveview.Events.Core.EventBus.subscribe([
+      "document.created",
+      "document.updated",
+      "document.deleted",
+      "folder.created",
+      "folder.updated",
+      "folder.deleted"
+    ])
 
-        sandbox_pid_str ->
-          Logger.debug(
-            "[ResourceDashboardLive] Attempting to join sandbox with PID: #{inspect(sandbox_pid_str)}"
-          )
+    # Track user presence
+    user_id = get_user_id_from_session(socket)
 
-          try do
-            case Regex.run(~r/#PID<(\d+)\.(\d+)\.(\d+)>/, sandbox_pid_str) do
-              [_, node_id, process_id, serial] ->
-                pid_str = "<#{node_id}.#{process_id}.#{serial}>"
-                pid = :erlang.list_to_pid(String.to_charlist(pid_str))
-                Logger.debug("[ResourceDashboardLive] Parsed PID: #{inspect(pid)}")
-
-                case Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, pid, self()) do
-                  :ok ->
-                    Logger.debug("[ResourceDashboardLive] Successfully joined sandbox")
-
-                  error ->
-                    Logger.debug(
-                      "[ResourceDashboardLive] Failed to join sandbox: #{inspect(error)}"
-                    )
-                end
-
-              _ ->
-                Logger.debug(
-                  "[ResourceDashboardLive] Failed to parse PID: #{inspect(sandbox_pid_str)}"
-                )
-            end
-          rescue
-            e -> Logger.debug("[ResourceDashboardLive] Error joining sandbox: #{inspect(e)}")
-          end
-      end
-    end
-
-    if connected?(socket) do
-      Phoenix.PubSub.subscribe(HydepwnsLiveview.PubSub, "resources")
-
-      # Subscribe to EventBus for real-time updates
-      HydepwnsLiveview.Events.Core.EventBus.subscribe([
-        "document.created",
-        "document.updated",
-        "document.deleted",
-        "folder.created",
-        "folder.updated",
-        "folder.deleted"
-      ])
-
-      # Track user presence
-      user_id = get_user_id_from_session(socket)
-
-      if user_id do
-        HydepwnsLiveviewWeb.Presence.track(
-          self(),
-          "resources",
-          user_id,
-          %{
-            user_id: user_id,
-            joined_at: DateTime.utc_now(),
-            online_at: DateTime.utc_now()
-          }
-        )
-      end
+    if user_id do
+      HydepwnsLiveviewWeb.Presence.track(
+        self(),
+        "resources",
+        user_id,
+        %{
+          user_id: user_id,
+          joined_at: DateTime.utc_now(),
+          online_at: DateTime.utc_now()
+        }
+      )
     end
 
     {:ok,

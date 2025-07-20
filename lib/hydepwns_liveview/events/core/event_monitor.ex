@@ -15,20 +15,7 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
   use GenServer
 
   alias HydepwnsLiveview.Events.Core.Event
-  alias HydepwnsLiveview.Events.Core.NotificationSystem
-  alias HydepwnsLiveview.Telemetry
-
-  # Define thresholds for backpressure detection
-  # Number of events in queue considered high
-  @queue_high_threshold 1000
-  # Processing time in ms considered slow
-  @processing_time_threshold 500
-  # 5% error rate is considered high
-  @error_rate_threshold 0.05
-  # Default alert check interval (1 minute)
-  @default_alert_interval 60_000
-  # Default metric collection interval (15 seconds)
-  @default_metric_interval 15_000
+  alias HydepwnsLiveview.Events.Core.EventMonitor.{Telemetry, Backpressure, Metrics, Alerts}
 
   ##############################################################################
   # Client API
@@ -41,8 +28,8 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
   * `:event_store` - Module to use for event storage (defaults to HydepwnsLiveview.Events.Core.EventStore)
   * `:metric_interval` - Interval for metric collection in milliseconds
   """
-  @spec start_link(Keyword.t()) :: GenServer.on_start()
-  def start_link(opts \\ []) do
+  @spec start_link(list()) :: GenServer.on_start()
+  def start_link(opts \\ []) when is_list(opts) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
@@ -56,8 +43,8 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
   * `{:ok, metrics}` - The current metrics
   * `{:error, reason}` - Failed to get metrics
   """
-  @spec get_metrics(Keyword.t()) :: {:ok, map()} | {:error, any()}
-  def get_metrics(opts \\ []) do
+  @spec get_metrics(map()) :: {:ok, map()} | {:error, any()}
+  def get_metrics(opts \\ []) when is_list(opts) do
     GenServer.call(__MODULE__, {:get_metrics, opts})
   end
 
@@ -78,62 +65,10 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
   """
   @spec detect_backpressure(%{any() => integer()}, %{any() => map()}, %{any() => float()}, map() | nil) ::
           map()
-  def detect_backpressure(queue_sizes, processing_metrics, error_rates, thresholds \\ nil) do
-    # Use provided thresholds or defaults
-    queue_threshold = Map.get(thresholds || %{}, :queue_high, @queue_high_threshold)
-    processing_threshold = Map.get(thresholds || %{}, :processing_time, @processing_time_threshold)
-    error_threshold = Map.get(thresholds || %{}, :error_rate, @error_rate_threshold)
-
-    # Check if any queue sizes are at or above threshold
-    queue_pressure =
-      queue_sizes
-      |> Enum.any?(fn {_handler, size} -> size >= queue_threshold end)
-
-    # Check if any event types have slow processing (at or above threshold)
-    slow_types =
-      processing_metrics
-      |> Enum.filter(fn {_type, metrics} ->
-        metrics.avg_time >= processing_threshold
-      end)
-      |> Enum.map(fn {type, _metrics} -> type end)
-
-    # Check for high error rates (at or above threshold)
-    high_error_types =
-      error_rates
-      |> Enum.filter(fn {_type, rate} -> rate >= error_threshold end)
-      |> Enum.map(fn {type, _rate} -> type end)
-
-    # Determine overall backpressure status
-    status =
-      cond do
-        queue_pressure && (length(slow_types) > 0 || length(high_error_types) > 0) -> :critical
-        queue_pressure || length(slow_types) > 0 || length(high_error_types) > 0 -> :warning
-        true -> :normal
-      end
-
-    backpressure_data = %{
-      status: status,
-      queue_pressure: queue_pressure,
-      slow_processing_types: slow_types,
-      high_error_types: high_error_types,
-      bottlenecks: identify_bottlenecks(queue_sizes, processing_metrics, error_rates, thresholds)
-    }
-
-    # Emit telemetry for backpressure detection
-    Telemetry.execute(
-      [:hydepwns_liveview, :events, :backpressure],
-      %{
-        value: if(status == :normal, do: 0, else: if(status == :warning, do: 1, else: 2))
-      },
-      %{
-        status: status,
-        queue_pressure: queue_pressure,
-        slow_types_count: length(slow_types),
-        high_error_types_count: length(high_error_types)
-      }
-    )
-
-    backpressure_data
+  def detect_backpressure(queue_sizes, processing_metrics, error_rates, thresholds \\ nil)
+      when is_map(queue_sizes) and is_map(processing_metrics) and is_map(error_rates) and
+             (is_map(thresholds) or is_nil(thresholds)) do
+    Backpressure.detect_backpressure(queue_sizes, processing_metrics, error_rates, thresholds)
   end
 
   @doc """
@@ -151,8 +86,8 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
   ## Returns
   * `:ok` - Alerting set up successfully
   """
-  @spec setup_alerting((map() -> any()) | nil, Keyword.t()) :: :ok
-  def setup_alerting(notification_function \\ nil, opts \\ [])
+  @spec setup_alerting((map() -> any()) | nil, list()) :: :ok
+  def setup_alerting(notification_function \\ nil, opts \\ []) when is_list(opts)
       when is_nil(notification_function) or is_function(notification_function, 1) do
     GenServer.cast(__MODULE__, {:setup_alerting, notification_function, opts})
   end
@@ -191,7 +126,7 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
     details = Map.get(metrics, :details, %{})
 
     # Emit telemetry event for this processing
-    Telemetry.execute(
+    :telemetry.execute(
       [:hydepwns_liveview, :events, :process],
       %{duration: duration_ms},
       %{
@@ -208,10 +143,13 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
   end
 
   # Handle nil or non-map metrics gracefully
-  def record_processing_metric(%Event{} = event, nil), do: record_processing_metric(event, %{})
+  def record_processing_metric(%Event{} = event, nil) do
+    record_processing_metric(event, %{})
+  end
 
-  def record_processing_metric(%Event{} = event, metrics) when not is_map(metrics),
-    do: record_processing_metric(event, %{})
+  def record_processing_metric(%Event{} = event, metrics) when not is_map(metrics) do
+    record_processing_metric(event, %{})
+  end
 
   @doc """
   Records an event processing metric with default metrics.
@@ -248,7 +186,7 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
   @spec record_queue_size(any(), integer()) :: :ok
   def record_queue_size(handler_name, queue_size) do
     # Emit telemetry event for queue size
-    Telemetry.execute(
+    :telemetry.execute(
       [:hydepwns_liveview, :events, :queue_size],
       %{size: queue_size},
       %{
@@ -287,77 +225,64 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
       error_rates: %{},
       # Queue sizes by handler
       queue_sizes: %{},
-      # Alert configuration
-      alert_config: %{
-        enabled: false,
-        notification_fn: nil,
-        notification_channels: [:in_app, :log],
-        recipients: :admins_only,
-        interval_ms: @default_alert_interval,
-        lookback_seconds: 300,
-        last_alert_time: nil,
-        thresholds: %{
-          queue_high: @queue_high_threshold,
-          processing_time: @processing_time_threshold,
-          error_rate: @error_rate_threshold
-        }
-      },
+      # Alert configuration - use the Alerts module
+      alert_config: Alerts.clear_alerting(),
       # Historical metrics
       history: %{
         metrics: [],
         max_size: 1000
       },
       # Metric collection interval
-      metric_interval: Keyword.get(opts, :metric_interval, @default_metric_interval)
+      metric_interval: Keyword.get(opts, :metric_interval, 15_000)
     }
 
     # Schedule periodic metrics collection
     schedule_metrics_collection(state.metric_interval)
 
     # Register with telemetry
-    register_telemetry_handlers()
+    Telemetry.register_handlers()
 
     {:ok, state}
   end
 
   @impl true
-  def handle_call({:get_metrics, opts}, _from, state) do
+  def handle_call({:get_metrics, opts}, _from, state) when is_list(opts) do
     # Default to 1 hour lookback
     lookback_seconds = Keyword.get(opts, :lookback_seconds, 3600)
     start_time = DateTime.add(DateTime.utc_now(), -lookback_seconds, :second)
 
     # Get events in the time period using the configured event store
-    with {:ok, events} <-
-           state.event_store.get_events(%{
-             timestamp: %{after: start_time},
-             sort: [timestamp: :asc]
-           }) do
-      # Calculate processing times by event type
-      processing_metrics = calculate_processing_metrics(events, state)
+    case state.event_store.get_events(%{
+      timestamp: %{after: start_time},
+      sort: [timestamp: :asc]
+    }) do
+      {:ok, events} ->
+        # Calculate processing times by event type using the Metrics module
+        processing_metrics = Metrics.calculate_processing_metrics(events, state)
 
-      # Get current queue sizes from state
-      queue_sizes = state.queue_sizes
+        # Get current queue sizes from state
+        queue_sizes = state.queue_sizes
 
-      # Get error rates
-      error_rates = calculate_error_rates(events, state)
+        # Get error rates using the Metrics module
+        error_rates = Metrics.calculate_error_rates(events, state)
 
-      # Check for backpressure
-      backpressure = detect_backpressure(queue_sizes, processing_metrics, error_rates)
+        # Check for backpressure using the Backpressure module
+        backpressure = Backpressure.detect_backpressure(queue_sizes, processing_metrics, error_rates, state.alert_config.thresholds)
 
-      metrics = %{
-        event_count: length(events),
-        events_per_second:
-          if(lookback_seconds > 0, do: length(events) / lookback_seconds, else: 0.0),
-        processing_metrics: processing_metrics,
-        queue_sizes: queue_sizes,
-        error_rates: error_rates,
-        backpressure: backpressure,
-        timestamp: DateTime.utc_now(),
-        lookback_period_seconds: lookback_seconds
-      }
+        metrics = %{
+          event_count: length(events),
+          events_per_second:
+            if(lookback_seconds > 0, do: length(events) / lookback_seconds, else: 0.0),
+          processing_metrics: processing_metrics,
+          queue_sizes: queue_sizes,
+          error_rates: error_rates,
+          backpressure: backpressure,
+          timestamp: DateTime.utc_now(),
+          lookback_period_seconds: lookback_seconds
+        }
 
-      {:reply, {:ok, metrics}, state}
-    else
+        {:reply, {:ok, metrics}, state}
+
       error -> {:reply, error, state}
     end
   end
@@ -368,52 +293,17 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
     duration_ms = Map.get(metrics, :duration_ms, 0)
     status = Map.get(metrics, :status, :success)
 
-    # Update metrics for this event type
-    metrics_by_type =
-      Map.update(
-        state.metrics_by_type,
-        event.type,
-        %{
-          count: 1,
-          total_time: duration_ms,
-          errors: if(status == :error, do: 1, else: 0),
-          avg_time: duration_ms,
-          min_time: duration_ms,
-          max_time: duration_ms
-        },
-        fn existing ->
-          %{
-            count: existing.count + 1,
-            total_time: existing.total_time + duration_ms,
-            errors: existing.errors + if(status == :error, do: 1, else: 0),
-            avg_time: (existing.total_time + duration_ms) / (existing.count + 1),
-            min_time: min(existing.min_time, duration_ms),
-            max_time: max(existing.max_time, duration_ms)
-          }
-        end
-      )
-
-    # Update error rates
-    error_rates =
-      Map.update(
-        state.error_rates,
-        event.type,
-        if(status == :error, do: 1.0, else: 0.0),
-        fn _rate ->
-          # Exponential moving average for smoother error rate
-          metrics_for_type = metrics_by_type[event.type]
-          metrics_for_type.errors / metrics_for_type.count
-        end
-      )
+    # Update metrics for this event type using the Metrics module
+    metrics_by_type = Metrics.update_processing_metrics(state.metrics_by_type, event.type, duration_ms, status)
+    error_rates = Metrics.update_error_rates(state.error_rates, event.type, status)
 
     # Add to history
-    history =
-      add_to_history(state.history, %{
-        timestamp: DateTime.utc_now(),
-        event_type: event.type,
-        duration_ms: duration_ms,
-        status: status
-      })
+    history = Metrics.add_to_history(state.history, %{
+      timestamp: DateTime.utc_now(),
+      event_type: event.type,
+      duration_ms: duration_ms,
+      status: status
+    })
 
     {:noreply,
      %{state | metrics_by_type: metrics_by_type, error_rates: error_rates, history: history}}
@@ -429,32 +319,19 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
 
   @impl true
   def handle_cast({:setup_alerting, notification_fn, opts}, state) do
-    # Update alert configuration
-    alert_config = %{
-      enabled: true,
-      notification_fn: notification_fn,
-      notification_channels: Keyword.get(opts, :notification_channels, [:in_app, :log]),
-      recipients: Keyword.get(opts, :recipients, :admins_only),
-      interval_ms: Keyword.get(opts, :interval_ms, @default_alert_interval),
-      lookback_seconds: Keyword.get(opts, :lookback_seconds, 300),
-      last_alert_time: nil,
-      thresholds:
-        Map.merge(
-          state.alert_config.thresholds,
-          Keyword.get(opts, :threshold_overrides, %{})
-        )
-    }
+    # Use the Alerts module to setup alerting
+    alert_config = Alerts.setup_alerting(notification_fn, opts)
 
     # Schedule first alert check
-    schedule_alert_check(alert_config.interval_ms)
+    Alerts.schedule_alert_check(alert_config.interval_ms)
 
     {:noreply, %{state | alert_config: alert_config}}
   end
 
   @impl true
   def handle_cast(:clear_alerting, state) do
-    # Disable alerting
-    alert_config = %{state.alert_config | enabled: false, notification_fn: nil}
+    # Use the Alerts module to clear alerting
+    alert_config = Alerts.clear_alerting()
 
     {:noreply, %{state | alert_config: alert_config}}
   end
@@ -464,14 +341,22 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
     # Skip if alerting is not enabled
     state =
       if state.alert_config.enabled do
-        check_metrics_and_alert(state)
+        # Get current metrics and check for alerts
+        case do_get_metrics(state.alert_config.lookback_seconds, state) do
+          {:ok, metrics} ->
+            updated_alert_config = Alerts.check_metrics_and_alert(metrics, state.alert_config, state.event_store)
+            %{state | alert_config: updated_alert_config}
+
+          _error ->
+            state
+        end
       else
         state
       end
 
     # Schedule next alert check if still enabled
     if state.alert_config.enabled do
-      schedule_alert_check(state.alert_config.interval_ms)
+      Alerts.schedule_alert_check(state.alert_config.interval_ms)
     end
 
     {:noreply, state}
@@ -515,7 +400,7 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
     {:ok, metrics} = do_get_metrics(state.alert_config.lookback_seconds, state)
 
     # Emit telemetry for current metrics
-    Telemetry.execute(
+    :telemetry.execute(
       [:hydepwns_liveview, :events, :metrics],
       %{
         event_count: metrics.event_count,
@@ -538,96 +423,36 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
   @impl true
   def handle_info(:check_and_alert, state) do
     # This is triggered by the timer to check metrics and send alerts
-    updated_state = check_metrics_and_alert(state)
+    state =
+      if state.alert_config.enabled do
+        # Get current metrics and check for alerts
+        case do_get_metrics(state.alert_config.lookback_seconds, state) do
+          {:ok, metrics} ->
+            updated_alert_config = Alerts.check_metrics_and_alert(metrics, state.alert_config, state.event_store)
+            %{state | alert_config: updated_alert_config}
 
-    # Schedule next alert check
-    schedule_alert_check(state.alert_config.interval_ms)
+          _error ->
+            state
+        end
+      else
+        state
+      end
 
-    {:noreply, updated_state}
+    # Schedule next alert check if still enabled
+    if state.alert_config.enabled do
+      Alerts.schedule_alert_check(state.alert_config.interval_ms)
+    end
+
+    {:noreply, state}
   end
 
   ##############################################################################
   # Helper functions
   ##############################################################################
 
-  # Calculate processing metrics from events
-  defp calculate_processing_metrics(_events, state) do
-    # Use metrics from state, supplemented with any missing event types from events
-    state.metrics_by_type
-  end
-
-  # Calculate error rates from events and state
-  defp calculate_error_rates(_events, state) do
-    # Use error rates from state
-    state.error_rates
-  end
-
-  # Add a metric to the history
-  defp add_to_history(history, metric) do
-    # Add new metric to history
-    updated_metrics = [metric | history.metrics]
-
-    # Trim if necessary
-    trimmed_metrics =
-      if length(updated_metrics) > history.max_size do
-        Enum.take(updated_metrics, history.max_size)
-      else
-        updated_metrics
-      end
-
-    %{history | metrics: trimmed_metrics}
-  end
-
   # Schedule periodic metrics collection
   defp schedule_metrics_collection(interval) do
     Process.send_after(self(), :collect_metrics, interval)
-  end
-
-  # Schedule alert check
-  defp schedule_alert_check(interval) do
-    Process.send_after(self(), :check_and_alert, interval)
-  end
-
-  # Check metrics and send alert if needed
-  defp check_metrics_and_alert(state) do
-    # Get current metrics
-    {:ok, metrics} = do_get_metrics(state.alert_config.lookback_seconds, state)
-
-    # Check if we need to alert
-    if metrics.backpressure.status != :normal do
-      # Send alert if we haven't alerted recently
-      now = DateTime.utc_now()
-
-      if state.alert_config.last_alert_time == nil ||
-           DateTime.diff(now, state.alert_config.last_alert_time, :second) >= 300 do
-        # Create alert data
-        alert = %{
-          type: :event_system_backpressure,
-          level: metrics.backpressure.status,
-          message: "Event system experiencing backpressure",
-          details: metrics,
-          timestamp: now
-        }
-
-        # Use the NotificationSystem for new alerts
-        NotificationSystem.send_alert(alert,
-          channels: state.alert_config.notification_channels,
-          recipients: state.alert_config.recipients
-        )
-
-        # For backward compatibility, still call the notification function if provided
-        if state.alert_config.notification_fn != nil do
-          state.alert_config.notification_fn.(alert)
-        end
-
-        # Update last alert time
-        %{state | alert_config: %{state.alert_config | last_alert_time: now}}
-      else
-        state
-      end
-    else
-      state
-    end
   end
 
   # Get metrics without going through GenServer.call
@@ -640,17 +465,17 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
              timestamp: %{after: start_time},
              sort: [timestamp: :asc]
            }) do
-      # Calculate processing times by event type
-      processing_metrics = calculate_processing_metrics(events, state)
+      # Calculate processing times by event type using the Metrics module
+      processing_metrics = Metrics.calculate_processing_metrics(events, state)
 
       # Get current queue sizes from state
       queue_sizes = state.queue_sizes
 
-      # Get error rates
-      error_rates = calculate_error_rates(events, state)
+      # Get error rates using the Metrics module
+      error_rates = Metrics.calculate_error_rates(events, state)
 
-      # Check for backpressure using alert thresholds if available
-      backpressure = detect_backpressure(queue_sizes, processing_metrics, error_rates, state.alert_config.thresholds)
+      # Check for backpressure using the Backpressure module
+      backpressure = Backpressure.detect_backpressure(queue_sizes, processing_metrics, error_rates, state.alert_config.thresholds)
 
       metrics = %{
         event_count: length(events),
@@ -666,36 +491,5 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitor do
 
       {:ok, metrics}
     end
-  end
-
-  # Identify bottlenecks in the event processing system
-  defp identify_bottlenecks(queue_sizes, processing_metrics, error_rates, thresholds \\ nil) do
-    # Use provided thresholds or defaults
-    queue_threshold = Map.get(thresholds || %{}, :queue_high, @queue_high_threshold)
-    processing_threshold = Map.get(thresholds || %{}, :processing_time, @processing_time_threshold)
-    error_threshold = Map.get(thresholds || %{}, :error_rate, @error_rate_threshold)
-
-    # Implementation for identifying bottlenecks in the event system
-    %{
-      high_queue_handlers:
-        queue_sizes
-        |> Enum.filter(fn {_handler, size} -> size > queue_threshold end)
-        |> Enum.map(fn {handler, _} -> handler end),
-      slow_event_types:
-        processing_metrics
-        |> Enum.filter(fn {_type, metrics} -> metrics.avg_time > processing_threshold end)
-        |> Enum.map(fn {type, _} -> type end),
-      high_error_types:
-        error_rates
-        |> Enum.filter(fn {_type, rate} -> rate > error_threshold end)
-        |> Enum.map(fn {type, _} -> type end)
-    }
-  end
-
-  # Register telemetry handlers
-  defp register_telemetry_handlers do
-    # Implementation for registering telemetry handlers
-    # This is a placeholder for actual telemetry registration
-    :ok
   end
 end

@@ -124,9 +124,11 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
   * `{:ok, session_id}` - The replay session was created and started
   * `{:error, reason}` - Error creating or starting the session
   """
-  @spec start_replay_for_debugging(String.t(), String.t(), String.t(), Keyword.t()) ::
+  @spec start_replay_for_debugging(String.t(), String.t(), String.t(), map()) ::
           {:ok, any()} | {:error, any()}
-  def start_replay_for_debugging(name, resource_type, resource_id, opts \\ []) do
+  def start_replay_for_debugging(name, resource_type, resource_id, opts \\ [])
+      when is_binary(name) and is_binary(resource_type) and is_binary(resource_id) and
+             is_list(opts) do
     # Validate required parameters
     cond do
       is_binary(resource_type) and resource_type != "" and is_binary(resource_id) and
@@ -165,6 +167,10 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
     end
   end
 
+  def start_replay_for_debugging(_name, _resource_type, _resource_id, _opts) do
+    {:error, :invalid_parameters}
+  end
+
   @doc """
   Gets the status and results of a replay session.
 
@@ -175,8 +181,8 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
   * `{:ok, session}` - The session details
   * `{:error, reason}` - Error retrieving session
   """
-  @spec get_replay_status(any()) :: {:ok, any()} | {:error, any()}
-  def get_replay_status(session_id) do
+  @spec get_replay_status(String.t()) :: {:ok, any()} | {:error, any()}
+  def get_replay_status(session_id) when is_binary(session_id) do
     try do
       case HydepwnsLiveview.Repo.get(HydepwnsLiveview.Events.Schemas.ReplaySession, session_id) do
         nil -> {:error, :not_found}
@@ -185,6 +191,10 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
     rescue
       _ -> {:error, :not_found}
     end
+  end
+
+  def get_replay_status(_session_id) do
+    {:error, :invalid_parameters}
   end
 
   @doc """
@@ -198,7 +208,8 @@ defmodule HydepwnsLiveview.Events.Core.EventInspector do
   * `{:error, reason}` - Error retrieving metrics
   """
   @spec get_event_system_metrics(integer()) :: {:ok, map()} | {:error, any()}
-  def get_event_system_metrics(time_period \\ 3600) do
+  @spec get_event_system_metrics(integer()) :: {:ok, map()} | {:error, any()}
+  def get_event_system_metrics(time_period \\ 3600) when is_integer(time_period) do
     start_time = DateTime.add(DateTime.utc_now(), -time_period, :second)
 
     # Get events in the time period

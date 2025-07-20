@@ -20,7 +20,7 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
   @doc """
   Starts the EventBus process.
   """
-  @spec start_link(Keyword.t()) :: GenServer.on_start()
+  @spec start_link(map()) :: GenServer.on_start()
   def start_link(opts \\ []) when is_list(opts) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
@@ -39,7 +39,7 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
   * `:ok` - The event was published successfully
   * `{:error, reason}` - The event could not be published
   """
-  @spec publish(Event.t(), Keyword.t()) :: :ok | {:error, any()}
+  @spec publish(Event.t(), map()) :: :ok | {:error, any()}
   def publish(event, opts \\ %{})
 
   def publish(%Event{} = event, opts) do
@@ -245,8 +245,7 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
     # Combine and deduplicate
     (specific_subscribers ++ all_subscribers)
     |> Enum.uniq()
-    |> Enum.filter(&is_pid/1)
-    |> Enum.filter(&Process.alive?/1)
+    |> Enum.filter(fn subscriber -> is_pid(subscriber) and Process.alive?(subscriber) end)
   end
 
   defp notify_subscribers(subscribers, event, _opts) do

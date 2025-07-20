@@ -11,6 +11,10 @@ defmodule HydepwnsLiveviewWeb.Socket do
   ## Channels
   # channel "room:*", HydepwnsLiveviewWeb.RoomChannel
 
+  ## LiveView Topics
+  # LiveView topics are handled automatically by Phoenix.LiveView
+  # No explicit channel configuration needed for "lv:*" topics
+
   # Socket params are passed from the client and can
   # be used to verify and authenticate a user. After
   # verification, you can put default assigns into
@@ -24,60 +28,16 @@ defmodule HydepwnsLiveviewWeb.Socket do
   # See `Phoenix.Token` documentation for examples in
   # performing token verification on connect.
   @impl true
-  def connect(_params, socket, connect_info) do
-    # Handle sandbox connection for tests
-    if @sandbox_enabled do
-      cookies = connect_info[:cookies]
-      session = connect_info[:session] || %{}
-      IO.puts("[debug] [Socket] connect_info[:cookies]: #{inspect(cookies)}")
-      IO.puts("[debug] [Socket] Full connect_info keys: #{inspect(Map.keys(connect_info))}")
-      IO.puts("[debug] [Socket] connect_info[:conn]: #{inspect(connect_info[:conn])}")
-      IO.puts("[debug] [Socket] Session keys: #{inspect(Map.keys(session))}")
-
-      sandbox_cookie =
-        case cookies do
-          :all ->
-            # When cookies is :all, we need to access the raw cookies
-            # This is a workaround for the sandbox cookie issue
-            case connect_info[:conn] do
-              %{req_cookies: req_cookies} when is_map(req_cookies) ->
-                IO.puts("[debug] [Socket] Found req_cookies: #{inspect(req_cookies)}")
-                req_cookies["_phoenix_liveview_sandbox"]
-              conn when not is_nil(conn) ->
-                IO.puts("[debug] [Socket] Conn exists but no req_cookies: #{inspect(conn)}")
-                nil
-              _ ->
-                IO.puts("[debug] [Socket] No conn in connect_info")
-                nil
-            end
-          cookies when is_map(cookies) ->
-            # Try both string and atom keys
-            cookies["_phoenix_liveview_sandbox"] || cookies[:_phoenix_liveview_sandbox]
-          _ -> nil
-        end
-
-      # Also check session for sandbox PID
-      sandbox_pid = sandbox_cookie || session["_phoenix_liveview_sandbox"]
-
-      case sandbox_pid do
-        nil ->
-          IO.puts("[debug] [Socket] No sandbox cookie found, cannot join sandbox")
-          {:ok, socket}
-
-        sandbox_pid_string ->
-          IO.puts("[debug] [Socket] Found sandbox cookie: #{inspect(sandbox_pid_string)}")
-          case Code.eval_string(sandbox_pid_string) do
-            {pid, _} when is_pid(pid) ->
-              IO.puts("[debug] [Socket] Joining sandbox: #{inspect(pid)}")
-              Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), pid)
-              {:ok, socket}
-
-            _ ->
-              IO.puts("[debug] [Socket] Invalid sandbox PID: #{sandbox_pid_string}")
-              {:ok, socket}
-          end
+  def connect(params, socket, connect_info) do
+    # Enhanced connection handling for test environment
+    if Mix.env() == :test do
+      # In test mode, handle sandbox connections more robustly
+      case handle_test_connection(params, socket, connect_info) do
+        {:ok, socket} -> {:ok, socket}
+        {:error, reason} -> {:error, reason}
       end
     else
+      # In production/development, allow all connections
       {:ok, socket}
     end
   end
@@ -94,4 +54,94 @@ defmodule HydepwnsLiveviewWeb.Socket do
   # Returning `nil` makes this socket anonymous.
   @impl true
   def id(_socket), do: nil
+
+  # Private Functions
+
+  defp handle_test_connection(_params, socket, connect_info) do
+    # Extract session and cookies from connect_info
+    session = Map.get(connect_info, :session, %{})
+    cookies = Map.get(connect_info, :cookies, %{})
+
+    # Check for sandbox cookie in both session and cookies
+    sandbox_cookie = Map.get(session, "_phoenix_liveview_sandbox") ||
+                    Map.get(cookies, "_phoenix_liveview_sandbox")
+
+    if sandbox_cookie do
+      # Try to join the sandbox
+      case join_sandbox(sandbox_cookie) do
+        :ok ->
+          {:ok, socket}
+        {:error, reason} ->
+          {:error, reason}
+      end
+    else
+      # No sandbox cookie, but still allow connection in test mode
+      {:ok, socket}
+    end
+  end
+
+  defp join_sandbox(sandbox_pid_str) when is_binary(sandbox_pid_str) do
+    try do
+      # Parse the PID string more robustly
+      case parse_sandbox_pid(sandbox_pid_str) do
+        {:ok, pid} ->
+          # Allow the current process to use the sandbox
+          case Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), pid) do
+            :ok -> :ok
+            {:error, reason} -> {:error, reason}
+          end
+        {:error, reason} ->
+          {:error, reason}
+      end
+    rescue
+      e ->
+        {:error, "Failed to join sandbox: #{inspect(e)}"}
+    end
+  end
+
+  defp join_sandbox(_), do: {:error, "Invalid sandbox PID format"}
+
+  defp parse_sandbox_pid(pid_str) do
+    # Handle different PID formats
+    cond do
+      # Format: "#PID<0.123.0>"
+      Regex.match?(~r/#PID<(\d+)\.(\d+)\.(\d+)>/, pid_str) ->
+        case Regex.run(~r/#PID<(\d+)\.(\d+)\.(\d+)>/, pid_str) do
+          [_, node_id, process_id, serial] ->
+            try do
+              pid_str_parsed = "<#{node_id}.#{process_id}.#{serial}>"
+              pid = :erlang.list_to_pid(String.to_charlist(pid_str_parsed))
+              {:ok, pid}
+            rescue
+              _ -> {:error, "Failed to parse PID: #{pid_str}"}
+            end
+          _ ->
+            {:error, "Invalid PID format: #{pid_str}"}
+        end
+
+      # Format: "<0.123.0>"
+      Regex.match?(~r/<(\d+)\.(\d+)\.(\d+)>/, pid_str) ->
+        case Regex.run(~r/<(\d+)\.(\d+)\.(\d+)>/, pid_str) do
+          [_, node_id, process_id, serial] ->
+            try do
+              pid_str_parsed = "<#{node_id}.#{process_id}.#{serial}>"
+              pid = :erlang.list_to_pid(String.to_charlist(pid_str_parsed))
+              {:ok, pid}
+            rescue
+              _ -> {:error, "Failed to parse PID: #{pid_str}"}
+            end
+          _ ->
+            {:error, "Invalid PID format: #{pid_str}"}
+        end
+
+      # Try direct evaluation as fallback (less secure but sometimes needed)
+      true ->
+        try do
+          {pid, _} = Code.eval_string(pid_str)
+          if is_pid(pid), do: {:ok, pid}, else: {:error, "Not a PID: #{pid_str}"}
+        rescue
+          _ -> {:error, "Failed to evaluate PID: #{pid_str}"}
+        end
+    end
+  end
 end

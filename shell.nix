@@ -25,6 +25,7 @@ let
   # Chrome and ChromeDriver for Wallaby testing
   chrome = pkgs.google-chrome;
   chromedriver = pkgs.chromedriver;
+  xvfb = pkgs.xorg.xvfb;
   
 in pkgs.mkShell {
   buildInputs = [
@@ -53,6 +54,7 @@ in pkgs.mkShell {
     # Browser testing
     chrome
     chromedriver
+    xvfb
 
     # Dart Sass for NixOS compatibility
     pkgs.dart-sass
@@ -78,6 +80,22 @@ in pkgs.mkShell {
     echo "   3. Run: mix setup"
     echo "   4. Run: mix phx.server"
     echo ""
+    echo "🧪 Testing helpers:"
+    echo "   - Run: mix test --max-failures=5"
+    echo "   - Run: mix test test/hydepwns_liveview_web/features/"
+    echo "   - Run: mix test --only integration"
+    echo "   - Run: ./scripts/test_browser.sh (for browser tests)"
+    echo ""
+    echo "🔧 LiveView testing tips:"
+    echo "   - Ensure PostgreSQL is running: pg_ctl start -D .postgres"
+    echo "   - Use --max-failures=N to limit test failures"
+    echo "   - Check tmp/test_error_summary.txt for detailed error reports"
+    echo ""
+    echo "🌐 Browser testing:"
+    echo "   - Chrome: $CHROME_BIN"
+    echo "   - Chromedriver: $CHROMEDRIVER_PATH"
+    echo "   - Display: $DISPLAY"
+    echo ""
   '';
 
   # Set environment variables
@@ -97,4 +115,17 @@ in pkgs.mkShell {
   PGPORT = "5432";
   PGUSER = "postgres";
   PGPASSWORD = "postgres";
+  
+  # LiveView testing environment
+  MIX_ENV = "test";
+  PHX_SERVER = "true";
+  SQL_SANDBOX = "true";
+  
+  # Wallaby/Chrome testing environment
+  CHROME_HEADLESS = "true";
+  CHROME_NO_SANDBOX = "true";
+  CHROME_DISABLE_DEV_SHM = "true";
+  CHROMEDRIVER_PATH = "${chromedriver}/bin/chromedriver";
+  CHROME_BIN = "${chrome}/bin/google-chrome";
+  DISPLAY = ":99";
 }

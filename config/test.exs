@@ -59,15 +59,16 @@ config :wallaby,
           "no-sandbox",
           "disable-dev-shm-usage",
           "--enable-javascript",
-          "--disable-web-security=false"
+          "--disable-web-security=false",
+          "--disable-gpu",
+          "--disable-software-rasterizer"
         ]
       }
     }
   ],
   chromedriver: [
-    path: "chromedriver",
-    binary:
-      "/nix/store/543z3c6jdqf4j9zkfy58il7vracyn28g-google-chrome-137.0.7151.103/share/google/chrome/chrome"
+    # Use system chromedriver if available, otherwise skip browser tests
+    path: System.get_env("CHROMEDRIVER_PATH") || "chromedriver"
   ],
   base_url: "http://localhost:4002"
 
@@ -89,7 +90,8 @@ config :hydepwns_liveview, :sql_sandbox, true
 
 # Configure LiveView sandbox for testing
 config :phoenix_live_view,
-  signing_salt: "test_salt"
+  signing_salt: "test_salt",
+  sandbox: true
 
 # Disable code reloader and live reloader for tests to avoid potential side effects
 config :hydepwns_liveview, HydepwnsLiveviewWeb.Endpoint, code_reloader: false

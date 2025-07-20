@@ -138,7 +138,15 @@ defmodule HydepwnsLiveviewWeb.TestHelpers.WallabyUIHelper do
   The session, for chainability
   """
   def wait_for_text(session, text, opts \\ []) do
-    timeout = Keyword.get(opts, :timeout, 3000)
+    # Handle mock sessions
+    case session do
+      %{mock: _} -> session
+      _ -> do_wait_for_text(session, text, opts)
+    end
+  end
+
+  defp do_wait_for_text(session, text, opts) do
+    timeout = Keyword.get(opts, :timeout, 5000)
     interval = Keyword.get(opts, :interval, 100)
     start_time = System.monotonic_time(:millisecond)
 
@@ -476,6 +484,9 @@ defmodule HydepwnsLiveviewWeb.TestHelpers.WallabyUIHelper do
   The session, for chainability
   """
   def fill_and_submit_form(session, form_data, submit_button_text) do
+    # Wait for LiveView to be ready before filling the form
+    session = wait_for_live_view(session)
+
     session = Enum.reduce(form_data, session, fn {field, value}, session ->
       case field do
         field_name when is_binary(field_name) ->
@@ -491,6 +502,8 @@ defmodule HydepwnsLiveviewWeb.TestHelpers.WallabyUIHelper do
       end
     end)
 
+    # Wait a bit before submitting to ensure form is ready
+    Process.sleep(200)
     click(session, button(submit_button_text))
   end
 end

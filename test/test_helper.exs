@@ -18,7 +18,20 @@ end
 # Configure Ecto sandbox for proper async test support
 Ecto.Adapters.SQL.Sandbox.mode(HydepwnsLiveview.Repo, :manual)
 
-{:ok, _} = Application.ensure_all_started(:wallaby)
+# Start Wallaby for browser tests only if chromedriver is available
+case System.find_executable("chromedriver") do
+  nil ->
+    IO.puts("⚠️  Chromedriver not found - skipping Wallaby startup")
+    IO.puts("   Browser tests will be skipped. Run 'nix-shell' and './scripts/test_browser.sh' for browser tests.")
+  _chromedriver_path ->
+    IO.puts("✅ Chromedriver found - starting Wallaby")
+    case Application.ensure_all_started(:wallaby) do
+      {:ok, _} -> :ok
+      {:error, reason} ->
+        IO.puts("⚠️  Failed to start Wallaby: #{inspect(reason)}")
+        IO.puts("   Browser tests will be skipped.")
+    end
+end
 
 # Start the resource system
 {:ok, _} =
@@ -46,7 +59,19 @@ defmodule HydepwnsLiveview.TestSetup do
   use ExUnit.CaseTemplate
 
   setup do
-    HydepwnsLiveview.Resources.ResourceSystem.reset_store()
+    # Ensure proper database connection ownership
+    Ecto.Adapters.SQL.Sandbox.checkout(HydepwnsLiveview.Repo)
+
+    # Reset the store safely
+    try do
+      HydepwnsLiveview.Resources.ResourceSystem.reset_store()
+    rescue
+      DBConnection.OwnershipError ->
+        # If we don't have proper ownership, skip the reset
+        # The database will be cleaned up by the test framework
+        :ok
+    end
+
     # Ensure theme system has a default theme for tests
     HydepwnsLiveview.ThemeSystem.ensure_default_theme()
 

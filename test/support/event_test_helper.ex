@@ -150,8 +150,14 @@ defmodule HydepwnsLiveview.TestSupport.EventTestHelper do
 
     if map_size(expected_data) > 0 do
       Enum.each(expected_data, fn {key, value} ->
-        assert Map.get(event.data, to_string(key)) == value,
-               "Expected event data #{key} to be #{value}, got #{Map.get(event.data, to_string(key))}"
+        # Try both atom and string keys for flexibility
+        string_key = to_string(key)
+        atom_key = String.to_existing_atom(string_key)
+
+        actual_value = Map.get(event.data, atom_key) || Map.get(event.data, string_key)
+
+        assert actual_value == value,
+               "Expected event data #{key} to be #{value}, got #{actual_value}"
       end)
     end
 

@@ -63,12 +63,27 @@ defmodule HydepwnsLiveview.Events.SnapshotOperationsTest do
       %{snapshots: [snapshot1, snapshot2, snapshot3]}
     end
 
-    test "retrieves the _latest snapshot", %{snapshots: [_, _, _latest]} do
-      assert {:ok, snapshot} = SnapshotOperations.get_latest_snapshot("test_resource", "123")
+    test "retrieves the _latest snapshot", %{snapshots: [snapshot1, snapshot2, snapshot3]} do
+      # Verify timestamps are in ascending order
+      assert snapshot1.inserted_at <= snapshot2.inserted_at
+      assert snapshot2.inserted_at <= snapshot3.inserted_at
+
+      # Get all snapshots to verify they were created correctly
+      assert {:ok, all_snapshots} = SnapshotOperations.get_snapshots("test_resource", "123")
+      assert length(all_snapshots) >= 3
+
+      # Verify the snapshots have the expected values (PostgreSQL JSON fields return maps with string keys)
+      # Since get_snapshots returns snapshots ordered by inserted_at ascending, the latest is the last element
+      latest_snapshot = List.last(all_snapshots)
+      assert latest_snapshot.state["value"] == 3
+
+      # Get the latest snapshot specifically
+      assert {:ok, retrieved_latest} = SnapshotOperations.get_latest_snapshot("test_resource", "123")
+
       # Verify it's the latest by checking the value and timestamp
-      assert snapshot.state["value"] == 3
-      # The latest snapshot should have the highest value
-      assert snapshot.state["value"] == 3
+      # PostgreSQL JSON fields return maps with string keys
+      assert retrieved_latest.state["value"] == 3
+      assert retrieved_latest.inserted_at == latest_snapshot.inserted_at
     end
 
     test "returns not found for non-existent resource" do
@@ -208,18 +223,18 @@ defmodule HydepwnsLiveview.Events.SnapshotOperationsTest do
 
   describe "get_snapshots/2" do
     setup do
-      # Create multiple snapshots for the same resource with small delays to ensure proper ordering
+      # Create multiple snapshots for the same resource with longer delays to ensure proper ordering
       {:ok, snapshot1} =
         SnapshotOperations.save_snapshot("test_resource", "123", %{value: 1}, %{version: 1})
 
-      # Small delay to ensure different timestamps
-      Process.sleep(10)
+      # Longer delay to ensure different timestamps
+      Process.sleep(100)
 
       {:ok, snapshot2} =
         SnapshotOperations.save_snapshot("test_resource", "123", %{value: 2}, %{version: 2})
 
-      # Small delay to ensure different timestamps
-      Process.sleep(10)
+      # Longer delay to ensure different timestamps
+      Process.sleep(100)
 
       {:ok, snapshot3} =
         SnapshotOperations.save_snapshot("test_resource", "123", %{value: 3}, %{version: 3})

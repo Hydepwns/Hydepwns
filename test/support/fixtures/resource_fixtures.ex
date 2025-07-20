@@ -6,11 +6,11 @@ defmodule HydepwnsLiveview.ResourceSystemFixtures do
   alias HydepwnsLiveview.Resources.ResourceSystem
 
   @doc """
-  Creates a test resource with the given attributes.
+  Creates a test resource with the given attributes and options.
   """
-  def resource_fixture(attrs \\ %{}) do
+  def resource_fixture(attrs \\ %{}, opts \\ []) do
     attrs = Map.put_new(attrs, :content, %{text: "Test content"})
-    ResourceSystem.create_resource(attrs)
+    ResourceSystem.create_resource(attrs, opts)
   end
 end
 
@@ -21,10 +21,10 @@ defmodule HydepwnsLiveview.TestSupport.ResourceFixtures do
   alias HydepwnsLiveview.ResourceSystemFixtures
 
   @doc """
-  Create a test resource. Accepts optional attrs map.
+  Create a test resource. Accepts optional attrs map and options.
   Returns {:ok, resource} on success, {:error, changeset} on failure.
   """
-  def create_test_resource(attrs \\ %{}) do
+  def create_test_resource(attrs \\ %{}, opts \\ []) do
     unique_suffix = System.unique_integer([:positive]) |> Integer.to_string()
 
     attrs =
@@ -40,7 +40,8 @@ defmodule HydepwnsLiveview.TestSupport.ResourceFixtures do
         attrs
       )
 
-    ResourceSystemFixtures.resource_fixture(attrs)
+    # Pass options to resource_fixture
+    ResourceSystemFixtures.resource_fixture(attrs, opts)
   end
 
   @doc """

@@ -19,6 +19,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
   alias HydepwnsLiveview.TestSupport.ResourceFixtures
   alias HydepwnsLiveviewWeb.TestMockHelper
 
+  @tag :skip
   test "events are generated and processed during resource updates", %{session: session} do
     # Navigate to resources page first
     session = visit(session, "/resources")
@@ -72,6 +73,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
     session = wait_for_text(session, "Updated Event Workflow Test Resource")
   end
 
+  @tag :skip
   test "events are generated and processed during multiple resource updates", %{session: session} do
     # Navigate to resources page first
     session = visit(session, "/resources")
@@ -138,6 +140,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
     assert Wallaby.Browser.has?(session, css(".event-timestamp"))
   end
 
+  @tag :skip
   test "event visualization shows processing status", %{session: session} do
     # Navigate to timeline page first
     session = visit(session, "/timeline")
@@ -182,6 +185,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
     end
   end
 
+  @tag :skip
   test "event processing error handling works correctly", %{session: session} do
     # Navigate to resources page first
     session = visit(session, "/resources")

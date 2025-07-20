@@ -35,14 +35,17 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
     case id do
       nil -> Ecto.UUID.generate()
       uuid when is_binary(uuid) and byte_size(uuid) == 36 -> uuid
+      uuid when is_binary(uuid) and byte_size(uuid) > 0 -> Ecto.UUID.generate()
       _ -> Ecto.UUID.generate()
     end
   end
 
   def handle_call({:store_event, event, _metadata}, _from, state) when is_map(event) do
-    # Ensure the event ID and correlation/causation IDs are valid UUIDs
+    # Preserve the original event ID if it's already provided
     event = event
-    |> Map.update(:id, Ecto.UUID.generate(), &ensure_uuid/1)
+    |> Map.update(:id, Ecto.UUID.generate(), fn id ->
+      if is_binary(id) and byte_size(id) > 0, do: id, else: Ecto.UUID.generate()
+    end)
     |> Map.update(:correlation_id, Ecto.UUID.generate(), &ensure_uuid/1)
     |> Map.update(:causation_id, nil, fn val -> if val, do: ensure_uuid(val), else: nil end)
 
@@ -51,7 +54,7 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
       case event do
         %{__struct__: HydepwnsLiveview.Events.Core.Event} ->
           %{event |
-            id: ensure_uuid(event.id),
+            id: if(is_binary(event.id) and byte_size(event.id) > 0, do: event.id, else: Ecto.UUID.generate()),
             correlation_id: ensure_uuid(event.correlation_id),
             causation_id: if(event.causation_id, do: ensure_uuid(event.causation_id), else: nil)
           }
@@ -59,7 +62,7 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
         %{} ->
           # Convert map to Event struct
           %HydepwnsLiveview.Events.Core.Event{
-            id: ensure_uuid(Map.get(event, :id) || Map.get(event, "id")),
+            id: if(Map.get(event, :id) || Map.get(event, "id"), do: Map.get(event, :id) || Map.get(event, "id"), else: Ecto.UUID.generate()),
             type: Map.get(event, :type) || Map.get(event, "type"),
             data: Map.get(event, :data) || Map.get(event, "data") || %{},
             resource_type: Map.get(event, :resource_type) || Map.get(event, "resource_type"),
@@ -98,20 +101,27 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
     event_struct =
       case event do
         %{__struct__: HydepwnsLiveview.Events.Core.Event} ->
-          event
+          %{event |
+            id: if(is_binary(event.id) and byte_size(event.id) > 0, do: event.id, else: Ecto.UUID.generate()),
+            correlation_id: ensure_uuid(event.correlation_id),
+            causation_id: if(event.causation_id, do: ensure_uuid(event.causation_id), else: nil)
+          }
 
         %{} ->
           # Convert map to Event struct
           %HydepwnsLiveview.Events.Core.Event{
-            id: Map.get(event, :id) || Map.get(event, "id") || Ecto.UUID.generate(),
+            id: if(Map.get(event, :id) || Map.get(event, "id"), do: Map.get(event, :id) || Map.get(event, "id"), else: Ecto.UUID.generate()),
             type: Map.get(event, :type) || Map.get(event, "type"),
             data: Map.get(event, :data) || Map.get(event, "data") || %{},
             resource_type: Map.get(event, :resource_type) || Map.get(event, "resource_type"),
             resource_id: Map.get(event, :resource_id) || Map.get(event, "resource_id"),
             correlation_id:
-              Map.get(event, :correlation_id) || Map.get(event, "correlation_id") ||
-                Ecto.UUID.generate(),
-            causation_id: Map.get(event, :causation_id) || Map.get(event, "causation_id"),
+              ensure_uuid(Map.get(event, :correlation_id) || Map.get(event, "correlation_id") || Ecto.UUID.generate()),
+            causation_id:
+              case Map.get(event, :causation_id) || Map.get(event, "causation_id") do
+                nil -> nil
+                val -> ensure_uuid(val)
+              end,
             metadata: Map.get(event, :metadata) || Map.get(event, "metadata") || %{},
             timestamp:
               Map.get(event, :timestamp) || Map.get(event, "timestamp") || DateTime.utc_now()

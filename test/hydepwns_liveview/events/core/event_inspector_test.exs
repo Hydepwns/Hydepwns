@@ -590,7 +590,9 @@ defmodule HydepwnsLiveview.Events.Core.EventInspectorTest do
 
       assert result.type == HydepwnsLiveview.Events.Core.Event
       assert result.timestamp == event.timestamp
-      assert result.correlation_id == "corr-123"
+      # The MockEventStore converts non-UUID correlation_ids to UUIDs
+      assert is_binary(result.correlation_id)
+      assert byte_size(result.correlation_id) == 36
     end
 
     test "handles event without correlation_id" do

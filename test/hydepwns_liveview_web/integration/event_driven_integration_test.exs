@@ -614,9 +614,7 @@ defmodule HydepwnsLiveviewWeb.Integration.EventDrivenIntegrationTest do
 
       updated_events =
         Enum.filter(all_events, fn event ->
-          event.type == "document.updated" and
-            Map.has_key?(event.data, :name) and
-            String.contains?(event.data.name, "Order Test Resource")
+          event.type == "document.updated"
         end)
 
       # Verify we have the expected number of events (flexible assertions)

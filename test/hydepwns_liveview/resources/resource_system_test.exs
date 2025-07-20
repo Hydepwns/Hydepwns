@@ -1,9 +1,15 @@
 defmodule HydepwnsLiveview.Resources.ResourceSystemTest do
   use HydepwnsLiveview.DataCase
+  import Mox
+  setup :set_mox_from_context
+  setup :verify_on_exit!
+
   alias HydepwnsLiveview.Resources.ResourceSystem
   alias HydepwnsLiveview.Resources.Resource
 
   setup do
+    # Set up mocks in private mode for this test
+    Mox.set_mox_private()
     HydepwnsLiveviewWeb.TestMockHelper.setup_mocks()
     :ok
   end
@@ -17,7 +23,7 @@ defmodule HydepwnsLiveview.Resources.ResourceSystemTest do
         content: %{text: "Test content"}
       }
 
-      assert {:ok, %Resource{} = resource} = ResourceSystem.create_resource(attrs)
+      assert {:ok, %Resource{} = resource} = ResourceSystem.create_resource(attrs, [])
       assert resource.name == "Test Resource"
       assert resource.type == "document"
       assert resource.status == "published"
@@ -25,7 +31,7 @@ defmodule HydepwnsLiveview.Resources.ResourceSystemTest do
 
     test "fails to create resource with missing required fields" do
       attrs = %{type: "document"}
-      assert {:error, changeset} = ResourceSystem.create_resource(attrs)
+      assert {:error, changeset} = ResourceSystem.create_resource(attrs, [])
       refute changeset.valid?
     end
 
@@ -36,7 +42,7 @@ defmodule HydepwnsLiveview.Resources.ResourceSystemTest do
           type: "document",
           status: "published",
           content: %{text: "Test content"}
-        })
+        }, [])
 
       assert {:ok, updated} = ResourceSystem.update_resource(resource.id, %{name: "Updated Name"})
       assert updated.name == "Updated Name"
@@ -49,7 +55,7 @@ defmodule HydepwnsLiveview.Resources.ResourceSystemTest do
           type: "document",
           status: "published",
           content: %{text: "Test content"}
-        })
+        }, [])
 
       assert {:ok, deleted} = ResourceSystem.delete_resource(resource.id)
       assert deleted.id == resource.id
@@ -64,7 +70,7 @@ defmodule HydepwnsLiveview.Resources.ResourceSystemTest do
         content: %{text: "Test content"}
       }
 
-      assert {:ok, %Resource{} = resource} = ResourceSystem.create_resource(attrs)
+      assert {:ok, %Resource{} = resource} = ResourceSystem.create_resource(attrs, [])
       # Event generation is side-effect; just ensure no error and resource is returned
       assert resource.name == "Event Resource"
     end

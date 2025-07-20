@@ -23,7 +23,7 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLiveTest do
       session = visit_and_wait(session, "/resources/new")
 
       # Debug: Check what's actually on the page
-      page_source = Wallaby.Browser.page_source(session)
+      page_source = page_source(session)
 
       IO.puts(
         "DEBUG: Page source contains 'resource_name': #{String.contains?(page_source, "resource_name")}"
@@ -46,9 +46,9 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLiveTest do
       session = visit_and_wait(session, "/resources")
 
       # Assert that the resource was created and appears in the list
-      Wallaby.Browser.has?(session, css("body", text: "Test Resource"))
-      Wallaby.Browser.has?(session, css("body", text: "Test Description"))
-      Wallaby.Browser.has?(session, css("body", text: "document"))
+      has?(session, css("body", text: "Test Resource"))
+      has?(session, css("body", text: "Test Description"))
+      has?(session, css("body", text: "document"))
       # Note: Flash messages don't persist across LiveView sessions, so we don't test for them
     end
 
@@ -64,11 +64,11 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLiveTest do
       |> click(css("#resource-form button[type='submit']"))
 
       # Check that validation error is displayed
-      Wallaby.Browser.has?(session, css("[data-test-id='name-error']"))
-      Wallaby.Browser.has?(session, css("p", text: "can't be blank"))
+      has?(session, css("[data-test-id='name-error']"))
+      has?(session, css("p", text: "can't be blank"))
 
       # Check that no redirect occurred (form should still be visible)
-      Wallaby.Browser.has?(session, css("h1", text: "New Resource"))
+      has?(session, css("h1", text: "New Resource"))
     end
 
     test "updates resource and sets flash message", %{session: session} do
@@ -88,9 +88,9 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLiveTest do
       session = visit_and_wait(session, "/resources")
 
       # Assert that the resource was updated and appears in the list
-      Wallaby.Browser.has?(session, css("body", text: "Updated Name"))
-      Wallaby.Browser.has?(session, css("body", text: "Updated Description"))
-      Wallaby.Browser.has?(session, css("body", text: "document"))
+      has?(session, css("body", text: "Updated Name"))
+      has?(session, css("body", text: "Updated Description"))
+      has?(session, css("body", text: "document"))
       # Note: Flash messages don't persist across LiveView sessions, so we don't test for them
     end
   end
@@ -104,7 +104,7 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLiveTest do
       |> click(css("[data-test-id='cancel-resource-link']"))
 
       # Verify we navigated back to the resources list
-      Wallaby.Browser.has?(session, css("h1", text: "Resources"))
+      has?(session, css("h1", text: "Resources"))
     end
 
     test "can cancel form submission", %{session: session} do
@@ -113,7 +113,7 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLiveTest do
       session
       |> click(css("[data-test-id='cancel-resource-link']"))
 
-      Wallaby.Browser.has?(session, css("h1", text: "Resources"))
+      has?(session, css("h1", text: "Resources"))
     end
   end
 
@@ -132,9 +132,9 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLiveTest do
       session = visit_and_wait(session, "/resources")
 
       # Assert that the resource was created and appears in the list
-      Wallaby.Browser.has?(session, css("body", text: "Flash Test Resource"))
-      Wallaby.Browser.has?(session, css("body", text: "Test Description"))
-      Wallaby.Browser.has?(session, css("body", text: "document"))
+      has?(session, css("body", text: "Flash Test Resource"))
+      has?(session, css("body", text: "Test Description"))
+      has?(session, css("body", text: "document"))
       # Note: Flash messages don't persist across LiveView sessions, so we don't test for them
     end
   end
@@ -152,8 +152,8 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLiveTest do
       |> click(css("#resource-form button[type='submit']"))
 
       # Check that validation error is displayed
-      Wallaby.Browser.has?(session, css("[data-test-id='name-error']"))
-      Wallaby.Browser.has?(session, css("p", text: "can't be blank"))
+      has?(session, css("[data-test-id='name-error']"))
+      has?(session, css("p", text: "can't be blank"))
     end
 
     test "validates required fields", %{session: session} do
@@ -168,11 +168,11 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLiveTest do
       |> click(css("#resource-form button[type='submit']"))
 
       # Check that validation errors are displayed
-      Wallaby.Browser.has?(session, css("[data-test-id='name-error']"))
-      Wallaby.Browser.has?(session, css("p", text: "can't be blank"))
+      has?(session, css("[data-test-id='name-error']"))
+      has?(session, css("p", text: "can't be blank"))
 
       # Form should still be visible (no redirect on validation error)
-      Wallaby.Browser.has?(session, css("h1", text: "New Resource"))
+      has?(session, css("h1", text: "New Resource"))
     end
 
     test "accepts valid form data", %{session: session} do
@@ -188,8 +188,8 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLiveTest do
 
       # Wait for redirect and check the dashboard
       session = visit_and_wait(session, "/resources")
-      Wallaby.Browser.has?(session, css("body", text: "Valid Resource"))
-      Wallaby.Browser.has?(session, css("body", text: "Valid Description"))
+      has?(session, css("body", text: "Valid Resource"))
+      has?(session, css("body", text: "Valid Description"))
     end
   end
 end

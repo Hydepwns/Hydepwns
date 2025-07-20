@@ -33,7 +33,7 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
         description: "A test resource",
         type: "test_type",
         status: "active"
-      })
+      }, [])
 
       # This is a placeholder test - replace with an actual route in your app
       # that would make external API calls. Uses string path instead of ~p.
@@ -53,7 +53,7 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
         description: "A test resource",
         type: "test_type",
         status: "active"
-      })
+      }, [])
 
       # This is a placeholder test. Uses string path instead of ~p.
       {:ok, view, _html} = live(conn, "/resources/#{resource.id}")
@@ -71,7 +71,7 @@ defmodule HydepwnsLiveviewWeb.ExternalAPIIntegrationTest do
         "description" => "Initial Description",
         "type" => "test_type",
         "status" => "active"
-      })
+      }, [])
 
       # Load the EDIT page using string path instead of ~p
       {:ok, view, _html} = live(conn, "/resources/#{resource.id}/edit")

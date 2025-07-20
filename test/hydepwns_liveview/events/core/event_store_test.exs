@@ -86,8 +86,8 @@ defmodule HydepwnsLiveview.Events.Core.EventStoreTest do
           :ok
 
         {:error, changeset} ->
-          # Expected behavior
-          assert %{type: ["should be at least 3 character(s)"]} = errors_on(changeset)
+          # Expected behavior - empty string triggers validate_required first
+          assert %{type: ["can't be blank"]} = errors_on(changeset)
       end
     end
 

@@ -428,8 +428,17 @@ defmodule HydepwnsLiveview.Events.Core.EventBusTest do
               result = EventBus.subscribe(self(), event_type)
               IO.puts("[DEBUG] Subscriber \\#{i} subscribed: \\#{inspect(result)}")
               send(test_pid, {:subscribed, result, i})
-              # Keep the process alive longer
-              Process.sleep(500)
+
+              # Listen for events and forward them to test process
+              receive do
+                {:event, event} ->
+                  IO.puts("[DEBUG] Subscriber \\#{i} received event")
+                  send(test_pid, {:event, event, i})
+              after
+                5000 ->
+                  IO.puts("[DEBUG] Subscriber \\#{i} timeout waiting for event")
+                  send(test_pid, {:event_timeout, i})
+              end
             catch
               kind, error ->
                 IO.puts("[DEBUG] Subscriber \\#{i} error: \\#{inspect({kind, error})}")
@@ -458,19 +467,17 @@ defmodule HydepwnsLiveview.Events.Core.EventBusTest do
       assert {:ok, subscribers} = EventBus.get_subscribers(event_type)
       assert length(subscribers) == 5
 
-      # Publish an event using TestEvent struct
-      event = %TestEvent{
-        type: event_type,
+      # Publish an event using proper Event struct
+      event = Event.create!(event_type, %{
         resource_id: "test-resource",
         resource_type: "test",
-        data: %{foo: "bar"},
-        timestamp: DateTime.utc_now()
-      }
+        data: %{foo: "bar"}
+      })
       :ok = EventBus.publish(event)
 
       # All subscribers should receive the event
-      for _pid <- pids do
-        assert_receive {:event, ^event}, 2_000
+      for i <- 1..5 do
+        assert_receive {:event, ^event, ^i}, 5_000
       end
     end
 

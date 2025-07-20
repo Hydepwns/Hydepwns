@@ -8,8 +8,6 @@ defmodule HydepwnsLiveviewWeb.Helpers.PathHelper do
   This works in both the initial render and subsequent live navigation.
   """
   def assign_current_path(socket) do
-    # For LiveView, we can get the current path from the URI or socket assigns
-    # We don't need params which isn't available in the socket during mount
     Phoenix.Component.assign(
       socket,
       :current_path,

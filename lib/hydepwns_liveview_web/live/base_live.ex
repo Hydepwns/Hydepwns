@@ -75,7 +75,7 @@ defmodule HydepwnsLiveviewWeb.BaseLive do
       {:ok, theme} ->
         {:cont, assign(socket, :current_theme, theme)}
 
-      {:error, _} ->
+      _ ->
         {:halt, redirect(socket, to: ~p"/themes/new")}
     end
   end

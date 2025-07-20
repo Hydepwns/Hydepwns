@@ -1,6 +1,7 @@
 defmodule HydepwnsLiveviewWeb.Examples.UserResourceLive do
   @moduledoc """
   Example LiveView module demonstrating resource-oriented socket assigns.
+  This is a simple example of a user resource that can be updated.
   """
 
   use HydepwnsLiveviewWeb, :live_view
@@ -12,11 +13,9 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceLive do
   end
 
   def handle_event("update_role", %{"role" => role}, socket) do
-    # Update user role
     current_user = socket.assigns.user
     updated_user = Map.put(current_user, :role, role)
 
-    # Add activity record
     activity = %{
       action: "role_change",
       timestamp: DateTime.utc_now() |> DateTime.to_string(),
@@ -34,7 +33,6 @@ defmodule HydepwnsLiveviewWeb.Examples.UserResourceLive do
   end
 
   def handle_event("update_theme", %{"theme" => theme}, socket) do
-    # Deep update of nested attribute
     current_user = socket.assigns.user
     updated_settings = Map.put(current_user.settings || %{}, :theme, theme)
     updated_user = Map.put(current_user, :settings, updated_settings)

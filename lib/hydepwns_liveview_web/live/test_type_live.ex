@@ -1,10 +1,8 @@
 defmodule HydepwnsLiveviewWeb.TestTypeLive do
-  use HydepwnsLiveviewWeb, :live_view
+  use HydepwnsLiveviewWeb.BaseLive
 
-  @impl true
-  def mount(_params, session, socket) do
-    {:ok,
-     assign(socket,
+  def do_mount(_params, session, socket) do
+    assign(socket,
        page_title: "Test",
        theme_class: "system-theme",
        string_value: session["string_value"] || "default",
@@ -13,10 +11,9 @@ defmodule HydepwnsLiveviewWeb.TestTypeLive do
        tags: session["tags"] || [],
        id_or_name: session["id_or_name"] || "default",
        user: session["user"] || %{}
-     )}
+     )
   end
 
-  @impl true
   def render(assigns) do
     ~H"""
     <div>

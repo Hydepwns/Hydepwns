@@ -6,7 +6,6 @@ defmodule HydepwnsLiveviewWeb.Helpers.ViewportHelper do
 
   @doc """
   Gets the initial viewport size from the socket.
-  Defaults to desktop if not available from connect params.
 
   ## Examples
 
@@ -23,7 +22,6 @@ defmodule HydepwnsLiveviewWeb.Helpers.ViewportHelper do
         determine_size_from_width(width)
 
       _ ->
-        # Default to desktop if not available
         "desktop"
     end
   end
@@ -54,15 +52,12 @@ defmodule HydepwnsLiveviewWeb.Helpers.ViewportHelper do
     end
   end
 
-  # Handle cases where width might be a string
   def determine_size_from_width(width) when is_binary(width) do
     case Integer.parse(width) do
       {width_int, _} -> determine_size_from_width(width_int)
-      # Default to desktop on parse error
       :error -> "desktop"
     end
   end
 
-  # Default fallback
   def determine_size_from_width(_), do: "desktop"
 end

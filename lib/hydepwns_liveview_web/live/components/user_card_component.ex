@@ -85,6 +85,7 @@ defmodule HydepwnsLiveviewWeb.LiveComponents.UserCardComponent do
     """
   end
 
+  @spec handle_event(<<_::64, _::_*8>>, any(), any()) :: {:noreply, any()}
   @doc """
   Handle user actions like activate, deactivate, edit.
   """
@@ -97,11 +98,13 @@ defmodule HydepwnsLiveviewWeb.LiveComponents.UserCardComponent do
     case UserResource.execute_command(current_resource, "activate", %{
            "reason" => "Activated from UI"
          }) do
-      {:ok, _events, updated_user} ->
+      events when is_list(events) and length(events) > 0 ->
+        # Apply the events to get the updated resource
+        updated_resource = Enum.reduce(events, current_resource, &UserResource.apply_event/2)
         # Optimistically update the UI
-        {:noreply, assign(socket, :resource, updated_user)}
+        {:noreply, assign(socket, :resource, updated_resource)}
 
-      {:error, _reason} ->
+      _ ->
         # Show an error message (would use put_flash in a real app)
         {:noreply, socket}
     end
@@ -116,11 +119,13 @@ defmodule HydepwnsLiveviewWeb.LiveComponents.UserCardComponent do
     case UserResource.execute_command(current_resource, "deactivate", %{
            "reason" => "Deactivated from UI"
          }) do
-      {:ok, _events, updated_user} ->
+      events when is_list(events) and length(events) > 0 ->
+        # Apply the events to get the updated resource
+        updated_resource = Enum.reduce(events, current_resource, &UserResource.apply_event/2)
         # Optimistically update the UI
-        {:noreply, assign(socket, :resource, updated_user)}
+        {:noreply, assign(socket, :resource, updated_resource)}
 
-      {:error, _reason} ->
+      _ ->
         # Show an error message (would use put_flash in a real app)
         {:noreply, socket}
     end
@@ -139,7 +144,7 @@ defmodule HydepwnsLiveviewWeb.LiveComponents.UserCardComponent do
       {:ok, updated_resource} ->
         {:noreply, assign(socket, :resource, updated_resource)}
 
-      {:error, _changeset} ->
+      _ ->
         {:noreply, socket}
     end
   end
@@ -150,7 +155,7 @@ defmodule HydepwnsLiveviewWeb.LiveComponents.UserCardComponent do
       {:ok, updated_resource} ->
         {:noreply, assign(socket, :resource, updated_resource)}
 
-      {:error, _changeset} ->
+      _ ->
         {:noreply, socket}
     end
   end
@@ -167,23 +172,23 @@ defmodule HydepwnsLiveviewWeb.LiveComponents.UserCardComponent do
       case event.type do
         "user.logged_in" ->
           # For login events, we might want to show a logged-in indicator
-          updated_resource = UserResource.apply_event(event, resource)
-          assign(socket, resource: updated_resource, last_activity: "User logged in")
+          current_resource = UserResource.apply_event(event, resource)
+          assign(socket, resource: current_resource, last_activity: "User logged in")
 
         "user.activated" ->
           # For activation events, we might want to show a success message
-          updated_resource = UserResource.apply_event(event, resource)
-          assign(socket, resource: updated_resource, status_change: "User activated")
+          current_resource = UserResource.apply_event(event, resource)
+          assign(socket, resource: current_resource, status_change: "User activated")
 
         "user.deactivated" ->
           # For deactivation events, we might want to show a warning message
-          updated_resource = UserResource.apply_event(event, resource)
-          assign(socket, resource: updated_resource, status_change: "User deactivated")
+          current_resource = UserResource.apply_event(event, resource)
+          assign(socket, resource: current_resource, status_change: "User deactivated")
 
         _ ->
           # For all other events, just apply the default logic
-          updated_resource = UserResource.apply_event(event, resource)
-          assign(socket, resource: updated_resource)
+          current_resource = UserResource.apply_event(event, resource)
+          assign(socket, resource: current_resource)
       end
 
     {:noreply, socket}

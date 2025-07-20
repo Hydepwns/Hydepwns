@@ -20,7 +20,6 @@ defmodule HydepwnsLiveviewWeb.Examples.ContextValidationTrackingExampleLive do
   alias HydepwnsLiveview.Utils.LiveViewAPI
   import HydepwnsLiveviewWeb.Components.ChangeHistoryViewer
 
-  # Define a resource module inline for the example
   defmodule ExampleUserResource do
     use HydepwnsLiveview.Utils.LiveViewResource
     @adapter_info nil
@@ -38,7 +37,6 @@ defmodule HydepwnsLiveviewWeb.Examples.ContextValidationTrackingExampleLive do
       }
     end
 
-    # Define validation rules
     def __validation_rules__ do
       [
         role_valid: fn resource, context ->
@@ -70,9 +68,7 @@ defmodule HydepwnsLiveviewWeb.Examples.ContextValidationTrackingExampleLive do
     end
   end
 
-  # Called by ResourceLive's do_mount after setting defaults
   def do_mount(_params, _session, socket) do
-    # Create an initial user resource
     initial_user = %{
       id: "123",
       name: "Example User",
@@ -89,7 +85,7 @@ defmodule HydepwnsLiveviewWeb.Examples.ContextValidationTrackingExampleLive do
 
     default_theme = HydepwnsLiveview.ThemeSystem.ensure_default_theme()
     theme_class = "#{default_theme.mode}-theme"
-    # Update the socket with the user and default values
+
     socket =
       socket
       |> assign(:user, initial_user)
@@ -274,7 +270,6 @@ defmodule HydepwnsLiveviewWeb.Examples.ContextValidationTrackingExampleLive do
   end
 
   def do_handle_event("update_user", params, socket) do
-    # Extract form data
     permissions = Map.get(params, "permissions", [])
 
     updates = %{
@@ -289,13 +284,11 @@ defmodule HydepwnsLiveviewWeb.Examples.ContextValidationTrackingExampleLive do
       }
     }
 
-    # Extract expected version for optimistic concurrency control
     expected_version =
       if params["expected_version"] && params["expected_version"] != "",
         do: String.to_integer(params["expected_version"]),
         else: nil
 
-    # Set up metadata
     metadata = %{
       actor: "context_validation_user@example.com",
       reason: "User profile update with context validation",
@@ -306,13 +299,10 @@ defmodule HydepwnsLiveviewWeb.Examples.ContextValidationTrackingExampleLive do
       validation_context: socket.assigns.validation_context
     }
 
-    # Update the user with tracking and context validation
     case LiveViewAPI.update_with_tracking(socket, :user, updates, metadata) do
       {:ok, updated_socket} ->
-        # Load the change history
         {:ok, history} = LiveViewAPI.get_history(updated_socket, :user)
 
-        # Update the socket with success message and history
         updated_socket
         |> assign(:change_history, history)
         |> assign(:form_data, Map.get(updated_socket.assigns, :user))
@@ -320,7 +310,6 @@ defmodule HydepwnsLiveviewWeb.Examples.ContextValidationTrackingExampleLive do
         |> assign(:error_message, nil)
 
       {:error, :stale_resource, socket} ->
-        # Handle optimistic concurrency control failure
         socket
         |> assign(
           :error_message,
@@ -329,7 +318,6 @@ defmodule HydepwnsLiveviewWeb.Examples.ContextValidationTrackingExampleLive do
         |> assign(:success_message, nil)
 
       {:error, message, socket} ->
-        # Handle validation error
         socket
         |> assign(:error_message, "Update failed: #{message}")
         |> assign(:success_message, nil)

@@ -35,8 +35,8 @@ defmodule HydepwnsLiveviewWeb.ResponsiveImageHelper do
   ## Examples
 
   ```heex
-  {responsive_image_tag("/images/hero.png", 
-       alt: "Hero image", 
+  {responsive_image_tag("/images/hero.png",
+       alt: "Hero image",
        class: "hero-image",
        sizes: "(max-width: 768px) 100vw, 50vw")}
   ```
@@ -150,22 +150,22 @@ defmodule HydepwnsLiveviewWeb.ResponsiveImageHelper do
     File.exists?(responsive_dir) && File.dir?(responsive_dir)
   end
 
-  # Private helper to extract path components
   defp extract_path_info(image_path) do
-    # Handle paths with or without leading slash
     path = Path.dirname(image_path)
     path = if path == ".", do: "", else: "#{path}/"
 
-    # Get filename and extension
     filename = Path.basename(image_path, Path.extname(image_path))
     ext = Path.extname(image_path)
 
     {path, filename, ext}
   end
 
-  # Get appropriate content type based on extension
-  defp fallback_content_type(".jpg"), do: "image/jpeg"
-  defp fallback_content_type(".jpeg"), do: "image/jpeg"
-  defp fallback_content_type(".png"), do: "image/png"
-  defp fallback_content_type(_), do: "image/jpeg"
+  defp fallback_content_type(ext) when is_binary(ext) do
+    case String.downcase(ext) do
+      ".jpg" -> "image/jpeg"
+      ".jpeg" -> "image/jpeg"
+      ".png" -> "image/png"
+      _ -> "image/jpeg"
+    end
+  end
 end

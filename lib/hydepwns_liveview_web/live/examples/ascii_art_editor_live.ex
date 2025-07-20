@@ -24,7 +24,6 @@ defmodule HydepwnsLiveviewWeb.Examples.AsciiArtEditorLive do
 
     new_canvas = apply_brush(socket.assigns.canvas, row, col, socket.assigns.selected_char, socket.assigns.brush_size)
 
-    # Save to history
     history = [socket.assigns.canvas | socket.assigns.history]
     history = if length(history) > 50, do: Enum.take(history, 50), else: history
 
@@ -194,7 +193,6 @@ defmodule HydepwnsLiveviewWeb.Examples.AsciiArtEditorLive do
     """
   end
 
-  # Helper functions
   defp create_canvas(width, height) do
     for _ <- 1..height do
       for _ <- 1..width do

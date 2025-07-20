@@ -23,16 +23,10 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
   end
 
   def handle_params(%{"id" => resource_id}, _url, socket) do
-    # First get the resource to determine its type
     case HydepwnsLiveview.Resources.ResourceSystem.get_resource(resource_id) do
       {:ok, resource} ->
-        # Query for events with the actual resource type
         {:ok, events} = EventStore.get_events_for_resource(resource.type, resource_id)
 
-        # Debug: Log what we got from EventStore
-        IO.puts("DEBUG: EventStore.get_events_for_resource returned: #{inspect(events)}")
-
-        # Convert Event structs to maps for template rendering
         event_maps =
           Enum.map(events, fn event ->
             %{
@@ -47,9 +41,6 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
               timestamp: event.timestamp
             }
           end)
-
-        # Debug: Log what we're assigning to the template
-        IO.puts("DEBUG: Assigning events to template: #{inspect(event_maps)}")
 
         {:noreply,
          socket
@@ -105,13 +96,6 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
   def render(assigns) do
     ~H"""
     <div class="container mx-auto px-4 py-8">
-      <!-- DEBUG: Events count: <%= length(@events) %> -->
-      <!-- DEBUG: Events:
-      {inspect(@events, pretty: true)} -->
-      <!-- DEBUG: Resource ID: {@resource_id} -->
-      <!-- DEBUG: Resource Type: {@resource_type} -->
-      <!-- DEBUG: Template rendering started -->
-      <!-- DEBUG: Events assign type: {inspect(@events, limit: :infinity)} -->
       <div class="flex justify-between items-center mb-8">
         <h1 class="text-3xl font-bold">Resource Event System</h1>
         <div class="flex gap-4">
@@ -175,13 +159,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            <!-- Debug: Events count: <%= length(@events) %> -->
-            <!-- Debug: Events loop start -->
-            <!-- DEBUG: About to loop through
-            {length(@events)} events -->
-            <!-- DEBUG: Events data: {inspect(@events, pretty: true)} -->
             <%= for event <- @events do %>
-              <!-- DEBUG: Rendering event: <%= event.type %> -->
               <tr class="event-row" data-test-id="event-row">
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-test-id="event-type">
                   {event.type}
@@ -200,11 +178,9 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemLive do
                 </td>
               </tr>
             <% end %>
-            <!-- Debug: Events loop end -->
           </tbody>
         </table>
       </div>
-      <!-- DEBUG: Template rendering completed -->
     </div>
     """
   end

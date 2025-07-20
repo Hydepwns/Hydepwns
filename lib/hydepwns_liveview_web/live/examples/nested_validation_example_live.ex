@@ -13,7 +13,6 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
   alias HydepwnsLiveview.Resources.UserResource
 
   def mount(_params, _session, socket) do
-    # Create a sample user with a team and posts
     user = create_sample_user()
 
     socket =
@@ -39,7 +38,6 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
 
   def handle_event("validate_user_with_context", _params, socket) do
     user = socket.assigns.user
-    # context = %{current_user: socket.assigns.current_user}
 
     case UserResource.validate_deep(user) do
       :ok ->
@@ -53,12 +51,10 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
   def handle_event("validate_with_dependencies", _params, socket) do
     user = socket.assigns.user
 
-    # First, resolve validation dependencies
     case UserResource.resolve_validation_dependencies() do
       {:ok, validation_plan} ->
         socket = assign(socket, :validation_plan, validation_plan)
 
-        # Execute the validation plan
         case UserResource.execute_validation_plan(validation_plan, user) do
           {:ok, _results} ->
             socket =
@@ -77,7 +73,6 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
             {:noreply, socket}
 
           {:checkpoint, checkpoint} ->
-            # Handle checkpoint (partial validation)
             socket =
               socket
               |> assign(:validation_status, "checkpoint")
@@ -99,29 +94,22 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
   def handle_event("introduce_errors", _params, socket) do
     user = socket.assigns.user
 
-    # Introduce validation errors
     user =
       user
       |> Map.put(:email, "invalid-email")
-      # Invalid role
       |> Map.put(:role, "superadmin")
 
-    # Introduce errors in the team
     {:ok, team} = UserResource.resolve_relationship(user, :team)
 
     team =
       team
-      # Empty name
       |> Map.put(:name, "")
-      # Too small for current members
       |> Map.put(:max_members, 2)
 
-    # Introduce errors in a post
     {:ok, posts} = UserResource.resolve_relationship(user, :posts)
 
     case posts do
       [post | rest_posts] ->
-        # Empty title
         post = Map.put(post, :title, "")
 
         user
@@ -143,7 +131,6 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
   end
 
   def handle_event("reset_user", _params, socket) do
-    # Reset to a valid user
     user = create_sample_user()
 
     socket =
@@ -183,7 +170,6 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
   end
 
   defp create_sample_user do
-    # Create a team
     team = %{
       __resource_module__: HydepwnsLiveview.Resources.TeamResource,
       id: "team-1",
@@ -196,7 +182,6 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
       ]
     }
 
-    # Create posts
     posts = [
       %{
         __resource_module__: HydepwnsLiveview.Resources.PostResource,
@@ -214,7 +199,6 @@ defmodule HydepwnsLiveviewWeb.Examples.NestedValidationExampleLive do
       }
     ]
 
-    # Create user with relationships
     %{
       __resource_module__: HydepwnsLiveview.Resources.UserResource,
       id: "user-1",

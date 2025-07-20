@@ -1,11 +1,6 @@
 defmodule HydepwnsLiveviewWeb.NotificationSettingsLive do
-  use HydepwnsLiveviewWeb, :live_view
+  use HydepwnsLiveviewWeb.BaseLive
   import Phoenix.Component
-
-  @impl true
-  def mount(params, session, socket) do
-    {:ok, do_mount(params, session, socket)}
-  end
 
   def do_mount(_params, _session, socket) do
     socket
@@ -17,18 +12,15 @@ defmodule HydepwnsLiveviewWeb.NotificationSettingsLive do
     })
   end
 
-  @impl true
   def handle_event("toggle_setting", %{"setting" => setting}, socket) do
     settings = Map.update!(socket.assigns.settings, String.to_atom(setting), &(!&1))
     {:noreply, assign(socket, :settings, settings)}
   end
 
-  @impl true
   def handle_event("save_settings", _params, socket) do
     {:noreply, put_flash(socket, :info, "Notification settings updated")}
   end
 
-  @impl true
   def render(assigns) do
     ~H"""
     <div class="container mx-auto px-4 py-8">

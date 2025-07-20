@@ -12,6 +12,7 @@ defmodule HydepwnsLiveviewWeb.HealthController do
   Basic health check endpoint.
   Returns 200 OK if the application is running.
   """
+  @spec index(Plug.Conn.t(), any()) :: Plug.Conn.t()
   def index(conn, _params) do
     conn
     |> put_resp_content_type("application/json")
@@ -26,6 +27,7 @@ defmodule HydepwnsLiveviewWeb.HealthController do
   Comprehensive health check including database connectivity.
   Returns detailed status information.
   """
+  @spec detailed(Plug.Conn.t(), any()) :: Plug.Conn.t()
   def detailed(conn, _params) do
     health_status = %{
       status: "healthy",
@@ -55,6 +57,7 @@ defmodule HydepwnsLiveviewWeb.HealthController do
   end
 
   # Database connectivity check.
+  @spec check_database() :: map()
   defp check_database do
     case Repo.query("SELECT 1") do
       {:ok, _result} -> %{status: "ok", message: "connected"}
@@ -62,22 +65,21 @@ defmodule HydepwnsLiveviewWeb.HealthController do
     end
   end
 
+  @spec check_memory() :: map()
   defp check_memory do
-    case :erlang.memory() do
-      memory when is_list(memory) ->
-        total = :erlang.memory(:total)
-        process = :erlang.memory(:processes)
-        usage_percent = process / total * 100
+    memory_info = :erlang.memory()
+    total = Keyword.get(memory_info, :total, 0)
+    process = Keyword.get(memory_info, :processes, 0)
+    usage_percent = process / total * 100
 
-        if usage_percent < 90 do
-          %{status: "ok", usage: "#{Float.round(usage_percent, 2)}%"}
-        else
-          %{status: "warning", usage: "#{Float.round(usage_percent, 2)}% (high)"}
-        end
-
-      _ ->
-        %{status: "error", message: "unable to check memory"}
+    if usage_percent < 90 do
+      %{status: "ok", usage: "#{Float.round(usage_percent, 2)}%"}
+    else
+      %{status: "warning", usage: "#{Float.round(usage_percent, 2)}% (high)"}
     end
+  rescue
+    _ ->
+      %{status: "error", message: "unable to check memory"}
   end
 
   defp check_disk do

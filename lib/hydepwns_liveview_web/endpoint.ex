@@ -1,9 +1,6 @@
 defmodule HydepwnsLiveviewWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :hydepwns_liveview
 
-  # The session will be stored in the cookie and signed,
-  # this means its contents can be read but not tampered with.
-  # Set :encryption_salt if you would also like to encrypt it.
   @session_options [
     store: :cookie,
     key: "_hydepwns_liveview_key",
@@ -15,18 +12,12 @@ defmodule HydepwnsLiveviewWeb.Endpoint do
     websocket: [connect_info: [session: @session_options, cookies: :all]],
     longpoll: [connect_info: [session: @session_options, cookies: :all]]
 
-  # Serve at "/" the static files from "priv/static" directory.
-  #
-  # You should set gzip to true if you are running phx.digest
-  # when deploying your static files in production.
   plug Plug.Static,
     at: "/",
     from: :hydepwns_liveview,
     gzip: false,
     only: HydepwnsLiveviewWeb.static_paths()
 
-  # Code reloading can be explicitly enabled under the
-  # :code_reloader configuration of your endpoint.
   if code_reloading? do
     socket "/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket
     plug Phoenix.LiveReloader
@@ -50,9 +41,6 @@ defmodule HydepwnsLiveviewWeb.Endpoint do
   plug Plug.Head
   plug Plug.Session, @session_options
 
-  # Use built-in secure browser headers
-  # plug :put_secure_browser_headers
-  # Add custom security headers
   plug HydepwnsLiveviewWeb.Plugs.CustomSecurityHeaders
 
   if Application.compile_env(:hydepwns_liveview, :sql_sandbox, false) do

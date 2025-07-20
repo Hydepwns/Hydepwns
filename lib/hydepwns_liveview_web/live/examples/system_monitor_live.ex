@@ -25,22 +25,18 @@ defmodule HydepwnsLiveviewWeb.Examples.SystemMonitorLive do
 
   @impl true
   def handle_info(:update_metrics, socket) do
-    # Simulate system metrics (in a real app, you'd get these from the OS)
     cpu_usage = :rand.uniform(100)
     memory_usage = :rand.uniform(100)
     disk_usage = :rand.uniform(100)
     network_in = :rand.uniform(1000)
     network_out = :rand.uniform(1000)
 
-    # Update histories (keep last 60 data points)
     cpu_history = update_history(socket.assigns.cpu_history, cpu_usage)
     memory_history = update_history(socket.assigns.memory_history, memory_usage)
     network_history = update_history(socket.assigns.network_history, network_in + network_out)
 
-    # Simulate process list
     processes = generate_process_list()
 
-    # Simulate load average
     load_average = %{
       one: :rand.uniform() * 5,
       five: :rand.uniform() * 4,
@@ -74,7 +70,6 @@ defmodule HydepwnsLiveviewWeb.Examples.SystemMonitorLive do
       </div>
 
       <MonoGrid.grid cols={100} rows={40} bordered class="monitor-grid">
-        <!-- CPU Usage Chart -->
         <MonoGrid.cell row={1} col={1} colspan={50} rowspan={10}>
           <div class="metric-chart">
             <h3>CPU Usage: <%= @cpu_usage %>%</h3>
@@ -97,7 +92,6 @@ defmodule HydepwnsLiveviewWeb.Examples.SystemMonitorLive do
           </div>
         </MonoGrid.cell>
 
-        <!-- Memory Usage -->
         <MonoGrid.cell row={1} col={51} colspan={50} rowspan={10}>
           <div class="metric-chart">
             <h3>Memory Usage: <%= @memory_usage %>%</h3>
@@ -115,7 +109,6 @@ defmodule HydepwnsLiveviewWeb.Examples.SystemMonitorLive do
           </div>
         </MonoGrid.cell>
 
-        <!-- Disk Usage -->
         <MonoGrid.cell row={11} col={1} colspan={50} rowspan={8}>
           <div class="metric-chart">
             <h3>Disk Usage: <%= @disk_usage %>%</h3>
@@ -133,7 +126,6 @@ defmodule HydepwnsLiveviewWeb.Examples.SystemMonitorLive do
           </div>
         </MonoGrid.cell>
 
-        <!-- Network I/O -->
         <MonoGrid.cell row={11} col={51} colspan={50} rowspan={8}>
           <div class="metric-chart">
             <h3>Network I/O</h3>
@@ -156,7 +148,6 @@ defmodule HydepwnsLiveviewWeb.Examples.SystemMonitorLive do
           </div>
         </MonoGrid.cell>
 
-        <!-- Process List -->
         <MonoGrid.cell row={19} col={1} colspan={100} rowspan={21}>
           <div class="process-list">
             <h3>Active Processes (<%= length(@processes) %>)</h3>
@@ -185,7 +176,6 @@ defmodule HydepwnsLiveviewWeb.Examples.SystemMonitorLive do
     """
   end
 
-  # Helper functions
   defp update_history(history, new_value) do
     history = [new_value | history]
     if length(history) > 60, do: Enum.take(history, 60), else: history

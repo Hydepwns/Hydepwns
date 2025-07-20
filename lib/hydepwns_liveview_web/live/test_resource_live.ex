@@ -36,11 +36,11 @@ defmodule HydepwnsLiveviewWeb.TestResourceLive do
 
     case HydepwnsLiveview.Utils.LiveViewAPI.update_field(socket, field, value, opts) do
       {:ok, updated_socket} -> updated_socket
-      {:error, _message, error_socket} -> error_socket
     end
   end
 
   @impl Phoenix.LiveView
+  @spec render(any()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
     ~H"""
     <div id="test-resource">

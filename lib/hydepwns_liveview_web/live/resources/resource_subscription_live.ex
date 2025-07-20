@@ -3,7 +3,6 @@ defmodule HydepwnsLiveviewWeb.ResourceSubscriptionLive do
 
   @impl true
   def mount(%{"id" => id}, _session, socket) do
-    # In a real app, load current subscriptions from DB or API
     {:ok,
      socket
      |> assign(:resource_id, id)
@@ -13,15 +12,6 @@ defmodule HydepwnsLiveviewWeb.ResourceSubscriptionLive do
 
   @impl true
   def handle_event("save_subscriptions", %{"events" => events}, socket) do
-    # In a real app, persist subscriptions
-    {:noreply,
-     assign(socket, :selected_events, events) |> assign(:status, "Subscriptions updated!")}
-  end
-
-  def handle_event("save_subscriptions", params, socket) do
-    # Handle case where "events" key is missing
-    events = Map.get(params, "events", [])
-
     {:noreply,
      assign(socket, :selected_events, events) |> assign(:status, "Subscriptions updated!")}
   end

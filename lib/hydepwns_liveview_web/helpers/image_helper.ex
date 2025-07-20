@@ -11,7 +11,7 @@ defmodule HydepwnsLiveviewWeb.ImageHelper do
   Automatically checks if a WebP version exists, otherwise uses only the original.
 
   ## Examples
-      
+
       {optimized_image_tag("/images/logo.png", alt: "Logo", class: "header-logo")}
 
   Will generate:
@@ -25,31 +25,39 @@ defmodule HydepwnsLiveviewWeb.ImageHelper do
   """
   def optimized_image_tag(image_path, attrs \\ []) do
     # Extract file info
-    {path, filename, _ext} = extract_path_info(image_path)
-    # Construct the path to the WebP version
-    webp_path = "#{path}#{filename}.webp"
+    case extract_path_info(image_path) do
+      {path, filename, _ext} ->
+        # Construct the path to the WebP version
+        webp_path = "#{path}#{filename}.webp"
 
-    # Get static path (handles fingerprinting)
-    original_static_path = static_image_path(image_path)
+        # Get static path (handles fingerprinting)
+        original_static_path = static_image_path(image_path)
 
-    # Check if WebP version exists in the filesystem
-    webp_exists = webp_file_exists?(webp_path)
+        # Check if WebP version exists in the filesystem
+        webp_exists = webp_file_exists?(webp_path)
 
-    if webp_exists do
-      webp_static_path = static_image_path(webp_path)
+        if webp_exists do
+          webp_static_path = static_image_path(webp_path)
 
-      # Generate picture tag with WebP and fallback
-      Tag.content_tag(:picture, [
-        Tag.tag(:source, srcset: webp_static_path, type: "image/webp"),
-        Tag.tag(:source, srcset: original_static_path),
+          # Generate picture tag with WebP and fallback
+          Tag.content_tag(:picture, [
+            Tag.tag(:source, srcset: webp_static_path, type: "image/webp"),
+            Tag.tag(:source, srcset: original_static_path),
+            Tag.tag(:img, Keyword.merge([src: original_static_path], attrs))
+          ])
+        else
+          # If WebP doesn't exist, just use the original image
+          Tag.tag(:img, Keyword.merge([src: original_static_path], attrs))
+        end
+
+      _ ->
+        # Fallback for invalid paths
+        original_static_path = static_image_path(image_path)
         Tag.tag(:img, Keyword.merge([src: original_static_path], attrs))
-      ])
-    else
-      # If WebP doesn't exist, just use the original image
-      Tag.tag(:img, Keyword.merge([src: original_static_path], attrs))
     end
   end
 
+  @spec static_image_path(binary()) :: binary()
   @doc """
   Returns a string with the static path for the given image.
   Handles the static path helpers with proper asset fingerprinting.
@@ -63,13 +71,17 @@ defmodule HydepwnsLiveviewWeb.ImageHelper do
     # Split the path to get directory and filename
     path_parts = String.split(image_path, "/")
     filename_with_ext = List.last(path_parts)
-    directory = Enum.slice(path_parts, 0, -1) |> Enum.join("/")
+    directory = Enum.drop(path_parts, -1) |> Enum.join("/")
 
-    # Extract filename and extension
-    case String.split(filename_with_ext, ".") do
-      [filename, ext] -> {directory <> "/", filename, "." <> ext}
-      [filename] -> {directory <> "/", filename, ""}
-      _ -> {directory <> "/", filename_with_ext, ""}
+    # Handle case where filename_with_ext might be nil
+    case filename_with_ext do
+      nil -> {"", "", ""}
+      filename ->
+        # Extract filename and extension
+        case String.split(filename, ".") do
+          [name, ext] -> {directory <> "/", name, "." <> ext}
+          [name] -> {directory <> "/", name, ""}
+        end
     end
   end
 

@@ -1,14 +1,12 @@
 defmodule HydepwnsLiveviewWeb.TimelineLive do
-  use HydepwnsLiveviewWeb, :live_view
+  use HydepwnsLiveviewWeb.BaseLive
   alias HydepwnsLiveview.Events
 
-  @impl true
-  def mount(_params, _session, socket) do
+  def do_mount(_params, _session, socket) do
     events = Events.list_events()
-    {:ok, assign(socket, events: events)}
+    assign(socket, events: events)
   end
 
-  @impl true
   def render(assigns) do
     ~H"""
     <div class="event-timeline">

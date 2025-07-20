@@ -10,17 +10,11 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
 
   @impl true
   def update(%{resource: resource} = assigns, socket) do
-    IO.inspect(assigns, label: "[DEBUG] assigns in update/2")
-    IO.puts("[DEBUG] ResourceFormComponent.update/2 - @myself: #{inspect(assigns[:myself])}")
-    IO.puts("[DEBUG] ResourceFormComponent.update/2 - parent_pid: #{inspect(assigns[:parent_pid])}")
-
-    # Normalize parent_id to "" for the form if nil
     resource =
       if Map.get(resource, :parent_id) == nil,
         do: Map.put(resource, :parent_id, ""),
         else: resource
 
-    # Convert content map to plain text for form display
     resource_with_text_content =
       cond do
         Map.has_key?(resource, :content) and is_map(resource.content) ->
@@ -30,7 +24,6 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
           resource
       end
 
-    # Ensure required fields have default values for new resources (only on mount)
     _resource_with_defaults =
       if resource_with_text_content.id == nil do
         %{
@@ -42,9 +35,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
         resource_with_text_content
       end
 
-    # Create changeset with the processed resource data (with text content)
     changeset = Resource.changeset(resource_with_text_content, %{})
-    # Force content to be a string for the form
     content_text = resource_with_text_content.content || ""
     changeset = %{changeset | data: %{changeset.data | content: content_text}}
 
@@ -53,10 +44,6 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
         do: %{changeset | params: Map.put(changeset.params, "content", content_text)},
         else: changeset
 
-    IO.inspect(changeset.data.content, label: "[DEBUG] changeset.data.content before assign")
-    IO.inspect(resource_with_text_content.parent_id, label: "[DEBUG] resource.parent_id")
-
-    # Prepare options for select fields
     type_options = [
       {"Document", "document"},
       {"Folder", "folder"},
@@ -71,19 +58,14 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
       {"Archived", "archived"}
     ]
 
-    # Filter out resources that would create circular relationships
-    # A resource cannot be its own parent, and a child cannot be a parent of its parent
     current_resource_id = resource_with_text_content.id
 
     filtered_resources =
       (assigns[:resources] || [])
       |> Enum.filter(fn potential_parent ->
-        # Skip if this is the same resource (self-reference)
         if current_resource_id && potential_parent.id == current_resource_id do
           false
         else
-          # Skip if this would create a circular relationship
-          # A child cannot be a parent of its own parent
           if current_resource_id && potential_parent.parent_id == current_resource_id do
             false
           else
@@ -96,16 +78,6 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
       {"None", ""} | Enum.map(filtered_resources, fn resource -> {resource.name, resource.id} end)
     ]
 
-    IO.inspect(parent_options, label: "[DEBUG] parent_options")
-
-    # Debug: Check which option should be selected
-    current_parent_id = resource_with_text_content.parent_id
-    IO.inspect(current_parent_id, label: "[DEBUG] current_parent_id")
-
-    # Find the selected option for debugging
-    selected_option = Enum.find(parent_options, fn {_label, value} -> value == current_parent_id end)
-    IO.inspect(selected_option, label: "[DEBUG] selected_option")
-
     {:ok,
      socket
      |> assign(assigns)
@@ -117,22 +89,12 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
 
   @impl true
   def handle_event(event, params, socket) do
-    IO.puts("=== ResourceFormComponent.handle_event/3 CALLED: event=#{inspect(event)}, params=#{inspect(params)} ===")
-    IO.puts("🔍 ResourceFormComponent: handle_event/3 called with event: '#{event}', params: #{inspect(params)}")
-    IO.puts("🔍 ResourceFormComponent: socket assigns keys: #{inspect(Map.keys(socket.assigns))}")
-    IO.puts("🔍 ResourceFormComponent: socket assigns id: #{inspect(socket.assigns[:id])}")
-    IO.puts("🔍 ResourceFormComponent: socket assigns parent_pid: #{inspect(socket.assigns[:parent_pid])}")
-    IO.inspect(socket.assigns, label: "[DEBUG] assigns in handle_event/3")
-
     case event do
       "validate" ->
-        IO.puts("🔍 ResourceFormComponent: handle_event('validate') params: #{inspect(params)}")
         handle_validate(params, socket)
       "save" ->
-        IO.puts("🔍 ResourceFormComponent: handle_event('save') params: #{inspect(params)}")
         handle_save(params, socket)
       _ ->
-        IO.puts("🔍 ResourceFormComponent: Received unexpected event: '#{event}'")
         {:noreply, socket}
     end
   end
@@ -145,7 +107,6 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
       |> Resource.changeset(resource_params)
       |> Map.put(:action, :validate)
 
-    # Ensure content is always plain text in the changeset
     content_text = Map.get(resource_params, "content", "") || ""
     changeset = %{changeset | data: %{changeset.data | content: content_text}}
 
@@ -157,16 +118,13 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
     {:noreply, assign(socket, :changeset, changeset)}
   end
 
-  defp handle_save(%{"resource" => resource_params} = params, socket) do
-    IO.puts("[DEBUG] handle_save/2 received params: #{inspect(params)}")
-    IO.puts("[DEBUG] handle_save/2 received resource_params: #{inspect(resource_params)}")
+  defp handle_save(%{"resource" => resource_params}, socket) do
     resource_params = process_form_params(resource_params)
     save_resource(socket, socket.assigns.action, resource_params)
   end
 
   defp parse_content_json(params) do
     content = Map.get(params, "content")
-    IO.inspect(content, label: "[DEBUG] parse_content_json input")
 
     result =
       case content do
@@ -189,7 +147,6 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
           params
       end
 
-    IO.inspect(result, label: "[DEBUG] parse_content_json output")
     result
   end
 
@@ -202,33 +159,22 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
   defp process_parent_id(params) do
     case Map.get(params, "parent_id") do
       "" ->
-        IO.puts("🔍 Converting empty parent_id to nil")
         Map.put(params, "parent_id", nil)
-      value ->
-        IO.puts("🔍 parent_id value: #{inspect(value)}")
+      _value ->
         params
     end
   end
 
   defp notify_parent(socket, msg) do
-    IO.puts("[DEBUG] ResourceFormComponent.notify_parent called with message: #{inspect(msg)}")
-    IO.puts("[DEBUG] Component self(): #{inspect(self())}")
-    IO.puts("[DEBUG] Component parent_pid: #{inspect(socket.assigns[:parent_pid])}")
-
     if socket.assigns[:parent_pid] do
-      IO.puts("[DEBUG] Sending message to parent_pid: #{inspect(socket.assigns.parent_pid)}")
       send(socket.assigns.parent_pid, msg)
     else
-      IO.puts("[ERROR] parent_pid is nil in notify_parent!")
     end
   end
 
   defp save_resource(socket, :edit, resource_params) do
-    IO.puts("[DEBUG] ResourceFormComponent.save_resource(:edit) called")
-
     case ResourceSystem.update_resource(socket.assigns.resource, resource_params) do
       {:ok, resource} ->
-        # Notify parent and let it handle the flash message and redirect
         notify_parent(socket, {:resource_updated, resource})
         {:noreply, socket}
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -237,25 +183,13 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
   end
 
   defp save_resource(socket, :new, resource_params) do
-    IO.puts(
-      "[DEBUG] ResourceFormComponent.save_resource(:new) called with params: #{inspect(resource_params)}"
-    )
-
     case ResourceSystem.create_resource(resource_params) do
       {:ok, resource} ->
-        IO.puts(
-          "[DEBUG] ResourceFormComponent: Resource created successfully, sending message to parent"
-        )
-
         notify_parent(socket, {:resource_created, resource})
 
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        IO.puts(
-          "[DEBUG] ResourceFormComponent: Resource creation failed with errors: #{inspect(changeset.errors)}"
-        )
-
         {:noreply, assign(socket, :changeset, changeset)}
     end
   end
@@ -263,7 +197,7 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div data-debug="ResourceFormComponent-template-rendered">
+    <div>
       <form id="resource-form" phx-change="validate" phx-submit="save" phx-target={@id} data-test-id="resource-form">
         <div class="space-y-6">
           <div>
@@ -274,8 +208,8 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
               <input type="text" id="resource-form_name" name="resource[name]" value={@resource.name} class="form-control" />
               <%= if @changeset.errors[:name] do %>
                 <div class="mt-1 text-sm text-red-600" data-test-id="name-error">
-                  <%= for {_field, {message, _opts}} <- @changeset.errors do %>
-                    <%= if _field == :name do %>
+                  <%= for {field, {message, _opts}} <- @changeset.errors do %>
+                    <%= if field == :name do %>
                       <%= message %>
                     <% end %>
                   <% end %>
@@ -344,8 +278,8 @@ defmodule HydepwnsLiveviewWeb.ResourceFormComponent do
               </select>
               <%= if @changeset.errors[:parent_id] do %>
                 <div class="mt-1 text-sm text-red-600" data-test-id="parent-id-error">
-                  <%= for {_field, {message, _opts}} <- @changeset.errors do %>
-                    <%= if _field == :parent_id do %>
+                  <%= for {field, {message, _opts}} <- @changeset.errors do %>
+                    <%= if field == :parent_id do %>
                       <%= message %>
                     <% end %>
                   <% end %>

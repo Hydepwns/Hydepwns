@@ -1,8 +1,7 @@
 defmodule HydepwnsLiveviewWeb.ScreenReaderTestLive do
-  use HydepwnsLiveviewWeb, :live_view
+  use HydepwnsLiveviewWeb.BaseLive
 
-  @impl true
-  def mount(_params, _session, socket) do
+  def do_mount(_params, _session, socket) do
     theme_class = "dark-theme"
 
     socket =
@@ -10,10 +9,9 @@ defmodule HydepwnsLiveviewWeb.ScreenReaderTestLive do
       |> assign(:page_title, "Screen Reader Test")
       |> assign(:theme_class, theme_class)
 
-    {:ok, socket}
+    socket
   end
 
-  @impl true
   def render(assigns) do
     ~H"""
     <section>

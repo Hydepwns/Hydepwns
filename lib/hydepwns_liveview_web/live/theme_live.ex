@@ -1,15 +1,13 @@
 defmodule HydepwnsLiveviewWeb.ThemeLive do
-  use HydepwnsLiveviewWeb, :live_view
+  use HydepwnsLiveviewWeb.BaseLive
 
   alias HydepwnsLiveview.ThemeSystem
   alias HydepwnsLiveview.ThemeSystem.Models.Theme
 
-  @impl true
-  def mount(_params, _session, socket) do
-    {:ok, assign(socket, themes: ThemeSystem.list_themes())}
+  def do_mount(_params, _session, socket) do
+    assign(socket, themes: ThemeSystem.list_themes())
   end
 
-  @impl true
   def handle_params(params, _url, socket) do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
@@ -42,7 +40,6 @@ defmodule HydepwnsLiveviewWeb.ThemeLive do
     |> assign(:theme, ThemeSystem.get_theme!(id))
   end
 
-  @impl true
   def handle_event("delete_theme", %{"id" => id}, socket) do
     theme = ThemeSystem.get_theme!(id)
     {:ok, _} = ThemeSystem.delete_theme(theme)
@@ -50,7 +47,6 @@ defmodule HydepwnsLiveviewWeb.ThemeLive do
     {:noreply, assign(socket, :themes, ThemeSystem.list_themes())}
   end
 
-  @impl true
   def handle_event("apply_theme", %{"id" => id}, socket) do
     theme = ThemeSystem.get_theme!(id)
     {:ok, _} = ThemeSystem.apply_theme(theme)
@@ -61,7 +57,6 @@ defmodule HydepwnsLiveviewWeb.ThemeLive do
      |> assign(:themes, ThemeSystem.list_themes())}
   end
 
-  @impl true
   def handle_event("save", %{"theme" => theme_params}, socket) do
     save_theme(socket, socket.assigns.live_action, theme_params)
   end

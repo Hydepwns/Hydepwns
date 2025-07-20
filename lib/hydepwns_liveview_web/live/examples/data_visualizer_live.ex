@@ -127,7 +127,6 @@ defmodule HydepwnsLiveviewWeb.Examples.DataVisualizerLive do
       </div>
 
       <MonoGrid.grid cols={100} rows={50} bordered class="chart-grid">
-        <!-- Chart Area -->
         <MonoGrid.cell row={1} col={1} colspan={100} rowspan={40}>
           <div class="chart-container">
             <%= case @selected_chart do %>
@@ -136,7 +135,7 @@ defmodule HydepwnsLiveviewWeb.Examples.DataVisualizerLive do
                   <div class="chart-header">
                     <h3>Line Chart - Real-time Data</h3>
                     <div class="dataset-legend">
-                      <%= for {name, data} <- @datasets do %>
+                      <%= for {name, _data} <- @datasets do %>
                         <span class="legend-item">
                           <span class="legend-color" style={"background-color: #{get_dataset_color(name)}"}></span>
                           <span class="legend-label"><%= name %></span>
@@ -260,7 +259,6 @@ defmodule HydepwnsLiveviewWeb.Examples.DataVisualizerLive do
           </div>
         </MonoGrid.cell>
 
-        <!-- Data Table -->
         <MonoGrid.cell row={41} col={1} colspan={100} rowspan={9}>
           <div class="data-table">
             <h3>Dataset Statistics</h3>
@@ -297,7 +295,6 @@ defmodule HydepwnsLiveviewWeb.Examples.DataVisualizerLive do
     """
   end
 
-  # Helper functions
   defp initial_datasets() do
     %{
       "CPU Usage" => generate_dataset("CPU Usage", 60),

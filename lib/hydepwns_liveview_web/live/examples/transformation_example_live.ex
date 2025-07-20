@@ -77,7 +77,6 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
-    # Start the transformation registry if not already started
     case Process.whereis(TransformationRegistry) do
       nil ->
         {:ok, _pid} = TransformationRegistry.start_link()
@@ -86,16 +85,13 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
         HydepwnsLiveview.Utils.TransformationRegistry.clear()
     end
 
-    # Register standard transformers
     StandardTransformers.register_defaults()
 
-    # Get list of available transformers
     available_transformers =
       TransformationRegistry.list_transformations()
       |> Enum.map(& &1.name)
       |> Enum.sort()
 
-    # Select some default transformers
     selected_transformers = [
       "format_email",
       "format_phone",
@@ -360,10 +356,8 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
 
   defp execute_transformation_pipeline(resource, selected_transformers, form_data) do
     try do
-      # Register transformations dynamically based on user selection
       register_selected_transformations(selected_transformers, form_data)
 
-      # Create transformation context
       _context =
         TransformationContext.new(
           Map.keys(resource),
@@ -371,7 +365,6 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
           original_resource: resource
         )
 
-      # Apply transformations through the pipeline
       case TransformationPipeline.apply_transformations(
              resource,
              :example,
@@ -394,13 +387,9 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
     end
   end
 
-  # Register transformations based on user's selected transformers
   defp register_selected_transformations(selected_transformers, form_data) do
-    # Clear existing transformations first
-    # (in a real application, you might not want to clear all transformations)
     clear_example_transformations()
 
-    # Register each selected transformation
     register_email_transformer(selected_transformers)
     register_phone_transformer(selected_transformers, form_data)
     register_trim_transformer(selected_transformers, form_data)
@@ -562,8 +551,6 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
     custom_code = Map.get(form_data, "custom_code", "")
 
     if custom_name != "" && custom_code != "" do
-      # WARNING: In a real application, you should NOT evaluate arbitrary code!
-      # This is just for demonstration purposes in a controlled environment.
       {custom_transformer, _} = Code.eval_string(custom_code)
 
       TransformationRegistry.register(
@@ -577,11 +564,9 @@ defmodule HydepwnsLiveviewWeb.Examples.TransformationExampleLive do
     end
   end
 
-  # Clear all example transformations from the registry
   defp clear_example_transformations do
     all_transformations = TransformationRegistry.list_transformations()
 
-    # Find all transformations for the example resource type
     example_transformations =
       Enum.filter(all_transformations, fn t ->
         t.resource_type == :example

@@ -1,19 +1,15 @@
 defmodule HydepwnsLiveviewWeb.BridgeFormLive do
-  use HydepwnsLiveviewWeb, :live_view
+  use HydepwnsLiveviewWeb.BaseLive
 
   import HydepwnsLiveviewWeb.Components.UI.FormComponents, only: [input: 1, label_tag: 1]
 
-  @impl Phoenix.LiveView
-  def mount(_params, _session, socket) do
-    {:ok, assign(socket, page_title: "Bridge Form")}
+  def do_mount(_params, _session, socket) do
+    assign(socket, page_title: "Bridge Form")
   end
 
-  @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
     <div class="container mx-auto px-4 py-8">
-      {HydepwnsLiveviewWeb.Components.Common.HeaderComponent.header(assigns)}
-
       <div class="bg-white shadow rounded-lg p-6">
         <div class="space-y-6">
           <div>

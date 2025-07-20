@@ -100,9 +100,7 @@ defmodule HydepwnsLiveviewWeb.Helpers.TocHelper do
             label: sanitize_heading_text(content)
           }
 
-        # Handles cases where id is nil or empty string
         [level, _id, content] ->
-          # If no ID is provided, generate a slug from the content
           generated_id = generate_id_from_text(content)
 
           %{
@@ -128,8 +126,6 @@ defmodule HydepwnsLiveviewWeb.Helpers.TocHelper do
           Map.update!(heading, :id, fn id -> id_prefix <> id end)
         end)
 
-      # Determine the shallowest level among the provided headings
-      # The parent_level for the root call should be one less than this.
       min_level_present = Enum.min_by(headings_with_prefix, & &1.level).level
       initial_parent_level = min_level_present - 1
 
@@ -140,15 +136,12 @@ defmodule HydepwnsLiveviewWeb.Helpers.TocHelper do
     end
   end
 
-  # Recursive helper to build the hierarchy.
-  # `parent_level` is the level of the parent under which we are looking for children.
   defp do_build_hierarchy([], _parent_level), do: {[], []}
 
   defp do_build_hierarchy([heading | rest], parent_level) do
     current_level = heading.level
 
     if current_level == parent_level + 1 do
-      # Collect all children for this heading
       {children, remaining} = collect_children(rest, current_level)
       {siblings, final_remaining} = do_build_hierarchy(remaining, parent_level)
       {[Map.put(heading, :children, children) | siblings], final_remaining}
@@ -173,9 +166,7 @@ defmodule HydepwnsLiveviewWeb.Helpers.TocHelper do
   """
   def sanitize_heading_text(content) do
     content
-    # Remove HTML tags
     |> String.replace(~r/<[^>]*>/, "")
-    # Trim whitespace
     |> String.trim()
   end
 
@@ -188,9 +179,7 @@ defmodule HydepwnsLiveviewWeb.Helpers.TocHelper do
     content
     |> sanitize_heading_text()
     |> String.downcase()
-    # Remove special characters
     |> String.replace(~r/[^a-z0-9\s-]/, "")
-    # Replace spaces with hyphens
     |> String.replace(~r/\s+/, "-")
   end
 
@@ -209,9 +198,7 @@ defmodule HydepwnsLiveviewWeb.Helpers.TocHelper do
   """
   def flatten_toc(toc, acc \\ []) do
     Enum.reduce(toc, acc, fn item, items ->
-      # Add current item (without children) to the accumulator
       current = Map.delete(item, :children)
-      # Process children (if any) and append to result
       children_items = flatten_toc(Map.get(item, :children, []), [])
       items ++ [current] ++ children_items
     end)

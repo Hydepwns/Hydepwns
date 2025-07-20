@@ -1,7 +1,6 @@
 defmodule HydepwnsLiveviewWeb.Router do
   use HydepwnsLiveviewWeb, :router
 
-  # Standard browser pipeline
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -11,7 +10,6 @@ defmodule HydepwnsLiveviewWeb.Router do
     plug :put_secure_browser_headers
   end
 
-  # API pipeline for future use
   pipeline :api do
     plug :accepts, ["json"]
     plug :fetch_session
@@ -20,7 +18,6 @@ defmodule HydepwnsLiveviewWeb.Router do
     plug HydepwnsLiveviewWeb.Plugs.ContentTypePlug
   end
 
-  # API pipeline with authentication
   pipeline :api_auth do
     plug :accepts, ["json"]
     plug :fetch_session
@@ -30,7 +27,6 @@ defmodule HydepwnsLiveviewWeb.Router do
     plug HydepwnsLiveviewWeb.Plugs.AuthPlug
   end
 
-  # API pipeline with admin authentication
   pipeline :api_admin do
     plug :accepts, ["json"]
     plug :fetch_session
@@ -40,12 +36,10 @@ defmodule HydepwnsLiveviewWeb.Router do
     plug HydepwnsLiveviewWeb.Plugs.AuthPlug, :call_admin
   end
 
-  # Health check pipeline (no authentication required)
   pipeline :health do
     plug :accepts, ["json"]
   end
 
-  # Health check routes (no authentication required)
   scope "/health", HydepwnsLiveviewWeb do
     pipe_through :health
 
@@ -55,14 +49,11 @@ defmodule HydepwnsLiveviewWeb.Router do
     get "/live", HealthController, :live
   end
 
-  # API routes
   scope "/api", HydepwnsLiveviewWeb do
-    # Public API routes (no authentication required)
     pipe_through :api
     get "/resources", Api.ResourceController, :index
     get "/resources/:id", Api.ResourceController, :show
 
-    # Authenticated API routes
     pipe_through :api_auth
     post "/resources", Api.ResourceController, :create
     put "/resources/:id", Api.ResourceController, :update
@@ -71,7 +62,6 @@ defmodule HydepwnsLiveviewWeb.Router do
     put "/users/:id", Api.UserController, :update
     post "/upload", Api.UploadController, :create
 
-    # Admin API routes
     scope "/admin" do
       pipe_through :api_admin
       get "/users", Api.AdminController, :users
@@ -80,7 +70,6 @@ defmodule HydepwnsLiveviewWeb.Router do
     end
   end
 
-  # API v1 routes (alias for /api)
   scope "/api/v1", HydepwnsLiveviewWeb do
     pipe_through :api
     get "/resources", Api.ResourceController, :index
@@ -101,7 +90,6 @@ defmodule HydepwnsLiveviewWeb.Router do
     end
   end
 
-  # Catch-all for unknown API versions
   scope "/api", HydepwnsLiveviewWeb do
     pipe_through :api
     match :*, "/*path", Api.ErrorController, :not_found

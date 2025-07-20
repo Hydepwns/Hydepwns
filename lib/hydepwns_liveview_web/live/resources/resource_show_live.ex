@@ -1,25 +1,15 @@
 defmodule HydepwnsLiveviewWeb.ResourceShowLive do
-  use HydepwnsLiveviewWeb, :live_view
+  use HydepwnsLiveviewWeb.BaseLive
 
   alias HydepwnsLiveview.Resources.ResourceSystem
 
-  @impl true
-  def mount(_params, _session, socket) do
-    IO.puts("🔍 ResourceShowLive: mount called")
-    IO.puts("🔍 ResourceShowLive: socket assigns: #{inspect(socket.assigns)}")
-    IO.puts("[DEBUG] ResourceShowLive: mount flash: #{inspect(socket.assigns[:flash])}")
-    {:ok, socket}
+  def do_mount(_params, _session, socket) do
+    socket
   end
 
-  @impl true
-  def handle_params(%{"id" => id} = _params, _uri, socket) do
-    IO.puts("🔍 ResourceShowLive: handle_params called with id: #{id}")
-    IO.puts("🔍 ResourceShowLive: flash in socket: #{inspect(socket.assigns.flash)}")
-    IO.puts("[DEBUG] ResourceShowLive: handle_params flash: #{inspect(socket.assigns[:flash])}")
-
+  def handle_params(%{"id" => id}, _uri, socket) do
     case ResourceSystem.get_resource(id) do
       {:ok, resource} ->
-        IO.puts("🔍 ResourceShowLive: Found resource: #{inspect(resource)}")
         {:noreply, assign(socket, :resource, resource)}
 
       {:error, :not_found} ->
@@ -27,7 +17,6 @@ defmodule HydepwnsLiveviewWeb.ResourceShowLive do
     end
   end
 
-  @impl true
   def handle_event("delete", _params, socket) do
     case ResourceSystem.delete_resource(socket.assigns.resource.id) do
       {:ok, _resource} ->
@@ -43,7 +32,6 @@ defmodule HydepwnsLiveviewWeb.ResourceShowLive do
     end
   end
 
-  @impl true
   def render(assigns) do
     ~H"""
     <.flash_group flash={@flash} />

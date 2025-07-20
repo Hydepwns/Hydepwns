@@ -1,8 +1,4 @@
 defmodule HydepwnsLiveviewWeb.UserAuth do
-  @moduledoc """
-  Handles user authentication for LiveView.
-  """
-
   alias HydepwnsLiveview.Accounts
   alias HydepwnsLiveviewWeb.Router.Helpers, as: Routes
 
@@ -53,14 +49,11 @@ defmodule HydepwnsLiveviewWeb.UserAuth do
   end
 
   defp assign_current_user(socket, session) do
-    # Ensure socket has proper assigns structure
     socket = ensure_socket_assigns(socket)
 
-    # Check if current_user is already assigned
     if Map.has_key?(socket.assigns, :current_user) do
       socket
     else
-      # Get user from session token
       user =
         if user_token = session["user_token"] do
           try do
@@ -95,7 +88,6 @@ defmodule HydepwnsLiveviewWeb.UserAuth do
   end
 
   def log_in_user(socket, user, _params \\ %{}) do
-    # Ensure socket has proper assigns structure
     socket = ensure_socket_assigns(socket)
 
     token = Accounts.generate_user_session_token(user)
@@ -124,36 +116,22 @@ defmodule HydepwnsLiveviewWeb.UserAuth do
   end
 
   defp maybe_write_remember_me_cookie_liveview(socket, _token, _params) do
-    # For LiveView, we don't set cookies directly
     socket
   end
 
   def log_out_user(socket) do
-    # Ensure socket has proper assigns structure
     socket = ensure_socket_assigns(socket)
 
-    # For LiveView sockets, we can't use Plug.Conn functions
-    # The session token should be available in socket.assigns
     user_token = socket.assigns[:user_token]
     user_token && Accounts.delete_session_token(user_token)
 
-    # For LiveView, we need to redirect without using Plug.Conn functions
     socket
     |> Phoenix.Component.assign(:current_user, nil)
     |> Phoenix.Component.assign(:user_token, nil)
     |> Phoenix.LiveView.redirect(to: Routes.home_path(socket.endpoint, :index))
   end
 
-  @doc """
-  Updates a user's password.
 
-  ## Parameters
-  * `user` - The user to update
-  * `attrs` - The password update attributes
-
-  ## Returns
-  * `{:ok, updated_user}` or `{:error, changeset}`
-  """
   def update_user_password(user, attrs) do
     user
     |> Accounts.change_user_password(attrs)

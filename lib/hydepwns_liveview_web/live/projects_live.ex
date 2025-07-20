@@ -1,9 +1,8 @@
 defmodule HydepwnsLiveviewWeb.ProjectsLive do
-  use HydepwnsLiveviewWeb, :live_view
+  use HydepwnsLiveviewWeb.BaseLive
   alias HydepwnsLiveview.Projects
 
-  @impl true
-  def mount(_params, _session, socket) do
+  def do_mount(_params, _session, socket) do
     theme_class = "dark-theme"
     diagram = Projects.get_project_diagram()
 
@@ -17,10 +16,9 @@ defmodule HydepwnsLiveviewWeb.ProjectsLive do
       ])
       |> assign(:diagram, diagram)
 
-    {:ok, socket}
+    socket
   end
 
-  @impl true
   def render(assigns) do
     ~H"""
     <h1>Projects</h1>

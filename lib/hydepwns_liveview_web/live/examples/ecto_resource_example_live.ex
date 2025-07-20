@@ -93,17 +93,14 @@ defmodule HydepwnsLiveviewWeb.Examples.EctoResourceExampleLive do
   end
 
   def handle_event("update_user", params, socket) do
-    # Convert checkbox value to boolean
     params =
       Map.update(params, "active", false, fn
         "on" -> true
         _ -> false
       end)
 
-    # Create an updated user map
     updated_user = Map.merge(socket.assigns.user, params)
 
-    # Validate the updated user data against the Ecto schema via the adapter
     case EctoUserResource.validate_resource(updated_user) do
       {:ok, validated_user} ->
         socket =
@@ -111,9 +108,6 @@ defmodule HydepwnsLiveviewWeb.Examples.EctoResourceExampleLive do
           |> assign(:user, validated_user)
           |> assign(:success_message, "User updated successfully!")
           |> assign(:error_message, nil)
-
-        # In a real application, we'd save the user to the database here
-        # EctoUserResource.save(validated_user)
 
         socket
 
@@ -128,10 +122,8 @@ defmodule HydepwnsLiveviewWeb.Examples.EctoResourceExampleLive do
   end
 
   def handle_event("validate_email", %{"email" => email}, socket) do
-    # Create a test user with the provided email
     test_user = Map.put(socket.assigns.user, :email, email)
 
-    # Validate the test user against the EctoUserResource
     case EctoUserResource.validate_resource(test_user) do
       {:ok, _} ->
         socket =

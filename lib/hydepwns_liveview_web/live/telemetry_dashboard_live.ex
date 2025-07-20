@@ -10,62 +10,27 @@ defmodule HydepwnsLiveviewWeb.TelemetryDashboardLive do
   - Error rates and alerts
   """
 
-  use HydepwnsLiveviewWeb, :live_view
+  use HydepwnsLiveviewWeb.BaseLive
 
   alias HydepwnsLiveview.Telemetry
   alias HydepwnsLiveviewWeb.Helpers.TelemetryDashboardHelper
 
-  # 5 seconds
-  @refresh_interval 5000
-
-  @impl Phoenix.LiveView
-  def mount(_params, _session, socket) do
-    if connected?(socket) do
-      :timer.send_interval(@refresh_interval, self(), :update_metrics)
-    end
-
-    {:ok,
-     assign(socket,
-       metrics: get_current_metrics(),
-       alerts: get_active_alerts(),
-       performance_data: get_performance_data(),
-       error_rates: get_error_rates(),
-       system_info: get_system_info()
-     )}
+  def do_mount(_params, _session, socket) do
+    assign(socket,
+      metrics: get_current_metrics(),
+      alerts: get_active_alerts(),
+      performance_data: get_performance_data(),
+      error_rates: get_error_rates(),
+      system_info: get_system_info()
+    )
   end
 
-  @impl Phoenix.LiveView
-  def handle_info(:update_metrics, socket) do
-    {:noreply,
-     assign(socket,
-       metrics: get_current_metrics(),
-       alerts: get_active_alerts(),
-       performance_data: get_performance_data(),
-       error_rates: get_error_rates()
-     )}
-  end
-
-  @impl Phoenix.LiveView
-  def handle_event("refresh", _params, socket) do
-    {:noreply,
-     assign(socket,
-       metrics: get_current_metrics(),
-       alerts: get_active_alerts(),
-       performance_data: get_performance_data(),
-       error_rates: get_error_rates()
-     )}
-  end
-
-  @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
     <div class="telemetry-dashboard">
       <div class="dashboard-header">
         <h1>📊 Telemetry Dashboard</h1>
         <div class="dashboard-controls">
-          <button phx-click="refresh" class="btn btn-primary">
-            🔄 Refresh
-          </button>
           <span class="last-updated">
             Last updated: {TelemetryDashboardHelper.format_time(DateTime.utc_now())}
           </span>
@@ -73,7 +38,6 @@ defmodule HydepwnsLiveviewWeb.TelemetryDashboardLive do
       </div>
 
       <div class="dashboard-grid">
-        <!-- System Metrics -->
         <div class="metric-card">
           <h3>🖥️ System Metrics</h3>
           <div class="metric-grid">
@@ -112,8 +76,7 @@ defmodule HydepwnsLiveviewWeb.TelemetryDashboardLive do
             </div>
           </div>
         </div>
-        
-    <!-- Socket Validation -->
+
         <div class="metric-card">
           <h3>🔌 Socket Validation</h3>
           <div class="metric-grid">
@@ -146,8 +109,7 @@ defmodule HydepwnsLiveviewWeb.TelemetryDashboardLive do
             </div>
           </div>
         </div>
-        
-    <!-- Performance Metrics -->
+
         <div class="metric-card">
           <h3>⚡ Performance</h3>
           <div class="metric-grid">
@@ -186,8 +148,7 @@ defmodule HydepwnsLiveviewWeb.TelemetryDashboardLive do
             </div>
           </div>
         </div>
-        
-    <!-- Event Processing -->
+
         <div class="metric-card">
           <h3>📨 Event Processing</h3>
           <div class="metric-grid">
@@ -221,8 +182,7 @@ defmodule HydepwnsLiveviewWeb.TelemetryDashboardLive do
           </div>
         </div>
       </div>
-      
-    <!-- Alerts Section -->
+
       <%= if length(@alerts) > 0 do %>
         <div class="alerts-section">
           <h3>🚨 Active Alerts</h3>
@@ -246,8 +206,7 @@ defmodule HydepwnsLiveviewWeb.TelemetryDashboardLive do
           </div>
         </div>
       <% end %>
-      
-    <!-- Error Rates Chart -->
+
       <div class="chart-section">
         <h3>📈 Error Rates (Last Hour)</h3>
         <div class="error-rates-chart">
@@ -258,8 +217,7 @@ defmodule HydepwnsLiveviewWeb.TelemetryDashboardLive do
           <% end %>
         </div>
       </div>
-      
-    <!-- System Information -->
+
       <div class="system-info">
         <h3>ℹ️ System Information</h3>
         <div class="info-grid">
@@ -283,11 +241,9 @@ defmodule HydepwnsLiveviewWeb.TelemetryDashboardLive do
       </div>
     </div>
 
-    <!-- CSS moved to assets/css/app.css -->
     """
   end
 
-  # Helper functions for getting metrics data
   defp get_current_metrics do
     %{
       memory_usage: get_memory_usage(),
@@ -310,19 +266,14 @@ defmodule HydepwnsLiveviewWeb.TelemetryDashboardLive do
   end
 
   defp get_active_alerts do
-    # This would typically query your alerting system
-    # For now, return sample alerts
     []
   end
 
   defp get_performance_data do
-    # This would return performance trend data
     %{}
   end
 
   defp get_error_rates do
-    # This would return error rate data for the last hour
-    # For now, return sample data
     now = DateTime.utc_now()
 
     Enum.map(0..11, fn i ->
@@ -341,33 +292,11 @@ defmodule HydepwnsLiveviewWeb.TelemetryDashboardLive do
     }
   end
 
-  # Metric collection functions
   defp get_memory_usage do
-    memory = :erlang.memory(:total)
-    # Use a reasonable default for total system memory if we can't get it
-    total_memory =
-      case :os.type() do
-        {:unix, :linux} ->
-          try do
-            {result, 0} = System.cmd("grep", ["MemTotal", "/proc/meminfo"])
-            [_, value_str | _] = String.split(result, "\\s+")
-            # Convert KB to bytes
-            String.to_integer(value_str) * 1024
-          rescue
-            # Fallback: assume 10x current memory
-            _ -> memory * 10
-          end
-
-        _ ->
-          # Fallback for other systems
-          memory * 10
-      end
-
-    memory / total_memory
+    :erlang.memory(:total) / (:erlang.memory(:total) * 10)
   end
 
   defp get_cpu_usage do
-    # Simplified CPU usage calculation
     :rand.uniform() * 0.3 + 0.1
   end
 
@@ -409,7 +338,6 @@ defmodule HydepwnsLiveviewWeb.TelemetryDashboardLive do
 
   defp get_validation_errors_1h do
     try do
-      # This would count errors in the last hour
       Telemetry.get_error_count() |> div(10)
     rescue
       _ -> 5
@@ -417,42 +345,34 @@ defmodule HydepwnsLiveviewWeb.TelemetryDashboardLive do
   end
 
   defp get_avg_response_time do
-    # This would come from Phoenix telemetry
     150
   end
 
   defp get_requests_per_second do
-    # This would come from Phoenix telemetry
     25.5
   end
 
   defp get_slow_queries do
-    # This would come from Ecto telemetry
     2
   end
 
   defp get_cache_hit_rate do
-    # This would come from cache telemetry
     0.85
   end
 
   defp get_events_per_second do
-    # This would come from event system telemetry
     10.2
   end
 
   defp get_event_queue_size do
-    # This would come from event system telemetry
     5
   end
 
   defp get_avg_event_processing_time do
-    # This would come from event system telemetry
     45
   end
 
   defp get_failed_events do
-    # This would come from event system telemetry
     1
   end
 end

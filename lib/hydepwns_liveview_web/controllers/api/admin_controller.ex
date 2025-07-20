@@ -81,15 +81,10 @@ defmodule HydepwnsLiveviewWeb.Api.AdminController do
 
   defp get_memory_usage do
     # Get memory usage information
-    case :erlang.memory() do
-      memory_info when is_list(memory_info) ->
-        total = Keyword.get(memory_info, :total, 0)
-        process = Keyword.get(memory_info, :processes, 0)
-        %{total: total, processes: process}
-
-      _ ->
-        %{total: 0, processes: 0}
-    end
+    memory_info = :erlang.memory()
+    total = Keyword.get(memory_info, :total, 0)
+    process = Keyword.get(memory_info, :processes, 0)
+    %{total: total, processes: process}
   end
 
   defp get_active_users_count do

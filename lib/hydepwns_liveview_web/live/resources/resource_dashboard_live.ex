@@ -4,7 +4,6 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
   """
 
   use HydepwnsLiveviewWeb, :live_view
-  require Logger
 
   alias HydepwnsLiveview.Resources.ResourceSystem
   alias HydepwnsLiveview.Resources.Resource
@@ -12,16 +11,11 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
 
   @impl true
   def mount(_params, session, socket) do
-    Logger.debug("[ResourceDashboardLive] session: #{inspect(session)}")
-
-    # Use the new SandboxHelper for robust sandbox connection handling
     connect_info = Map.get(socket.private, :connect_info, %{})
     SandboxHelper.setup_sandbox_connection(session, connect_info)
 
-    # Subscribe to PubSub for real-time updates
     Phoenix.PubSub.subscribe(HydepwnsLiveview.PubSub, "resources")
 
-    # Subscribe to EventBus for real-time updates
     HydepwnsLiveview.Events.Core.EventBus.subscribe([
       "document.created",
       "document.updated",
@@ -31,7 +25,6 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
       "folder.deleted"
     ])
 
-    # Track user presence
     user_id = get_user_id_from_session(socket)
 
     if user_id do
@@ -57,15 +50,11 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
 
   defp list_resources_dashboard(opts \\ []) do
     if Mix.env() == :test do
-      # In tests, use the real database directly to avoid mock repository issues
-      # This ensures that resources created in tests are visible in the dashboard
       import Ecto.Query
 
       limit = Keyword.get(opts, :limit, 50)
       offset = Keyword.get(opts, :offset, 0)
 
-      # In test mode, ensure we're using the same database connection
-      # and allow for transaction isolation issues
       try do
         resources =
           HydepwnsLiveview.Resources.Resource
@@ -74,14 +63,9 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
           |> offset(^offset)
           |> HydepwnsLiveview.Repo.all()
 
-        IO.puts(
-          "[DEBUG] direct_list_resources/2 returned #{length(resources)} resources: #{inspect(Enum.map(resources, & &1.name))}"
-        )
-
         resources
       rescue
-        e ->
-          IO.puts("[DEBUG] Error in list_resources_dashboard: #{inspect(e)}")
+        _e ->
           []
       end
     else
@@ -232,41 +216,32 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
 
   @impl true
   def handle_info({:event, event}, socket) do
-    # Handle real-time events from EventBus
     case event.type do
       "document.created" ->
-        # Refresh the resources list to show the new resource
         {:noreply, assign(socket, :resources, list_resources_dashboard([]))}
 
       "document.updated" ->
-        # Refresh the resources list to show the updated resource
         {:noreply, assign(socket, :resources, list_resources_dashboard([]))}
 
       "document.deleted" ->
-        # Refresh the resources list to remove the deleted resource
         {:noreply, assign(socket, :resources, list_resources_dashboard([]))}
 
       "folder.created" ->
-        # Refresh the resources list to show the new folder
         {:noreply, assign(socket, :resources, list_resources_dashboard([]))}
 
       "folder.updated" ->
-        # Refresh the resources list to show the updated folder
         {:noreply, assign(socket, :resources, list_resources_dashboard([]))}
 
       "folder.deleted" ->
-        # Refresh the resources list to remove the deleted folder
         {:noreply, assign(socket, :resources, list_resources_dashboard([]))}
 
       _ ->
-        # Ignore unknown event types
         {:noreply, socket}
     end
   end
 
   @impl true
   def handle_info({:resource_created, resource}, socket) do
-    # Handle PubSub events for resource creation
     notification = %{
       id: :crypto.strong_rand_bytes(10) |> Base.encode16(case: :lower),
       title: "Resource Created",
@@ -299,7 +274,6 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
 
   @impl true
   def handle_info({:resource_updated, resource}, socket) do
-    # Handle PubSub events for resource updates
     notification = %{
       id: :crypto.strong_rand_bytes(10) |> Base.encode16(case: :lower),
       title: "Resource Updated",
@@ -323,7 +297,6 @@ defmodule HydepwnsLiveviewWeb.ResourceDashboardLive do
 
   @impl true
   def handle_info({:resource_deleted, resource}, socket) do
-    # Handle PubSub events for resource deletion
     notification = %{
       id: :crypto.strong_rand_bytes(10) |> Base.encode16(case: :lower),
       title: "Resource Deleted",

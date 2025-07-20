@@ -4,7 +4,6 @@ defmodule HydepwnsLiveviewWeb.Helpers.TelemetryDashboardHelper do
   Includes CSS class helpers and formatting helpers.
   """
 
-  # CSS class helpers
   def memory_usage_class(usage) when usage > 0.8, do: "error"
   def memory_usage_class(usage) when usage > 0.6, do: "warning"
   def memory_usage_class(_), do: "success"
@@ -37,7 +36,6 @@ defmodule HydepwnsLiveviewWeb.Helpers.TelemetryDashboardHelper do
   def queue_size_class(size) when size > 50, do: "warning"
   def queue_size_class(_), do: "success"
 
-  # Formatting helpers
   def format_percentage(value) when is_float(value) do
     "#{Float.round(value * 100, 1)}%"
   end

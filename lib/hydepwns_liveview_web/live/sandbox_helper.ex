@@ -39,9 +39,7 @@ defmodule HydepwnsLiveviewWeb.Live.SandboxHelper do
   Parses a sandbox PID string using multiple strategies for maximum compatibility.
   """
   def parse_sandbox_pid(pid_str) do
-    # Handle different PID formats with multiple fallback strategies
     cond do
-      # Format: "#PID<0.123.0>"
       Regex.match?(~r/#PID<(\d+)\.(\d+)\.(\d+)>/, pid_str) ->
         parse_pid_with_regex(pid_str, ~r/#PID<(\d+)\.(\d+)\.(\d+)>/)
 

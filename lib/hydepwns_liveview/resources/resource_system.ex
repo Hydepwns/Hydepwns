@@ -56,30 +56,7 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
 
     case RepoHelper.insert(changeset) do
       {:ok, resource} ->
-        # Invalidate cache (unless skipped)
-        unless skip_cache_invalidation do
-          invalidate_resource_cache()
-        end
-
-        # Generate event for resource creation (unless skipped)
-        unless skip_events do
-          _event_data = Map.from_struct(resource) |> Map.drop([:__meta__, :__struct__])
-          case ResourceEventGenerator.resource_created(resource, %{action: "create"}) do
-            {:ok, _event} -> :ok
-            {:error, _reason} -> :ok  # Continue even if event generation fails
-          end
-        end
-
-        # Broadcast to PubSub (unless skipped)
-        unless skip_pubsub do
-          Phoenix.PubSub.broadcast(
-            HydepwnsLiveview.PubSub,
-            "resources",
-            {:resource_created, resource}
-          )
-        end
-
-        {:ok, resource}
+        handle_successful_creation(resource, skip_events, skip_pubsub, skip_cache_invalidation)
 
       {:error, changeset} ->
         {:error, changeset}
@@ -89,11 +66,44 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
     end
   end
 
+  defp handle_successful_creation(resource, skip_events, skip_pubsub, skip_cache_invalidation) do
+    unless skip_cache_invalidation do
+      invalidate_resource_cache()
+    end
+
+    unless skip_events do
+      generate_creation_event(resource)
+    end
+
+    unless skip_pubsub do
+      broadcast_creation(resource)
+    end
+
+    {:ok, resource}
+  end
+
+  defp generate_creation_event(resource) do
+    _event_data = Map.from_struct(resource) |> Map.drop([:__meta__, :__struct__])
+    case ResourceEventGenerator.resource_created(resource, %{action: "create"}) do
+      {:ok, _event} -> :ok
+      {:error, _reason} -> :ok  # Continue even if event generation fails
+    end
+  end
+
+  defp broadcast_creation(resource) do
+    Phoenix.PubSub.broadcast(
+      HydepwnsLiveview.PubSub,
+      "resources",
+      {:resource_created, resource}
+    )
+  end
+
   @doc """
   Creates multiple resources efficiently in a batch operation.
   This is optimized for performance when creating many resources at once.
   """
-  def create_resources_batch(resources_attrs, opts \\ []) when is_map(opts) do
+  def create_resources_batch(resources_attrs, opts \\ [])
+  def create_resources_batch(resources_attrs, opts) when is_map(opts) do
     # Convert map to keyword list for compatibility
     opts_list = Map.to_list(opts)
     create_resources_batch(resources_attrs, opts_list)
@@ -105,45 +115,60 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
     skip_cache_invalidation = Keyword.get(opts, :skip_cache_invalidation, false)
 
     # Create all resources in a transaction
-    case RepoHelper.transaction(fn ->
-      Enum.map(resources_attrs, fn attrs ->
-        changeset = %Resource{} |> Resource.changeset(attrs)
-        case RepoHelper.insert(changeset) do
-          {:ok, resource} -> {:ok, resource}
-          {:error, changeset} -> RepoHelper.rollback(changeset)
-        end
-      end)
-    end) do
+    case create_resources_in_transaction(resources_attrs) do
       {:ok, resources} ->
-        # Batch operations for better performance
-        unless skip_cache_invalidation do
-          invalidate_resource_cache()
-        end
-
-        unless skip_events do
-          # Generate events in batch
-          Enum.each(resources, fn {:ok, resource} ->
-            _event_data = Map.from_struct(resource) |> Map.drop([:__meta__, :__struct__])
-            ResourceEventGenerator.resource_created(resource, %{action: "create"})
-          end)
-        end
-
-        unless skip_pubsub do
-          # Broadcast all resources at once
-          Enum.each(resources, fn {:ok, resource} ->
-            Phoenix.PubSub.broadcast(
-              HydepwnsLiveview.PubSub,
-              "resources",
-              {:resource_created, resource}
-            )
-          end)
-        end
-
-        {:ok, Enum.map(resources, fn {:ok, resource} -> resource end)}
+        handle_batch_success(resources, skip_events, skip_pubsub, skip_cache_invalidation)
 
       {:error, reason} ->
         {:error, reason}
     end
+  end
+
+  defp create_resources_in_transaction(resources_attrs) do
+    RepoHelper.transaction(fn ->
+      Enum.map(resources_attrs, &create_single_resource/1)
+    end)
+  end
+
+  defp create_single_resource(attrs) do
+    changeset = %Resource{} |> Resource.changeset(attrs)
+    case RepoHelper.insert(changeset) do
+      {:ok, resource} -> {:ok, resource}
+      {:error, changeset} -> RepoHelper.rollback(changeset)
+    end
+  end
+
+  defp handle_batch_success(resources, skip_events, skip_pubsub, skip_cache_invalidation) do
+    unless skip_cache_invalidation do
+      invalidate_resource_cache()
+    end
+
+    unless skip_events do
+      generate_batch_events(resources)
+    end
+
+    unless skip_pubsub do
+      broadcast_batch_creations(resources)
+    end
+
+    {:ok, Enum.map(resources, fn {:ok, resource} -> resource end)}
+  end
+
+  defp generate_batch_events(resources) do
+    Enum.each(resources, fn {:ok, resource} ->
+      _event_data = Map.from_struct(resource) |> Map.drop([:__meta__, :__struct__])
+      ResourceEventGenerator.resource_created(resource, %{action: "create"})
+    end)
+  end
+
+  defp broadcast_batch_creations(resources) do
+    Enum.each(resources, fn {:ok, resource} ->
+      Phoenix.PubSub.broadcast(
+        HydepwnsLiveview.PubSub,
+        "resources",
+        {:resource_created, resource}
+      )
+    end)
   end
 
   @doc """
@@ -375,76 +400,9 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
           "🔍 ResourceSystem.update_resource: Found resource #{resource.id}, creating changeset"
         )
 
-        case resource
-             |> Resource.changeset(attrs)
-             |> RepoHelper.update() do
+        case update_resource_changeset(resource, attrs) do
           {:ok, updated_resource} ->
-            IO.puts("✅ ResourceSystem.update_resource: Resource updated successfully")
-            # Invalidate cache
-            invalidate_resource_cache()
-            # Generate event for resource update
-            IO.puts("🔍 ResourceSystem.update_resource: Generating resource_updated event")
-
-            case ResourceEventGenerator.resource_updated(updated_resource, attrs, %{action: "update"}) do
-              {:ok, _event} ->
-                IO.puts(
-                  "✅ ResourceSystem.update_resource: resource_updated event generated successfully"
-                )
-
-              {:error, reason} ->
-                IO.puts(
-                  "❌ ResourceSystem.update_resource: resource_updated event generation failed: #{inspect(reason)}"
-                )
-            end
-
-            Phoenix.PubSub.broadcast(
-              HydepwnsLiveview.PubSub,
-              "resources",
-              {:resource_updated, updated_resource}
-            )
-
-            # Apply transformations and generate transformed event
-            IO.puts("🔍 ResourceSystem.update_resource: Applying transformations")
-
-            case TransformationPipeline.apply_transformations(
-                   updated_resource,
-                   :resource,
-                   :update,
-                   phase: :after_validation,
-                   original_resource: resource
-                 ) do
-              {:ok, transformed_resource, _context} ->
-                IO.puts("✅ ResourceSystem.update_resource: Transformations applied successfully")
-                # Generate event for resource transformation
-                case ResourceEventGenerator.resource_event(transformed_resource, "transformed", %{}, %{action: "transform"}) do
-                  {:ok, _event} ->
-                    IO.puts(
-                      "✅ ResourceSystem.update_resource: transformed event generated successfully"
-                    )
-
-                  {:error, reason} ->
-                    IO.puts(
-                      "❌ ResourceSystem.update_resource: transformed event generation failed: #{inspect(reason)}"
-                    )
-                end
-
-                Phoenix.PubSub.broadcast(
-                  HydepwnsLiveview.PubSub,
-                  "resources",
-                  {:resource_transformed, transformed_resource}
-                )
-
-                IO.puts("✅ ResourceSystem.update_resource: Returning transformed resource")
-                {:ok, transformed_resource}
-
-              {:error, _resource, _context} ->
-                IO.puts(
-                  "❌ ResourceSystem.update_resource: Transformations failed, returning updated resource"
-                )
-
-                # Transformation failed, but still return the updated resource
-                {:ok, updated_resource}
-            end
+            handle_successful_update(updated_resource, resource, attrs)
 
           error ->
             IO.puts(
@@ -454,6 +412,99 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
             error
         end
     end
+  end
+
+  defp update_resource_changeset(resource, attrs) do
+    resource
+    |> Resource.changeset(attrs)
+    |> RepoHelper.update()
+  end
+
+  defp handle_successful_update(updated_resource, original_resource, attrs) do
+    IO.puts("✅ ResourceSystem.update_resource: Resource updated successfully")
+
+    invalidate_resource_cache()
+    generate_update_event(updated_resource, attrs)
+    broadcast_update(updated_resource)
+
+    case apply_transformations(updated_resource, original_resource) do
+      {:ok, transformed_resource} ->
+        IO.puts("✅ ResourceSystem.update_resource: Returning transformed resource")
+        {:ok, transformed_resource}
+
+      {:error, _resource, _context} ->
+        IO.puts(
+          "❌ ResourceSystem.update_resource: Transformations failed, returning updated resource"
+        )
+        {:ok, updated_resource}
+    end
+  end
+
+  defp generate_update_event(updated_resource, attrs) do
+    IO.puts("🔍 ResourceSystem.update_resource: Generating resource_updated event")
+
+    case ResourceEventGenerator.resource_updated(updated_resource, attrs, %{action: "update"}) do
+      {:ok, _event} ->
+        IO.puts(
+          "✅ ResourceSystem.update_resource: resource_updated event generated successfully"
+        )
+
+      {:error, reason} ->
+        IO.puts(
+          "❌ ResourceSystem.update_resource: resource_updated event generation failed: #{inspect(reason)}"
+        )
+    end
+  end
+
+  defp broadcast_update(updated_resource) do
+    Phoenix.PubSub.broadcast(
+      HydepwnsLiveview.PubSub,
+      "resources",
+      {:resource_updated, updated_resource}
+    )
+  end
+
+  defp apply_transformations(updated_resource, original_resource) do
+    IO.puts("🔍 ResourceSystem.update_resource: Applying transformations")
+
+    case TransformationPipeline.apply_transformations(
+           updated_resource,
+           :resource,
+           :update,
+           phase: :after_validation,
+           original_resource: original_resource
+         ) do
+      {:ok, transformed_resource, _context} ->
+        IO.puts("✅ ResourceSystem.update_resource: Transformations applied successfully")
+        generate_transformation_event(transformed_resource)
+        broadcast_transformation(transformed_resource)
+        {:ok, transformed_resource}
+
+      error ->
+        error
+    end
+  end
+
+  defp generate_transformation_event(transformed_resource) do
+    case ResourceEventGenerator.resource_event(transformed_resource, "transformed", %{}, %{action: "transform"}) do
+      {:ok, _event} ->
+        IO.puts(
+          "✅ ResourceSystem.update_resource: transformed event generated successfully"
+        )
+
+      {:error, reason} ->
+        IO.puts(
+          "❌ ResourceSystem.update_resource: transformed event generation failed: #{inspect(reason)}"
+        )
+    end
+  end
+
+  defp broadcast_transformation(transformed_resource) do
+    Phoenix.PubSub.broadcast(
+      HydepwnsLiveview.PubSub,
+      "resources",
+      {:resource_transformed, transformed_resource}
+    )
   end
 
   @doc """
@@ -467,35 +518,45 @@ defmodule HydepwnsLiveview.Resources.ResourceSystem do
       resource ->
         case RepoHelper.delete(resource) do
           {:ok, deleted_resource} ->
-            # Invalidate cache
-            invalidate_resource_cache()
-            # Generate event for resource deletion
-            _event_data = Map.from_struct(deleted_resource) |> Map.drop([:__meta__, :__struct__])
-            case ResourceEventGenerator.resource_deleted(deleted_resource, %{action: "delete"}) do
-              {:ok, _event} ->
-                IO.puts(
-                  "✅ ResourceSystem.delete_resource: resource_deleted event generated successfully"
-                )
-
-              {:error, reason} ->
-                IO.puts(
-                  "❌ ResourceSystem.delete_resource: resource_deleted event generation failed: #{inspect(reason)}"
-                )
-            end
-
-            # Broadcast PubSub message for real-time updates
-            Phoenix.PubSub.broadcast(
-              HydepwnsLiveview.PubSub,
-              "resources",
-              {:resource_deleted, deleted_resource}
-            )
-
-            {:ok, deleted_resource}
+            handle_successful_deletion(deleted_resource)
 
           error ->
             error
         end
     end
+  end
+
+  defp handle_successful_deletion(deleted_resource) do
+    # Invalidate cache
+    invalidate_resource_cache()
+    # Generate event for resource deletion
+    generate_deletion_event(deleted_resource)
+    # Broadcast PubSub message for real-time updates
+    broadcast_deletion(deleted_resource)
+    {:ok, deleted_resource}
+  end
+
+  defp generate_deletion_event(deleted_resource) do
+    _event_data = Map.from_struct(deleted_resource) |> Map.drop([:__meta__, :__struct__])
+    case ResourceEventGenerator.resource_deleted(deleted_resource, %{action: "delete"}) do
+      {:ok, _event} ->
+        IO.puts(
+          "✅ ResourceSystem.delete_resource: resource_deleted event generated successfully"
+        )
+
+      {:error, reason} ->
+        IO.puts(
+          "❌ ResourceSystem.delete_resource: resource_deleted event generation failed: #{inspect(reason)}"
+        )
+    end
+  end
+
+  defp broadcast_deletion(deleted_resource) do
+    Phoenix.PubSub.broadcast(
+      HydepwnsLiveview.PubSub,
+      "resources",
+      {:resource_deleted, deleted_resource}
+    )
   end
 
   @doc """

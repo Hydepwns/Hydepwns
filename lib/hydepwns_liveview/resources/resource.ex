@@ -9,6 +9,25 @@ defmodule HydepwnsLiveview.Resources.Resource do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @type t :: %__MODULE__{
+          id: String.t() | nil,
+          name: String.t() | nil,
+          type: String.t() | nil,
+          status: String.t() | nil,
+          description: String.t() | nil,
+          content: map() | nil,
+          metadata: map() | nil,
+          settings: map() | nil,
+          version: integer() | nil,
+          parent_id: String.t() | nil,
+          child_ids: [String.t()] | nil,
+          tags: [String.t()] | nil,
+          categories: [String.t()] | nil,
+          created_by: String.t() | nil,
+          updated_by: String.t() | nil,
+          inserted_at: DateTime.t() | nil,
+          updated_at: DateTime.t() | nil
+        }
   @derive {Jason.Encoder,
            only: [
              :id,
@@ -223,28 +242,28 @@ defmodule HydepwnsLiveview.Resources.Resource do
     parent_id = get_field(changeset, :parent_id)
     resource_type = get_field(changeset, :type)
 
-    cond do
-      !parent_id ->
-        changeset
-
-      true ->
-        case HydepwnsLiveview.Resources.ResourceSystem.get_resource(parent_id) do
-          {:ok, parent_resource} ->
-            # Check if the parent's type is incompatible with this resource's type
-            # The logic should be: can this resource (child) have parent_resource (parent) as its parent?
-            if is_incompatible_relationship?(parent_resource.type, resource_type) do
-              add_error(changeset, :parent_id, "Incompatible resource types")
-            else
-              changeset
-            end
-
-          _ ->
-            changeset
-        end
+    if parent_id do
+      validate_parent_relationship(changeset, parent_id, resource_type)
+    else
+      changeset
     end
   end
 
-  defp is_incompatible_relationship?(parent_type, child_type) do
+  defp validate_parent_relationship(changeset, parent_id, resource_type) do
+    case HydepwnsLiveview.Resources.ResourceSystem.get_resource(parent_id) do
+      {:ok, parent_resource} ->
+        if incompatible_relationship?(parent_resource.type, resource_type) do
+          add_error(changeset, :parent_id, "Incompatible resource types")
+        else
+          changeset
+        end
+
+      _ ->
+        changeset
+    end
+  end
+
+  defp incompatible_relationship?(parent_type, child_type) do
     # Define incompatible relationships
     # Document can't be parent of folder
     parent_type == "document" && child_type == "folder"

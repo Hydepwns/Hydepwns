@@ -182,7 +182,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
       session = visit_and_wait(session, "/resources/#{resource.id}/events")
 
       # Debug: Check page source to see what's rendered
-      page_source = Wallaby.Browser.page_source(session)
+      page_source = page_source(session)
 
       IO.puts(
         "DEBUG: Page source contains 'event-row': #{String.contains?(page_source, "event-row")}"
@@ -200,7 +200,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
       assert length(updated_events) >= 1
 
       # Verify the event type contains "updated"
-      Wallaby.Browser.assert_has(
+      assert_has(
         session,
         css("[data-test-id='event-type']", text: "document.updated")
       )
@@ -248,7 +248,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
       assert resource.id in resource_ids
 
       # Verify event type is 'deleted'
-      Wallaby.Browser.assert_has(new_session, css(".event-type", text: "deleted"))
+      assert_has(new_session, css(".event-type", text: "deleted"))
     end
   end
 
@@ -355,10 +355,10 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
       session = wait_for_flash_message(session, "info", "Resource created successfully")
 
       # Verify the new resource appears in the list
-      Wallaby.Browser.assert_has(session, Query.text("Real-time Test Resource"))
+      assert_has(session, Query.text("Real-time Test Resource"))
 
       # Verify flash message appears (this is the notification system)
-      Wallaby.Browser.assert_has(session, css(".alert-success"))
+      assert_has(session, css(".alert-success"))
     end
   end
 

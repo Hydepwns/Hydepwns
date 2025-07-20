@@ -29,11 +29,14 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
     # Ensure sandbox is enabled for this test
     Application.put_env(:hydepwns_liveview, :sql_sandbox, true)
 
+    # Ensure the current process has access to the database sandbox
+    # This is crucial for async: false tests
+    Ecto.Adapters.SQL.Sandbox.checkout(HydepwnsLiveview.Repo)
+    Ecto.Adapters.SQL.Sandbox.mode(HydepwnsLiveview.Repo, {:shared, self()})
+
     on_exit(fn ->
       Application.put_env(:hydepwns_liveview, :repo, original_repo)
     end)
-
-
 
     # Set up mocks first, before any resource creation
     TestMockHelper.setup_mocks()
@@ -134,7 +137,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       IO.puts("DEBUG: Page source contains 'Edit': #{String.contains?(page_source, "Edit")}")
 
       # Wait for edit link with longer timeout and debug
-      session = wait_for_element(session, css("a[data-test-id='edit-resource-link']"), timeout: 20000)
+      session = wait_for_element(session, css("a[data-test-id='edit-resource-link']"), timeout: 20_000)
 
       # If edit link is still not found, print page source for debugging
       unless Wallaby.Browser.has?(session, css("a[data-test-id='edit-resource-link']")) do
@@ -170,12 +173,12 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       session = click(session, button("Save Resource"))
 
       # Wait for successful save and redirect to dashboard
-      session = wait_for_flash_message(session, "info", "Resource updated successfully", timeout: 10000)
-      session = wait_for_text(session, "Resources", timeout: 10000)
+      session = wait_for_flash_message(session, "info", "Resource updated successfully", timeout: 10_000)
+      session = wait_for_text(session, "Resources", timeout: 10_000)
 
       # After creating the first child, navigate to the dashboard
       session = visit_and_wait(session, "/resources")
-      session = wait_for_text(session, "Resources", timeout: 10000)
+      session = wait_for_text(session, "Resources", timeout: 10_000)
 
       # Wait for LiveView to be fully loaded
       session = HydepwnsLiveviewWeb.WallabyCase.wait_for_live_view(session)
@@ -184,7 +187,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       session = HydepwnsLiveviewWeb.WallabyCase.wait_for_element_with_debug(
         session,
         css("a[data-test-id='create-resource-link']"),
-        timeout: 10000
+        timeout: 10_000
       )
       session =
         session
@@ -233,9 +236,9 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       session = wait_for_text(session, "Resources")
 
       # Wait for all resources to be visible in the dashboard
-      session = wait_for_element(session, css("a", text: child.name), timeout: 10000)
-      session = wait_for_element(session, css("a", text: "Second Child"), timeout: 10000)
-      session = wait_for_element(session, css("a", text: "Third Child"), timeout: 10000)
+      session = wait_for_element(session, css("a", text: child.name), timeout: 10_000)
+      session = wait_for_element(session, css("a", text: "Second Child"), timeout: 10_000)
+      session = wait_for_element(session, css("a", text: "Third Child"), timeout: 10_000)
 
       # Verify all resources are visible in the dashboard
       session = Wallaby.Browser.assert_has(session, css("a", text: child.name))

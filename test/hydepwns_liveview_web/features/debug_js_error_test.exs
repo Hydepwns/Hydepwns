@@ -32,11 +32,11 @@ defmodule HydepwnsLiveviewWeb.DebugJSErrorTest do
 
     # Wait for the form to appear (Wallaby will retry by default)
     try do
-      session = Wallaby.Browser.assert_has(session, Query.css("form#resource-form"))
+      session = assert_has(session, Query.css("form#resource-form"))
       session = assert_text(session, "New Resource")
     rescue
       e ->
-        page_source = Wallaby.Browser.page_source(session)
+        page_source = page_source(session)
         IO.puts("\n=== PAGE SOURCE ON FAILURE ===")
         IO.puts(page_source)
         IO.puts("=== END PAGE SOURCE ===\n")
@@ -59,27 +59,27 @@ defmodule HydepwnsLiveviewWeb.DebugJSErrorTest do
     IO.puts("[DEBUG] Form values before submission:")
 
     IO.puts(
-      "  Name: #{Wallaby.Browser.find(session, Query.text_field("Name")) |> Wallaby.Element.value()}"
+      "  Name: #{find(session, Query.text_field("Name")) |> Wallaby.Element.value()}"
     )
 
     IO.puts(
-      "  Description: #{Wallaby.Browser.find(session, Query.text_field("Description")) |> Wallaby.Element.value()}"
+      "  Description: #{find(session, Query.text_field("Description")) |> Wallaby.Element.value()}"
     )
 
     IO.puts(
-      "  Content: #{Wallaby.Browser.find(session, Query.text_field("Content")) |> Wallaby.Element.value()}"
+      "  Content: #{find(session, Query.text_field("Content")) |> Wallaby.Element.value()}"
     )
 
     IO.puts(
-      "  Type: #{Wallaby.Browser.find(session, Query.select("Type")) |> Wallaby.Element.value()}"
+      "  Type: #{find(session, Query.select("Type")) |> Wallaby.Element.value()}"
     )
 
     IO.puts(
-      "  Status: #{Wallaby.Browser.find(session, Query.select("Status")) |> Wallaby.Element.value()}"
+      "  Status: #{find(session, Query.select("Status")) |> Wallaby.Element.value()}"
     )
 
     # Debug: Check form attributes
-    form = Wallaby.Browser.find(session, Query.css("form#resource-form"))
+    form = find(session, Query.css("form#resource-form"))
     phx_target = Wallaby.Element.attr(form, "phx-target")
     phx_submit = Wallaby.Element.attr(form, "phx-submit")
     IO.puts("[DEBUG] Form attributes:")
@@ -94,8 +94,8 @@ defmodule HydepwnsLiveviewWeb.DebugJSErrorTest do
     session = assert_text(session, "New Resource")
 
     # Verify the form is still present and functional
-    session = Wallaby.Browser.assert_has(session, Query.css("form#resource-form"))
-    session = Wallaby.Browser.assert_has(session, Query.button("Create Resource"))
+    session = assert_has(session, Query.css("form#resource-form"))
+    session = assert_has(session, Query.button("Create Resource"))
 
     IO.puts("✅ Form setup verification passed - LiveView form is properly configured")
 

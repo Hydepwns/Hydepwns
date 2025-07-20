@@ -120,6 +120,30 @@ config :phoenix, :plug_init_mode, :runtime
 # Configure reminder worker
 config :hydepwns_liveview, :reminder_worker, check_interval: :timer.minutes(1)
 
+# Configure PromEx for Prometheus metrics
+config :hydepwns_liveview, HydepwnsLiveview.PromEx,
+  manual_metrics_start_delay: :no_delay,
+  grafana: [
+    host: "http://localhost:3000",
+    username: "admin",
+    password: "admin",
+    upload_dashboards_on_start: true
+  ],
+  metrics_server: [
+    port: 9568,
+    path: "/metrics",
+    protocol: :http
+  ]
+
+# Configure external monitoring
+config :hydepwns_liveview,
+  enable_external_monitoring: true,
+  metrics_http_endpoint: "http://localhost:9090/api/v1/write",
+  external_monitoring_config: %{
+    prometheus_enabled: true,
+    http_endpoint: "http://localhost:9090/api/v1/write"
+  }
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

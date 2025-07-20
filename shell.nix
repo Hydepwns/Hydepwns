@@ -21,6 +21,8 @@ let
   gcc = pkgs.gcc;
   make = pkgs.gnumake;
   openssl = pkgs.openssl;
+  pkg-config = pkgs.pkg-config;
+  libsodium = pkgs.libsodium;
   
   # Chrome and ChromeDriver for Wallaby testing
   chrome = pkgs.google-chrome;
@@ -50,6 +52,8 @@ in pkgs.mkShell {
     gcc
     make
     openssl
+    pkg-config
+    libsodium
     
     # Browser testing
     chrome
@@ -92,10 +96,18 @@ in pkgs.mkShell {
     echo "   - Check tmp/test_error_summary.txt for detailed error reports"
     echo ""
     echo "🌐 Browser testing:"
-    echo "   - Chrome: $CHROME_BIN"
-    echo "   - Chromedriver: $CHROMEDRIVER_PATH"
-    echo "   - Display: $DISPLAY"
+    echo "   - Chrome: ${chrome}/bin/google-chrome"
+    echo "   - Chromedriver: ${chromedriver}/bin/chromedriver"
+    echo "   - Display: :99"
     echo ""
+    
+    # Export Chrome and ChromeDriver paths
+    export CHROME_BIN="${chrome}/bin/google-chrome"
+    export CHROMEDRIVER_PATH="${chromedriver}/bin/chromedriver"
+    export DISPLAY=":99"
+    export CHROME_HEADLESS="true"
+    export CHROME_NO_SANDBOX="true"
+    export CHROME_DISABLE_DEV_SHM="true"
   '';
 
   # Set environment variables

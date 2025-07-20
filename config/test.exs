@@ -55,6 +55,7 @@ config :wallaby,
     headless: true,
     capabilities: %{
       chromeOptions: %{
+        binary: System.get_env("CHROME_BIN") || "google-chrome",
         args: [
           "no-sandbox",
           "disable-dev-shm-usage",
@@ -67,7 +68,7 @@ config :wallaby,
     }
   ],
   chromedriver: [
-    # Use system chromedriver if available, otherwise skip browser tests
+    # Use environment variable for chromedriver path
     path: System.get_env("CHROMEDRIVER_PATH") || "chromedriver"
   ],
   base_url: "http://localhost:4002"

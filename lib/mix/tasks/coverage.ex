@@ -13,6 +13,7 @@ defmodule Mix.Tasks.Coverage do
   * `--output=cover` - Set output directory
   """
 
+  @spec run(any()) :: {:ok, any()}
   def run(args) do
     {opts, _} =
       OptionParser.parse!(args,
@@ -32,8 +33,10 @@ defmodule Mix.Tasks.Coverage do
 
     # Exit with the same code as the test run
     System.halt(exit_code)
+    {:ok, exit_code}
   end
 
+  @spec parse_test_results(String.t()) :: any()
   defp parse_test_results(output) do
     lines = String.split(output, "\n")
 
@@ -59,21 +62,23 @@ defmodule Mix.Tasks.Coverage do
     }
   end
 
+  @spec count_actual_tests(any()) :: any()
   defp count_actual_tests(lines) do
     # Count tests by looking for the test execution pattern
     lines
-    |> Enum.filter(&String.contains?(&1, "test"))
-    |> Enum.filter(&String.contains?(&1, ":"))
+    |> Enum.filter(&(String.contains?(&1, "test") and String.contains?(&1, ":")))
     |> length()
   end
 
+  @spec count_failures(any()) :: any()
   defp count_failures(lines) do
     # Count failures by looking for failure patterns
     lines
-    |> Enum.filter(&(String.contains?(&1, "test") && String.contains?(&1, "failure")))
+    |> Enum.filter(&(String.contains?(&1, "test") and String.contains?(&1, "failure")))
     |> length()
   end
 
+  @spec count_skipped_tests(any()) :: any()
   defp count_skipped_tests(lines) do
     # Count skipped tests
     lines
@@ -81,6 +86,7 @@ defmodule Mix.Tasks.Coverage do
     |> length()
   end
 
+  @spec calculate_coverage(any(), any(), any()) :: any()
   defp calculate_coverage(total_tests, failure_count, skipped_count) do
     if total_tests == 0 do
       0.0
@@ -90,6 +96,7 @@ defmodule Mix.Tasks.Coverage do
     end
   end
 
+  @spec analyze_module_coverage(any()) :: any()
   defp analyze_module_coverage(lines) do
     # Find all test files that were run
     test_files = find_test_files(lines)
@@ -103,13 +110,14 @@ defmodule Mix.Tasks.Coverage do
     |> Enum.sort_by(fn {_module, count} -> count end, :desc)
   end
 
+  @spec find_test_files(any()) :: any()
   defp find_test_files(lines) do
     lines
-    |> Enum.filter(&String.contains?(&1, "test/"))
-    |> Enum.filter(&String.contains?(&1, ".exs"))
+    |> Enum.filter(&(String.contains?(&1, "test/") and String.contains?(&1, ".exs")))
     |> Enum.map(&String.trim/1)
   end
 
+  @spec extract_module_name(any()) :: any()
   defp extract_module_name(file_path) do
     file_path
     |> String.split("/")
@@ -119,6 +127,7 @@ defmodule Mix.Tasks.Coverage do
     |> Enum.join(".")
   end
 
+  @spec generate_coverage_report(any(), any()) :: any()
   defp generate_coverage_report(results, opts) do
     IO.puts("\n" <> String.duplicate("=", 60))
     IO.puts("📊 CUSTOM COVERAGE REPORT")
@@ -178,6 +187,7 @@ defmodule Mix.Tasks.Coverage do
     save_detailed_report(results, output_dir)
   end
 
+  @spec save_detailed_report(any(), any()) :: any()
   defp save_detailed_report(results, output_dir) do
     # Create output directory if it doesn't exist
     File.mkdir_p!(output_dir)

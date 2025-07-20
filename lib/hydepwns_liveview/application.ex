@@ -33,7 +33,8 @@ defmodule HydepwnsLiveview.Application do
         HydepwnsLiveview.Transformations.TransformationRegistry,
         HydepwnsLiveview.Transformations.TransformationMetrics,
         HydepwnsLiveview.Events.Core.EventSupervisor,
-        HydepwnsLiveview.RateLimitSupervisor
+        HydepwnsLiveview.RateLimitSupervisor,
+        HydepwnsLiveview.PromEx
       ] ++
         if Mix.env() != :test do
           [HydepwnsLiveview.Events.Core.EventMonitor]
@@ -56,13 +57,13 @@ defmodule HydepwnsLiveview.Application do
     opts = [strategy: :one_for_one, name: HydepwnsLiveview.Supervisor]
     result = Supervisor.start_link(children, opts)
 
-    # After startup, register default transformations
-    register_default_transformations()
+      # After startup, register default transformations
+  register_default_transformations()
 
-    # After startup, register default event handlers
-    register_default_event_handlers()
+  # After startup, register default event handlers
+  register_default_event_handlers()
 
-    result
+  result
   end
 
   # Tell Phoenix to update the endpoint configuration
@@ -78,11 +79,38 @@ defmodule HydepwnsLiveview.Application do
     # Import to access the module
     alias HydepwnsLiveview.Transformations.StandardTransformers
 
-    # Check if StandardTransformers has a register_defaults function and call it
-    if function_exported?(StandardTransformers, :register_defaults, 0) do
-      StandardTransformers.register_defaults()
+    # Wait for the TransformationRegistry to be ready
+    # Try to ping the registry a few times to ensure it's started
+    case wait_for_registry(10) do
+      :ok ->
+        # Check if StandardTransformers has a register_defaults function and call it
+        if function_exported?(StandardTransformers, :register_defaults, 0) do
+          StandardTransformers.register_defaults()
+        end
+
+      :error ->
+        # Log error but don't crash the application
+        IO.puts("Warning: TransformationRegistry not ready, skipping default transformations")
     end
   end
+
+  # Wait for the TransformationRegistry to be ready
+  defp wait_for_registry(attempts) when attempts > 0 do
+    case Process.whereis(HydepwnsLiveview.Transformations.TransformationRegistry) do
+      nil ->
+        # Registry not started yet, wait a bit and retry
+        Process.sleep(100)
+        wait_for_registry(attempts - 1)
+
+      _pid ->
+        # Registry is started, try to ping it
+        case GenServer.call(HydepwnsLiveview.Transformations.TransformationRegistry, :get_transformations, 1000) do
+          _transformations -> :ok
+        end
+    end
+  end
+
+  defp wait_for_registry(0), do: :error
 
   # Register default event handlers after application startup
   defp register_default_event_handlers do

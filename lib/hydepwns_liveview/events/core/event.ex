@@ -9,7 +9,7 @@ defmodule HydepwnsLiveview.Events.Core.Event do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @primary_key {:id, :binary_id, autogenerate: true}
+  @primary_key {:id, :binary_id, autogenerate: false}
   @timestamps_opts [type: :utc_datetime_usec]
   schema "events" do
     field :type, :string
@@ -50,9 +50,17 @@ defmodule HydepwnsLiveview.Events.Core.Event do
 
   * `changeset` - The changeset for the event
   """
-  def changeset(event, attrs) when is_map(attrs) do
+    def changeset(event, attrs) when is_map(attrs) do
+    # Pre-process attributes to set default IDs if not provided
+    # Convert to atom keys first, then back to string keys to maintain consistency
+    attrs = attrs
+    |> convert_to_atom_keys()
+    |> set_default_ids()
+    |> convert_to_string_keys()
+
     event
     |> cast(attrs, [
+      :id,
       :type,
       :resource_id,
       :resource_type,
@@ -62,10 +70,10 @@ defmodule HydepwnsLiveview.Events.Core.Event do
       :causation_id,
       :timestamp
     ])
-    |> validate_required([:type, :resource_id, :resource_type, :timestamp])
     |> validate_length(:type, min: 3)
     |> validate_length(:resource_id, min: 1)
     |> validate_length(:resource_type, min: 1)
+    |> validate_required([:type, :resource_id, :resource_type, :timestamp])
     |> validate_data()
     |> validate_metadata()
     |> validate_timestamp()
@@ -107,6 +115,7 @@ defmodule HydepwnsLiveview.Events.Core.Event do
 
     %__MODULE__{}
     |> cast(attrs, [
+      :id,
       :type,
       :resource_id,
       :resource_type,
@@ -198,8 +207,17 @@ defmodule HydepwnsLiveview.Events.Core.Event do
 
   defp set_default_ids(attrs) do
     attrs
+    |> set_default_id()
     |> set_default_correlation_id()
     |> set_default_causation_id()
+  end
+
+  defp set_default_id(attrs) do
+    case Map.get(attrs, :id) do
+      nil -> Map.put(attrs, :id, Ecto.UUID.generate())
+      id when is_binary(id) and byte_size(id) > 0 -> attrs
+      _ -> Map.put(attrs, :id, Ecto.UUID.generate())
+    end
   end
 
   defp set_default_correlation_id(attrs) do
@@ -239,4 +257,16 @@ defmodule HydepwnsLiveview.Events.Core.Event do
       _ -> add_error(changeset, :timestamp, "must be a DateTime")
     end
   end
+
+  defp convert_to_atom_keys(attrs) do
+    for {k, v} <- attrs, into: %{}, do: {to_atom(k), v}
+  end
+
+  defp convert_to_string_keys(attrs) do
+    for {k, v} <- attrs, into: %{}, do: {to_string(k), v}
+  end
+
+  defp to_atom(key) when is_atom(key), do: key
+  defp to_atom(key) when is_binary(key), do: String.to_existing_atom(key)
+  defp to_atom(key), do: to_string(key) |> String.to_existing_atom()
 end

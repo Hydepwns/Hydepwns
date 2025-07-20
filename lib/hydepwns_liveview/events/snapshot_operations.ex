@@ -212,7 +212,7 @@ defmodule HydepwnsLiveview.Events.SnapshotOperations do
     query =
       from s in Snapshot,
         where: s.resource_type == ^resource_type and s.resource_id == ^resource_id,
-        order_by: [asc: s.inserted_at, asc: s.id]
+        order_by: [asc: s.inserted_at]
 
     try do
       {:ok, Repo.all(query)}

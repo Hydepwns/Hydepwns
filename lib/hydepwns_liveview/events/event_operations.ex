@@ -13,6 +13,7 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   require Logger
   alias HydepwnsLiveview.Repo
   alias HydepwnsLiveview.Events.Core.Event
+  alias HydepwnsLiveview.Events.Schemas.Event, as: EventSchema
   alias HydepwnsLiveview.Events.QueryBuilders.EventQuery
   alias HydepwnsLiveview.Events.Core.EventBus
 
@@ -28,8 +29,37 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   """
   @spec store_event(Event.t()) :: {:ok, Event.t()} | {:error, Ecto.Changeset.t()}
   def store_event(event) when is_struct(event, Event) do
-    # Use configured event store
-    HydepwnsLiveview.Events.EventStore.store_event(event)
+    # Convert Event to EventSchema and store in database
+    # Preserve the original event's ID instead of generating a new one
+    event_schema = %EventSchema{
+      id: event.id,
+      type: event.type,
+      data: event.data,
+      resource_type: event.resource_type,
+      resource_id: event.resource_id,
+      correlation_id: event.correlation_id,
+      causation_id: event.causation_id,
+      metadata: event.metadata,
+      timestamp: event.timestamp
+    }
+
+    case Repo.insert(event_schema) do
+      {:ok, stored_schema} ->
+        # Convert back to Event struct
+        stored_event = %Event{
+          id: stored_schema.id,
+          type: stored_schema.type,
+          data: stored_schema.data,
+          resource_type: stored_schema.resource_type,
+          resource_id: stored_schema.resource_id,
+          correlation_id: stored_schema.correlation_id,
+          causation_id: stored_schema.causation_id,
+          metadata: stored_schema.metadata,
+          timestamp: stored_schema.timestamp
+        }
+        {:ok, stored_event}
+      {:error, changeset} -> {:error, changeset}
+    end
   end
 
   def store_event(_), do: {:error, :invalid_event}
@@ -61,8 +91,36 @@ defmodule HydepwnsLiveview.Events.EventOperations do
 
     case Event.create(event_type, event_attrs) do
       {:ok, event} ->
-        # Use configured event store
-        HydepwnsLiveview.Events.EventStore.store_event(event)
+        # Convert Event to EventSchema and store in database
+        event_schema = %EventSchema{
+          id: event.id || Ecto.UUID.generate(),
+          type: event.type,
+          data: event.data,
+          resource_type: event.resource_type,
+          resource_id: event.resource_id,
+          correlation_id: event.correlation_id,
+          causation_id: event.causation_id,
+          metadata: event.metadata,
+          timestamp: event.timestamp
+        }
+
+        case Repo.insert(event_schema) do
+          {:ok, stored_schema} ->
+            # Convert back to Event struct
+            stored_event = %Event{
+              id: stored_schema.id,
+              type: stored_schema.type,
+              data: stored_schema.data,
+              resource_type: stored_schema.resource_type,
+              resource_id: stored_schema.resource_id,
+              correlation_id: stored_schema.correlation_id,
+              causation_id: stored_schema.causation_id,
+              metadata: stored_schema.metadata,
+              timestamp: stored_schema.timestamp
+            }
+            {:ok, stored_event}
+          {:error, changeset} -> {:error, changeset}
+        end
 
       {:error, reason} ->
         {:error, reason}
@@ -104,8 +162,12 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   """
   @spec get_events(map()) :: {:ok, [Event.t()]} | {:error, any()}
   def get_events(criteria) when is_map(criteria) do
-    # Use configured event store
-    HydepwnsLiveview.Events.EventStore.get_events(criteria)
+    # Build query and execute directly
+    query = EventQuery.build_query(criteria)
+    case Repo.all(query) do
+      events when is_list(events) -> {:ok, events}
+      _ -> {:error, :query_failed}
+    end
   end
 
   def get_events(_), do: {:error, :invalid_criteria}
@@ -123,8 +185,24 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   """
   @spec get_event(String.t()) :: {:ok, Event.t()} | {:error, :not_found | any()}
   def get_event(id) when is_binary(id) do
-    # Use configured event store
-    HydepwnsLiveview.Events.EventStore.get_event(id)
+    # Get event directly from database
+    case Repo.get(EventSchema, id) do
+      nil -> {:error, :not_found}
+      event_schema ->
+        # Convert EventSchema back to Event struct
+        event = %Event{
+          id: event_schema.id,
+          type: event_schema.type,
+          data: event_schema.data,
+          resource_type: event_schema.resource_type,
+          resource_id: event_schema.resource_id,
+          correlation_id: event_schema.correlation_id,
+          causation_id: event_schema.causation_id,
+          metadata: event_schema.metadata,
+          timestamp: event_schema.timestamp
+        }
+        {:ok, event}
+    end
   end
 
   def get_event(_), do: {:error, :invalid_id}
@@ -138,8 +216,11 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   """
   @spec list_events() :: {:ok, [Event.t()]} | {:error, any()}
   def list_events do
-    # Use configured event store
-    HydepwnsLiveview.Events.EventStore.list_all_events()
+    # List all events directly from database
+    case Repo.all(EventSchema) do
+      events when is_list(events) -> {:ok, events}
+      _ -> {:error, :query_failed}
+    end
   end
 
   @doc """
@@ -155,8 +236,11 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   """
   @spec delete_event(String.t()) :: {:ok, Event.t()} | {:error, :not_found | any()}
   def delete_event(id) when is_binary(id) do
-    # Use configured event store
-    HydepwnsLiveview.Events.EventStore.delete_event(id)
+    # Delete event directly from database
+    case Repo.get(EventSchema, id) do
+      nil -> {:error, :not_found}
+      event -> delete_event_from_repo(event)
+    end
   end
 
   def delete_event(_), do: {:error, :invalid_id}
@@ -210,8 +294,9 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   """
   @spec event_stream(map()) :: {:ok, Enumerable.t()} | {:error, any()}
   def event_stream(criteria \\ %{}) do
-    # Use configured event store
-    HydepwnsLiveview.Events.EventStore.event_stream(criteria)
+    # Create event stream directly
+    query = EventQuery.build_query(criteria)
+    {:ok, Repo.stream(query)}
   end
 
   @doc """
@@ -226,8 +311,12 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   """
   @spec count_events(map()) :: {:ok, integer()} | {:error, any()}
   def count_events(criteria \\ %{}) do
-    # Use configured event store
-    HydepwnsLiveview.Events.EventStore.count_events(criteria)
+    # Count events directly
+    query = EventQuery.build_query(criteria)
+    case Repo.aggregate(query, :count, :id) do
+      count when is_integer(count) -> {:ok, count}
+      _ -> {:error, :count_failed}
+    end
   end
 
   @doc """
@@ -244,8 +333,12 @@ defmodule HydepwnsLiveview.Events.EventOperations do
   """
   @spec purge_events(map()) :: {:ok, integer()} | {:error, any()}
   def purge_events(criteria) when map_size(criteria) > 0 do
-    # Use configured event store
-    HydepwnsLiveview.Events.EventStore.purge_events(criteria)
+    # Purge events directly
+    query = EventQuery.build_query(criteria)
+    case Repo.delete_all(query) do
+      {count, _} -> {:ok, count}
+      _ -> {:error, :purge_failed}
+    end
   end
 
   # Refuses to purge all events without explicit criteria

@@ -99,10 +99,13 @@ defmodule HydepwnsLiveview.Events.ResourceEventGenerator do
     resource_id = get_resource_id(resource)
     resource_type = extract_resource_type(resource)
 
+    # Convert changes keys to strings to ensure consistency
+    data = for {k, v} <- changes, into: %{}, do: {to_string(k), v}
+
     generate_event(resource_type, %{
       type: "#{resource_type}.updated",
       resource_id: resource_id,
-      data: changes,
+      data: data,
       metadata: metadata
     })
   end

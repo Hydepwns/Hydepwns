@@ -133,19 +133,8 @@ defmodule HydepwnsLiveview.Events.EventStore do
   * `{:ok, event}` - The event was deleted
   * `{:error, :not_found}` - The event was not found
   """
-  @spec delete_event(String.t()) :: {:ok, Event.t()} | {:error, :not_found}
-  def delete_event(id) do
-    case get_event(id) do
-      {:ok, event} ->
-        case Repo.delete(event) do
-          {:ok, deleted_event} -> {:ok, deleted_event}
-          {:error, _} -> {:error, :delete_failed}
-        end
-
-      {:error, :not_found} ->
-        {:error, :not_found}
-    end
-  end
+      @spec delete_event(String.t()) :: {:ok, Event.t()} | {:error, :not_found}
+  def delete_event(id), do: event_store_module().delete_event(id)
 
   @doc """
   Lists all events in the event store.

@@ -13,6 +13,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   require Logger
   alias HydepwnsLiveview.Repo
   alias HydepwnsLiveview.Events.Core.Event
+  alias HydepwnsLiveview.Events.Schemas.Event, as: EventSchema
   import Ecto.Query
 
   @doc """
@@ -188,15 +189,38 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   def store_event(%Event{} = event) do
     Logger.info("EventStore: Attempting to store event #{event.id} of type #{event.type}")
 
-    case Repo.insert(event) do
-      {:ok, stored_event} ->
-        Logger.info("EventStore: Successfully stored event #{stored_event.id}")
-        {:ok, stored_event}
+    # Convert event struct to map and validate through changeset
+    event_attrs = %{
+      "id" => event.id,
+      "type" => event.type,
+      "resource_id" => event.resource_id,
+      "resource_type" => event.resource_type,
+      "data" => event.data,
+      "metadata" => event.metadata,
+      "correlation_id" => event.correlation_id,
+      "causation_id" => event.causation_id,
+      "timestamp" => event.timestamp
+    }
 
-      {:error, changeset} ->
-        Logger.error("EventStore: Failed to store event #{event.id}: #{inspect(changeset.errors)}")
-        {:error, changeset}
-    end
+                # Use the Schema Event module for database operations
+        alias HydepwnsLiveview.Events.Schemas.Event, as: EventSchema
+
+        case EventSchema.changeset(%EventSchema{}, event_attrs) do
+          %Ecto.Changeset{valid?: true} = changeset ->
+            case Repo.insert(changeset) do
+              {:ok, stored_event} ->
+                Logger.info("EventStore: Successfully stored event #{stored_event.id}")
+                {:ok, stored_event}
+
+              {:error, changeset} ->
+                Logger.error("EventStore: Failed to store event #{event.id}: #{inspect(changeset.errors)}")
+                {:error, changeset}
+            end
+
+          %Ecto.Changeset{valid?: false} = changeset ->
+            Logger.error("EventStore: Invalid event #{event.id}: #{inspect(changeset.errors)}")
+            {:error, changeset}
+        end
   end
 
   @doc """
@@ -238,7 +262,32 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   @spec store_events([Event.t()]) :: {:ok, [Event.t()]} | {:error, any(), any(), [Event.t()]}
   def store_events(events) when is_list(events) do
     Repo.transaction(fn ->
-      Enum.map(events, &Repo.insert!/1)
+      Enum.map(events, fn event ->
+        # Convert event struct to map and validate through changeset
+        event_attrs = %{
+          "id" => event.id,
+          "type" => event.type,
+          "resource_id" => event.resource_id,
+          "resource_type" => event.resource_type,
+          "data" => event.data,
+          "metadata" => event.metadata,
+          "correlation_id" => event.correlation_id,
+          "causation_id" => event.causation_id,
+          "timestamp" => event.timestamp
+        }
+
+        # Use the Schema Event module for database operations
+        alias HydepwnsLiveview.Events.Schemas.Event, as: EventSchema
+
+        case EventSchema.changeset(%EventSchema{}, event_attrs) do
+          %Ecto.Changeset{valid?: true} = changeset ->
+            Repo.insert!(changeset)
+
+          %Ecto.Changeset{valid?: false} = changeset ->
+            Logger.error("EventStore: Invalid event in batch: #{inspect(changeset.errors)}")
+            Repo.rollback(changeset)
+        end
+      end)
     end)
   rescue
     e ->
@@ -293,7 +342,9 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   @spec get_event(any()) :: {:ok, Event.t()} | {:error, any()}
   def get_event(id) do
     try do
-      case Repo.get(Event, id) do
+      alias HydepwnsLiveview.Events.Schemas.Event, as: EventSchema
+
+      case Repo.get(EventSchema, id) do
         nil -> {:error, :not_found}
         event -> {:ok, event}
       end
@@ -962,17 +1013,37 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   * `{:error, :not_found}` - No event with the given ID exists
   * `{:error, reason}` - Error deleting the event
   """
-  @spec delete_event(any()) :: {:ok, Event.t()} | {:error, any()}
+    @spec delete_event(any()) :: {:ok, Event.t()} | {:error, any()}
   def delete_event(id) do
-    case get_event(id) do
-      {:ok, event} ->
-        case Repo.delete(event) do
-          {:ok, deleted_event} -> {:ok, deleted_event}
-          {:error, reason} -> {:error, reason}
-        end
+    try do
+      # First get the event to return it after deletion
+      case get_event(id) do
+        {:ok, event} ->
+          # Use a direct query to delete by ID to avoid stale entry issues
+          query = from(e in EventSchema, where: e.id == ^id)
 
-      {:error, reason} ->
-        {:error, reason}
+          case Repo.delete_all(query) do
+            {1, nil} ->
+              # Successfully deleted one record, return the event
+              {:ok, event}
+
+            {0, nil} ->
+              # No records were deleted (event doesn't exist)
+              {:error, :not_found}
+
+            {count, nil} ->
+              # Unexpected number of records deleted
+              Logger.warning("Unexpected number of events deleted: #{count} for ID: #{id}")
+              {:error, :unexpected_delete_count}
+          end
+
+        {:error, reason} ->
+          {:error, reason}
+      end
+    rescue
+      e ->
+        Logger.error("Error deleting event: #{inspect(e)}")
+        {:error, e}
     end
   end
 
@@ -1036,7 +1107,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
   @spec list_all_events() :: {:ok, [Event.t()]} | {:error, any()}
   def list_all_events() do
     try do
-      events = Repo.all(Event)
+      events = Repo.all(EventSchema)
       {:ok, events}
     rescue
       e ->
@@ -1067,7 +1138,7 @@ defmodule HydepwnsLiveview.Events.Core.EventStore do
 
   # Builds a query from criteria
   defp build_event_query(criteria) do
-    base_query = from(e in Event)
+    base_query = from(e in EventSchema)
 
     criteria
     |> Enum.reduce(base_query, &apply_criterion/2)

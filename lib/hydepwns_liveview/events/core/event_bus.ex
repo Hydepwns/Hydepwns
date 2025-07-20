@@ -154,10 +154,15 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
       Process.monitor(subscriber)
     end
 
-    # Add subscriber to each event type
+    # Add subscriber to each event type (avoid duplicates)
     subscribers =
       Enum.reduce(event_types_list, state.subscribers, fn event_type, acc ->
-        Map.update(acc, event_type, [subscriber], &[subscriber | &1])
+        current_subscribers = Map.get(acc, event_type, [])
+        if subscriber in current_subscribers do
+          acc
+        else
+          Map.put(acc, event_type, [subscriber | current_subscribers])
+        end
       end)
 
     {:reply, :ok, %{state | subscribers: subscribers}}
@@ -212,9 +217,11 @@ defmodule HydepwnsLiveview.Events.Core.EventBus do
 
   @impl true
   def handle_info({:DOWN, _ref, :process, pid, _reason}, state) do
+    # Remove the dead process from all event type subscriptions
     subscribers =
       Enum.reduce(state.subscribers, %{}, fn {topic, pids}, acc ->
-        Map.put(acc, topic, List.delete(pids, pid))
+        cleaned_pids = Enum.reject(pids, &(&1 == pid))
+        Map.put(acc, topic, cleaned_pids)
       end)
 
     {:noreply, %{state | subscribers: subscribers}}

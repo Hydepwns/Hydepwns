@@ -10,18 +10,6 @@ defmodule HydepwnsLiveview.Events.Projections.ResourceProjection do
   use HydepwnsLiveview.Events.Projections.Projection
   require Logger
 
-  # Client API
-
-  def get_state do
-    current_state()
-  end
-
-  def rebuild do
-    # This will be handled by the ProjectionProcess wrapper
-    # The rebuild functionality is now handled by the ProjectionSupervisor
-    :ok
-  end
-
   # Projection Behavior Implementation
 
   @impl true
@@ -103,14 +91,4 @@ defmodule HydepwnsLiveview.Events.Projections.ResourceProjection do
         state
     end
   end
-
-  # Helper function to get type of value
-  defp typeof(value) when is_binary(value), do: "string"
-  defp typeof(value) when is_map(value), do: "map"
-  defp typeof(value) when is_list(value), do: "list"
-  defp typeof(value) when is_integer(value), do: "integer"
-  defp typeof(value) when is_float(value), do: "float"
-  defp typeof(value) when is_boolean(value), do: "boolean"
-  defp typeof(value) when is_nil(value), do: "nil"
-  defp typeof(value), do: "unknown: #{inspect(value)}"
 end

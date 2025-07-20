@@ -11,7 +11,7 @@ defmodule HydepwnsLiveview.Events.Projections.Projection do
   ```elixir
   defmodule HydepwnsLiveview.Events.Projections.UserStats do
     use HydepwnsLiveview.Events.Projection
-    
+
     @impl true
     def init do
       {:ok, %{
@@ -20,30 +20,30 @@ defmodule HydepwnsLiveview.Events.Projections.Projection do
         logins_today: 0
       }}
     end
-    
+
     @impl true
     def interested_in do
       [:user_created, :user_login, :user_logout]
     end
-    
+
     @impl true
     def apply_event(%{type: :user_created}, state) do
       {:ok, %{state | total_users: state.total_users + 1}}
     end
-    
+
     @impl true
     def apply_event(%{type: :user_login}, state) do
-      {:ok, %{state | 
+      {:ok, %{state |
         active_users: state.active_users + 1,
         logins_today: state.logins_today + 1
       }}
     end
-    
+
     @impl true
     def apply_event(%{type: :user_logout}, state) do
       {:ok, %{state | active_users: state.active_users - 1}}
     end
-    
+
     @impl true
     def get_state do
       current_state()
@@ -98,7 +98,7 @@ defmodule HydepwnsLiveview.Events.Projections.Projection do
 
   defmacro __using__(_opts) do
     quote do
-      @behaviour HydepwnsLiveview.Events.Projection
+      @behaviour HydepwnsLiveview.Events.Projections.Projection
       require Logger
 
       # GenServer name for this projection
@@ -113,7 +113,7 @@ defmodule HydepwnsLiveview.Events.Projections.Projection do
       """
       def start_link(opts \\ []) do
         name = Keyword.get(opts, :name, @server_name)
-        HydepwnsLiveview.Events.ProjectionProcess.start_link(__MODULE__, opts, name: name)
+        HydepwnsLiveview.Events.ProjectionProcess.start_link(__MODULE__, opts)
       end
 
       @doc """

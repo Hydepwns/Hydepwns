@@ -11,6 +11,18 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeCustomizeLive do
   end
 
   @impl Phoenix.LiveView
+  def handle_params(%{"id" => id, "theme_table" => table} = _params, _url, socket) do
+    # Set the theme system ETS table from URL parameters (for tests)
+    # Convert string to atom for ETS table name
+    table_atom = String.to_existing_atom(table)
+    Process.put(:theme_system_ets_table, table_atom)
+    IO.puts("DEBUG: Set theme_system_ets_table from URL to #{table_atom}")
+
+    theme = ThemeSystem.get_theme!(id)
+    {:noreply, assign(socket, :theme, theme)}
+  end
+
+  @impl Phoenix.LiveView
   def handle_params(%{"id" => id}, _url, socket) do
     theme = ThemeSystem.get_theme!(id)
     {:noreply, assign(socket, :theme, theme)}
@@ -205,7 +217,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeCustomizeLive do
               <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Save Colors</button>
             </div>
           </form>
-          
+
     <!-- Color Preview -->
           <div class="mt-6" data-test-id="color-preview-section">
             <h3 class="text-md font-medium mb-3">Preview</h3>
@@ -223,7 +235,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeCustomizeLive do
             </div>
           </div>
         </div>
-        
+
     <!-- Typography Customization -->
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <h2 class="text-lg font-medium mb-4">Typography</h2>
@@ -246,7 +258,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeCustomizeLive do
               <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Save Typography</button>
             </div>
           </form>
-          
+
     <!-- Typography Preview -->
           <div class="mt-6">
             <h3 class="text-md font-medium mb-3">Preview</h3>
@@ -255,7 +267,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeCustomizeLive do
             </div>
           </div>
         </div>
-        
+
     <!-- Spacing Customization -->
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <h2 class="text-lg font-medium mb-4">Spacing</h2>
@@ -278,7 +290,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeCustomizeLive do
               <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Save Spacing</button>
             </div>
           </form>
-          
+
     <!-- Spacing Preview -->
           <div class="mt-6" data-test-id="spacing-preview-section">
             <h3 class="text-md font-medium mb-3">Preview</h3>
@@ -291,7 +303,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeCustomizeLive do
             </div>
           </div>
         </div>
-        
+
     <!-- Accessibility Settings -->
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <h2 class="text-lg font-medium mb-4">Accessibility</h2>
@@ -310,7 +322,7 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeCustomizeLive do
               <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Apply</button>
             </div>
           </form>
-          
+
     <!-- Accessibility Status -->
           <div class="mt-6">
             <div class="contrast-ratio text-sm text-green-600">4.5:1</div>

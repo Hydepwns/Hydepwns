@@ -41,10 +41,16 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeShowLive do
       _ ->
         theme = ThemeSystem.get_theme!(id)
 
+        # Check if this theme is currently applied
+        applied_theme = case ThemeSystem.get_current_theme() do
+          {:ok, current_theme} when current_theme.id == theme.id -> theme
+          _ -> nil
+        end
+
         {:noreply,
          assign(socket, :theme, theme)
          |> assign(:show_delete_confirm, false)
-         |> assign(:applied_theme, nil)}
+         |> assign(:applied_theme, applied_theme)}
     end
   end
 
@@ -61,10 +67,16 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeShowLive do
       _ ->
         theme = ThemeSystem.get_theme!(id)
 
+        # Check if this theme is currently applied
+        applied_theme = case ThemeSystem.get_current_theme() do
+          {:ok, current_theme} when current_theme.id == theme.id -> theme
+          _ -> nil
+        end
+
         {:noreply,
          assign(socket, :theme, theme)
          |> assign(:show_delete_confirm, false)
-         |> assign(:applied_theme, nil)}
+         |> assign(:applied_theme, applied_theme)}
     end
   end
 
@@ -141,17 +153,19 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeShowLive do
             </dl>
           </div>
 
-          <%= if @applied_theme do %>
-            <div class="theme-applied">
+          <div class="theme-applied" data-test-id="theme-applied-status">
+            <%= if @applied_theme do %>
               {@applied_theme.name}
-            </div>
-          <% end %>
+            <% else %>
+              No theme applied
+            <% end %>
+          </div>
 
           <div class="flex justify-end space-x-4">
             <.link navigate={~p"/themes"} class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
               Back to Themes
             </.link>
-            <button phx-click="apply" data-test-id="apply-theme-btn" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" type="button">
+            <button phx-click="apply" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" type="button">
               Apply Theme
             </button>
             <.link

@@ -47,6 +47,18 @@ defmodule HydepwnsLiveviewWeb.Themes.ThemeNewLive do
   def render(assigns) do
     ~H"""
     <div class="container mx-auto px-4 py-8">
+      <%= if Phoenix.Flash.get(@flash, :info) do %>
+        <div class="alert alert-success bg-green-100 border border-green-400 text-green-800 px-4 py-3 rounded relative mb-6" role="alert">
+          {Phoenix.Flash.get(@flash, :info)}
+        </div>
+      <% end %>
+
+      <%= if Phoenix.Flash.get(@flash, :error) do %>
+        <div class="alert alert-error bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded relative mb-6" role="alert">
+          {Phoenix.Flash.get(@flash, :error)}
+        </div>
+      <% end %>
+
       <header class="flex items-center justify-between mb-6">
         <div>
           <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Create Theme</h1>

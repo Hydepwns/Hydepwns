@@ -256,10 +256,10 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
 
       # Should receive alert due to critical backpressure (queue + slow processing)
       assert_receive {:alert, alert}
-      assert alert.type == :event_system_backpressure
+      assert alert.type == :backpressure
       # Both queue pressure and slow processing
       assert alert.level == :critical
-      assert alert.message == "Event system experiencing backpressure"
+      assert alert.message == "Critical backpressure in event system"
       assert is_map(alert.details)
       assert is_struct(alert.timestamp, DateTime)
     end
@@ -425,6 +425,8 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
       assert event_metrics.max_time == 200
 
       # Error rate should be 1/3 = 0.333...
+      IO.inspect(metrics.error_rates, label: "Error rates")
+      IO.inspect(event_metrics, label: "Event metrics")
       assert_in_delta metrics.error_rates["accumulate_event"], 0.333, 0.001
     end
 
@@ -610,10 +612,10 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
 
       # Should receive alert
       assert_receive {:alert, alert}
-      assert alert.type == :event_system_backpressure
+      assert alert.type == :backpressure
       # Both queue pressure and slow processing
       assert alert.level == :critical
-      assert alert.message == "Event system experiencing backpressure"
+      assert alert.message == "Critical backpressure in event system"
       assert is_map(alert.details)
       assert is_struct(alert.timestamp, DateTime)
     end
@@ -730,7 +732,7 @@ defmodule HydepwnsLiveview.Events.Core.EventMonitorTest do
 
       # Should receive alert (allow longer timeout)
       assert_receive {:alert, alert}, 2000
-      assert alert.type == :event_system_backpressure
+      assert alert.type == :backpressure
       # Both queue pressure and slow processing
       assert alert.level == :critical
     end

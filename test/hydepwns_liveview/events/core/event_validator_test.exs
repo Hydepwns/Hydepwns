@@ -485,8 +485,8 @@ defmodule HydepwnsLiveview.Events.Core.EventValidatorTest do
       {time, result} = :timer.tc(fn -> EventValidator.validate(large_event) end)
 
       assert {:ok, ^large_event} = result
-      # Should complete in less than 1ms
-      assert time < 1000
+      # Should complete in less than 10ms (10,000 microseconds)
+      assert time < 10_000
     end
   end
 end

@@ -357,6 +357,9 @@ defmodule HydepwnsLiveviewWeb.Integration.EventDrivenIntegrationTest do
       {:ok, resource} =
         HydepwnsLiveview.Resources.ResourceSystem.create_resource(atomize_keys(test_resource))
 
+      # Wait a moment for the projection to process the event
+      Process.sleep(100)
+
       # Get projection state
       {:ok, projection_state} = HydepwnsLiveview.Events.ProjectionSupervisor.get_projection_state(projection_pid)
 
@@ -597,11 +600,13 @@ defmodule HydepwnsLiveviewWeb.Integration.EventDrivenIntegrationTest do
               resource.id,
               atomize_keys(%{status: "published"})
             )
+
+            resource.id
           end)
         end
 
-      # Wait for all tasks to complete
-      Task.await_many(tasks)
+      # Wait for all tasks to complete and collect resource IDs
+      resource_ids = Task.await_many(tasks)
 
       # Get all events and verify we have the expected number using flexible filtering
       {:ok, all_events} = get_events_with_criteria(%{})
@@ -609,12 +614,13 @@ defmodule HydepwnsLiveviewWeb.Integration.EventDrivenIntegrationTest do
       created_events =
         Enum.filter(all_events, fn event ->
           event.type == "document.created" and
-            String.contains?(event.data.name, "Order Test Resource")
+            event.resource_id in resource_ids
         end)
 
       updated_events =
         Enum.filter(all_events, fn event ->
-          event.type == "document.updated"
+          event.type == "document.updated" and
+            event.resource_id in resource_ids
         end)
 
       # Verify we have the expected number of events (flexible assertions)

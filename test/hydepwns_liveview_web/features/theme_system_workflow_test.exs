@@ -1,10 +1,10 @@
 defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
   use HydepwnsLiveviewWeb.WallabyCase
-  @moduletag :liveview
-  import Wallaby.Query
+  import Mox
+  setup :set_mox_from_context
+  setup :verify_on_exit!
   import HydepwnsLiveview.TestSupport.ThemeSystemHelper
-  import HydepwnsLiveviewWeb.TestHelpers.WallabyFallback
-  import HydepwnsLiveviewWeb.TestHelpers.WallabyUIHelper
+  import Wallaby.DSL
 
   @moduledoc """
   End-to-end tests for the Theme System workflow.
@@ -248,10 +248,6 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
           """,
           []
         )
-
-      IO.puts("=== CSS DEBUG INFO ===")
-      IO.inspect(css_debug_result, label: "CSS Debug Result")
-      IO.puts("=== END CSS DEBUG ===")
 
       # Since JavaScript is disabled in Wallaby, let's check the page source directly
       # to verify the color preview elements are rendered in the HTML

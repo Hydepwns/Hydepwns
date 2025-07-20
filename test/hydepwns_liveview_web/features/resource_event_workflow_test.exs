@@ -3,8 +3,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
   import Mox
   setup :set_mox_from_context
   setup :verify_on_exit!
-  import Wallaby.Query
-  import HydepwnsLiveviewWeb.TestHelpers.WallabyUIHelper
+  import Wallaby.DSL
 
   @moduledoc """
   End-to-end tests for the Resource Event Processing and Subscription workflow.
@@ -135,9 +134,9 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
              has_text?(session, "updated")
 
     # Verify event structure (there may be multiple events)
-    assert Wallaby.Browser.has?(session, css(".event-row"))
-    assert Wallaby.Browser.has?(session, css(".event-type"))
-    assert Wallaby.Browser.has?(session, css(".event-timestamp"))
+    assert has?(session, css(".event-row"))
+    assert has?(session, css(".event-type"))
+    assert has?(session, css(".event-timestamp"))
   end
 
   @tag :skip
@@ -176,9 +175,9 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
     if has_text?(session, "created") || has_text?(session, "updated") ||
          has_text?(session, "transformed") do
       # If events exist, verify the timeline structure
-      assert Wallaby.Browser.has?(session, css("[data-test-id='timeline-event']"))
-      assert Wallaby.Browser.has?(session, css("[data-test-id='event-type']"))
-      assert Wallaby.Browser.has?(session, css("[data-test-id='event-timestamp']"))
+      assert has?(session, css("[data-test-id='timeline-event']"))
+      assert has?(session, css("[data-test-id='event-type']"))
+      assert has?(session, css("[data-test-id='event-timestamp']"))
     else
       # If no events exist, verify the "No events found" message is displayed
       assert has_text?(session, "No events found")

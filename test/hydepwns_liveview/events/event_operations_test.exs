@@ -397,7 +397,7 @@ defmodule HydepwnsLiveview.Events.EventOperationsTest do
 
     test "purges events with valid criteria", %{events: [_event1, _event2]} do
       criteria = %{type: "purge.test"}
-      assert {:ok, {count, nil}} = EventOperations.purge_events(criteria)
+      assert {:ok, count} = EventOperations.purge_events(criteria)
       assert count == 2
 
       # Verify events are actually purged

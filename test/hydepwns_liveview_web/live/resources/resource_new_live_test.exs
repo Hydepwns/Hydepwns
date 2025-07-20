@@ -1,8 +1,9 @@
 defmodule HydepwnsLiveviewWeb.ResourceNewLiveTest do
-  use HydepwnsLiveviewWeb.WallabyCase
+  use HydepwnsLiveviewWeb.WallabyCase, async: false
   import Mox
   setup :set_mox_from_context
   setup :verify_on_exit!
+  import Wallaby.DSL
 
   import HydepwnsLiveview.TestSupport.ResourceFixtures,
     only: [create_test_resource: 1]

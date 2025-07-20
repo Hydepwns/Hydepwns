@@ -3,8 +3,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
   import Mox
   setup :set_mox_from_context
   setup :verify_on_exit!
-  import Wallaby.Query
-  import HydepwnsLiveviewWeb.TestHelpers.WallabyUIHelper
+  import Wallaby.DSL
 
   @moduledoc """
   End-to-end tests for the Resource Event System workflow.
@@ -103,7 +102,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
       session = wait_for_text(session, "Resources", timeout: 5000)
 
       # Debug: Check if flash message is present in the page source
-      page_source = Wallaby.Browser.page_source(session)
+      page_source = page_source(session)
       IO.puts("DEBUG: Page source contains 'Resource created successfully': #{String.contains?(page_source, "Resource created successfully")}")
       IO.puts("DEBUG: Page source contains 'bg-emerald-50': #{String.contains?(page_source, "bg-emerald-50")}")
       IO.puts("DEBUG: Page source contains 'text-emerald-800': #{String.contains?(page_source, "text-emerald-800")}")
@@ -126,20 +125,20 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
       session = wait_for_text(session, "Event System")
 
       # Verify that the event system page shows the event system title
-      session = Wallaby.Browser.assert_has(session, css("h1", text: "Resource Event System"))
+      session = assert_has(session, css("h1", text: "Resource Event System"))
 
       # Verify that the event system page shows the toggle filters button
-      session = Wallaby.Browser.assert_has(session, css("button", text: "Show Filters"))
+      session = assert_has(session, css("button", text: "Show Filters"))
 
       # Verify that the event system page shows the event table
-      session = Wallaby.Browser.assert_has(session, css("table"))
+      session = assert_has(session, css("table"))
 
       # Verify that the event system page shows the event table headers
-      session = Wallaby.Browser.assert_has(session, css("th", text: "Event Type"))
-      session = Wallaby.Browser.assert_has(session, css("th", text: "Resource ID"))
-      session = Wallaby.Browser.assert_has(session, css("th", text: "Status"))
-      session = Wallaby.Browser.assert_has(session, css("th", text: "Timestamp"))
-      session = Wallaby.Browser.assert_has(session, css("th", text: "Data"))
+      session = assert_has(session, css("th", text: "Event Type"))
+      session = assert_has(session, css("th", text: "Resource ID"))
+      session = assert_has(session, css("th", text: "Status"))
+      session = assert_has(session, css("th", text: "Timestamp"))
+      session = assert_has(session, css("th", text: "Data"))
     end
 
     test "resource update generates events", %{session: session, resource: resource} do

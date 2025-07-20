@@ -3,8 +3,7 @@ defmodule HydepwnsLiveviewWeb.DebugJSErrorTest do
   import Mox
   setup :set_mox_from_context
   setup :verify_on_exit!
-  import Wallaby.Query
-  import HydepwnsLiveviewWeb.TestHelpers.WallabyUIHelper
+  alias Wallaby.Query
 
   @moduledoc """
   Tests for debugging JavaScript errors in the application.
@@ -109,19 +108,5 @@ defmodule HydepwnsLiveviewWeb.DebugJSErrorTest do
     IO.puts("\n=== MINIMAL RESOURCE NEW PAGE SOURCE ===")
     IO.puts(page_source)
     IO.puts("=== END MINIMAL RESOURCE NEW PAGE SOURCE ===\n")
-  end
-
-  # Helper to wait for a path change in Wallaby
-  defp wait_for_path(session, expected_path, attempts \\ 20) do
-    if current_path(session) == expected_path do
-      session
-    else
-      if attempts > 0 do
-        Process.sleep(100)
-        wait_for_path(session, expected_path, attempts - 1)
-      else
-        flunk("Timed out waiting for path #{expected_path}, last path: #{current_path(session)}")
-      end
-    end
   end
 end

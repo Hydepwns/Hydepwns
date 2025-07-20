@@ -69,6 +69,9 @@ defmodule HydepwnsLiveview.DataCase do
             # For shared mode, we can just allow the current process
             Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), self())
             self()
+          {:error, {{:badmatch, {:already, :allowed}}, _}} ->
+            # Sandbox is already allowed, continue
+            self()
           {:error, {{:badmatch, :not_found}, _}} ->
             # Handle not_found error - try to use manual mode instead
             :ok = Ecto.Adapters.SQL.Sandbox.checkout(HydepwnsLiveview.Repo)

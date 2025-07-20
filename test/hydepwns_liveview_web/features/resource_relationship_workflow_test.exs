@@ -3,8 +3,6 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
   import Mox
   setup :set_mox_from_context
   setup :verify_on_exit!
-  import Wallaby.Query
-  import HydepwnsLiveviewWeb.TestHelpers.WallabyUIHelper
   import Wallaby.DSL
 
   @moduledoc """
@@ -29,8 +27,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
     # Ensure sandbox is enabled for this test
     Application.put_env(:hydepwns_liveview, :sql_sandbox, true)
 
-    # Ensure the current process has access to the database sandbox
-    # This is crucial for async: false tests
+    # Set up proper database sandbox for async tests
     Ecto.Adapters.SQL.Sandbox.checkout(HydepwnsLiveview.Repo)
     Ecto.Adapters.SQL.Sandbox.mode(HydepwnsLiveview.Repo, {:shared, self()})
 
@@ -87,14 +84,14 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       session = wait_for_text(session, child.name)
 
       # Verify the parent relationship is displayed
-      session = Wallaby.Browser.assert_has(session, css("a[data-test-id='parent-resource-link']"))
+      session = assert_has(session, css("a[data-test-id='parent-resource-link']"))
 
       # Test 3: Edit page verification - check that the relationship is set in the form
       session = click(session, css("a[data-test-id='edit-resource-link']"))
       session = wait_for_element(session, css("form#resource-form"))
 
       # Verify the parent is selected in the dropdown
-      session = Wallaby.Browser.assert_has(session, css("select[name='resource[parent_id]']", value: parent.id))
+      session = assert_has(session, css("select[name='resource[parent_id]']", value: parent.id))
 
       # Test 4: Event verification - check that the relationship change was recorded via API
       # Since LiveView sandbox is not working properly, verify events through the API
@@ -140,7 +137,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       session = wait_for_element(session, css("a[data-test-id='edit-resource-link']"), timeout: 20_000)
 
       # If edit link is still not found, print page source for debugging
-      unless Wallaby.Browser.has?(session, css("a[data-test-id='edit-resource-link']")) do
+      unless has?(session, css("a[data-test-id='edit-resource-link']")) do
         IO.puts("DEBUG: edit-resource-link not found after 20s, printing page source:")
         IO.puts(page_source(session))
         IO.puts("DEBUG: All resources in DB:")
@@ -153,7 +150,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
         |> wait_for_element(css("select[name='resource[parent_id]']"))
 
       # Use JavaScript to properly set the select field value and trigger LiveView change event
-      session = Wallaby.Browser.execute_script(session, """
+      session = execute_script(session, """
         const select = document.querySelector('select[name=\"resource[parent_id]\"]');
         if (select) {
           select.focus();
@@ -241,9 +238,9 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       session = wait_for_element(session, css("a", text: "Third Child"), timeout: 10_000)
 
       # Verify all resources are visible in the dashboard
-      session = Wallaby.Browser.assert_has(session, css("a", text: child.name))
-      session = Wallaby.Browser.assert_has(session, css("a", text: "Second Child"))
-      session = Wallaby.Browser.assert_has(session, css("a", text: "Third Child"))
+      session = assert_has(session, css("a", text: child.name))
+      session = assert_has(session, css("a", text: "Second Child"))
+      session = assert_has(session, css("a", text: "Third Child"))
     end
 
     test "user cannot create circular relationships", %{
@@ -276,7 +273,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
 
       # Verify the child is not available as a parent option (circular relationship prevention)
       # The child should not appear in the parent dropdown since it would create a cycle
-      session = Wallaby.Browser.assert_has(session, css("select[name='resource[parent_id]']"))
+      session = assert_has(session, css("select[name='resource[parent_id]']"))
 
       # Check that the child is not in the dropdown options (this prevents circular relationships)
       page_source = page_source(session)
@@ -315,7 +312,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       session = wait_for_element(session, css("form#resource-form"))
 
       # Verify no parent is selected in the dropdown
-      session = Wallaby.Browser.assert_has(session, css("select[name='resource[parent_id]']"))
+      session = assert_has(session, css("select[name='resource[parent_id]']"))
       page_source = page_source(session)
       # The select should have no selected option or empty value
       assert String.contains?(page_source, "value=\"\"") or not String.contains?(page_source, "selected")
@@ -383,14 +380,14 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       session = wait_for_text(session, child.name)
 
       # Verify the parent relationship is displayed
-      session = Wallaby.Browser.assert_has(session, css("a[data-test-id='parent-resource-link']"))
+      session = assert_has(session, css("a[data-test-id='parent-resource-link']"))
 
       # Test 3: Dashboard verification - check that the relationship is reflected in the dashboard
       session = visit_and_wait(session, "/resources")
       session = wait_for_text(session, "Resources")
 
       # Verify that the child resource is visible in the dashboard
-      session = Wallaby.Browser.assert_has(session, css("a", text: child.name))
+      session = assert_has(session, css("a", text: child.name))
 
       # Test 4: Edit page verification - check that the relationship is set in the form
       session = click(session, css("a[data-test-id='resource-link-#{child.id}']"))
@@ -399,7 +396,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       session = wait_for_element(session, css("form#resource-form"))
 
       # Verify the parent is selected in the dropdown
-      session = Wallaby.Browser.assert_has(session, css("select[name='resource[parent_id]']", value: parent.id))
+      session = assert_has(session, css("select[name='resource[parent_id]']", value: parent.id))
     end
   end
 end

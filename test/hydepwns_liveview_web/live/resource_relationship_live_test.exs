@@ -53,10 +53,24 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
     # Ensure proper sandbox setup for LiveView tests
     # This is crucial for LiveView to access the same database connection
     pid = HydepwnsLiveview.DataCase.setup_sandbox([])
-    Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), pid)
+
+    # Allow the sandbox with proper error handling
+    try do
+      Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), pid)
+    rescue
+      e in MatchError ->
+        # Handle the case where sandbox is already set up
+        case e.term do
+          {:error, {{:badmatch, {:already, :allowed}}, _stacktrace}} ->
+            # Sandbox is already allowed, continue
+            :ok
+          _ ->
+            reraise e, __STACKTRACE__
+        end
+    end
 
     # Set up the sandbox cookie for LiveView
-    conn = Phoenix.ConnTest.put_req_header(conn, "x-live-view-sandbox", "#{pid}")
+    conn = put_req_header(conn, "x-live-view-sandbox", "#{inspect(pid)}")
 
     unique = System.unique_integer([:positive])
 

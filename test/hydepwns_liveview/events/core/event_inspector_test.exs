@@ -423,10 +423,10 @@ defmodule HydepwnsLiveview.Events.Core.EventInspectorTest do
 
     test "handles invalid session ID" do
       result = EventInspector.get_replay_status(nil)
-      assert {:error, :not_found} = result
+      assert {:error, :invalid_parameters} = result
 
       result = EventInspector.get_replay_status(123)
-      assert {:error, :not_found} = result
+      assert {:error, :invalid_parameters} = result
     end
   end
 

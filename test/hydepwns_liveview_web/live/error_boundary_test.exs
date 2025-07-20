@@ -2,10 +2,16 @@ defmodule HydepwnsLiveviewWeb.ErrorBoundaryTest do
   use HydepwnsLiveviewWeb.ConnCase
   import Phoenix.LiveViewTest
   import Mox
+  setup :set_mox_from_context
+  setup :verify_on_exit!
 
   alias HydepwnsLiveview.Accounts
+  alias HydepwnsLiveviewWeb.TestMockHelper
 
   setup do
+    # Set up mocks for all tests
+    TestMockHelper.setup_mocks()
+
     # Create test users
     {:ok, regular_user} =
       Accounts.create_user(%{
@@ -178,6 +184,10 @@ defmodule HydepwnsLiveviewWeb.ErrorBoundaryTest do
 
       # Use a valid UUID format for a non-existent resource
       non_existent_uuid = "00000000-0000-0000-0000-000000000000"
+
+      # Set up mock expectation for non-existent resource
+      HydepwnsLiveview.RepoMock
+      |> expect(:get, fn _module, _id, _opts -> nil end)
 
       # Test loading a non-existent resource
       conn = get(conn, "/resources/#{non_existent_uuid}")

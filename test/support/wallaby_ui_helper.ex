@@ -34,6 +34,14 @@ defmodule HydepwnsLiveviewWeb.TestHelpers.WallabyUIHelper do
       session = wait_for_resource_link(session, "resource-123", timeout: 10000)
   """
   def wait_for_resource_link(session, resource_id, opts \\ []) do
+    # Handle mock sessions
+    case session do
+      %{mock: _} -> session
+      _ -> do_wait_for_resource_link(session, resource_id, opts)
+    end
+  end
+
+  defp do_wait_for_resource_link(session, resource_id, opts) do
     timeout = Keyword.get(opts, :timeout, 5000)
     interval = Keyword.get(opts, :interval, 200)
     start_time = System.monotonic_time(:millisecond)
@@ -70,6 +78,14 @@ defmodule HydepwnsLiveviewWeb.TestHelpers.WallabyUIHelper do
   The session, for chainability
   """
   def wait_for_element(session, query, opts \\ []) do
+    # Handle mock sessions
+    case session do
+      %{mock: _} -> session
+      _ -> do_wait_for_element(session, query, opts)
+    end
+  end
+
+  defp do_wait_for_element(session, query, opts) do
     timeout = Keyword.get(opts, :timeout, 3000)
     interval = Keyword.get(opts, :interval, 100)
     start_time = System.monotonic_time(:millisecond)
@@ -104,6 +120,14 @@ defmodule HydepwnsLiveviewWeb.TestHelpers.WallabyUIHelper do
   The session, for chainability
   """
   def wait_for_element_disappear(session, query, opts \\ []) do
+    # Handle mock sessions
+    case session do
+      %{mock: _} -> session
+      _ -> do_wait_for_element_disappear(session, query, opts)
+    end
+  end
+
+  defp do_wait_for_element_disappear(session, query, opts) do
     timeout = Keyword.get(opts, :timeout, 3000)
     interval = Keyword.get(opts, :interval, 100)
     start_time = System.monotonic_time(:millisecond)

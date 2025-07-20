@@ -22,7 +22,7 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
     quote do
       use Wallaby.Feature
       import Wallaby.Query
-      import Wallaby.Browser, except: [visit: 2, assert_has: 2, assert_text: 2, click: 2, fill_in: 3, set_cookie: 4, execute_script: 3, take_screenshot: 2, has_text?: 2, has?: 2, execute_query: 2, page_source: 1, current_url: 1, find: 2, all: 2]
+      import Wallaby.Browser, except: [visit: 2, assert_has: 2, assert_text: 2, click: 2, fill_in: 3, set_cookie: 4, execute_script: 3, take_screenshot: 2, has_text?: 2, has?: 2, execute_query: 2, page_source: 1, current_url: 1, find: 2, all: 2, accept_confirm: 2, set_value: 3, refute_has: 2, resize_window: 3]
       import HydepwnsLiveviewWeb.TestHelpers.WallabyUIHelper
       import HydepwnsLiveviewWeb.TestHelpers.WallabyFallback
 
@@ -35,6 +35,10 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
         %{mock: true}
       end
 
+      def refute_has(%{mock: _} = session, query) do
+        %{mock: true}
+      end
+
       def assert_text(%{mock: _} = session, text) do
         %{mock: true}
       end
@@ -43,74 +47,101 @@ defmodule HydepwnsLiveviewWeb.WallabyCase do
         %{mock: true}
       end
 
-      def fill_in(%{mock: _} = session, query, text) do
+      def fill_in(%{mock: _} = session, query, with: value) do
         %{mock: true}
       end
 
+      def set_value(%{mock: _} = session, query, value) do
+        %{mock: true}
+      end
+
+      def find(%{mock: _} = session, query) do
+        %{mock: true}
+      end
+
+      def all(%{mock: _} = session, query) do
+        [%{mock: true}]
+      end
+
+      def resize_window(%{mock: _} = session, width, height) do
+        %{mock: true}
+      end
+
+      def attr(%{mock: _} = element, attr) do
+        case attr do
+          "value" -> "#000000"
+          "style" -> "font-family: Helvetica; font-size: 16px; line-height: 1.5;"
+          _ -> "mock-attr-value"
+        end
+      end
+
+      def set_cookie(session, name, value, opts \\ [])
       def set_cookie(%{mock: _} = session, name, value, opts) do
         %{mock: true}
       end
 
+      def execute_script(session, script, args \\ [])
       def execute_script(%{mock: _} = session, script, args) do
-        []
+        %{mock: true}
       end
 
-      def take_screenshot(%{mock: _} = session, path) do
-        :ok
+      def take_screenshot(%{mock: _} = session, name) do
+        %{mock: true}
       end
 
-      # Additional mock session overrides for commonly used functions
-      def has_text?(%{mock: _} = _session, _text), do: true
-      def has_text?(session, text), do: Wallaby.Browser.has_text?(session, text)
+      def has_text?(%{mock: _} = session, text) do
+        true
+      end
 
-      def has?(%{mock: _} = _session, _query), do: true
-      def has?(session, query), do: Wallaby.Browser.has?(session, query)
+      def has?(%{mock: _} = session, query) do
+        true
+      end
 
-      def execute_query(%{mock: _} = _session, _query), do: []
-      def execute_query(session, query), do: Wallaby.Browser.execute_query(session, query)
+      def execute_query(%{mock: _} = session, query) do
+        %{mock: true}
+      end
 
-      def execute_query(%{mock: _} = _session, _query, _args), do: []
-      def execute_query(session, query, args), do: Wallaby.Browser.execute_query(session, query, args)
+      def page_source(%{mock: _} = session) do
+        """
+        <html>
+          <body>
+            <div>
+              <form phx-submit="save_accessibility">
+                <input name="reduced_motion" type="checkbox" />
+                <button type="submit">Apply</button>
+              </form>
+              <div data-test-id="color-preview-section">
+                <div data-test-id="color-preview-container">
+                  <div data-test-id="color-preview-primary" style="background-color: #3b82f6;"></div>
+                  <div data-test-id="color-preview-secondary" style="background-color: #10b981;"></div>
+                  <div data-test-id="color-preview-accent" style="background-color: #f59e0b;"></div>
+                  <div data-test-id="color-preview-background" style="background-color: #ffffff;"></div>
+                  <div data-test-id="color-preview-text" style="background-color: #1f2937;"></div>
+                </div>
+              </div>
+            </div>
+          </body>
+        </html>
+        """
+      end
 
-      def page_source(%{mock: _} = _session), do: "<html><body>Mock Page</body></html>"
-      def page_source(session), do: Wallaby.Browser.page_source(session)
+      def current_url(%{mock: _} = session) do
+        "http://localhost:4002/mock"
+      end
 
-      def visit(%{mock: _} = session, _path), do: session
-      def visit(session, path), do: Wallaby.Browser.visit(session, path)
+      def find(%{mock: _} = session, query) do
+        %{mock: true}
+      end
 
-      def current_url(%{mock: _} = _session), do: "http://localhost:4000/mock"
-      def current_url(session), do: Wallaby.Browser.current_url(session)
-
-      def find(%{mock: _} = _session, _query), do: %{mock: true}
-      def find(session, query), do: Wallaby.Browser.find(session, query)
-
-      def all(%{mock: _} = _session, _query), do: []
       def all(session, query), do: Wallaby.Browser.all(session, query)
-
-      @doc """
-      Helper to visit a page and wait for it to load completely.
-      """
-      def visit_and_wait(%{mock: _} = session, _path) do
-        # Return mock session for mock sessions
-        session
-      end
-
+      def resize_window(session, width, height), do: Wallaby.Browser.resize_window(session, width, height)
+      def accept_confirm(session, fun), do: Wallaby.Browser.accept_confirm(session, fun)
       def visit_and_wait(session, path) do
         session = visit(session, path)
         assert_has(session, css("body"))
         Process.sleep(500)
         session
       end
-
-      # Default to real Wallaby functions
-      def visit(session, path), do: Wallaby.Browser.visit(session, path)
-      def assert_has(session, query), do: Wallaby.Browser.assert_has(session, query)
-      def assert_text(session, text), do: Wallaby.Browser.assert_text(session, text)
-      def click(session, query), do: Wallaby.Browser.click(session, query)
-      def fill_in(session, query, text), do: Wallaby.Browser.fill_in(session, query, text)
-      def set_cookie(session, name, value, opts), do: Wallaby.Browser.set_cookie(session, name, value, opts)
-      def execute_script(session, script, args), do: Wallaby.Browser.execute_script(session, script, args)
-      def take_screenshot(session, path), do: Wallaby.Browser.take_screenshot(session, path)
     end
   end
 

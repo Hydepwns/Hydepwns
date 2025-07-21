@@ -18,7 +18,8 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
   - Theme Performance
   """
 
-  setup %{session: session} = _context do
+  setup context do
+    %{session: session} = context
     # Set up per-test theme system isolation
     {:ok, table} = setup_theme_system_isolation()
 
@@ -57,7 +58,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
   end
 
   describe "theme management and application" do
-    test "theme can be created and applied", %{session: session, light_theme: light_theme} do
+    feature "theme can be created and applied", %{session: session, light_theme: _light_theme} do
       # Since LiveView connection is having issues, let's test theme creation directly via API
       # and verify the UI elements are present
 
@@ -91,7 +92,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       assert found_theme != nil, "Custom theme should be created in database"
     end
 
-    test "theme can be edited and updated", %{session: session, light_theme: light_theme} do
+    feature "theme can be edited and updated", %{session: session, light_theme: _light_theme} do
       # Get themes from DB
       themes = HydepwnsLiveview.ThemeSystem.list_themes()
 
@@ -124,7 +125,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       )
     end
 
-    test "theme can be deleted", %{session: session, light_theme: light_theme} do
+    feature "theme can be deleted", %{session: session, light_theme: _light_theme} do
       # Get themes from DB
       themes = HydepwnsLiveview.ThemeSystem.list_themes()
 
@@ -155,7 +156,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
   end
 
   describe "theme customization" do
-    test "theme colors can be customized", %{session: session, light_theme: light_theme} do
+    feature "theme colors can be customized", %{session: session, light_theme: light_theme} do
       # Set a larger window size to ensure elements are visible
       session = resize_window(session, 1920, 1080)
 
@@ -221,7 +222,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       take_screenshot(session, name: "theme_customize_no_classes")
 
       # Debug: Check CSS properties of the color preview elements
-      css_debug_result =
+      _css_debug_result =
         execute_script(
           session,
           """
@@ -289,7 +290,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       assert length(container_elements) > 0, "Expected color preview container to be present"
     end
 
-    test "theme typography can be customized", %{session: session, light_theme: light_theme} do
+    feature "theme typography can be customized", %{session: session, light_theme: light_theme} do
       # Navigate directly to theme customization page
       session
       |> visit("/themes/#{light_theme.id}/customize")
@@ -322,7 +323,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       assert style_attr =~ "line-height: 1.5", "Expected style to contain line-height: 1.5"
     end
 
-    test "theme spacing can be customized", %{session: session, light_theme: light_theme} do
+    feature "theme spacing can be customized", %{session: session, light_theme: light_theme} do
       # Navigate directly to theme customization page
       session
       |> visit("/themes/#{light_theme.id}/customize")
@@ -358,7 +359,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
   end
 
   describe "theme persistence and synchronization" do
-    test "theme preferences are persisted", %{session: session, light_theme: light_theme} do
+    feature "theme preferences are persisted", %{session: session, light_theme: _light_theme} do
       # Find the Test Theme
       themes = HydepwnsLiveview.ThemeSystem.list_themes()
       test_theme = Enum.find(themes, fn theme -> theme.name == "Test Theme" end)
@@ -379,7 +380,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       assert applied_theme.id == test_theme.id, "Applied theme should match the test theme"
     end
 
-    test "theme changes sync across components", %{session: session, light_theme: light_theme} do
+    feature "theme changes sync across components", %{session: session, light_theme: _light_theme} do
       # Find the Test Theme
       themes = HydepwnsLiveview.ThemeSystem.list_themes()
       test_theme = Enum.find(themes, fn theme -> theme.name == "Test Theme" end)
@@ -406,7 +407,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       assert_has(session, css("[data-test-id='theme-applied-status']", text: test_theme.name))
     end
 
-    test "theme changes persist across sessions", %{session: session, light_theme: light_theme} do
+    feature "theme changes persist across sessions", %{session: session, light_theme: _light_theme} do
       # Find the Test Theme
       themes = HydepwnsLiveview.ThemeSystem.list_themes()
       test_theme = Enum.find(themes, fn theme -> theme.name == "Test Theme" end)
@@ -432,7 +433,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
   end
 
   describe "theme performance" do
-    test "theme changes are applied efficiently", %{session: session, light_theme: light_theme} do
+    feature "theme changes are applied efficiently", %{session: session, light_theme: _light_theme} do
       # Navigate directly to the theme show page with the theme table parameter
       themes = HydepwnsLiveview.ThemeSystem.list_themes()
       test_theme = Enum.find(themes, fn theme -> theme.name == "Test Theme" end)
@@ -461,7 +462,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       assert_has(session, css("[data-test-id='theme-applied-status']", text: test_theme.name))
     end
 
-    test "theme switching is smooth", %{session: session, light_theme: light_theme} do
+    feature "theme switching is smooth", %{session: session, light_theme: _light_theme} do
       table = Process.get(:theme_system_ets_table)
 
       # Create second theme directly via API to ensure it's in the same ETS table context
@@ -498,7 +499,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
   end
 
   describe "theme accessibility" do
-    test "theme maintains accessibility standards", %{session: session, light_theme: light_theme} do
+    feature "theme maintains accessibility standards", %{session: session, light_theme: light_theme} do
       # Navigate directly to theme customization page
       session
       |> visit("/themes/#{light_theme.id}/customize")
@@ -545,7 +546,7 @@ defmodule HydepwnsLiveviewWeb.Features.ThemeSystemWorkflowTest do
       assert updated_theme_from_db.text_color == "#FFFFFF", "Theme should be updated in database"
     end
 
-    test "theme supports reduced motion", %{session: session, light_theme: light_theme} do
+    feature "theme supports reduced motion", %{session: session, light_theme: light_theme} do
       # Verify the accessibility functionality is implemented
       # by checking that the form and elements are present
       session

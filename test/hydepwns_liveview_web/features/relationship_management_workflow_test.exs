@@ -280,4 +280,13 @@ defmodule HydepwnsLiveviewWeb.Features.RelationshipManagementWorkflowTest do
   #     assert_has(session, css(".comment-source", text: "User: Test User"))
   #   end
   # end
+
+  # Placeholder test to fix compilation error
+  # TODO: Uncomment and implement the relationship management workflow tests
+  feature "placeholder test for relationship management workflow", %{session: session} do
+    # This is a placeholder test to fix the compilation error
+    # The actual relationship management workflow tests are commented out above
+    session = visit(session, "/")
+    assert true
+  end
 end

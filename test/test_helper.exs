@@ -1,5 +1,6 @@
 Mox.set_mox_global(false)
 ExUnit.start()
+{:ok, _} = Application.ensure_all_started(:mox)
 {:ok, _} = Application.ensure_all_started(:hydepwns_liveview)
 
 # Load test support files
@@ -23,13 +24,18 @@ case System.find_executable("chromedriver") do
   nil ->
     IO.puts("⚠️  Chromedriver not found - skipping Wallaby startup")
     IO.puts("   Browser tests will be skipped. Run 'nix-shell' and './scripts/test_browser.sh' for browser tests.")
+    # Set environment variable to indicate Wallaby should be skipped
+    System.put_env("WALLABY_SKIP", "true")
   _chromedriver_path ->
     IO.puts("✅ Chromedriver found - starting Wallaby")
     case Application.ensure_all_started(:wallaby) do
-      {:ok, _} -> :ok
+      {:ok, _} ->
+        IO.puts("✅ Wallaby started successfully")
+        :ok
       {:error, reason} ->
         IO.puts("⚠️  Failed to start Wallaby: #{inspect(reason)}")
         IO.puts("   Browser tests will be skipped.")
+        System.put_env("WALLABY_SKIP", "true")
     end
 end
 

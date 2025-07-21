@@ -1,9 +1,9 @@
 defmodule HydepwnsLiveviewWeb.ResourceNewLiveTest do
-  use HydepwnsLiveviewWeb.WallabyCase, async: false
+  use HydepwnsLiveviewWeb.ConnCase, async: false
+  import Phoenix.LiveViewTest
   import Mox
   setup :set_mox_from_context
   setup :verify_on_exit!
-  import Wallaby.DSL
 
   import HydepwnsLiveview.TestSupport.ResourceFixtures,
     only: [create_test_resource: 1]
@@ -20,177 +20,194 @@ defmodule HydepwnsLiveviewWeb.ResourceNewLiveTest do
   end
 
   describe "resource creation workflow" do
-    test "creates resource and sets flash message", %{session: session} do
-      session = visit_and_wait(session, "/resources/new")
+    test "creates resource and sets flash message", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/resources/new")
 
-      # Debug: Check what's actually on the page
-      page_source = page_source(session)
+      # Fill in the form
+      view
+      |> form("#resource-form", %{
+        "resource[name]" => "Test Resource",
+        "resource[description]" => "Test Description",
+        "resource[type]" => "document",
+        "resource[content]" => "{}"
+      })
+      |> render_submit()
 
-      IO.puts(
-        "DEBUG: Page source contains 'resource_name': #{String.contains?(page_source, "resource_name")}"
-      )
+      # Check for flash message
+      assert_redirect(view, "/resources")
 
-      IO.puts(
-        "DEBUG: Page source contains 'resource-form': #{String.contains?(page_source, "resource-form")}"
-      )
-
-      IO.puts("DEBUG: Page source contains 'name': #{String.contains?(page_source, "name")}")
-
-      session
-      |> fill_in(css("input[name='resource[name]']"), with: "Test Resource")
-      |> fill_in(css("textarea[name='resource[description]']"), with: "Test Description")
-      |> fill_in(css("select[name='resource[type]']"), with: "document")
-      |> fill_in(css("textarea[name='resource[content]']"), with: "{}")
-      |> click(css("#resource-form button[type='submit']"))
-
-      # Wait for redirect and check the dashboard
-      session = visit_and_wait(session, "/resources")
+      # Follow the redirect
+      {:ok, resources_view, _html} = follow_redirect(view, conn)
 
       # Assert that the resource was created and appears in the list
-      has?(session, css("body", text: "Test Resource"))
-      has?(session, css("body", text: "Test Description"))
-      has?(session, css("body", text: "document"))
-      # Note: Flash messages don't persist across LiveView sessions, so we don't test for them
+      assert has_element?(resources_view, "body", "Test Resource")
+      assert has_element?(resources_view, "body", "Test Description")
+      assert has_element?(resources_view, "body", "document")
     end
 
-    test "handles validation errors without setting flash", %{session: session} do
-      session = visit_and_wait(session, "/resources/new")
+    test "handles validation errors without setting flash", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/resources/new")
 
-      session
-      # Empty name should trigger validation error
-      |> fill_in(css("input[name='resource[name]']"), with: "")
-      |> fill_in(css("textarea[name='resource[description]']"), with: "Test Description")
-      |> fill_in(css("select[name='resource[type]']"), with: "document")
-      |> fill_in(css("textarea[name='resource[content]']"), with: "{}")
-      |> click(css("#resource-form button[type='submit']"))
+      # Submit form with empty name to trigger validation error
+      view
+      |> form("#resource-form", %{
+        "resource[name]" => "",
+        "resource[description]" => "Test Description",
+        "resource[type]" => "document",
+        "resource[content]" => "{}"
+      })
+      |> render_submit()
 
       # Check that validation error is displayed
-      has?(session, css("[data-test-id='name-error']"))
-      has?(session, css("p", text: "can't be blank"))
+      assert has_element?(view, "[data-test-id='name-error']")
+      assert has_element?(view, "p", "can't be blank")
 
       # Check that no redirect occurred (form should still be visible)
-      has?(session, css("h1", text: "New Resource"))
+      assert has_element?(view, "h1", "New Resource")
     end
 
-    test "updates resource and sets flash message", %{session: session} do
+    test "updates resource and sets flash message", %{conn: conn} do
       {:ok, resource} =
         create_test_resource(%{name: "Original Name", type: "document", status: "published"})
 
-      session = visit_and_wait(session, "/resources/#{resource.id}/edit")
+      {:ok, view, _html} = live(conn, "/resources/#{resource.id}/edit")
 
-      session
-      |> fill_in(css("input[name='resource[name]']"), with: "Updated Name")
-      |> fill_in(css("textarea[name='resource[description]']"), with: "Updated Description")
-      |> fill_in(css("select[name='resource[type]']"), with: "document")
-      |> fill_in(css("textarea[name='resource[content]']"), with: "{}")
-      |> click(css("#resource-form button[type='submit']"))
+      # Update the resource
+      view
+      |> form("#resource-form", %{
+        "resource[name]" => "Updated Name",
+        "resource[description]" => "Updated Description",
+        "resource[type]" => "document",
+        "resource[content]" => "{}"
+      })
+      |> render_submit()
 
-      # Wait for redirect and check the dashboard
-      session = visit_and_wait(session, "/resources")
+      # Check for flash message and redirect
+      assert_redirect(view, "/resources")
+
+      # Follow the redirect
+      {:ok, resources_view, _html} = follow_redirect(view, conn)
 
       # Assert that the resource was updated and appears in the list
-      has?(session, css("body", text: "Updated Name"))
-      has?(session, css("body", text: "Updated Description"))
-      has?(session, css("body", text: "document"))
-      # Note: Flash messages don't persist across LiveView sessions, so we don't test for them
+      assert has_element?(resources_view, "body", "Updated Name")
+      assert has_element?(resources_view, "body", "Updated Description")
+      assert has_element?(resources_view, "body", "document")
     end
   end
 
   describe "navigation" do
-    test "navigation can navigate back to resources list", %{session: session} do
-      session = visit_and_wait(session, "/resources/new")
+    test "navigation can navigate back to resources list", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/resources/new")
 
       # Click the back link
-      session
-      |> click(css("[data-test-id='cancel-resource-link']"))
+      view
+      |> element("[data-test-id='cancel-resource-link']")
+      |> render_click()
 
       # Verify we navigated back to the resources list
-      has?(session, css("h1", text: "Resources"))
+      assert_redirect(view, "/resources")
     end
 
-    test "can cancel form submission", %{session: session} do
-      session = visit_and_wait(session, "/resources/new")
+    test "can cancel form submission", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/resources/new")
 
-      session
-      |> click(css("[data-test-id='cancel-resource-link']"))
+      view
+      |> element("[data-test-id='cancel-resource-link']")
+      |> render_click()
 
-      has?(session, css("h1", text: "Resources"))
+      assert_redirect(view, "/resources")
     end
   end
 
   describe "flash message rendering" do
-    test "flash message disappears after being displayed", %{session: session} do
-      session = visit_and_wait(session, "/resources/new")
+    test "flash message disappears after being displayed", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/resources/new")
 
-      session
-      |> fill_in(css("input[name='resource[name]']"), with: "Flash Test Resource")
-      |> fill_in(css("textarea[name='resource[description]']"), with: "Test Description")
-      |> fill_in(css("select[name='resource[type]']"), with: "document")
-      |> fill_in(css("textarea[name='resource[content]']"), with: "{}")
-      |> click(css("#resource-form button[type='submit']"))
+      # Create a resource
+      view
+      |> form("#resource-form", %{
+        "resource[name]" => "Flash Test Resource",
+        "resource[description]" => "Test Description",
+        "resource[type]" => "document",
+        "resource[content]" => "{}"
+      })
+      |> render_submit()
 
-      # Wait for redirect and check the dashboard
-      session = visit_and_wait(session, "/resources")
+      # Check for flash message and redirect
+      assert_redirect(view, "/resources")
+
+      # Follow the redirect
+      {:ok, resources_view, _html} = follow_redirect(view, conn)
 
       # Assert that the resource was created and appears in the list
-      has?(session, css("body", text: "Flash Test Resource"))
-      has?(session, css("body", text: "Test Description"))
-      has?(session, css("body", text: "document"))
-      # Note: Flash messages don't persist across LiveView sessions, so we don't test for them
+      assert has_element?(resources_view, "body", "Flash Test Resource")
+      assert has_element?(resources_view, "body", "Test Description")
+      assert has_element?(resources_view, "body", "document")
     end
   end
 
   describe "form validation" do
-    test "validates form fields in real-time", %{session: session} do
-      session = visit_and_wait(session, "/resources/new")
+    test "validates form fields in real-time", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/resources/new")
 
       # Submit form with empty name to trigger validation
-      session
-      |> fill_in(css("input[name='resource[name]']"), with: "")
-      |> fill_in(css("textarea[name='resource[description]']"), with: "")
-      |> fill_in(css("select[name='resource[type]']"), with: "document")
-      |> fill_in(css("textarea[name='resource[content]']"), with: "{}")
-      |> click(css("#resource-form button[type='submit']"))
+      view
+      |> form("#resource-form", %{
+        "resource[name]" => "",
+        "resource[description]" => "",
+        "resource[type]" => "document",
+        "resource[content]" => "{}"
+      })
+      |> render_submit()
 
       # Check that validation error is displayed
-      has?(session, css("[data-test-id='name-error']"))
-      has?(session, css("p", text: "can't be blank"))
+      assert has_element?(view, "[data-test-id='name-error']")
+      assert has_element?(view, "p", "can't be blank")
     end
 
-    test "validates required fields", %{session: session} do
-      session = visit_and_wait(session, "/resources/new")
+    test "validates required fields", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/resources/new")
 
       # Submit form with empty required fields
-      session
-      |> fill_in(css("input[name='resource[name]']"), with: "")
-      |> fill_in(css("textarea[name='resource[description]']"), with: "")
-      |> fill_in(css("select[name='resource[type]']"), with: "document")
-      |> fill_in(css("textarea[name='resource[content]']"), with: "{}")
-      |> click(css("#resource-form button[type='submit']"))
+      view
+      |> form("#resource-form", %{
+        "resource[name]" => "",
+        "resource[description]" => "",
+        "resource[type]" => "document",
+        "resource[content]" => "{}"
+      })
+      |> render_submit()
 
       # Check that validation errors are displayed
-      has?(session, css("[data-test-id='name-error']"))
-      has?(session, css("p", text: "can't be blank"))
+      assert has_element?(view, "[data-test-id='name-error']")
+      assert has_element?(view, "p", "can't be blank")
 
       # Form should still be visible (no redirect on validation error)
-      has?(session, css("h1", text: "New Resource"))
+      assert has_element?(view, "h1", "New Resource")
     end
 
-    test "accepts valid form data", %{session: session} do
-      session = visit_and_wait(session, "/resources/new")
+    test "accepts valid form data", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/resources/new")
 
       # Submit form with valid data
-      session
-      |> fill_in(css("input[name='resource[name]']"), with: "Valid Resource")
-      |> fill_in(css("textarea[name='resource[description]']"), with: "Valid Description")
-      |> fill_in(css("select[name='resource[type]']"), with: "document")
-      |> fill_in(css("textarea[name='resource[content]']"), with: "{}")
-      |> click(css("#resource-form button[type='submit']"))
+      view
+      |> form("#resource-form", %{
+        "resource[name]" => "Valid Resource",
+        "resource[description]" => "Valid Description",
+        "resource[type]" => "document",
+        "resource[content]" => "{}"
+      })
+      |> render_submit()
 
-      # Wait for redirect and check the dashboard
-      session = visit_and_wait(session, "/resources")
-      has?(session, css("body", text: "Valid Resource"))
-      has?(session, css("body", text: "Valid Description"))
+      # Check for flash message and redirect
+      assert_redirect(view, "/resources")
+
+      # Follow the redirect
+      {:ok, resources_view, _html} = follow_redirect(view, conn)
+
+      # Assert that the resource was created
+      assert has_element?(resources_view, "body", "Valid Resource")
+      assert has_element?(resources_view, "body", "Valid Description")
     end
   end
 end

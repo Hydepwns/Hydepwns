@@ -19,7 +19,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
   alias HydepwnsLiveviewWeb.TestMockHelper
 
   @tag :skip
-  test "events are generated and processed during resource updates", %{session: session} do
+  feature "events are generated and processed during resource updates", %{session: session} do
     # Navigate to resources page first
     session = visit(session, "/resources")
 
@@ -49,11 +49,11 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
     session = debug_page_state(session, "After resource creation")
 
     # Click on the resource link to view it (the resource should now be visible)
-    session = click(session, Query.css("[data-test-id='resource-link']"))
+    session = click(session, Wallaby.Query.css("[data-test-id='resource-link']"))
     session = wait_for_text(session, "Event Workflow Test Resource")
 
     # Click on the Edit link to go to edit page
-    session = click(session, Query.css("[data-test-id='edit-resource-link']"))
+    session = click(session, Wallaby.Query.css("[data-test-id='edit-resource-link']"))
     session = wait_for_text(session, "Edit Resource")
 
     # Update the resource using the helper
@@ -69,11 +69,11 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
 
     # Navigate back to resources page to verify the update
     session = visit(session, "/resources")
-    session = wait_for_text(session, "Updated Event Workflow Test Resource")
+    _session = wait_for_text(session, "Updated Event Workflow Test Resource")
   end
 
   @tag :skip
-  test "events are generated and processed during multiple resource updates", %{session: session} do
+  feature "events are generated and processed during multiple resource updates", %{session: session} do
     # Navigate to resources page first
     session = visit(session, "/resources")
 
@@ -89,19 +89,19 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
     session = set_value(session, select("resource[status]"), "published")
 
     # Submit the form to create the resource
-    session = click(session, Query.button("Create Resource"))
+    session = click(session, Wallaby.Query.button("Create Resource"))
 
     # Wait for successful creation and redirect
     session = wait_for_flash_message(session, "info", "Resource created successfully")
     session = wait_for_text(session, "Multiple Updates Test Resource")
 
     # Click on the resource link to view it
-    session = click(session, Query.css("[data-test-id='resource-link']"))
+    session = click(session, Wallaby.Query.css("[data-test-id='resource-link']"))
     session = wait_for_text(session, "Multiple Updates Test Resource")
-    session = click(session, Query.css("[data-test-id='edit-resource-link']"))
+    session = click(session, Wallaby.Query.css("[data-test-id='edit-resource-link']"))
     session = wait_for_text(session, "Edit Resource")
     session = fill_in(session, text_field("resource[name]"), with: "First Update Test Resource")
-    session = click(session, Query.button("Save Resource"))
+    session = click(session, Wallaby.Query.button("Save Resource"))
 
     # Wait for the flash message to appear after form submission
     session = wait_for_flash_message(session, "info", "Resource updated successfully")
@@ -109,22 +109,22 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
     # Second update
     session = visit(session, "/resources")
     session = wait_for_text(session, "First Update Test Resource")
-    session = click(session, Query.css("[data-test-id='resource-link']"))
+    session = click(session, Wallaby.Query.css("[data-test-id='resource-link']"))
     session = wait_for_text(session, "First Update Test Resource")
-    session = click(session, Query.css("[data-test-id='edit-resource-link']"))
+    session = click(session, Wallaby.Query.css("[data-test-id='edit-resource-link']"))
     session = wait_for_text(session, "Edit Resource")
     session = fill_in(session, text_field("resource[name]"), with: "Second Update Test Resource")
-    session = click(session, Query.button("Save Resource"))
+    session = click(session, Wallaby.Query.button("Save Resource"))
 
     # Wait for the flash message to appear after form submission
     session = wait_for_flash_message(session, "info", "Resource updated successfully")
 
     # Verify final state
     session = visit(session, "/resources")
-    session = wait_for_text(session, "Second Update Test Resource")
+    _session = wait_for_text(session, "Second Update Test Resource")
   end
 
-  test "subscription management works correctly", %{session: session} do
+  feature "subscription management works correctly", %{session: session} do
     # Navigate to events page
     session = visit(session, "/events")
     session = wait_for_text(session, "Events")
@@ -140,7 +140,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
   end
 
   @tag :skip
-  test "event visualization shows processing status", %{session: session} do
+  feature "event visualization shows processing status", %{session: session} do
     # Navigate to timeline page first
     session = visit(session, "/timeline")
 
@@ -157,7 +157,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
     session = set_value(session, select("resource[status]"), "published")
 
     # Submit the form to create the resource
-    session = click(session, Query.button("Create Resource"))
+    session = click(session, Wallaby.Query.button("Create Resource"))
 
     # Wait for successful creation and redirect
     session = wait_for_flash_message(session, "info", "Resource created successfully")
@@ -185,7 +185,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
   end
 
   @tag :skip
-  test "event processing error handling works correctly", %{session: session} do
+  feature "event processing error handling works correctly", %{session: session} do
     # Navigate to resources page first
     session = visit(session, "/resources")
 
@@ -221,6 +221,6 @@ defmodule HydepwnsLiveviewWeb.ResourceEventWorkflowTest do
 
     # Wait for successful creation
     session = wait_for_redirect_and_flash(session, "/resources", "info", "Resource created successfully")
-    session = wait_for_text(session, "Error Handling Test Resource")
+    _session = wait_for_text(session, "Error Handling Test Resource")
   end
 end

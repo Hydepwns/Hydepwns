@@ -11,7 +11,8 @@ defmodule HydepwnsLiveviewWeb.DebugJSErrorTest do
 
   alias HydepwnsLiveviewWeb.TestMockHelper
 
-  setup %{session: session} = _context do
+  setup context do
+    %{session: session} = context
     # Override repo configuration for feature tests to use real database
     # This allows us to test the full resource workflow with real database persistence
     original_repo = Application.get_env(:hydepwns_liveview, :repo)
@@ -26,13 +27,13 @@ defmodule HydepwnsLiveviewWeb.DebugJSErrorTest do
     {:ok, session: session}
   end
 
-  test "resource creation workflow without JavaScript errors", %{session: session} do
+  feature "resource creation workflow without JavaScript errors", %{session: session} do
     session = visit(session, "/resources/new")
 
     # Wait for the form to appear (Wallaby will retry by default)
     try do
       session = assert_has(session, Query.css("form#resource-form"))
-      session = assert_text(session, "New Resource")
+      _session = assert_text(session, "New Resource")
     rescue
       e ->
         page_source = page_source(session)
@@ -40,11 +41,10 @@ defmodule HydepwnsLiveviewWeb.DebugJSErrorTest do
         IO.puts(page_source)
         IO.puts("=== END PAGE SOURCE ===\n")
         # Try to print any flash messages
-        flash =
+        _flash =
           Regex.scan(~r/<div[^>]*class=\"[^\"]*flash[^\"]*\"[^>]*>(.*?)<\/div>/s, page_source)
 
-        IO.inspect(flash, label: "Flash messages found in page source")
-        raise e
+        reraise e, __STACKTRACE__
     end
 
     # Fill out the form
@@ -58,29 +58,29 @@ defmodule HydepwnsLiveviewWeb.DebugJSErrorTest do
     IO.puts("[DEBUG] Form values before submission:")
 
     IO.puts(
-      "  Name: #{find(session, Query.text_field("Name")) |> Wallaby.Element.value()}"
+      "  Name: #{find(session, Query.text_field("Name")) |> HydepwnsLiveviewWeb.WallabyCase.value()}"
     )
 
     IO.puts(
-      "  Description: #{find(session, Query.text_field("Description")) |> Wallaby.Element.value()}"
+      "  Description: #{find(session, Query.text_field("Description")) |> HydepwnsLiveviewWeb.WallabyCase.value()}"
     )
 
     IO.puts(
-      "  Content: #{find(session, Query.text_field("Content")) |> Wallaby.Element.value()}"
+      "  Content: #{find(session, Query.text_field("Content")) |> HydepwnsLiveviewWeb.WallabyCase.value()}"
     )
 
     IO.puts(
-      "  Type: #{find(session, Query.select("Type")) |> Wallaby.Element.value()}"
+      "  Type: #{find(session, Query.select("Type")) |> HydepwnsLiveviewWeb.WallabyCase.value()}"
     )
 
     IO.puts(
-      "  Status: #{find(session, Query.select("Status")) |> Wallaby.Element.value()}"
+      "  Status: #{find(session, Query.select("Status")) |> HydepwnsLiveviewWeb.WallabyCase.value()}"
     )
 
     # Debug: Check form attributes
     form = find(session, Query.css("form#resource-form"))
-    phx_target = Wallaby.Element.attr(form, "phx-target")
-    phx_submit = Wallaby.Element.attr(form, "phx-submit")
+    phx_target = HydepwnsLiveviewWeb.WallabyCase.attr(form, "phx-target")
+    phx_submit = HydepwnsLiveviewWeb.WallabyCase.attr(form, "phx-submit")
     IO.puts("[DEBUG] Form attributes:")
     IO.puts("  phx-target: #{phx_target}")
     IO.puts("  phx-submit: #{phx_submit}")
@@ -94,7 +94,7 @@ defmodule HydepwnsLiveviewWeb.DebugJSErrorTest do
 
     # Verify the form is still present and functional
     session = assert_has(session, Query.css("form#resource-form"))
-    session = assert_has(session, Query.button("Create Resource"))
+    _session = assert_has(session, Query.button("Create Resource"))
 
     IO.puts("✅ Form setup verification passed - LiveView form is properly configured")
 
@@ -102,7 +102,7 @@ defmodule HydepwnsLiveviewWeb.DebugJSErrorTest do
     # Note: Actual form submission is not tested due to WebSocket connection issues in test environment
   end
 
-  test "minimal resource new page render", %{session: session} do
+  feature "minimal resource new page render", %{session: session} do
     session = visit(session, "/resources/new")
     page_source = page_source(session)
     IO.puts("\n=== MINIMAL RESOURCE NEW PAGE SOURCE ===")

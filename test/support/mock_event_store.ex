@@ -12,6 +12,16 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
     {:ok, %{events: [], next_id: 1}}
   end
 
+  defp ensure_uuid(id) do
+    case id do
+      nil -> Ecto.UUID.generate()
+      uuid when is_binary(uuid) and byte_size(uuid) == 36 -> uuid
+      uuid when is_binary(uuid) and byte_size(uuid) > 0 -> Ecto.UUID.generate()
+      _ -> Ecto.UUID.generate()
+    end
+  end
+
+  # Handle call functions
   def handle_call({:store_event, type, data}, _from, state)
       when is_binary(type) and is_map(data) do
     event = %{
@@ -29,15 +39,6 @@ defmodule HydepwnsLiveview.TestSupport.MockEventStore do
 
     new_state = %{state | events: [event | state.events]}
     {:reply, {:ok, event}, new_state}
-  end
-
-  defp ensure_uuid(id) do
-    case id do
-      nil -> Ecto.UUID.generate()
-      uuid when is_binary(uuid) and byte_size(uuid) == 36 -> uuid
-      uuid when is_binary(uuid) and byte_size(uuid) > 0 -> Ecto.UUID.generate()
-      _ -> Ecto.UUID.generate()
-    end
   end
 
   def handle_call({:store_event, event, _metadata}, _from, state) when is_map(event) do

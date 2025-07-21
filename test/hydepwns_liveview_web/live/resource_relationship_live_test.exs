@@ -70,7 +70,7 @@ defmodule HydepwnsLiveviewWeb.ResourceRelationshipLiveTest do
     end
 
     # Set up the sandbox cookie for LiveView
-    conn = put_req_header(conn, "x-live-view-sandbox", "#{inspect(pid)}")
+    conn = put_req_header(conn, "cookie", "_phoenix_liveview_sandbox=#{inspect(pid)}")
 
     unique = System.unique_integer([:positive])
 

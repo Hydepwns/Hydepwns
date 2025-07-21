@@ -9,7 +9,7 @@ defmodule HydepwnsLiveviewWeb.PerformanceMonitor do
   - Generating performance reports
   """
 
-  import Wallaby.Browser
+  import Wallaby.Browser, only: [visit: 2]
 
   @doc """
   Measures the execution time of a function and logs the result.
@@ -52,6 +52,7 @@ defmodule HydepwnsLiveviewWeb.PerformanceMonitor do
     {session, result, execution_time}
   end
 
+  @spec measure_page_load(any(), any(), any()) :: {any(), any(), any()}
   @doc """
   Measures page load time and logs the result.
 
@@ -64,12 +65,12 @@ defmodule HydepwnsLiveviewWeb.PerformanceMonitor do
   {session, load_time_ms}
   """
   def measure_page_load(session, page_name, threshold_ms \\ 2000) do
-    {session, load_time} = measure_session_operation(
+    {session, _result, load_time} = measure_session_operation(
       session,
       "Page load: #{page_name}",
       fn session ->
         start_time = System.monotonic_time(:millisecond)
-        session = HydepwnsLiveviewWeb.TestHelpers.WallabyUIHelper.wait_for_live_view(session)
+        _session = HydepwnsLiveviewWeb.TestHelpers.WallabyUIHelper.wait_for_live_view(session)
         end_time = System.monotonic_time(:millisecond)
         {session, end_time - start_time}
       end,
@@ -93,7 +94,7 @@ defmodule HydepwnsLiveviewWeb.PerformanceMonitor do
   {session, submission_time_ms}
   """
   def measure_form_submission(session, form_name, form_data, submit_button, threshold_ms \\ 3000) do
-    {session, submission_time} = measure_session_operation(
+    {session, _result, submission_time} = measure_session_operation(
       session,
       "Form submission: #{form_name}",
       fn session ->
@@ -123,7 +124,7 @@ defmodule HydepwnsLiveviewWeb.PerformanceMonitor do
   {session, wait_time_ms}
   """
   def measure_flash_wait(session, message_type, message_text, threshold_ms \\ 2000) do
-    {session, wait_time} = measure_session_operation(
+    {session, _result, wait_time} = measure_session_operation(
       session,
       "Flash message wait: #{message_type} - #{message_text}",
       fn session ->
@@ -224,7 +225,7 @@ defmodule HydepwnsLiveviewWeb.PerformanceMonitor do
     measurements = [{:page_load, page_load_time} | measurements]
 
     # Benchmark form operations
-    session = visit(session, "/resources/new")
+    _session = visit(session, "/resources/new")
     {session, form_submission_time} = measure_form_submission(
       session,
       "Resource Creation",

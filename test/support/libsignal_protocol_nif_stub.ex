@@ -1,4 +1,4 @@
-defmodule :libsignal_protocol_nif do
+defmodule LibsignalProtocolNifStub do
   @moduledoc """
   Test stub for libsignal_protocol_nif module to eliminate undefined function warnings.
   """

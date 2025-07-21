@@ -77,7 +77,7 @@ defmodule HydepwnsLiveviewWeb.VisualRegressionHelper do
       Process.sleep(500)
 
       session
-      |> capture_screenshot(name: "#{base_name}_#{device}")
+      |> capture_screenshot("#{base_name}_#{device}")
     end)
   end
 
@@ -97,7 +97,7 @@ defmodule HydepwnsLiveviewWeb.VisualRegressionHelper do
   def take_theme_screenshots(session, base_name, url) do
     session
     |> visit(url)
-    |> capture_screenshot(name: "#{base_name}_light_theme")
+    |> capture_screenshot("#{base_name}_light_theme")
     # Switch to dark theme - this depends on your application's theme switching mechanism
     |> click(css("[data-test-id='theme-toggle']"))
 
@@ -106,7 +106,7 @@ defmodule HydepwnsLiveviewWeb.VisualRegressionHelper do
     Process.sleep(500)
 
     session
-    |> capture_screenshot(name: "#{base_name}_dark_theme")
+    |> capture_screenshot("#{base_name}_dark_theme")
   end
 
   @doc """
@@ -146,7 +146,7 @@ defmodule HydepwnsLiveviewWeb.VisualRegressionHelper do
       Process.sleep(300)
 
       session
-      |> capture_screenshot(name: "#{base_name}_#{state_name}")
+      |> capture_screenshot("#{base_name}_#{state_name}")
     end)
   end
 

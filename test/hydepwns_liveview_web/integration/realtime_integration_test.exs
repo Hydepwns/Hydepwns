@@ -114,7 +114,7 @@ defmodule HydepwnsLiveviewWeb.Integration.RealtimeIntegrationTest do
   end
 
   describe "PubSub Event Broadcasting" do
-    test "broadcasts resource creation events", %{conn: conn, user: user} do
+    test "broadcasts resource creation events", %{conn: _conn, user: _user} do
       # Subscribe to resource events
       Phoenix.PubSub.subscribe(HydepwnsLiveview.PubSub, "resources")
 
@@ -131,7 +131,7 @@ defmodule HydepwnsLiveviewWeb.Integration.RealtimeIntegrationTest do
       assert_receive {:resource_created, ^new_resource}
     end
 
-    test "broadcasts resource update events", %{conn: conn, resource: resource} do
+    test "broadcasts resource update events", %{conn: _conn, resource: resource} do
       # Subscribe to resource events
       Phoenix.PubSub.subscribe(HydepwnsLiveview.PubSub, "resources")
 
@@ -145,7 +145,7 @@ defmodule HydepwnsLiveviewWeb.Integration.RealtimeIntegrationTest do
       assert_receive {:resource_updated, ^updated_resource}
     end
 
-    test "broadcasts resource deletion events", %{conn: conn, resource: resource} do
+    test "broadcasts resource deletion events", %{conn: _conn, resource: resource} do
       # Subscribe to resource events
       Phoenix.PubSub.subscribe(HydepwnsLiveview.PubSub, "resources")
 
@@ -156,7 +156,7 @@ defmodule HydepwnsLiveviewWeb.Integration.RealtimeIntegrationTest do
       assert_receive {:resource_deleted, ^deleted_resource}
     end
 
-    test "broadcasts custom events", %{conn: conn} do
+    test "broadcasts custom events", %{conn: _conn} do
       # Subscribe to custom events
       Phoenix.PubSub.subscribe(HydepwnsLiveview.PubSub, "custom_events")
 

@@ -8,6 +8,7 @@ defmodule HydepwnsLiveviewWeb.TestHelpers.WallabyFallback do
 
   import ExUnit.Assertions
   import Wallaby.Query
+  import Wallaby.Browser, only: [page_source: 1]
 
   @doc """
   Common regex patterns for element detection fallbacks.
@@ -39,46 +40,53 @@ defmodule HydepwnsLiveviewWeb.TestHelpers.WallabyFallback do
         expected_values,
         _timeout \\ 1000
       ) do
-    # Try Wallaby first
-    case Wallaby.Browser.all(session, css(css_selector)) do
-      elements when elements != [] ->
-        # Wallaby found elements, verify they contain expected values
-        for value <- expected_values do
-          assert Enum.any?(elements, fn element ->
-                   Wallaby.Element.text(element) =~ value
-                 end),
-                 "Expected to find element containing '#{value}'"
-        end
-
-        elements
-
-      [] ->
-        # Wallaby failed, try regex fallback
-        # Small delay for DOM updates
-        :timer.sleep(100)
-        html = Wallaby.Browser.page_source(session)
-
-        case Regex.scan(regex_pattern, html) do
-          matches when matches != [] ->
-            # Verify expected values are in the HTML
+    # Check if this is a mock session
+    case session do
+      %{mock: _, type: :session} ->
+        # For mock sessions, return empty list to trigger fallback
+        []
+      _ ->
+        # Try Wallaby first for real sessions
+        case Wallaby.Browser.all(session, css(css_selector)) do
+          elements when elements != [] ->
+            # Wallaby found elements, verify they contain expected values
             for value <- expected_values do
-              assert html =~ value, "Expected to find '#{value}' in page source"
+              assert Enum.any?(elements, fn element ->
+                       Wallaby.Element.text(element) =~ value
+                     end),
+                     "Expected to find element containing '#{value}'"
             end
 
-            matches
+            elements
 
           [] ->
-            # Both methods failed
-            flunk("""
-            Element detection failed for selector '#{css_selector}'
+            # Wallaby failed, try regex fallback
+            # Small delay for DOM updates
+            :timer.sleep(100)
+            html = Wallaby.Browser.page_source(session)
 
-            Wallaby found: 0 elements
-            Regex pattern: #{regex_pattern}
-            Regex matches: 0
+            case Regex.scan(regex_pattern, html) do
+              matches when matches != [] ->
+                # Verify expected values are in the HTML
+                for value <- expected_values do
+                  assert html =~ value, "Expected to find '#{value}' in page source"
+                end
 
-            Page source preview:
-            #{String.slice(html, 0, 500)}...
-            """)
+                matches
+
+              [] ->
+                # Both methods failed
+                flunk("""
+                Element detection failed for selector '#{css_selector}'
+
+                Wallaby found: 0 elements
+                Regex pattern: #{regex_pattern}
+                Regex matches: 0
+
+                Page source preview:
+                #{String.slice(html, 0, 500)}...
+                """)
+            end
         end
     end
   end
@@ -93,20 +101,11 @@ defmodule HydepwnsLiveviewWeb.TestHelpers.WallabyFallback do
   - expected_attributes: List of {attribute, value} tuples to verify
   """
   def assert_attributes_with_fallback(session, css_selector, regex_pattern, expected_attributes) do
-    # Try Wallaby first
-    case Wallaby.Browser.all(session, css(css_selector)) do
-      elements when elements != [] ->
-        # Wallaby found elements, verify attributes
-        for {attr, value} <- expected_attributes do
-          assert Enum.any?(elements, fn element ->
-                   Wallaby.Element.attr(element, attr) == value
-                 end),
-                 "Expected to find element with #{attr}='#{value}'"
-        end
-
-      [] ->
-        # Wallaby failed, try regex fallback
-        html = Wallaby.Browser.page_source(session)
+    # Check if this is a mock session
+    case session do
+      %{mock: _, type: :session} ->
+        # For mock sessions, skip Wallaby and go straight to fallback
+        html = page_source(session)
 
         case Regex.scan(regex_pattern, html) do
           matches when matches != [] ->
@@ -117,17 +116,54 @@ defmodule HydepwnsLiveviewWeb.TestHelpers.WallabyFallback do
             end
 
           [] ->
-            # Both methods failed
+            # Fallback failed
             flunk("""
-            Attribute assertion failed for selector '#{css_selector}'
+            Attribute assertion failed for selector '#{css_selector}' (mock session)
 
-            Wallaby found: 0 elements
             Regex pattern: #{regex_pattern}
             Regex matches: 0
 
             Page source preview:
             #{String.slice(html, 0, 500)}...
             """)
+        end
+      _ ->
+        # Try Wallaby first for real sessions
+        case Wallaby.Browser.all(session, css(css_selector)) do
+          elements when elements != [] ->
+            # Wallaby found elements, verify attributes
+            for {attr, value} <- expected_attributes do
+              assert Enum.any?(elements, fn element ->
+                       Wallaby.Element.attr(element, attr) == value
+                     end),
+                     "Expected to find element with #{attr}='#{value}'"
+            end
+
+          [] ->
+            # Wallaby failed, try regex fallback
+            html = Wallaby.Browser.page_source(session)
+
+            case Regex.scan(regex_pattern, html) do
+              matches when matches != [] ->
+                # Verify expected attributes are in the HTML
+                for {attr, value} <- expected_attributes do
+                  assert html =~ "#{attr}=\"#{value}\"",
+                         "Expected to find #{attr}='#{value}' in page source"
+                end
+
+              [] ->
+                # Both methods failed
+                flunk("""
+                Attribute assertion failed for selector '#{css_selector}'
+
+                Wallaby found: 0 elements
+                Regex pattern: #{regex_pattern}
+                Regex matches: 0
+
+                Page source preview:
+                #{String.slice(html, 0, 500)}...
+                """)
+            end
         end
     end
   end

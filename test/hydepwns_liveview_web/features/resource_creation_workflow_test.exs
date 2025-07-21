@@ -16,8 +16,6 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
   import HydepwnsLiveview.TestSupport.ResourceSystemHelper
   alias HydepwnsLiveviewWeb.TestMockHelper
 
-
-
   setup do
     # Configure application to use mock repository
     Application.put_env(:hydepwns_liveview, :repo, HydepwnsLiveview.RepoMock)
@@ -26,13 +24,19 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
     Ecto.Adapters.SQL.Sandbox.checkout(HydepwnsLiveview.Repo)
     Ecto.Adapters.SQL.Sandbox.mode(HydepwnsLiveview.Repo, {:shared, self()})
 
+    # Create a shared resource ID for consistent mocking
+    shared_resource_id = Ecto.UUID.generate()
+
+    # Store created resources in process dictionary for consistent retrieval
+    Process.put(:mock_resources, %{})
+
     # Set up mock expectations for repository calls
     HydepwnsLiveview.RepoMock
     |> stub(:insert, fn changeset, _opts ->
       # Return a mock resource based on the changeset
       resource_data = Ecto.Changeset.apply_changes(changeset)
       mock_resource = %HydepwnsLiveview.Resources.Resource{
-        id: Ecto.UUID.generate(),
+        id: shared_resource_id,
         name: resource_data.name,
         type: resource_data.type,
         status: resource_data.status,
@@ -40,41 +44,41 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
         inserted_at: DateTime.utc_now(),
         updated_at: DateTime.utc_now()
       }
+
+      # Store the resource for later retrieval
+      resources = Process.get(:mock_resources, %{})
+      Process.put(:mock_resources, Map.put(resources, shared_resource_id, mock_resource))
+
       {:ok, mock_resource}
     end)
-    |> stub(:get, fn _module, _id, _opts ->
-      # Return a mock resource for get calls
-      mock_resource = %HydepwnsLiveview.Resources.Resource{
-        id: "test-id",
-        name: "Test Resource",
-        type: "document",
-        status: "published",
-        content: %{"text" => "Test content"},
-        inserted_at: DateTime.utc_now(),
-        updated_at: DateTime.utc_now()
-      }
-      mock_resource
+    |> stub(:get, fn _module, id, _opts ->
+      # Return the stored resource or a default one
+      resources = Process.get(:mock_resources, %{})
+      case Map.get(resources, id) do
+        nil ->
+          # Return a default resource if not found
+          %HydepwnsLiveview.Resources.Resource{
+            id: id,
+            name: "Test Resource",
+            type: "document",
+            status: "published",
+            content: %{"text" => "Test content"},
+            inserted_at: DateTime.utc_now(),
+            updated_at: DateTime.utc_now()
+          }
+        resource ->
+          resource
+      end
     end)
-    |> stub(:all, fn _module ->
-      # Return empty list for all calls
-      []
+    |> stub(:all, fn _module, _opts ->
+      # Return all stored resources
+      resources = Process.get(:mock_resources, %{})
+      Map.values(resources)
     end)
-
-    # Create a test resource for the tests
-    resource = %{
-      "name" => "Test Resource",
-      "type" => "document",
-      "status" => "published",
-      "content" => %{"text" => "Test content"}
-    }
-
-    # Create the test resource using the mock
-    {:ok, created_resource} = HydepwnsLiveview.Resources.create_resource(resource)
-
-    # Update the mock to return the actual created resource
-    HydepwnsLiveview.RepoMock
-    |> stub(:get, fn _module, _id, _opts ->
-      created_resource
+    |> stub(:all, fn _queryable, _opts ->
+      # Return all stored resources for queryable calls
+      resources = Process.get(:mock_resources, %{})
+      Map.values(resources)
     end)
 
     # Set up the LiveView metadata for database access
@@ -94,10 +98,10 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
     # Allow the LiveView process to use the database connection
     Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), self())
 
-    {:ok, resource: created_resource, metadata: metadata}
+    {:ok, metadata: metadata}
   end
 
-      test "user can create a new resource", %{session: _session} do
+  feature "user can create a new resource", %{session: _session} do
     unique_name = "Unique Test Resource #{:rand.uniform(10000)}"
 
     # Create resource via API
@@ -147,8 +151,20 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
     assert resource.name == unique_name
   end
 
-  test "user can edit an existing resource", %{session: session} do
-    # Create resource directly in the test to ensure it's visible
+  feature "user can edit an existing resource", %{session: session} do
+    # Use real database for this test to enable LiveView integration
+    original_repo = Application.get_env(:hydepwns_liveview, :repo)
+    Application.put_env(:hydepwns_liveview, :repo, HydepwnsLiveview.Repo)
+
+    # Ensure proper sandbox setup for LiveView access
+    Ecto.Adapters.SQL.Sandbox.checkout(HydepwnsLiveview.Repo)
+    Ecto.Adapters.SQL.Sandbox.mode(HydepwnsLiveview.Repo, {:shared, self()})
+
+    on_exit(fn ->
+      Application.put_env(:hydepwns_liveview, :repo, original_repo)
+    end)
+
+    # Create resource using real database
     {:ok, resource} =
       HydepwnsLiveview.Resources.create_resource(%{
         "name" => "Test Resource for Edit",
@@ -157,28 +173,33 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
         "content" => %{"text" => "Test content"}
       })
 
-    # Wait a moment for the database to be ready
-    Process.sleep(100)
+    # Allow LiveView process to access the database
+    if session.server && session.server.pid do
+      Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), session.server.pid)
+    end
 
-    # Since the sandbox issue prevents the LiveView from seeing the resource,
-    # let's verify that the resource was created and check what's actually on the page
+    # Test the edit workflow
     session
     |> visit("/resources/#{resource.id}/edit")
-    |> assert_has(Query.text("Resource not found"))
+    |> assert_has(Wallaby.Query.text("Test Resource for Edit"))
     |> visit("/resources")
-    |> assert_has(Query.text("Resources"))
+    |> assert_has(Wallaby.Query.text("Resources"))
   end
 
-  test "user can delete a resource", %{session: _session} do
-    # For now, let's skip this test until we can fix the database transaction isolation issue
-    # The problem is that the LiveView process is not using the same database transaction as the test
-    # This is a known issue with Wallaby and SQL sandbox in LiveView tests
+  feature "user can delete a resource", %{session: session} do
+    # Use real database for this test to enable LiveView integration
+    original_repo = Application.get_env(:hydepwns_liveview, :repo)
+    Application.put_env(:hydepwns_liveview, :repo, HydepwnsLiveview.Repo)
 
-    # TODO: Fix the database transaction isolation issue
-    # The resource is being created successfully, but the LiveView is not seeing it
-    # because it's running in a separate process with a different database connection
+    # Ensure proper sandbox setup for LiveView access
+    Ecto.Adapters.SQL.Sandbox.checkout(HydepwnsLiveview.Repo)
+    Ecto.Adapters.SQL.Sandbox.mode(HydepwnsLiveview.Repo, {:shared, self()})
 
-    # For now, let's just verify that resource creation works
+    on_exit(fn ->
+      Application.put_env(:hydepwns_liveview, :repo, original_repo)
+    end)
+
+    # Create resource using real database
     {:ok, resource} =
       HydepwnsLiveview.Resources.create_resource(%{
         "name" => "Resource to Delete",
@@ -191,15 +212,20 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceCreationWorkflowTest do
     assert resource.name == "Resource to Delete"
     assert resource.id != nil
 
-    # TODO: Once the database transaction isolation is fixed, uncomment this:
-    # session = visit(session, "/resources")
-    # session
-    # |> assert_has(Query.link("Resource to Delete"), timeout: 2000)
-    # |> click(Query.css("[data-test-id='delete-resource-#{resource.id}']"))
-    # |> Wallaby.Browser.assert_has(Query.text("Resources"))
-    # |> (fn session ->
-    #       refute_has(session, Query.link("Resource to Delete"), timeout: 2000)
-    #       session
-    #     end).()
+    # Allow LiveView process to access the database
+    if session.server && session.server.pid do
+      Ecto.Adapters.SQL.Sandbox.allow(HydepwnsLiveview.Repo, self(), session.server.pid)
+    end
+
+    # Test the delete workflow
+    session
+    |> visit("/resources")
+    |> assert_has(link("Resource to Delete"), timeout: 2000)
+    |> click(css("[data-test-id='delete-resource-#{resource.id}']"))
+    |> assert_has(Wallaby.Query.text("Resources"))
+    |> (fn session ->
+          refute_has(session, link("Resource to Delete"), timeout: 2000)
+          session
+        end).()
   end
 end

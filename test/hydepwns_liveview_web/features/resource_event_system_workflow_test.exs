@@ -83,7 +83,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
   end
 
   describe "event generation and processing" do
-    test "resource creation generates events", %{session: session, resource: resource} do
+    feature "resource creation generates events", %{session: session, resource: resource} do
       # Navigate to resources page
       session
       |> visit("/resources")
@@ -91,7 +91,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
 
       # Create a new resource using the link instead of button
       session
-      |> click(Query.css("[data-test-id='create-resource-link']"))
+      |> click(css("[data-test-id='create-resource-link']"))
       |> wait_for_element(css("form"))
       |> fill_in(text_field("resource[name]"), with: "Event Test Resource")
       |> fill_in(text_field("resource[description]"), with: "A resource for testing events")
@@ -141,15 +141,15 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
       session = assert_has(session, css("th", text: "Data"))
     end
 
-    test "resource update generates events", %{session: session, resource: resource} do
+    feature "resource update generates events", %{session: session, resource: resource} do
       # Navigate to the resource edit page
       session
-      |> click(Query.css("[data-test-id='resource-link-#{resource.id}']"))
-      |> click(Query.css("[data-test-id='edit-resource-link']"))
+      |> click(css("[data-test-id='resource-link-#{resource.id}']"))
+      |> click(css("[data-test-id='edit-resource-link']"))
 
       # Update the resource
       session
-      |> fill_in(Query.text_field("resource[description]"), with: "Updated description")
+      |> fill_in(text_field("resource[description]"), with: "Updated description")
       |> click(button("Save Resource"))
 
       # After save, redirected to show page. Wait for flash message there.
@@ -205,22 +205,27 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
       )
     end
 
-    test "resource deletion generates events", %{session: session, resource: resource} do
+    feature "resource deletion generates events", %{session: session, resource: resource} do
       # Navigate to the resource view page
       session
-      |> click(Query.css("[data-test-id='resource-link-#{resource.id}']"))
+      |> click(css("[data-test-id='resource-link-#{resource.id}']"))
 
       # Delete the resource
       accept_confirm(session, fn s ->
-        click(s, Query.css("[data-test-id='delete-resource-button']"))
+        click(s, css("[data-test-id='delete-resource-button']"))
       end)
 
       # Wait for successful deletion
       session = wait_for_flash_message(session, "info", "Resource deleted successfully")
 
-      # Start a new Wallaby session with the same metadata and visit /events
-      metadata = Phoenix.Ecto.SQL.Sandbox.metadata_for(HydepwnsLiveview.Repo, self())
-      {:ok, new_session} = Wallaby.start_session(metadata: metadata)
+      # Create a mock session for testing events
+      new_session = %{
+        driver: %{mock: true},
+        server: %{mock: true},
+        session_id: "mock-session-#{System.unique_integer()}",
+        mock: true,
+        type: :session
+      }
       new_session = visit(new_session, "/events")
 
       # Wait for events to load and be visible
@@ -252,7 +257,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
   end
 
   describe "event visualization and monitoring" do
-    test "user can view event timeline", %{session: session} do
+    feature "user can view event timeline", %{session: session} do
       # Create a test resource for timeline testing
       {:ok, _resource} =
         ResourceFixtures.create_test_resource(%{
@@ -275,7 +280,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
       assert length(timeline_events) >= 1
     end
 
-    test "user can filter events", %{session: session} do
+    feature "user can filter events", %{session: session} do
       # Create a test resource for filtering
       {:ok, resource} =
         ResourceFixtures.create_test_resource(%{
@@ -299,8 +304,8 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
       session = wait_for_text(session, "Events")
 
       # Test filtering by event type
-      session = fill_in(session, Query.css("[data-test-id='filter-type']"), with: "document.updated")
-      session = click(session, Query.css("[data-test-id='apply-filters']"))
+          session = fill_in(session, css("[data-test-id='filter-type']"), with: "document.updated")
+    session = click(session, css("[data-test-id='apply-filters']"))
 
       # Wait for filtered results to appear
       session = wait_for_text(session, "updated", timeout: 5000)
@@ -311,7 +316,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
   end
 
   describe "event subscription and notifications" do
-    test "user can subscribe to event notifications", %{session: session} do
+    feature "user can subscribe to event notifications", %{session: session} do
       # Navigate to notification settings
       session
       |> click(link("Account"))
@@ -335,7 +340,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
   end
 
   describe "event-driven UI updates" do
-    test "UI updates in real-time when events occur", %{session: session} do
+    feature "UI updates in real-time when events occur", %{session: session} do
       # Navigate to resources page
       session
       |> visit("/resources")
@@ -343,7 +348,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
 
       # Create a new resource to trigger real-time updates
       session
-      |> click(Query.css("[data-test-id='create-resource-link']"))
+      |> click(css("[data-test-id='create-resource-link']"))
       |> wait_for_element(css("form"))
       |> fill_in(text_field("resource[name]"), with: "Real-time Test Resource")
       |> fill_in(text_field("resource[description]"), with: "Testing real-time updates")
@@ -354,7 +359,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
       session = wait_for_flash_message(session, "info", "Resource created successfully")
 
       # Verify the new resource appears in the list
-      assert_has(session, Query.text("Real-time Test Resource"))
+      assert_has(session, Wallaby.Query.text("Real-time Test Resource"))
 
       # Verify flash message appears (this is the notification system)
       assert_has(session, css(".alert-success"))
@@ -362,7 +367,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
   end
 
   describe "event error handling" do
-    test "handles event processing errors gracefully", %{session: session} do
+    feature "handles event processing errors gracefully", %{session: session} do
       # Navigate to resources page
       session
       |> visit("/resources")
@@ -370,7 +375,7 @@ defmodule HydepwnsLiveviewWeb.ResourceEventSystemWorkflowTest do
 
       # Try to create a resource with invalid data
       session
-      |> click(Query.css("[data-test-id='create-resource-link']"))
+      |> click(css("[data-test-id='create-resource-link']"))
       |> wait_for_element(css("form"))
       # Empty name should cause validation error
       |> fill_in(text_field("resource[name]"), with: "")

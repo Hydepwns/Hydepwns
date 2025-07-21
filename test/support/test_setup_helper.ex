@@ -10,7 +10,6 @@ defmodule HydepwnsLiveviewWeb.TestSetupHelper do
   """
 
   alias HydepwnsLiveview.Resources.ResourceSystem
-  alias HydepwnsLiveview.TestSupport.ResourceFixtures
 
   @doc """
   Creates a test resource with the given type and optional overrides.

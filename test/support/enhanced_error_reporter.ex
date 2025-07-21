@@ -9,8 +9,6 @@ defmodule HydepwnsLiveviewWeb.EnhancedErrorReporter do
   - Debug information collection
   """
 
-  alias HydepwnsLiveviewWeb.TestHelpers.WallabyUIHelper
-
   @doc """
   Captures a screenshot and saves it with a descriptive name.
 
@@ -92,18 +90,18 @@ defmodule HydepwnsLiveviewWeb.EnhancedErrorReporter do
   ## Parameters
   - session: Wallaby session
   - test_name: Name of the failing test
-  - error: The error that occurred
+  - reason: The reason that occurred
   - context: Additional context about what was being tested
 
   ## Returns
   The session, for chainability
   """
-  def report_test_failure(session, test_name, error, context \\ "") do
+  def report_test_failure(session, test_name, reason, context \\ "") do
     IO.puts("\n" <> String.duplicate("=", 80))
     IO.puts("🧪 TEST FAILURE REPORT")
     IO.puts(String.duplicate("=", 80))
     IO.puts("Test: #{test_name}")
-    IO.puts("Error: #{inspect(error)}")
+    IO.puts("Error: #{inspect(reason)}")
     IO.puts("Context: #{context}")
     IO.puts("Timestamp: #{DateTime.utc_now()}")
 
@@ -114,7 +112,7 @@ defmodule HydepwnsLiveviewWeb.EnhancedErrorReporter do
     analysis = analyze_page_state(session, "Test failure: #{test_name}")
 
     # Print recommendations
-    print_failure_recommendations(analysis, error)
+    print_failure_recommendations(analysis, reason)
 
     IO.puts(String.duplicate("=", 80) <> "\n")
     session
@@ -138,9 +136,9 @@ defmodule HydepwnsLiveviewWeb.EnhancedErrorReporter do
       result = operation_fun.(session)
       {session, result}
     rescue
-      error ->
-        _session = report_test_failure(session, test_name, error, "#{context} - Operation: #{operation_name}")
-        reraise error, __STACKTRACE__
+      reason ->
+        _session = report_test_failure(session, test_name, reason, "#{context} - Operation: #{operation_name}")
+        reraise reason, __STACKTRACE__
     end
   end
 
@@ -197,14 +195,16 @@ defmodule HydepwnsLiveviewWeb.EnhancedErrorReporter do
       ~r/alert-error.*?>(.*?)</s
     ]
 
-    Enum.flat_map(flash_patterns, fn pattern ->
-      case Regex.scan(pattern, page_source) do
-        matches when is_list(matches) ->
-          Enum.map(matches, fn [_, message] -> String.trim(message) end)
-        _ ->
-          []
-      end
-    end)
+    Enum.flat_map(flash_patterns, &extract_matches_from_pattern(&1, page_source))
+  end
+
+  defp extract_matches_from_pattern(pattern, page_source) do
+    case Regex.scan(pattern, page_source) do
+      matches when is_list(matches) ->
+        Enum.map(matches, fn [_, message] -> String.trim(message) end)
+      _ ->
+        []
+    end
   end
 
   @doc """
@@ -226,14 +226,16 @@ defmodule HydepwnsLiveviewWeb.EnhancedErrorReporter do
       ~r/has already been taken/
     ]
 
-    Enum.flat_map(error_patterns, fn pattern ->
-      case Regex.scan(pattern, page_source) do
-        matches when is_list(matches) ->
-          Enum.map(matches, fn [error] -> error end)
-        _ ->
-          []
-      end
-    end)
+    Enum.flat_map(error_patterns, &extract_validation_matches(&1, page_source))
+  end
+
+  defp extract_validation_matches(pattern, page_source) do
+    case Regex.scan(pattern, page_source) do
+      matches when is_list(matches) ->
+        Enum.map(matches, fn [error] -> error end)
+      _ ->
+        []
+    end
   end
 
   @doc """
@@ -255,14 +257,16 @@ defmodule HydepwnsLiveviewWeb.EnhancedErrorReporter do
       ~r/SyntaxError/
     ]
 
-    Enum.flat_map(js_error_patterns, fn pattern ->
-      case Regex.scan(pattern, page_source) do
-        matches when is_list(matches) ->
-          Enum.map(matches, fn [error] -> error end)
-        _ ->
-          []
-      end
-    end)
+    Enum.flat_map(js_error_patterns, &extract_js_matches(&1, page_source))
+  end
+
+  defp extract_js_matches(pattern, page_source) do
+    case Regex.scan(pattern, page_source) do
+      matches when is_list(matches) ->
+        Enum.map(matches, fn [error] -> error end)
+      _ ->
+        []
+    end
   end
 
   @doc """
@@ -295,50 +299,76 @@ defmodule HydepwnsLiveviewWeb.EnhancedErrorReporter do
     end
   end
 
+  @spec print_failure_recommendations(any(), any()) :: :ok
   @doc """
   Prints recommendations based on failure analysis.
 
   ## Parameters
   - analysis: Analysis results map
-  - error: The error that occurred
+  - reason: The reason that occurred
   """
-  def print_failure_recommendations(_analysis, error) do
+  def print_failure_recommendations(_analysis, reason) do
     IO.puts("\n💡 RECOMMENDATIONS")
+    reason_str = inspect(reason)
 
     cond do
-      # Flash message not found
-      String.contains?(inspect(error), "flash") or String.contains?(inspect(error), "timeout") ->
-        IO.puts("- Check if flash message is being set correctly in LiveView")
-        IO.puts("- Verify flash_group component is included in layout")
-        IO.puts("- Consider increasing timeout for flash message wait")
-        IO.puts("- Check if page redirected before flash message appeared")
-
-      # Element not found
-      String.contains?(inspect(error), "element") or String.contains?(inspect(error), "selector") ->
-        IO.puts("- Verify element exists in page source")
-        IO.puts("- Check if element is hidden or not yet rendered")
-        IO.puts("- Consider waiting for element to be ready")
-        IO.puts("- Verify CSS selector is correct")
-
-      # Form submission issues
-      String.contains?(inspect(error), "form") or String.contains?(inspect(error), "submit") ->
-        IO.puts("- Check if form is ready before submission")
-        IO.puts("- Verify form field names match expected structure")
-        IO.puts("- Check for validation errors preventing submission")
-        IO.puts("- Ensure button text matches exactly")
-
-      # Navigation issues
-      String.contains?(inspect(error), "navigate") or String.contains?(inspect(error), "path") ->
-        IO.puts("- Verify route exists and is accessible")
-        IO.puts("- Check if authentication is required")
-        IO.puts("- Ensure LiveView is properly mounted")
-        IO.puts("- Check for JavaScript errors preventing navigation")
-
-      true ->
-        IO.puts("- Review the error message and stack trace")
-        IO.puts("- Check the screenshot for visual clues")
-        IO.puts("- Verify test data and setup")
-        IO.puts("- Consider running test in isolation")
+      flash_error?(reason_str) -> print_flash_recommendations()
+      element_error?(reason_str) -> print_element_recommendations()
+      form_error?(reason_str) -> print_form_recommendations()
+      navigation_error?(reason_str) -> print_navigation_recommendations()
+      true -> print_general_recommendations()
     end
+  end
+
+  @spec flash_error?(any()) :: boolean()
+  defp flash_error?(reason_str) do
+    String.contains?(reason_str, "flash") or String.contains?(reason_str, "timeout")
+  end
+
+  defp element_error?(reason_str) do
+    String.contains?(reason_str, "element") or String.contains?(reason_str, "selector")
+  end
+
+  defp form_error?(reason_str) do
+    String.contains?(reason_str, "form") or String.contains?(reason_str, "submit")
+  end
+
+  defp navigation_error?(reason_str) do
+    String.contains?(reason_str, "navigate") or String.contains?(reason_str, "path")
+  end
+
+  defp print_flash_recommendations do
+    IO.puts("- Check if flash message is being set correctly in LiveView")
+    IO.puts("- Verify flash_group component is included in layout")
+    IO.puts("- Consider increasing timeout for flash message wait")
+    IO.puts("- Check if page redirected before flash message appeared")
+  end
+
+  defp print_element_recommendations do
+    IO.puts("- Verify element exists in page source")
+    IO.puts("- Check if element is hidden or not yet rendered")
+    IO.puts("- Consider waiting for element to be ready")
+    IO.puts("- Verify CSS selector is correct")
+  end
+
+  defp print_form_recommendations do
+    IO.puts("- Check if form is ready before submission")
+    IO.puts("- Verify form field names match expected structure")
+    IO.puts("- Check for validation errors preventing submission")
+    IO.puts("- Ensure button text matches exactly")
+  end
+
+  defp print_navigation_recommendations do
+    IO.puts("- Verify route exists and is accessible")
+    IO.puts("- Check if authentication is required")
+    IO.puts("- Ensure LiveView is properly mounted")
+    IO.puts("- Check for JavaScript errors preventing navigation")
+  end
+
+  defp print_general_recommendations do
+    IO.puts("- Review the error message and stack trace")
+    IO.puts("- Check the screenshot for visual clues")
+    IO.puts("- Verify test data and setup")
+    IO.puts("- Consider running test in isolation")
   end
 end

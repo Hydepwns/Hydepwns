@@ -18,7 +18,8 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
   alias HydepwnsLiveview.TestSupport.ResourceFixtures
   alias HydepwnsLiveviewWeb.TestMockHelper
 
-  setup %{session: session} = _context do
+  setup context do
+    %{session: session} = context
     # Override repo configuration for feature tests to use real database
     # This allows us to test the full resource workflow with real database persistence
     original_repo = Application.get_env(:hydepwns_liveview, :repo)
@@ -64,7 +65,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
   end
 
   describe "resource relationship management" do
-    test "user can create a parent-child relationship", %{
+    feature "user can create a parent-child relationship", %{
       session: session,
       parent: parent,
       child: child
@@ -108,7 +109,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       assert parent_update_event != nil
     end
 
-    test "user can manage multiple relationships", %{
+    feature "user can manage multiple relationships", %{
       session: session,
       parent: parent,
       child: child
@@ -141,7 +142,6 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
         IO.puts("DEBUG: edit-resource-link not found after 20s, printing page source:")
         IO.puts(page_source(session))
         IO.puts("DEBUG: All resources in DB:")
-        IO.inspect(HydepwnsLiveview.Resources.ResourceSystem.list_resources())
       end
 
       session = session
@@ -243,7 +243,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       session = assert_has(session, css("a", text: "Third Child"))
     end
 
-    test "user cannot create circular relationships", %{
+    feature "user cannot create circular relationships", %{
       session: session,
       parent: parent,
       child: child
@@ -281,7 +281,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       refute String.contains?(page_source, "value=\"#{child.id}\"")
     end
 
-    test "user can remove relationships", %{session: session, parent: parent, child: child} do
+    feature "user can remove relationships", %{session: session, parent: parent, child: child} do
       # Test 1: Direct API test - create the relationship
       {:ok, updated_child} = HydepwnsLiveview.Resources.ResourceSystem.update_resource(child.id, %{
         parent_id: parent.id
@@ -318,7 +318,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       assert String.contains?(page_source, "value=\"\"") or not String.contains?(page_source, "selected")
     end
 
-    test "relationship constraints are enforced", %{
+    feature "relationship constraints are enforced", %{
       session: session,
       parent: _parent,
       child: child
@@ -361,7 +361,7 @@ defmodule HydepwnsLiveviewWeb.Features.ResourceRelationshipWorkflowTest do
       assert changeset.errors[:parent_id] != nil
     end
 
-    test "relationship changes trigger UI updates", %{
+    feature "relationship changes trigger UI updates", %{
       session: session,
       parent: parent,
       child: child

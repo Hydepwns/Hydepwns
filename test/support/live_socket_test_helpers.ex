@@ -21,7 +21,7 @@ defmodule HydepwnsLiveviewWeb.LiveSocketTestHelpers do
         assert_required_assigns(%{view: view}, [:user_id, :theme])
       end
   """
-  @spec assert_required_assigns(%{view: Phoenix.LiveViewTest.View.t()}, list(atom())) :: :ok
+  @spec assert_required_assigns(%{view: Phoenix.LiveViewTest.View}, list(atom())) :: :ok
   def assert_required_assigns(%{view: view}, required_assigns) do
     for assign <- required_assigns do
       assigns = :sys.get_state(view.pid).socket.assigns
@@ -33,6 +33,8 @@ defmodule HydepwnsLiveviewWeb.LiveSocketTestHelpers do
     :ok
   end
 
+  @spec mount_and_validate(any(), any(), any(), any()) ::
+          {:ok, any()} | {:error, any()}
   @doc """
   Mounts a LiveView with the given session and asserts required assigns.
 
@@ -60,21 +62,6 @@ defmodule HydepwnsLiveviewWeb.LiveSocketTestHelpers do
     end
   end
 
-  @doc """
-  Helper for testing LiveViews that use the BaseLive module.
-
-  This checks if the LiveView has the expected behavior when a required assign is missing.
-
-  ## Examples
-
-      # In a test
-      test "LiveView handles missing assigns", %{conn: conn} do
-        {:ok, view} = test_missing_assign_handling(conn, "/some-path", :user_id)
-        # Should have populated user_id with nil
-        assigns = :sys.get_state(view.pid).socket.assigns
-        assert assigns.user_id == nil
-      end
-  """
   defmacro test_missing_assign_handling(conn, path, assign_to_omit) do
     quote do
       conn = Plug.Test.init_test_session(unquote(conn), %{})
@@ -94,23 +81,7 @@ defmodule HydepwnsLiveviewWeb.LiveSocketTestHelpers do
     end
   end
 
-  @doc """
-  Asserts that a socket assign has the expected type.
-
-  ## Examples
-
-      # In a test
-      test "user_id is a string", %{conn: conn} do
-        {:ok, view, _html} = live(conn, "/some-path")
-        assert_assign_type(view, :user_id, :string)
-      end
-      
-      test "theme is one of allowed values", %{conn: conn} do
-        {:ok, view, _html} = live(conn, "/some-path")
-        assert_assign_type(view, :theme, {:one_of, ["dark", "light", "dim"]})
-      end
-  """
-  @spec assert_assign_type(Phoenix.LiveViewTest.View.t(), atom(), any()) :: :ok
+  @spec assert_assign_type(any(), atom(), any()) :: :ok
   def assert_assign_type(%Phoenix.LiveViewTest.View{} = view, key, type_spec) do
     assigns = :sys.get_state(view.pid).socket.assigns
     value = assigns[key]
@@ -118,16 +89,6 @@ defmodule HydepwnsLiveviewWeb.LiveSocketTestHelpers do
     :ok
   end
 
-  @doc """
-  Asserts that a value matches the expected type specification.
-
-  ## Examples
-
-      assert_type("test", :string, "username")
-      assert_type(42, :integer, "age")
-      assert_type(true, :boolean, "notifications_enabled")
-      assert_type("blue", {:one_of, ["red", "green", "blue"]}, "color")
-  """
   @spec assert_type(any(), any(), String.t()) :: :ok
   def assert_type(value, :string, _context) when is_binary(value), do: :ok
 
@@ -270,7 +231,7 @@ defmodule HydepwnsLiveviewWeb.LiveSocketTestHelpers do
       username = generate_test_data(:string)
       age = generate_test_data(:integer)
       theme = generate_test_data({:one_of, ["dark", "light", "dim"]})
-      
+
       # Generate a nested structure
       user = generate_test_data(%{
         name: :string,
@@ -368,7 +329,7 @@ defmodule HydepwnsLiveviewWeb.LiveSocketTestHelpers do
           theme: {:one_of, ["dark", "light", "dim"]},
           settings: %{notifications: :boolean}
         }
-        
+
         {:ok, view} = mount_and_validate_types(conn, "/some-path", type_specs)
         # Test continues with validated view
       end
@@ -413,7 +374,7 @@ defmodule HydepwnsLiveviewWeb.LiveSocketTestHelpers do
             admin: :boolean
           }
         }
-        
+
         assert property_test_types(conn, "/some-path", type_specs, 10)
       end
   """
@@ -432,26 +393,52 @@ defmodule HydepwnsLiveviewWeb.LiveSocketTestHelpers do
 
         case Phoenix.LiveViewTest.live(conn, unquote(path)) do
           {:ok, view, _html} ->
-            Enum.all?(unquote(type_specs), fn {key, type_spec} ->
-              assigns = :sys.get_state(view.pid).socket.assigns
+            unquote(__MODULE__).validate_all_assigns(view, unquote(type_specs))
 
-              if Map.has_key?(assigns, key) do
-                try do
-                  assert_assign_type(view, key, type_spec)
-                  true
-                rescue
-                  ExUnit.AssertionError -> false
-                end
-              else
-                true
-              end
-            end)
+          {:error, _reason} ->
+            false
 
-          _error ->
+          _ ->
             false
         end
       end)
     end
+  end
+
+  @spec validate_all_assigns(any(), any()) :: boolean()
+  @doc """
+  Validates all assigns in a LiveView against a type specification.
+
+  This function checks if all assigns in the LiveView match the expected type.
+
+  ## Examples
+
+      test "LiveView validates all assigns", %{conn: conn} do
+        type_specs = %{
+          user_id: :string,
+          theme: {:one_of, ["dark", "light", "dim"]},
+          settings: %{notifications: :boolean}
+        }
+
+        {:ok, view} = mount_and_validate_types(conn, "/some-path", type_specs)
+        assert validate_all_assigns(view, type_specs)
+      end
+  """
+  def validate_all_assigns(view, type_specs) do
+    Enum.all?(type_specs, fn {key, type_spec} ->
+      assigns = :sys.get_state(view.pid).socket.assigns
+
+      if Map.has_key?(assigns, key) do
+        try do
+          assert_assign_type(view, key, type_spec)
+          true
+        rescue
+          ExUnit.AssertionError -> false
+        end
+      else
+        true
+      end
+    end)
   end
 
   @doc """
@@ -467,20 +454,20 @@ defmodule HydepwnsLiveviewWeb.LiveSocketTestHelpers do
           age: :integer,
           theme: {:one_of, ["dark", "light", "dim"]}
         }
-        
+
         mutations = generate_type_mutations(type_specs)
-        
+
         # Test how the LiveView handles invalid types
         for {key, value, expected_result} <- mutations do
           session = %{to_string(key) => value}
-          
+
           case Phoenix.LiveViewTest.live(conn, "/some-path", session) do
             {:ok, view, _html} ->
               # If expected_result is :valid, the assign should be present and pass validation
               # If expected_result is :invalid, BaseLive should have set it to nil or a default
-              assert (expected_result == :valid) == 
+              assert (expected_result == :valid) ==
                 (Map.has_key?(:sys.get_state(view.pid).socket.assigns, key) && :sys.get_state(view.pid).socket.assigns[key] == value)
-                
+
             _error ->
               # If the expected result is :invalid and mount failed, that's acceptable
               # If it was supposed to be valid, this is a failure

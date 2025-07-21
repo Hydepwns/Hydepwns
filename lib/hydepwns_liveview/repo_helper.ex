@@ -9,6 +9,7 @@ defmodule HydepwnsLiveview.RepoHelper do
   @doc """
   Returns the configured repo module (real Repo or mock).
   """
+  @spec repo() :: module()
   def repo do
     Application.get_env(:hydepwns_liveview, :repo, HydepwnsLiveview.Repo)
   end
@@ -37,6 +38,7 @@ defmodule HydepwnsLiveview.RepoHelper do
   user = RepoHelper.get(User, 1, timeout: 5000)
   ```
   """
+  @spec get(module(), any(), Keyword.t()) :: any() | nil
   def get(schema, id, opts \\ []) do
     repo().get(schema, id, opts)
   end
@@ -65,6 +67,7 @@ defmodule HydepwnsLiveview.RepoHelper do
   user = RepoHelper.get!(User, 1)
   ```
   """
+  @spec get!(module(), any(), Keyword.t()) :: any()
   def get!(schema, id, opts \\ []) do
     repo().get!(schema, id, opts)
   end
@@ -93,6 +96,7 @@ defmodule HydepwnsLiveview.RepoHelper do
   user = RepoHelper.get_by(User, email: "test@example.com", timeout: 5000)
   ```
   """
+  @spec get_by(module(), Keyword.t(), Keyword.t()) :: any() | nil
   def get_by(schema, clauses, opts \\ []) do
     repo().get_by(schema, clauses, opts)
   end
@@ -117,6 +121,7 @@ defmodule HydepwnsLiveview.RepoHelper do
   {:ok, user} = RepoHelper.insert(%User{name: "John", email: "john@example.com"})
   ```
   """
+  @spec insert(any(), Keyword.t()) :: {:ok, any()} | {:error, any()}
   def insert(struct, opts \\ []) do
     repo().insert(struct, opts)
   end
@@ -141,6 +146,7 @@ defmodule HydepwnsLiveview.RepoHelper do
   {:ok, updated_user} = RepoHelper.update(%{user | name: "Jane"})
   ```
   """
+  @spec update(any(), Keyword.t()) :: {:ok, any()} | {:error, any()}
   def update(struct, opts \\ []) do
     repo().update(struct, opts)
   end
@@ -165,6 +171,7 @@ defmodule HydepwnsLiveview.RepoHelper do
   {:ok, deleted_user} = RepoHelper.delete(user)
   ```
   """
+  @spec delete(any(), Keyword.t()) :: {:ok, any()} | {:error, any()}
   def delete(struct, opts \\ []) do
     repo().delete(struct, opts)
   end
@@ -191,6 +198,7 @@ defmodule HydepwnsLiveview.RepoHelper do
   users = RepoHelper.all(User, timeout: 5000)
   ```
   """
+  @spec all(any(), Keyword.t()) :: [any()]
   def all(queryable, opts \\ []) do
     repo().all(queryable, opts)
   end
@@ -218,6 +226,7 @@ defmodule HydepwnsLiveview.RepoHelper do
   user = RepoHelper.one(User, timeout: 5000)
   ```
   """
+  @spec one(any(), Keyword.t()) :: any() | nil
   def one(queryable, opts \\ []) do
     repo().one(queryable, opts)
   end
@@ -247,6 +256,7 @@ defmodule HydepwnsLiveview.RepoHelper do
   avg_age = RepoHelper.aggregate(User, :avg, :age)
   ```
   """
+  @spec aggregate(any(), atom(), atom(), Keyword.t()) :: any()
   def aggregate(queryable, aggregate, field, opts \\ []) do
     repo().aggregate(queryable, aggregate, field, opts)
   end
@@ -273,6 +283,7 @@ defmodule HydepwnsLiveview.RepoHelper do
   has_active_users = RepoHelper.exists?(from u in User, where: u.status == "active")
   ```
   """
+  @spec exists?(any(), Keyword.t()) :: boolean()
   def exists?(queryable, opts \\ []) do
     repo().exists?(queryable, opts)
   end
@@ -300,6 +311,7 @@ defmodule HydepwnsLiveview.RepoHelper do
   end)
   ```
   """
+  @spec transaction(fun(), Keyword.t()) :: {:ok, any()} | {:error, any()}
   def transaction(fun, opts \\ []) do
     repo().transaction(fun, opts)
   end
@@ -327,6 +339,7 @@ defmodule HydepwnsLiveview.RepoHelper do
   end)
   ```
   """
+  @spec rollback(any()) :: no_return()
   def rollback(value) do
     repo().rollback(value)
   end
@@ -353,6 +366,7 @@ defmodule HydepwnsLiveview.RepoHelper do
   {count, nil} = RepoHelper.delete_all(from u in User, where: u.status == "inactive")
   ```
   """
+  @spec delete_all(any(), Keyword.t()) :: {non_neg_integer(), nil}
   def delete_all(queryable, opts \\ []) do
     repo().delete_all(queryable, opts)
   end

@@ -6,6 +6,7 @@ defmodule HydepwnsLiveview.ResourceSystem do
   @doc """
   Returns the current resource from the process dictionary.
   """
+  @spec get_current_resource() :: {:ok, any()} | {:error, :no_resource}
   def get_current_resource do
     case Process.get(:current_resource) do
       nil -> {:error, :no_resource}

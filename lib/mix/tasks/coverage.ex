@@ -129,41 +129,58 @@ defmodule Mix.Tasks.Coverage do
 
   @spec generate_coverage_report(any(), any()) :: any()
   defp generate_coverage_report(results, opts) do
+    print_header()
+    print_test_results(results)
+    print_coverage_analysis(results)
+    print_module_coverage(results, opts)
+    print_recommendations(results, opts)
+    print_footer()
+
+    output_dir = opts[:output] || "cover"
+    save_detailed_report(results, output_dir)
+  end
+
+  defp print_header do
     IO.puts("\n" <> String.duplicate("=", 60))
     IO.puts("📊 CUSTOM COVERAGE REPORT")
     IO.puts(String.duplicate("=", 60))
+  end
 
+  defp print_test_results(results) do
     IO.puts("\n📈 Test Results:")
     IO.puts("  Total Tests: #{results.total_tests}")
     IO.puts("  Passing Tests: #{results.passing_tests}")
     IO.puts("  Failing Tests: #{results.failing_tests}")
     IO.puts("  Skipped Tests: #{results.skipped_tests}")
+  end
 
+  defp print_coverage_analysis(results) do
     IO.puts("\n🎯 Coverage Analysis:")
     IO.puts("  Overall Coverage: #{Float.round(results.coverage_percentage, 2)}%")
+    IO.puts("  Status: #{get_coverage_status(results.coverage_percentage)}")
+  end
 
-    # Coverage status
-    coverage_status =
-      cond do
-        results.coverage_percentage >= 80 -> "🟢 Excellent"
-        results.coverage_percentage >= 70 -> "🟡 Good"
-        results.coverage_percentage >= 50 -> "🟠 Fair"
-        true -> "🔴 Needs Improvement"
-      end
+  defp get_coverage_status(percentage) do
+    cond do
+      percentage >= 80 -> "🟢 Excellent"
+      percentage >= 70 -> "🟡 Good"
+      percentage >= 50 -> "🟠 Fair"
+      true -> "🔴 Needs Improvement"
+    end
+  end
 
-    IO.puts("  Status: #{coverage_status}")
-
+  defp print_module_coverage(results, opts) do
     if opts[:detail] do
       IO.puts("\n📁 Module Coverage:")
-
       results.module_coverage
-      # Show top 10 modules
       |> Enum.take(10)
       |> Enum.each(fn {module, test_count} ->
         IO.puts("  #{module}: #{test_count} tests")
       end)
     end
+  end
 
+  defp print_recommendations(results, opts) do
     IO.puts("\n💡 Recommendations:")
 
     if results.failing_tests > 0 do
@@ -171,7 +188,6 @@ defmodule Mix.Tasks.Coverage do
     end
 
     threshold = opts[:threshold] || 70
-
     if results.coverage_percentage < threshold do
       IO.puts("  📝 Add more tests to reach #{threshold}% coverage threshold")
     end
@@ -179,12 +195,10 @@ defmodule Mix.Tasks.Coverage do
     if results.skipped_tests > 0 do
       IO.puts("  ⏭️  Review #{results.skipped_tests} skipped tests")
     end
+  end
 
+  defp print_footer do
     IO.puts("\n" <> String.duplicate("=", 60))
-
-    # Save detailed report to file
-    output_dir = opts[:output] || "cover"
-    save_detailed_report(results, output_dir)
   end
 
   @spec save_detailed_report(any(), any()) :: any()

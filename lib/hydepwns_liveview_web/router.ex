@@ -10,6 +10,15 @@ defmodule HydepwnsLiveviewWeb.Router do
     plug :put_secure_browser_headers
   end
 
+  pipeline :browser_app do
+    plug :accepts, ["html"]
+    plug :fetch_session
+    plug :fetch_live_flash
+    plug :put_root_layout, html: {HydepwnsLiveviewWeb.Layouts, :app}
+    plug :protect_from_forgery
+    plug :put_secure_browser_headers
+  end
+
   pipeline :api do
     plug :accepts, ["json"]
     plug :fetch_session
@@ -103,8 +112,14 @@ defmodule HydepwnsLiveviewWeb.Router do
     get "/favicon.ico", PageController, :favicon
     get "/images/favicon-32x32.png", PageController, :favicon_32
     get "/images/favicon-16x16.png", PageController, :favicon_16
+  end
+
+  # Main application routes
+  scope "/", HydepwnsLiveviewWeb do
+    pipe_through :browser
 
     live "/", HomeLive, :index, as: :home
+
     live "/about", AboutLive, :index, as: :about
     live "/projects", ProjectsLive, :index, as: :projects
     live "/style-guide", StyleGuideLive, :index, as: :style_guide

@@ -226,9 +226,7 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
         <.accessibility_menu />
       </div>
 
-      <div class="theme-toggle-container">
-        <.theme_toggle />
-      </div>
+
 
       <%= if @show_toc do %>
         <div class="content-with-toc">
@@ -387,7 +385,6 @@ defmodule HydepwnsLiveviewWeb.HomeLive do
         </div>
       <% end %>
 
-      <.debug_grid />
     </div>
     """
   end

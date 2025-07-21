@@ -101,42 +101,46 @@ defmodule HydepwnsLiveviewWeb.BaseLive do
   end
 
   def on_mount(:require_theme_and_resource, _params, _session, socket) do
-    with {:ok, theme} <- HydepwnsLiveview.ThemeSystem.get_current_theme(),
-         {:ok, resource} <- HydepwnsLiveview.ResourceSystem.get_current_resource() do
-      {:cont, assign(socket, current_theme: theme, current_resource: resource)}
-    else
+    case {HydepwnsLiveview.ThemeSystem.get_current_theme(),
+          HydepwnsLiveview.ResourceSystem.get_current_resource()} do
+      {{:ok, theme}, {:ok, resource}} ->
+        {:cont, assign(socket, current_theme: theme, current_resource: resource)}
+
       _ ->
         {:halt, redirect(socket, to: ~p"/themes/new")}
     end
   end
 
   def on_mount(:require_theme_and_bridge, _params, _session, socket) do
-    with {:ok, theme} <- HydepwnsLiveview.ThemeSystem.get_current_theme(),
-         {:ok, bridge} <- HydepwnsLiveview.Bridge.get_current_bridge() do
-      {:cont, assign(socket, current_theme: theme, current_bridge: bridge)}
-    else
+    case {HydepwnsLiveview.ThemeSystem.get_current_theme(),
+          HydepwnsLiveview.Bridge.get_current_bridge()} do
+      {{:ok, theme}, {:ok, bridge}} ->
+        {:cont, assign(socket, current_theme: theme, current_bridge: bridge)}
+
       _ ->
         {:halt, redirect(socket, to: ~p"/themes/new")}
     end
   end
 
   def on_mount(:require_resource_and_bridge, _params, _session, socket) do
-    with {:ok, resource} <- HydepwnsLiveview.ResourceSystem.get_current_resource(),
-         {:ok, bridge} <- HydepwnsLiveview.Bridge.get_current_bridge() do
-      {:cont, assign(socket, current_resource: resource, current_bridge: bridge)}
-    else
+    case {HydepwnsLiveview.ResourceSystem.get_current_resource(),
+          HydepwnsLiveview.Bridge.get_current_bridge()} do
+      {{:ok, resource}, {:ok, bridge}} ->
+        {:cont, assign(socket, current_resource: resource, current_bridge: bridge)}
+
       _ ->
         {:halt, redirect(socket, to: ~p"/resources/new")}
     end
   end
 
   def on_mount(:require_all, _params, _session, socket) do
-    with {:ok, theme} <- HydepwnsLiveview.ThemeSystem.get_current_theme(),
-         {:ok, resource} <- HydepwnsLiveview.ResourceSystem.get_current_resource(),
-         {:ok, bridge} <- HydepwnsLiveview.Bridge.get_current_bridge() do
-      {:cont,
-       assign(socket, current_theme: theme, current_resource: resource, current_bridge: bridge)}
-    else
+    case {HydepwnsLiveview.ThemeSystem.get_current_theme(),
+          HydepwnsLiveview.ResourceSystem.get_current_resource(),
+          HydepwnsLiveview.Bridge.get_current_bridge()} do
+      {{:ok, theme}, {:ok, resource}, {:ok, bridge}} ->
+        {:cont,
+         assign(socket, current_theme: theme, current_resource: resource, current_bridge: bridge)}
+
       _ ->
         {:halt, redirect(socket, to: ~p"/themes/new")}
     end

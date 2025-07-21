@@ -1,4 +1,4 @@
-<div class="container mx-auto px-4 py-8">
+<div class="container">
   <.live_component module={HydepwnsLiveviewWeb.NotificationComponent} id="resource-notifications" notifications={@notifications} />
 
   <div class="flex justify-between items-center mb-8">
@@ -38,6 +38,7 @@
       </div>
     </div>
   </div>
+
 
   <%= if Enum.empty?(@resources) do %>
     <div class="text-gray-500 text-center py-8">

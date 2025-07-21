@@ -69,22 +69,7 @@
       </ul>
     </div>
 
-    <nav class="bg-gray-800 text-white">
-      <div class="container mx-auto px-4 py-3">
-        <div class="flex justify-between items-center">
-          <div class="flex items-center space-x-4">
-            <.link navigate={~p"/"} class="text-xl font-bold">HydePwns</.link>
-            <.link navigate={~p"/resources"} class="hover:text-gray-300" data-test-id="nav-link-resources">Resources</.link>
-            <.link navigate={~p"/events"} class="hover:text-gray-300">Events</.link>
-          </div>
-          <div class="flex items-center space-x-4">
-            <.link navigate={~p"/account"} class="hover:text-gray-300">Account</.link>
-          </div>
-        </div>
-      </div>
-    </nav>
-
-    <div class="container mx-auto px-4 py-8">
+    <div class="container">
       {@inner_content}
     </div>
   </main>

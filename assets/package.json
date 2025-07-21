@@ -11,6 +11,7 @@
     "analyze": "esbuild js/app.js --bundle --minify --sourcemap --target=es2017 --outdir=../priv/static/assets && source-map-explorer ../priv/static/assets/app.js"
   },
   "devDependencies": {
-    "esbuild": "^0.25.5"
+    "esbuild": "^0.25.5",
+    "sass": "^1.89.2"
   }
 }

@@ -205,7 +205,7 @@ defmodule HydepwnsLiveview.SignalProtocol do
       end
     else
       try do
-        case :libsignal_protocol_nif.get_cache_stats(session) do
+        case :libsignal_protocol_nif.get_cache_stats(session, [], []) do
           stats -> stats
         end
       rescue
@@ -230,7 +230,7 @@ defmodule HydepwnsLiveview.SignalProtocol do
       end
     else
       try do
-        case :libsignal_protocol_nif.reset_cache_stats(session) do
+        case :libsignal_protocol_nif.reset_cache_stats(session, []) do
           :ok -> :ok
         end
       rescue
@@ -256,7 +256,7 @@ defmodule HydepwnsLiveview.SignalProtocol do
       end
     else
       try do
-        case :libsignal_protocol_nif.set_cache_size(session, chain_key_size, root_key_size) do
+        case :libsignal_protocol_nif.set_cache_size(session, chain_key_size) do
           :ok -> :ok
         end
       rescue

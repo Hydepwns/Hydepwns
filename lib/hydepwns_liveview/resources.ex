@@ -207,19 +207,16 @@ defmodule HydepwnsLiveview.Resources do
   @doc """
   Creates a relationship between two resources.
   """
+  @spec create_relationship(resource_id(), resource_id()) :: {:ok, any()}
   def create_relationship(parent_id, child_id) do
-    case RelationshipManager.create_relationship(parent_id, child_id, "parent_child") do
-      {:ok, relationship} ->
-        # Update the child resource with the parent_id
-        child = get_resource!(child_id)
-        update_resource(child, %{parent_id: parent_id})
-        {:ok, relationship}
-
-      error ->
-        error
-    end
+    {:ok, relationship} = RelationshipManager.create_relationship(parent_id, child_id, "parent_child")
+    # Update the child resource with the parent_id
+    child = get_resource!(child_id)
+    update_resource(child, %{parent_id: parent_id})
+    {:ok, relationship}
   end
 
+  @spec remove_relationship(resource_id(), resource_id()) :: {:ok, any()}
   @doc """
   Removes a relationship between two resources.
   """
@@ -233,6 +230,7 @@ defmodule HydepwnsLiveview.Resources do
   @doc """
   Retrieves a resource by ID.
   """
+  @spec get_resource(resource_id()) :: {:ok, Resource.t()} | {:error, :not_found}
   def get_resource(id) do
     case ResourceSystem.get_resource(id) do
       {:ok, resource} -> resource

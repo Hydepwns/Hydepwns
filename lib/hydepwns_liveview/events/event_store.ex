@@ -10,7 +10,7 @@ defmodule HydepwnsLiveview.Events.EventStore do
   alias HydepwnsLiveview.Events.Schemas.{ReplaySession, Snapshot, VersionedState}
   alias HydepwnsLiveview.Events.Core.Event
   import Ecto.Query, warn: false
-  alias HydepwnsLiveview.Repo
+  # alias HydepwnsLiveview.Repo  # Unused alias
 
   # Get the configured event store module, defaulting to EventOperations
   @dialyzer {:nowarn_function, event_store_module: 0}

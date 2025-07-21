@@ -9,7 +9,7 @@ defmodule HydepwnsLiveview.Events.EventOperations do
 
   @compile :nowarn_unused_functions
 
-  import Ecto.Query
+  # import Ecto.Query  # Unused import
   require Logger
   alias HydepwnsLiveview.Repo
   alias HydepwnsLiveview.Events.Core.Event
